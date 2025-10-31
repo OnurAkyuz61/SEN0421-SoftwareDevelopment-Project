@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <!-- Karakter kodlaması ve viewport ayarları -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Sayfa başlığı -->
+  <title data-tr="Trabzon Airlines - İletişim" data-en="Trabzon Airlines - Contact">Trabzon Airlines - İletişim</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../assets/icons/favicon.ico">
+  
+  <!-- Font Awesome ikonları -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <!-- Özel CSS dosyaları -->
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/contact.css">
+</head>
+
+<body>
+
+<!-- HEADER - Üst navigasyon çubuğu -->
+<header class="main-header">
+  <!-- Sol taraf - Logo ve mobil menü butonu -->
+  <div class="header-left">
+    <!-- Mobil cihazlar için hamburger menü butonu -->
+    <button class="mobile-menu-btn" onclick="toggleSidebarMobile()" aria-label="Menüyü aç/kapat">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    
+    <!-- Site logosu -->
+    <div class="logo-container">
+      <img src="https://pngimg.com/d/air_canada_PNG21.png" class="site-logo" alt="Trabzon Airlines Logo">
+      <span class="logo-text">Trabzon Airlines</span>
+    </div>
+  </div>
+
+  <!-- Sağ taraf - Arama, dil seçimi ve giriş butonları -->
+  <div class="header-right">
+    <!-- Arama butonu -->
+    <div class="header-search" onclick="toggleSearch()">
+      <span data-tr="Arama" data-en="Search">Arama</span>
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+
+    <!-- Dil ve para birimi seçici -->
+    <div class="dropdown-select" onclick="openLangModal()">
+        <img id="headerFlag" src="https://flagcdn.com/w20/tr.png" class="flag-icon" alt="Dil bayrağı">
+        <span id="headerLang">Türkçe</span>
+        <span id="headerCurrency">₺</span>
+        <i class="fa-solid fa-chevron-down"></i>
+    </div>
+
+    <!-- Kayıt ol ve giriş yap butonları -->
+    <button class="join-btn" onclick="window.location.href='signup.html'" data-tr="Kayıt Ol" data-en="Sign Up">Kayıt Ol</button>
+    <button class="signin-btn" onclick="window.location.href='login.html'" data-tr="Giriş Yap" data-en="Login">Giriş Yap</button>
+  </div>
+</header>
+
+<!-- SIDEBAR - Yan navigasyon menüsü -->
+<div class="sidebar" id="sidebar">
+  <!-- Ana menü listesi -->
+  <ul class="menu">
+    <!-- Uçuş rezervasyonu -->
+    <li><a href="../index.html"><i class="fa-solid fa-plane"></i> <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span></a></li>
+    <!-- Paket turlar -->
+    <li><a href="#"><i class="fa-solid fa-suitcase-rolling"></i> <span data-tr="Paketler" data-en="Packages">Paketler</span></a></li>
+    <!-- Özel teklifler -->
+    <li><a href="#"><i class="fa-solid fa-tag"></i> <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span></a></li>
+
+    <!-- Menü ayırıcısı -->
+    <hr class="menu-divider">
+
+    <!-- Seyahat planları -->
+    <li><a href="#"><i class="fa-solid fa-map"></i> <span data-tr="Seyahatler" data-en="Trips">Seyahatler</span></a></li>
+    <!-- Online check-in -->
+    <li><a href="#"><i class="fa-solid fa-clipboard-check"></i> <span data-tr="Check-in" data-en="Check-in">Check-in</span></a></li>
+    <!-- Uçuş durumu sorgulama -->
+    <li><a href="#"><i class="fa-solid fa-list-check"></i> <span data-tr="Uçuş Durumu" data-en="Flight Status">Uçuş Durumu</span></a></li>
+
+    <!-- Menü ayırıcısı -->
+    <hr class="menu-divider">
+
+    <!-- Hakkımızda sayfası -->
+    <li><a href="about.html"><i class="fa-solid fa-info-circle"></i> <span data-tr="Hakkımızda" data-en="About Us">Hakkımızda</span></a></li>
+    <!-- İletişim sayfası -->
+    <li><a href="contact.html" class="active"><i class="fa-solid fa-envelope"></i> <span data-tr="İletişim" data-en="Contact">İletişim</span></a></li>
+    <!-- Müşteri hizmetleri -->
+    <li><a href="#"><i class="fa-solid fa-headset"></i> <span data-tr="Destek" data-en="Support">Destek</span></a></li>
+
+    <!-- Menü ayırıcısı -->
+    <hr class="menu-divider">
+
+    <!-- Otel rezervasyonu -->
+    <li><a href="#"><i class="fa-solid fa-bed"></i> <span data-tr="Oteller" data-en="Hotels">Oteller</span></a></li>
+    <!-- Araç kiralama -->
+    <li><a href="#"><i class="fa-solid fa-car"></i> <span data-tr="Araç Kiralama" data-en="Car Rental">Araç Kiralama</span></a></li>
+    <!-- Uçuş geçişleri -->
+    <li><a href="#"><i class="fa-solid fa-ticket"></i> <span data-tr="Uçuş Geçişleri" data-en="Flight Passes">Uçuş Geçişleri</span></a></li>
+  </ul>
+
+  <!-- Daha fazla seçenekler -->
+  <div class="sidebar-more">
+    <a href="#"><i class="fa-solid fa-ellipsis"></i><span data-tr="Daha Fazla" data-en="More">Daha Fazla</span></a>
+  </div>
+</div>
+
+<!-- Mobil cihazlarda sidebar kapatmak için arka plan overlay -->
+<div id="drawerOverlay" class="drawer-overlay" onclick="closeMobileSidebar()"></div>
+
+<!-- Desktop'ta sidebar'ı açıp kapatmak için buton -->
+<button class="toggle-btn-outside" id="toggleButton" onclick="toggleSidebar()" aria-label="Sidebar'ı aç/kapat">
+  <i id="toggleIcon" class="fa-solid fa-angles-left"></i>
+</button>
+
+<!-- Ana site içeriği -->
+<div class="site">
+<main class="page-content">
+
+<!-- CONTACT HERO SECTION - İletişim ana bölümü -->
+<section class="contact-hero">
+  <div class="container">
+    <div class="contact-hero-content">
+      <!-- Ana başlık -->
+      <h1 class="contact-title" data-tr="Bizimle İletişime Geçin" data-en="Get in Touch with Us">Bizimle İletişime Geçin</h1>
+      
+      <!-- Alt başlık -->
+      <p class="contact-subtitle" data-tr="Sorularınız, önerileriniz veya şikayetleriniz için bize ulaşın" data-en="Contact us for your questions, suggestions or complaints">
+        Sorularınız, önerileriniz veya şikayetleriniz için bize ulaşın
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT INFO SECTION - İletişim bilgileri bölümü -->
+<section class="contact-info">
+  <div class="container">
+    <div class="contact-grid">
+      
+      <!-- İletişim kartları -->
+      <div class="contact-cards">
+        
+        <!-- Telefon -->
+        <div class="contact-card">
+          <div class="contact-icon">
+            <i class="fa-solid fa-phone"></i>
+          </div>
+          <h3 data-tr="Telefon" data-en="Phone">Telefon</h3>
+          <p data-tr="7/24 Müşteri Hizmetleri" data-en="24/7 Customer Service">7/24 Müşteri Hizmetleri</p>
+          <a href="tel:+904622300000" class="contact-link">+90 (462) 230 00 00</a>
+        </div>
+
+        <!-- E-posta -->
+        <div class="contact-card">
+          <div class="contact-icon">
+            <i class="fa-solid fa-envelope"></i>
+          </div>
+          <h3 data-tr="E-posta" data-en="Email">E-posta</h3>
+          <p data-tr="Genel Bilgi ve Destek" data-en="General Information and Support">Genel Bilgi ve Destek</p>
+          <a href="mailto:info@trabzonairlines.com" class="contact-link">info@trabzonairlines.com</a>
+        </div>
+
+        <!-- Adres -->
+        <div class="contact-card">
+          <div class="contact-icon">
+            <i class="fa-solid fa-map-marker-alt"></i>
+          </div>
+          <h3 data-tr="Adres" data-en="Address">Adres</h3>
+          <p data-tr="Genel Merkez" data-en="Headquarters">Genel Merkez</p>
+          <address class="contact-address" data-tr="Trabzon Havalimanı, 61000 Trabzon, Türkiye" data-en="Trabzon Airport, 61000 Trabzon, Turkey">
+            Trabzon Havalimanı, 61000 Trabzon, Türkiye
+          </address>
+        </div>
+
+        <!-- Çalışma Saatleri -->
+        <div class="contact-card">
+          <div class="contact-icon">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+          <h3 data-tr="Çalışma Saatleri" data-en="Working Hours">Çalışma Saatleri</h3>
+          <p data-tr="Ofis Saatleri" data-en="Office Hours">Ofis Saatleri</p>
+          <div class="working-hours">
+            <p data-tr="Pazartesi - Cuma: 08:00 - 18:00" data-en="Monday - Friday: 08:00 - 18:00">Pazartesi - Cuma: 08:00 - 18:00</p>
+            <p data-tr="Cumartesi: 09:00 - 17:00" data-en="Saturday: 09:00 - 17:00">Cumartesi: 09:00 - 17:00</p>
+            <p data-tr="Pazar: Kapalı" data-en="Sunday: Closed">Pazar: Kapalı</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- İletişim formu -->
+      <div class="contact-form-container">
+        <h2 class="form-title" data-tr="Mesaj Gönderin" data-en="Send Message">Mesaj Gönderin</h2>
+        
+        <form class="contact-form" id="contactForm" onsubmit="submitContactForm(event)">
+          
+          <!-- Ad Soyad -->
+          <div class="form-group">
+            <label for="fullName" data-tr="Ad Soyad *" data-en="Full Name *">Ad Soyad *</label>
+            <input type="text" id="fullName" name="fullName" required 
+                   placeholder="Adınızı ve soyadınızı girin" 
+                   data-placeholder-tr="Adınızı ve soyadınızı girin" 
+                   data-placeholder-en="Enter your full name">
+          </div>
+
+          <!-- E-posta -->
+          <div class="form-group">
+            <label for="email" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
+            <input type="email" id="email" name="email" required 
+                   placeholder="ornek@email.com" 
+                   data-placeholder-tr="ornek@email.com" 
+                   data-placeholder-en="example@email.com">
+          </div>
+
+          <!-- Telefon -->
+          <div class="form-group">
+            <label for="phone" data-tr="Telefon Numarası" data-en="Phone Number">Telefon Numarası</label>
+            <input type="tel" id="phone" name="phone" 
+                   placeholder="+90 5XX XXX XX XX" 
+                   data-placeholder-tr="+90 5XX XXX XX XX" 
+                   data-placeholder-en="+90 5XX XXX XX XX">
+          </div>
+
+          <!-- Konu -->
+          <div class="form-group">
+            <label for="subject" data-tr="Konu *" data-en="Subject *">Konu *</label>
+            <select id="subject" name="subject" required>
+              <option value="" data-tr="Konu seçin" data-en="Select subject">Konu seçin</option>
+              <option value="reservation" data-tr="Rezervasyon" data-en="Reservation">Rezervasyon</option>
+              <option value="complaint" data-tr="Şikayet" data-en="Complaint">Şikayet</option>
+              <option value="suggestion" data-tr="Öneri" data-en="Suggestion">Öneri</option>
+              <option value="lost-found" data-tr="Kayıp Eşya" data-en="Lost & Found">Kayıp Eşya</option>
+              <option value="refund" data-tr="İade Talebi" data-en="Refund Request">İade Talebi</option>
+              <option value="other" data-tr="Diğer" data-en="Other">Diğer</option>
+            </select>
+          </div>
+
+          <!-- Rezervasyon Numarası -->
+          <div class="form-group">
+            <label for="reservationNumber" data-tr="Rezervasyon Numarası" data-en="Reservation Number">Rezervasyon Numarası</label>
+            <input type="text" id="reservationNumber" name="reservationNumber" 
+                   placeholder="TZX123456" 
+                   data-placeholder-tr="TZX123456" 
+                   data-placeholder-en="TZX123456">
+          </div>
+
+          <!-- Mesaj -->
+          <div class="form-group">
+            <label for="message" data-tr="Mesajınız *" data-en="Your Message *">Mesajınız *</label>
+            <textarea id="message" name="message" rows="5" required 
+                      placeholder="Mesajınızı buraya yazın..." 
+                      data-placeholder-tr="Mesajınızı buraya yazın..." 
+                      data-placeholder-en="Write your message here..."></textarea>
+          </div>
+
+          <!-- KVKK Onayı -->
+          <div class="form-group checkbox-group">
+            <input type="checkbox" id="kvkk" name="kvkk" required>
+            <label for="kvkk" class="checkbox-label">
+              <span data-tr="Kişisel verilerimin işlenmesine ve " data-en="I agree to the processing of my personal data and ">Kişisel verilerimin işlenmesine ve </span>
+              <a href="#" data-tr="KVKK Aydınlatma Metni" data-en="Privacy Policy">KVKK Aydınlatma Metni</a>
+              <span data-tr="'ni okuduğumu kabul ediyorum. *" data-en=" and confirm that I have read it. *">'ni okuduğumu kabul ediyorum. *</span>
+            </label>
+          </div>
+
+          <!-- Gönder butonu -->
+          <button type="submit" class="submit-btn" data-tr="Mesajı Gönder" data-en="Send Message">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span data-tr="Mesajı Gönder" data-en="Send Message">Mesajı Gönder</span>
+          </button>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FAQ SECTION - Sık sorulan sorular bölümü -->
+<section class="faq-section">
+  <div class="container">
+    <h2 class="section-title" data-tr="Sık Sorulan Sorular" data-en="Frequently Asked Questions">Sık Sorulan Sorular</h2>
+    
+    <div class="faq-container">
+      
+      <!-- FAQ öğesi 1 -->
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(1)">
+          <span data-tr="Rezervasyon nasıl yapabilirim?" data-en="How can I make a reservation?">Rezervasyon nasıl yapabilirim?</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer" id="faq-1">
+          <p data-tr="Web sitemizden, mobil uygulamamızdan veya çağrı merkezimizi arayarak rezervasyon yapabilirsiniz. Online rezervasyon 7/24 hizmet vermektedir." 
+             data-en="You can make reservations through our website, mobile app, or by calling our call center. Online reservation is available 24/7.">
+            Web sitemizden, mobil uygulamamızdan veya çağrı merkezimizi arayarak rezervasyon yapabilirsiniz. Online rezervasyon 7/24 hizmet vermektedir.
+          </p>
+        </div>
+      </div>
+
+      <!-- FAQ öğesi 2 -->
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(2)">
+          <span data-tr="Bagaj hakkım nedir?" data-en="What is my baggage allowance?">Bagaj hakkım nedir?</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer" id="faq-2">
+          <p data-tr="Ekonomi sınıfında 20 kg, business sınıfında 30 kg bagaj hakkınız bulunmaktadır. Kabin bagajı için 8 kg sınırı vardır." 
+             data-en="You have 20 kg baggage allowance in economy class and 30 kg in business class. Cabin baggage limit is 8 kg.">
+            Ekonomi sınıfında 20 kg, business sınıfında 30 kg bagaj hakkınız bulunmaktadır. Kabin bagajı için 8 kg sınırı vardır.
+          </p>
+        </div>
+      </div>
+
+      <!-- FAQ öğesi 3 -->
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(3)">
+          <span data-tr="Check-in işlemini ne zaman yapabilirim?" data-en="When can I check-in?">Check-in işlemini ne zaman yapabilirim?</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer" id="faq-3">
+          <p data-tr="Online check-in uçuştan 24 saat önce açılır ve kalkıştan 2 saat öncesine kadar yapılabilir. Havalimanında check-in kalkıştan 3 saat önce başlar." 
+             data-en="Online check-in opens 24 hours before flight and can be done until 2 hours before departure. Airport check-in starts 3 hours before departure.">
+            Online check-in uçuştan 24 saat önce açılır ve kalkıştan 2 saat öncesine kadar yapılabilir. Havalimanında check-in kalkıştan 3 saat önce başlar.
+          </p>
+        </div>
+      </div>
+
+      <!-- FAQ öğesi 4 -->
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(4)">
+          <span data-tr="İptal ve değişiklik koşulları nelerdir?" data-en="What are the cancellation and change conditions?">İptal ve değişiklik koşulları nelerdir?</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="faq-answer" id="faq-4">
+          <p data-tr="Bilet türüne göre değişiklik ve iptal koşulları farklılık gösterir. Esnek biletlerde ücretsiz değişiklik hakkı bulunmaktadır. Detaylar için satış koşullarını inceleyebilirsiniz." 
+             data-en="Change and cancellation conditions vary according to ticket type. Flexible tickets include free change rights. You can review the terms of sale for details.">
+            Bilet türüne göre değişiklik ve iptal koşulları farklılık gösterir. Esnek biletlerde ücretsiz değişiklik hakkı bulunmaktadır. Detaylar için satış koşullarını inceleyebilirsiniz.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<!-- MOBILE BOTTOM NAV - Mobil alt navigasyon -->
+<nav class="mobile-bottom-nav">
+  <!-- Uçuşlar -->
+  <a href="../index.html" class="nav-item">
+    <i class="fa-solid fa-plane"></i>
+    <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span>
+  </a>
+
+  <!-- Seyahatler -->
+  <a href="#" class="nav-item">
+    <i class="fa-solid fa-map"></i>
+    <span data-tr="Seyahatler" data-en="Trips">Seyahatler</span>
+  </a>
+
+  <!-- Durum -->
+  <a href="#" class="nav-item">
+    <i class="fa-solid fa-list-check"></i>
+    <span data-tr="Durum" data-en="Status">Durum</span>
+  </a>
+
+  <!-- Fırsatlar -->
+  <a href="#" class="nav-item">
+    <i class="fa-solid fa-tag"></i>
+    <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span>
+  </a>
+
+  <!-- İletişim -->
+  <a href="contact.html" class="nav-item active">
+    <i class="fa-solid fa-envelope"></i>
+    <span data-tr="İletişim" data-en="Contact">İletişim</span>
+  </a>
+</nav>
+
+<!-- LANGUAGE & CURRENCY MODAL - Dil ve para birimi seçim modal'ı -->
+<div class="lang-modal" id="langModal">
+  <div class="lang-modal-content">
+    <!-- Modal kapatma butonu -->
+    <button class="lang-modal-close" onclick="closeLangModal()" aria-label="Modal'ı kapat">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <!-- Para birimi seçimi -->
+    <h6 class="modal-title" data-tr="Ülke/Bölge - Para Birimi Seçin" data-en="Select Country/Region - Currency">Ülke/Bölge - Para Birimi Seçin</h6>
+    <select id="currencySelect" class="modal-select">
+        <option value="₺" data-tr="Türkiye - ₺" data-en="Turkey - ₺">Türkiye - ₺</option>
+        <option value="US$" data-tr="Amerika Birleşik Devletleri - US$" data-en="United States - US$">Amerika Birleşik Devletleri - US$</option>
+        <option value="€" data-tr="Avrupa - €" data-en="Europe - €">Avrupa - €</option>
+        <option value="£" data-tr="Birleşik Krallık - £" data-en="United Kingdom - £">Birleşik Krallık - £</option>
+    </select>
+
+    <!-- Bilgilendirme metni -->
+    <small class="modal-info" data-tr="Seçilen para biriminde faturalandırılacaksınız" data-en="You will be billed in selected currency">
+      Seçilen para biriminde faturalandırılacaksınız
+    </small>
+
+    <!-- Dil seçimi -->
+    <h6 class="modal-title" data-tr="Dil Seçin" data-en="Select Language">Dil Seçin</h6>
+    <select id="languageSelect" class="modal-select">
+        <option value="tr" data-tr="Türkçe" data-en="Turkish">Türkçe</option>
+        <option value="en" data-tr="İngilizce" data-en="English">İngilizce</option>
+    </select>
+
+    <!-- Onay butonu -->
+    <button class="modal-confirm-btn" onclick="confirmLanguageChange()" data-tr="Onayla" data-en="Confirm">
+      Onayla
+    </button>
+  </div>
+</div>
+
+<!-- FOOTER - Alt bilgi -->
+<footer class="main-footer">
+  <div class="footer-content">
+    <p>&copy; 2025 Trabzon Airlines | <span data-tr="Tüm hakları saklıdır" data-en="All rights reserved">Tüm hakları saklıdır</span></p>
+    <div class="footer-links">
+      <a href="about.html" data-tr="Hakkımızda" data-en="About Us">Hakkımızda</a>
+      <a href="contact.html" data-tr="İletişim" data-en="Contact">İletişim</a>
+      <a href="#" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</a>
+    </div>
+  </div>
+</footer>
+
+<!-- JavaScript dosyaları -->
+<script src="../js/script.js"></script>
+
+</body>
+</html>
