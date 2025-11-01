@@ -1,11 +1,25 @@
 /* ================== AUTH PAGES STYLES ================== */
 /* Login ve Signup sayfaları özel stilleri */
+/* 
+ * Bu dosya kimlik doğrulama sayfaları (login, signup) için özel stiller içerir.
+ * 
+ * İçerik:
+ * - Auth sayfası genel layout (iki kolonlu tasarım)
+ * - Form stilleri ve validasyon
+ * - Bilgi paneli ve avantajlar listesi
+ * - Sosyal medya login butonları
+ * - Modal düzeltmeleri
+ * - Responsive tasarım kuralları
+ * - Animasyonlar
+ */
 
 /* Auth sayfası genel layout */
 .auth-page {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
   padding-top: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Auth header */
@@ -64,8 +78,8 @@
 
 /* Auth ana bölüm */
 .auth-section {
-  padding: 3rem 1rem;
-  min-height: calc(100vh - 80px);
+  padding: 3rem 1rem 1rem 1rem;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -74,9 +88,10 @@
 .auth-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  max-width: 1200px;
+  gap: 3rem;
+  max-width: 1400px;
   width: 100%;
+  align-items: stretch;
 }
 
 /* Auth kartı */
@@ -398,8 +413,15 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  max-height: 90vh;
+  height: 100%;
   overflow-y: auto;
+  animation: slideInUp 0.6s ease;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .info-content h2 {
@@ -412,15 +434,15 @@
 .info-content p {
   color: var(--gray);
   line-height: 1.6;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .benefit-item {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.6rem;
   background: var(--light-gray);
   border-radius: var(--radius-small);
   transition: all var(--transition-fast) ease;
@@ -433,38 +455,38 @@
 
 .benefit-item i {
   color: var(--primary-color);
-  font-size: 1.5rem;
-  margin-top: 0.25rem;
-  min-width: 24px;
+  font-size: 1.3rem;
+  margin-top: 0.2rem;
+  min-width: 20px;
 }
 
 .benefit-item h4 {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
   color: var(--black);
 }
 
 .benefit-item p {
   color: var(--gray);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 /* İstatistikler bölümü */
 .membership-stats {
-  margin: 2rem 0;
-  padding: 2rem;
+  margin: 1.5rem 0;
+  padding: 1.5rem;
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
   border-radius: var(--radius-medium);
   color: var(--white);
 }
 
 .membership-stats h3 {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   text-align: center;
 }
 
@@ -497,8 +519,8 @@
 
 /* Güvenlik bilgileri */
 .security-info {
-  margin: 2rem 0;
-  padding: 1.5rem;
+  margin: 1.5rem 0;
+  padding: 1rem;
   background: #f8f9fa;
   border-radius: var(--radius-medium);
   border-left: 4px solid var(--secondary-color);
@@ -651,6 +673,13 @@
 }
 
 /* Responsive tasarım */
+@media (max-width: 1200px) {
+  .auth-container {
+    gap: 2rem;
+    max-width: 1200px;
+  }
+}
+
 @media (max-width: 992px) {
   .auth-container {
     grid-template-columns: 1fr;
@@ -767,4 +796,48 @@
   .security-item {
     padding: 0.5rem;
   }
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Footer auth sayfalarında */
+.auth-page .main-footer {
+  margin-top: 0;
+  background: var(--dark-gray);
+  position: relative;
+  z-index: 1;
+}
+
+.auth-page .footer-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Auth sayfalarında modal z-index düzeltmesi */
+.auth-page .lang-modal {
+  z-index: 10000 !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(6px) !important;
 }

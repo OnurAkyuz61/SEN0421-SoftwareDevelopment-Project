@@ -1,6 +1,20 @@
 /* ================== GLOBAL VARIABLES & RESET ================== */
 /* Trabzon Airlines - Ana CSS Dosyası */
 /* Proje: COM5005 Web Programming - Grup 20 */
+/* 
+ * Bu dosya Trabzon Airlines web sitesinin ana stil dosyasıdır.
+ * Tüm sayfalar için ortak stiller, değişkenler ve responsive tasarım kuralları içerir.
+ * 
+ * İçerik:
+ * - CSS Değişkenleri (Renkler, boyutlar, animasyonlar)
+ * - Reset ve temel stiller
+ * - Header ve navigasyon stilleri
+ * - Sidebar menü stilleri
+ * - Hero bölümü ve arama formu
+ * - Modal stilleri
+ * - Footer stilleri
+ * - Responsive tasarım kuralları
+ */
 
 :root {
   /* Ana renkler - Trabzon Airlines teması */
@@ -53,9 +67,14 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   line-height: 1.6;
   color: var(--black);
-  background-color: var(--white);
+  background-color: #f0f2f5;
   overflow-x: hidden;
   padding-top: var(--header-height);
+}
+
+/* Modal açıkken body scroll'unu engelle */
+body.modal-open {
+  overflow: hidden;
 }
 
 /* Temel tipografi */
@@ -379,7 +398,6 @@ body.sidebar-collapsed .page-content {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
   color: var(--white);
   padding: 4rem 0;
-  margin: -2rem -1rem 2rem -1rem;
   position: relative;
   overflow: hidden;
 }
@@ -413,6 +431,8 @@ body.sidebar-collapsed .page-content {
   color: var(--black);
   position: relative;
   z-index: 10;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .search-options {
@@ -1380,12 +1400,12 @@ body.sidebar-collapsed .page-content {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.8);
   display: none;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
-  backdrop-filter: blur(2px);
+  z-index: 9999;
+  backdrop-filter: blur(4px);
 }
 
 .lang-modal.show {
@@ -1396,11 +1416,14 @@ body.sidebar-collapsed .page-content {
   background: var(--white);
   border-radius: var(--radius-medium);
   padding: 2rem;
-  max-width: 400px;
-  width: 90%;
+  max-width: 450px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
   box-shadow: var(--shadow-heavy);
   animation: modalSlideIn var(--transition-normal) ease;
+  margin: 1rem;
 }
 
 @keyframes modalSlideIn {
@@ -1467,6 +1490,38 @@ body.sidebar-collapsed .page-content {
 
 .modal-confirm-btn:hover {
   background: var(--primary-dark);
+}
+
+/* Modal responsive */
+@media (max-width: 768px) {
+  .lang-modal-content {
+    padding: 1.5rem;
+    max-width: 95%;
+    margin: 0.5rem;
+  }
+  
+  .lang-modal-close {
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .lang-modal-content {
+    padding: 1rem;
+    width: 98%;
+    margin: 0.25rem;
+    border-radius: var(--radius-small);
+  }
+  
+  .modal-title {
+    font-size: 1.1rem;
+  }
+  
+  .modal-select {
+    font-size: 0.9rem;
+  }
 }
 
 /* ================== RESPONSIVE DESIGN ================== */
