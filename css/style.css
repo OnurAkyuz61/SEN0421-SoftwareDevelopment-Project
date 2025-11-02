@@ -1,21 +1,4 @@
 /* ================== GLOBAL VARIABLES & RESET ================== */
-/* Trabzon Airlines - Ana CSS Dosyası */
-/* Proje: COM5005 Web Programming - Grup 20 */
-/* 
- * Bu dosya Trabzon Airlines web sitesinin ana stil dosyasıdır.
- * Tüm sayfalar için ortak stiller, değişkenler ve responsive tasarım kuralları içerir.
- * 
- * İçerik:
- * - CSS Değişkenleri (Renkler, boyutlar, animasyonlar)
- * - Reset ve temel stiller
- * - Header ve navigasyon stilleri
- * - Sidebar menü stilleri
- * - Hero bölümü ve arama formu
- * - Modal stilleri
- * - Footer stilleri
- * - Responsive tasarım kuralları
- */
-
 :root {
   /* Ana renkler - Trabzon Airlines teması */
   --primary-color: #e4002b;
@@ -1635,5 +1618,126 @@ body.sidebar-collapsed .page-content {
   .hero {
     background: none !important;
     color: var(--black) !important;
+  }
+}
+
+/* ================== MULTI-CITY FLIGHTS ================== */
+/* Çoklu uçuş stilleri */
+
+.flight-segment {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  background: #fff;
+  box-shadow: var(--shadow-light);
+}
+
+.segment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.segment-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.remove-segment-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color var(--transition-fast);
+}
+
+.remove-segment-btn:hover {
+  background: var(--primary-dark);
+}
+
+.segment-locations {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.flight-arrow {
+  color: #666;
+  font-size: 18px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.segment-date {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.segment-date label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.segment-date-input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color var(--transition-fast);
+}
+
+.segment-date-input:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.add-flight-row {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.add-flight-btn {
+  background: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color var(--transition-fast);
+  font-weight: 500;
+}
+
+.add-flight-btn:hover {
+  background: #0056b3;
+}
+
+/* Multi-city responsive design */
+@media (max-width: 768px) {
+  .segment-locations {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .flight-arrow {
+    transform: rotate(90deg);
+  }
+  
+  .flight-segment {
+    padding: 15px;
   }
 }

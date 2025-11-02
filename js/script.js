@@ -1,7 +1,3 @@
-/* ================== TRABZON AIRLINES JAVASCRIPT ================== */
-/* COM5005 Web Programming - Grup 20 */
-/* Çift dil desteği, sidebar kontrolü ve form işlemleri */
-
 // Mevcut dil ayarı
 let currentLanguage = localStorage.getItem('language') || 'tr';
 
@@ -280,39 +276,6 @@ function renderAirportList(list) {
 // Sayfa yüklenince listeyi göster
 renderAirportList(airports);
 
-let selectingAirport = "departure";
-
-function openAirportModal(which) {
-  selectingAirport = which;
-  document.getElementById("airportModal").classList.add("show");
-  document.body.classList.add("modal-open");
-}
-
-function closeAirportModal() {
-  document.getElementById("airportModal").classList.remove("show");
-  document.body.classList.remove("modal-open");
-}
-
-airportListEl.addEventListener("click", (e) => {
-  const item = e.target.closest(".airport-item");
-  if (!item) return;
-
-  const code = item.dataset.code;
-  const city = item.dataset.city;
-  const full = item.dataset.full;
-
-  if (selectingAirport === "departure") {
-    document.getElementById("departureCode").textContent = code;
-    document.getElementById("departureName").textContent = city;
-    document.getElementById("departureFullName").textContent = full;
-  } else {
-    document.getElementById("destinationCode").textContent = code;
-    document.getElementById("destinationName").textContent = city;
-    document.getElementById("destinationFullName").textContent = full;
-  }
-
-  closeAirportModal();
-});
 
 
 // Yolcu sayıları
@@ -330,6 +293,9 @@ function openAirportModal(type) {
   currentAirportSelection = type;
   const modal = document.getElementById('airportModal');
   const title = document.getElementById('airportModalTitle');
+  
+  // Önceki hata mesajlarını temizle
+  clearAirportSelectionError();
   
   if (currentLanguage === 'tr') {
     title.textContent = type === 'departure' ? 'Kalkış Havalimanı Seçin' : 'Varış Havalimanı Seçin';
@@ -408,14 +374,41 @@ function loadAirportList(searchTerm = '') {
 function createAirportItem(airport) {
   const airportItem = document.createElement('div');
   airportItem.className = 'airport-item';
-  airportItem.onclick = () => selectAirport(airport);
+  
+  // Şu anda seçili havalimanlarını kontrol et
+  const departureCode = document.getElementById('departureCode')?.textContent;
+  const destinationCode = document.getElementById('destinationCode')?.textContent;
+  
+  const isCurrentlySelected = airport.code === departureCode || airport.code === destinationCode;
+  const isOtherSelection = (currentAirportSelection === 'departure' && airport.code === destinationCode) ||
+                          (currentAirportSelection === 'destination' && airport.code === departureCode);
+  
+  if (isOtherSelection) {
+    // Diğer seçimde kullanılan havalimanını devre dışı bırak
+    airportItem.className += ' disabled';
+    airportItem.style.cssText = `
+      opacity: 0.5;
+      cursor: not-allowed;
+      background-color: #f8f9fa;
+      pointer-events: none;
+    `;
+  } else {
+    airportItem.onclick = () => selectAirport(airport);
+  }
   
   const name = currentLanguage === 'tr' ? airport.name : airport.enName;
   const fullName = currentLanguage === 'tr' ? airport.fullName : airport.enFullName;
   
+  let statusIcon = '';
+  if (isOtherSelection) {
+    statusIcon = '<i class="fa-solid fa-ban" style="color: #dc3545; margin-left: 10px;"></i>';
+  } else if (isCurrentlySelected) {
+    statusIcon = '<i class="fa-solid fa-check" style="color: #28a745; margin-left: 10px;"></i>';
+  }
+  
   airportItem.innerHTML = `
     <span class="airport-code-modal">${airport.code}</span>
-    <strong>${name}</strong><br>
+    <strong>${name}</strong>${statusIcon}<br>
     <small>${fullName}</small>
   `;
   
@@ -426,44 +419,157 @@ function createAirportItem(airport) {
 function selectAirport(airport) {
   if (!currentAirportSelection) return;
   
+  // Multi-city segment kontrolü
+  if (currentAirportSelection.startsWith('segment-')) {
+    handleSegmentAirportSelection(airport);
+    return;
+  }
+  
+  // Normal uçuş için aynı havalimanının seçilmesini engelle
+  const otherSelection = currentAirportSelection === 'departure' ? 'destination' : 'departure';
+  const otherCodeElement = document.getElementById(otherSelection + 'Code');
+  
+  if (otherCodeElement && otherCodeElement.textContent === airport.code) {
+    // Hata mesajı göster
+    const errorMessage = currentLanguage === 'tr' ? 
+      'Gidiş ve dönüş için aynı havalimanını seçemezsiniz!' : 
+      'You cannot select the same airport for departure and destination!';
+    
+    showAirportSelectionError(errorMessage);
+    return;
+  }
+  
   const codeElement = document.getElementById(currentAirportSelection + 'Code');
   const nameElement = document.getElementById(currentAirportSelection + 'Name');
-  const fullNameElement = document.getElementById(currentAirportSelection + 'FullName');
   
-  if (codeElement && nameElement && fullNameElement) {
+  if (codeElement && nameElement) {
     codeElement.textContent = airport.code;
     
     if (currentLanguage === 'tr') {
       nameElement.textContent = airport.name;
-      fullNameElement.textContent = airport.fullName;
     } else {
       nameElement.textContent = airport.enName;
-      fullNameElement.textContent = airport.enFullName;
     }
   }
   
   closeAirportModal();
 }
 
+// Multi-city segment havalimanı seçimi
+function handleSegmentAirportSelection(airport) {
+  const parts = currentAirportSelection.split('-');
+  const segmentId = parts[1];
+  const type = parts[2]; // 'departure' veya 'destination'
+  
+  const codeElement = document.getElementById(`segment-${segmentId}-${type === 'departure' ? 'dep' : 'dest'}-code`);
+  const nameElement = document.getElementById(`segment-${segmentId}-${type === 'departure' ? 'dep' : 'dest'}-name`);
+  
+  if (codeElement && nameElement) {
+    codeElement.textContent = airport.code;
+    
+    if (currentLanguage === 'tr') {
+      nameElement.textContent = airport.name;
+    } else {
+      nameElement.textContent = airport.enName;
+    }
+    
+    // Eğer bir segment'in varış havalimanı seçildiyse, sonraki segment'in kalkış havalimanını otomatik güncelle
+    if (type === 'destination') {
+      updateNextSegmentDeparture(segmentId, airport);
+    }
+  }
+  
+  closeAirportModal();
+}
+
+// Sonraki segment'in kalkış havalimanını güncelle
+function updateNextSegmentDeparture(currentSegmentId, selectedAirport) {
+  const currentSegmentIndex = flightSegments.findIndex(seg => seg.id == currentSegmentId);
+  const nextSegmentIndex = currentSegmentIndex + 1;
+  
+  if (nextSegmentIndex < flightSegments.length) {
+    const nextSegment = flightSegments[nextSegmentIndex];
+    const nextDepCode = document.getElementById(`segment-${nextSegment.id}-dep-code`);
+    const nextDepName = document.getElementById(`segment-${nextSegment.id}-dep-name`);
+    
+    if (nextDepCode && nextDepName) {
+      nextDepCode.textContent = selectedAirport.code;
+      
+      if (currentLanguage === 'tr') {
+        nextDepName.textContent = selectedAirport.name;
+      } else {
+        nextDepName.textContent = selectedAirport.enName;
+      }
+    }
+  }
+}
+
+// Havalimanı seçim hatası gösterme fonksiyonu
+function showAirportSelectionError(message) {
+  // Mevcut hata mesajını kaldır
+  clearAirportSelectionError();
+  
+  // Yeni hata mesajı oluştur
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'airport-error-message';
+  errorDiv.style.cssText = `
+    color: #dc3545;
+    font-size: 14px;
+    margin: 10px 15px;
+    padding: 12px 15px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideDown 0.3s ease-out;
+  `;
+  errorDiv.innerHTML = `
+    <i class="fa-solid fa-exclamation-triangle"></i>
+    <span>${message}</span>
+  `;
+  
+  // Modal body'ye ekle
+  const modalBody = document.querySelector('#airportModal .modal-body');
+  if (modalBody) {
+    modalBody.insertBefore(errorDiv, modalBody.firstChild);
+  }
+  
+  // 4 saniye sonra otomatik kaldır
+  setTimeout(() => {
+    clearAirportSelectionError();
+  }, 4000);
+}
+
+// Havalimanı seçim hatası temizleme fonksiyonu
+function clearAirportSelectionError() {
+  const existingError = document.querySelector('.airport-error-message');
+  if (existingError) {
+    existingError.style.opacity = '0';
+    setTimeout(() => {
+      if (existingError.parentNode) {
+        existingError.remove();
+      }
+    }, 300);
+  }
+}
+
 // Havalimanları değiştir
 function swapAirports() {
   const departureCode = document.getElementById('departureCode').textContent;
   const departureName = document.getElementById('departureName').textContent;
-  const departureFullName = document.getElementById('departureFullName').textContent;
   
   const destinationCode = document.getElementById('destinationCode').textContent;
   const destinationName = document.getElementById('destinationName').textContent;
-  const destinationFullName = document.getElementById('destinationFullName').textContent;
   
   // Sadece her ikisi de seçilmişse değiştir
   if (departureCode && destinationCode && destinationCode !== '?') {
     document.getElementById('departureCode').textContent = destinationCode;
     document.getElementById('departureName').textContent = destinationName;
-    document.getElementById('departureFullName').textContent = destinationFullName;
     
     document.getElementById('destinationCode').textContent = departureCode;
     document.getElementById('destinationName').textContent = departureName;
-    document.getElementById('destinationFullName').textContent = departureFullName;
   }
 }
 
@@ -484,6 +590,13 @@ function closePassengerModal() {
 
 // Yolcu sayısını değiştir (yeni versiyon)
 function changePassengerCount(type, change) {
+  console.log(`Changing ${type} count by ${change}`); // Debug log
+  
+  if (!passengerCounts || typeof passengerCounts[type] === 'undefined') {
+    console.error('passengerCounts not properly initialized');
+    return;
+  }
+  
   const currentCount = passengerCounts[type];
   let newCount = currentCount + change;
   
@@ -500,25 +613,50 @@ function changePassengerCount(type, change) {
   }
   
   passengerCounts[type] = newCount;
+  console.log('Updated passengerCounts:', passengerCounts); // Debug log
+  
+  // Yolcu sayılarını kaydet
+  savePassengerCounts();
+  
   updatePassengerCountsInModal();
 }
 
 // Modal'daki yolcu sayılarını güncelle
 function updatePassengerCountsInModal() {
-  document.getElementById('adultCount').textContent = passengerCounts.adult;
-  document.getElementById('childCount').textContent = passengerCounts.child;
-  document.getElementById('infantCount').textContent = passengerCounts.infant;
+  const adultCountEl = document.getElementById('adultCount');
+  const childCountEl = document.getElementById('childCount');
+  const infantCountEl = document.getElementById('infantCount');
   
-  // Buton durumlarını güncelle
-  const adultMinusBtn = document.querySelector('[onclick="changePassengerCount(\'adult\', -1)"]');
-  const infantPlusBtn = document.querySelector('[onclick="changePassengerCount(\'infant\', 1)"]');
+  if (adultCountEl) adultCountEl.textContent = passengerCounts.adult;
+  if (childCountEl) childCountEl.textContent = passengerCounts.child;
+  if (infantCountEl) infantCountEl.textContent = passengerCounts.infant;
   
-  if (adultMinusBtn) {
-    adultMinusBtn.disabled = passengerCounts.adult <= 1;
-  }
-  
-  if (infantPlusBtn) {
-    infantPlusBtn.disabled = passengerCounts.infant >= passengerCounts.adult;
+  // Buton durumlarını güncelle - daha güvenilir selector kullan
+  const modal = document.getElementById('passengerModal');
+  if (modal) {
+    // Yetişkin minus butonu - en az 1 olmalı
+    const adultMinusBtn = modal.querySelector('.counter-controls button[onclick*="adult\', -1"]');
+    if (adultMinusBtn) {
+      adultMinusBtn.disabled = passengerCounts.adult <= 1;
+    }
+    
+    // Çocuk minus butonu
+    const childMinusBtn = modal.querySelector('.counter-controls button[onclick*="child\', -1"]');
+    if (childMinusBtn) {
+      childMinusBtn.disabled = passengerCounts.child <= 0;
+    }
+    
+    // Bebek minus butonu
+    const infantMinusBtn = modal.querySelector('.counter-controls button[onclick*="infant\', -1"]');
+    if (infantMinusBtn) {
+      infantMinusBtn.disabled = passengerCounts.infant <= 0;
+    }
+    
+    // Bebek plus butonu - yetişkin sayısını geçemez
+    const infantPlusBtn = modal.querySelector('.counter-controls button[onclick*="infant\', 1"]');
+    if (infantPlusBtn) {
+      infantPlusBtn.disabled = passengerCounts.infant >= passengerCounts.adult;
+    }
   }
 }
 
@@ -528,17 +666,11 @@ function confirmPassengerSelection() {
   const cabinClass = document.querySelector('input[name="cabinClass"]:checked').value;
   selectedCabinClass = cabinClass;
   
-  // Yolcu özetini güncelle
-  const passengerSummary = document.getElementById('passengerSummary');
-  const passengerDetails = document.getElementById('passengerDetails');
+  // Yolcu sayılarını kaydet
+  savePassengerCounts();
   
-  if (currentLanguage === 'tr') {
-    passengerSummary.textContent = `${totalPassengers} Yolcu`;
-    passengerDetails.textContent = cabinClass === 'economy' ? 'ECO' : 'BUS';
-  } else {
-    passengerSummary.textContent = `${totalPassengers} Passenger${totalPassengers > 1 ? 's' : ''}`;
-    passengerDetails.textContent = cabinClass === 'economy' ? 'ECO' : 'BUS';
-  }
+  // Yolcu butonunu güncelle
+  updatePassengerButtonText();
   
   closePassengerModal();
 }
@@ -567,6 +699,94 @@ function setupAirportSearch() {
   }
 }
 
+// Tarih validasyonu fonksiyonu
+function setupDateValidation() {
+  const departureInput = document.getElementById('departureDate');
+  const returnInput = document.getElementById('returnDate');
+  
+  if (departureInput && returnInput) {
+    // Gidiş tarihi değiştiğinde
+    departureInput.addEventListener('change', function() {
+      validateDates();
+      // Dönüş tarihi minimum değerini güncelle
+      returnInput.min = this.value;
+    });
+    
+    // Dönüş tarihi değiştiğinde
+    returnInput.addEventListener('change', function() {
+      validateDates();
+    });
+  }
+}
+
+// Tarih validasyonu kontrol fonksiyonu
+function validateDates() {
+  const departureInput = document.getElementById('departureDate');
+  const returnInput = document.getElementById('returnDate');
+  
+  if (!departureInput || !returnInput) return;
+  
+  const departureDate = departureInput.value;
+  const returnDate = returnInput.value;
+  
+  // Sadece her iki tarih de seçiliyse kontrol et
+  if (departureDate && returnDate) {
+    const depDate = new Date(departureDate);
+    const retDate = new Date(returnDate);
+    
+    if (retDate < depDate) {
+      // Hata durumunda dönüş tarihini temizle ve uyarı göster
+      returnInput.value = '';
+      showDateError(currentLanguage === 'tr' ? 
+        'Dönüş tarihi gidiş tarihinden önce olamaz!' : 
+        'Return date cannot be earlier than departure date!');
+    } else {
+      // Hata yoksa error mesajını temizle
+      clearDateError();
+    }
+  }
+}
+
+// Tarih hatası gösterme fonksiyonu
+function showDateError(message) {
+  // Mevcut hata mesajını kaldır
+  clearDateError();
+  
+  // Yeni hata mesajı oluştur
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'date-error-message';
+  errorDiv.style.cssText = `
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: 5px;
+    padding: 8px 12px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  `;
+  errorDiv.innerHTML = `
+    <i class="fa-solid fa-exclamation-triangle"></i>
+    <span>${message}</span>
+  `;
+  
+  // Tarih alanlarının parent container'ına ekle
+  const dateRow = document.querySelector('.date-row');
+  if (dateRow) {
+    dateRow.appendChild(errorDiv);
+  }
+}
+
+// Tarih hatası temizleme fonksiyonu
+function clearDateError() {
+  const existingError = document.querySelector('.date-error-message');
+  if (existingError) {
+    existingError.remove();
+  }
+}
+
 // Seyahat türü değişikliğini dinle
 function handleTripTypeChange() {
   const tripTypeRadios = document.querySelectorAll('input[name="tripType"]');
@@ -591,25 +811,6 @@ function setTripType(trText, enText) {
   console.log('Trip type changed:', trText, enText);
 }
 
-// Yolcu sayısını değiştir
-function changePassengerCount(change) {
-  const countElement = document.getElementById("adultCount");
-  const passengerElement = document.getElementById("passengerCount");
-  
-  if (countElement && passengerElement) {
-    let currentCount = parseInt(countElement.textContent);
-    let newCount = Math.max(1, Math.min(10, currentCount + change));
-    
-    countElement.textContent = newCount;
-    
-    // Dile göre metni güncelle
-    if (currentLanguage === 'tr') {
-      passengerElement.textContent = `${newCount} Yetişkin`;
-    } else {
-      passengerElement.textContent = `${newCount} Adult${newCount > 1 ? 's' : ''}`;
-    }
-  }
-}
 
 // Dropdown'ları aç/kapat
 function toggleTripDropdown() {
@@ -656,8 +857,53 @@ function searchFlights() {
   const returnDate = document.getElementById('returnDate')?.value;
   const promoCode = document.getElementById('promoCode')?.value;
   
+  // Havalimanı seçimlerini kontrol et
+  const departureCode = document.getElementById('departureCode')?.textContent;
+  const destinationCode = document.getElementById('destinationCode')?.textContent;
+  
+  if (!departureCode || departureCode === 'TZX') {
+    // Varsayılan olarak Trabzon seçili, bu normal
+  }
+  
+  if (!destinationCode || destinationCode === '?') {
+    alert(currentLanguage === 'tr' ? 'Lütfen varış havalimanı seçin!' : 'Please select destination airport!');
+    return;
+  }
+  
+  // Aynı havalimanı kontrolü
+  if (departureCode === destinationCode) {
+    alert(currentLanguage === 'tr' ? 
+      'Gidiş ve dönüş için aynı havalimanını seçemezsiniz!' : 
+      'You cannot select the same airport for departure and destination!');
+    return;
+  }
+  
   if (!departureDate) {
     alert(currentLanguage === 'tr' ? 'Lütfen gidiş tarihi seçin!' : 'Please select departure date!');
+    return;
+  }
+  
+  // Dönüş tarihi kontrolü - sadece gidiş-dönüş seçiliyse
+  const activeButton = document.querySelector('.top-opt.active');
+  const isRoundTrip = activeButton && activeButton.dataset.type === 'roundtrip';
+  
+  if (isRoundTrip && returnDate) {
+    const depDate = new Date(departureDate);
+    const retDate = new Date(returnDate);
+    
+    if (retDate < depDate) {
+      alert(currentLanguage === 'tr' ? 
+        'Dönüş tarihi gidiş tarihinden önce olamaz!' : 
+        'Return date cannot be earlier than departure date!');
+      return;
+    }
+  }
+  
+  // Dönüş tarihi zorunlu kontrolü (gidiş-dönüş için)
+  if (isRoundTrip && !returnDate) {
+    alert(currentLanguage === 'tr' ? 
+      'Gidiş-dönüş seçimi için dönüş tarihi gereklidir!' : 
+      'Return date is required for round trip!');
     return;
   }
   
@@ -1115,6 +1361,398 @@ function handleForgotPassword(event) {
   closeForgotPasswordModal();
 }
 
+/* ================== MULTI-CITY FLIGHTS ================== */
+// Çoklu uçuş fonksiyonları
+
+let flightSegments = [];
+let segmentCounter = 0;
+
+// Çoklu uçuş sistemini başlat
+function initializeMultiCityFlights() {
+  const segmentsContainer = document.getElementById('flightSegments');
+  segmentsContainer.innerHTML = '';
+  flightSegments = [];
+  segmentCounter = 0;
+  
+  // Önceki hata mesajlarını temizle
+  clearAllSegmentDateErrors();
+  
+  // İlk iki segment'i oluştur
+  addFlightSegment(); // İlk uçuş
+  addFlightSegment(); // İkinci uçuş
+}
+
+// Yeni uçuş segmenti ekle
+function addFlightSegment() {
+  const segmentId = segmentCounter++;
+  const segmentsContainer = document.getElementById('flightSegments');
+  
+  // Önceki segmentin varış havalimanını al
+  let defaultDepartureCode = 'TZX';
+  let defaultDepartureName = 'Trabzon';
+  
+  if (flightSegments.length > 0) {
+    const lastSegment = flightSegments[flightSegments.length - 1];
+    const lastDestCode = document.getElementById(`segment-${lastSegment.id}-dest-code`);
+    const lastDestName = document.getElementById(`segment-${lastSegment.id}-dest-name`);
+    
+    if (lastDestCode && lastDestName && lastDestCode.textContent !== '?') {
+      defaultDepartureCode = lastDestCode.textContent;
+      defaultDepartureName = lastDestName.textContent;
+    }
+  }
+  
+  // Segment nesnesini oluştur
+  const segment = {
+    id: segmentId,
+    departureCode: defaultDepartureCode,
+    departureName: defaultDepartureName,
+    destinationCode: '?',
+    destinationName: currentLanguage === 'tr' ? 'Nereye' : 'Where to'
+  };
+  
+  flightSegments.push(segment);
+  
+  // HTML oluştur
+  const segmentHtml = createFlightSegmentHtml(segment, flightSegments.length);
+  segmentsContainer.insertAdjacentHTML('beforeend', segmentHtml);
+  
+  // Segment 3'ten fazlaysa silme butonlarını göster
+  updateDeleteButtons();
+  
+  // Yeni segment için dil çevirisini uygula
+  updatePageLanguage();
+}
+
+// Uçuş segmenti HTML'i oluştur
+function createFlightSegmentHtml(segment, segmentNumber) {
+  const isRemovable = flightSegments.length > 2;
+  
+  // Dile göre başlık metni
+  const headerText = currentLanguage === 'tr' ? `Uçuş ${segmentNumber}` : `Flight ${segmentNumber}`;
+  
+  return `
+    <div class="flight-segment" data-segment-id="${segment.id}">
+      <div class="segment-header">
+        <h4 data-tr="Uçuş ${segmentNumber}" data-en="Flight ${segmentNumber}">${headerText}</h4>
+        ${isRemovable ? `<button type="button" class="remove-segment-btn" onclick="removeFlightSegment(${segment.id})">
+          <i class="fa-solid fa-trash"></i>
+        </button>` : ''}
+      </div>
+      
+      <div class="segment-locations">
+        <div class="loc-box" onclick="openAirportModal('segment-${segment.id}-departure')">
+          <span class="loc-code" id="segment-${segment.id}-dep-code">${segment.departureCode}</span>
+          <span class="loc-city" id="segment-${segment.id}-dep-name">${segment.departureName}</span>
+        </div>
+        
+        <div class="flight-arrow">
+          <i class="fa-solid fa-arrow-right"></i>
+        </div>
+        
+        <div class="loc-box" onclick="openAirportModal('segment-${segment.id}-destination')">
+          <span class="loc-code" id="segment-${segment.id}-dest-code">${segment.destinationCode}</span>
+          <span class="loc-city" id="segment-${segment.id}-dest-name">${segment.destinationName}</span>
+        </div>
+      </div>
+      
+      <div class="segment-date">
+        <label data-tr="Tarih" data-en="Date">Tarih</label>
+        <input type="date" id="segment-${segment.id}-date" class="segment-date-input" onchange="validateSegmentDates(${segment.id})">
+      </div>
+    </div>
+  `;
+}
+
+// Uçuş segmentini kaldır
+function removeFlightSegment(segmentId) {
+  if (flightSegments.length <= 2) return; // En az 2 segment olmalı
+  
+  // Segment'i DOM'dan kaldır
+  const segmentElement = document.querySelector(`[data-segment-id="${segmentId}"]`);
+  if (segmentElement) {
+    segmentElement.remove();
+  }
+  
+  // Array'den kaldır
+  flightSegments = flightSegments.filter(segment => segment.id !== segmentId);
+  
+  // Segment numaralarını güncelle
+  updateSegmentNumbers();
+  updateDeleteButtons();
+}
+
+// Segment numaralarını güncelle
+function updateSegmentNumbers() {
+  const segmentElements = document.querySelectorAll('.flight-segment');
+  segmentElements.forEach((element, index) => {
+    const header = element.querySelector('.segment-header h4');
+    if (header) {
+      const segmentNumber = index + 1;
+      if (currentLanguage === 'tr') {
+        header.textContent = `Uçuş ${segmentNumber}`;
+        header.setAttribute('data-tr', `Uçuş ${segmentNumber}`);
+      } else {
+        header.textContent = `Flight ${segmentNumber}`;
+        header.setAttribute('data-en', `Flight ${segmentNumber}`);
+      }
+    }
+  });
+}
+
+// Silme butonlarını güncelle
+function updateDeleteButtons() {
+  const segmentElements = document.querySelectorAll('.flight-segment');
+  segmentElements.forEach((element, index) => {
+    const removeBtn = element.querySelector('.remove-segment-btn');
+    if (flightSegments.length > 2) {
+      if (!removeBtn) {
+        // Silme butonu yoksa ekle
+        const header = element.querySelector('.segment-header');
+        const segmentId = element.getAttribute('data-segment-id');
+        header.insertAdjacentHTML('beforeend', `
+          <button type="button" class="remove-segment-btn" onclick="removeFlightSegment(${segmentId})">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        `);
+      }
+    } else {
+      // 2 veya daha az segment varsa silme butonunu kaldır
+      if (removeBtn) {
+        removeBtn.remove();
+      }
+    }
+  });
+}
+
+// Multi-city tarih validasyonu
+function validateSegmentDates(changedSegmentId) {
+  const changedSegment = flightSegments.find(seg => seg.id == changedSegmentId);
+  if (!changedSegment) return;
+  
+  const changedSegmentIndex = flightSegments.findIndex(seg => seg.id == changedSegmentId);
+  const changedDateInput = document.getElementById(`segment-${changedSegmentId}-date`);
+  const changedDate = new Date(changedDateInput.value);
+  
+  if (!changedDateInput.value) return;
+  
+  // Önceki segment'in tarihini kontrol et
+  if (changedSegmentIndex > 0) {
+    const previousSegment = flightSegments[changedSegmentIndex - 1];
+    const previousDateInput = document.getElementById(`segment-${previousSegment.id}-date`);
+    
+    if (previousDateInput.value) {
+      const previousDate = new Date(previousDateInput.value);
+      
+      if (changedDate < previousDate) {
+        // Hata: Bu uçuş önceki uçuştan önce olamaz
+        showSegmentDateError(changedSegmentId, currentLanguage === 'tr' ? 
+          `Uçuş ${changedSegmentIndex + 1} tarihi, Uçuş ${changedSegmentIndex} tarihinden önce olamaz!` :
+          `Flight ${changedSegmentIndex + 1} date cannot be earlier than Flight ${changedSegmentIndex} date!`);
+        changedDateInput.value = '';
+        return;
+      }
+    }
+  }
+  
+  // Sonraki segment'lerin minimum tarihini güncelle
+  updateSubsequentSegmentMinDates(changedSegmentIndex, changedDate);
+  
+  // Sonraki segment'lerin tarihlerini kontrol et
+  validateSubsequentSegments(changedSegmentIndex, changedDate);
+  
+  // Hata mesajını temizle
+  clearSegmentDateError(changedSegmentId);
+}
+
+// Sonraki segment'lerin minimum tarihlerini güncelle
+function updateSubsequentSegmentMinDates(fromIndex, minDate) {
+  const minDateStr = minDate.toISOString().split('T')[0];
+  
+  for (let i = fromIndex + 1; i < flightSegments.length; i++) {
+    const segment = flightSegments[i];
+    const dateInput = document.getElementById(`segment-${segment.id}-date`);
+    if (dateInput) {
+      dateInput.min = minDateStr;
+    }
+  }
+}
+
+// Sonraki segment'lerin tarihlerini kontrol et ve gerekirse temizle
+function validateSubsequentSegments(fromIndex, minDate) {
+  for (let i = fromIndex + 1; i < flightSegments.length; i++) {
+    const segment = flightSegments[i];
+    const dateInput = document.getElementById(`segment-${segment.id}-date`);
+    
+    if (dateInput && dateInput.value) {
+      const segmentDate = new Date(dateInput.value);
+      
+      if (segmentDate < minDate) {
+        // Bu segment'in tarihi geçersiz, temizle
+        dateInput.value = '';
+        showSegmentDateError(segment.id, currentLanguage === 'tr' ? 
+          `Uçuş ${i + 1} tarihi güncellendi. Lütfen yeni bir tarih seçin.` :
+          `Flight ${i + 1} date updated. Please select a new date.`);
+      }
+    }
+  }
+}
+
+// Segment tarih hatası göster
+function showSegmentDateError(segmentId, message) {
+  // Mevcut hata mesajını temizle
+  clearSegmentDateError(segmentId);
+  
+  // Hata mesajı oluştur
+  const errorDiv = document.createElement('div');
+  errorDiv.className = `segment-date-error segment-${segmentId}-error`;
+  errorDiv.style.cssText = `
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+    padding: 6px 10px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  `;
+  errorDiv.innerHTML = `
+    <i class="fa-solid fa-exclamation-triangle"></i>
+    <span>${message}</span>
+  `;
+  
+  // Segment'in tarih alanının altına ekle
+  const segmentDateDiv = document.getElementById(`segment-${segmentId}-date`).parentElement;
+  segmentDateDiv.appendChild(errorDiv);
+  
+  // 5 saniye sonra otomatik kaldır
+  setTimeout(() => {
+    clearSegmentDateError(segmentId);
+  }, 5000);
+}
+
+// Segment tarih hatasını temizle
+function clearSegmentDateError(segmentId) {
+  const existingError = document.querySelector(`.segment-${segmentId}-error`);
+  if (existingError) {
+    existingError.remove();
+  }
+}
+
+// Tüm segment tarih hatalarını temizle
+function clearAllSegmentDateErrors() {
+  const existingErrors = document.querySelectorAll('.segment-date-error');
+  existingErrors.forEach(error => error.remove());
+}
+
+/* ================== TRIP TYPE STATE MANAGEMENT ================== */
+// Trip type durumu yönetimi
+
+// Trip type durumunu kaydet
+function saveTripTypeState(tripType) {
+  localStorage.setItem('selectedTripType', tripType);
+}
+
+// Trip type durumunu geri yükle
+function restoreTripTypeState() {
+  const savedTripType = localStorage.getItem('selectedTripType') || 'roundtrip';
+  const tripButtons = document.querySelectorAll('.top-opt[data-type]');
+  
+  // Yolcu sayılarını geri yükle
+  restorePassengerCounts();
+  
+  // Tüm butonlardan active sınıfını kaldır
+  tripButtons.forEach(btn => btn.classList.remove('active'));
+  
+  // Kaydedilen trip type'ı aktif yap
+  const targetButton = document.querySelector(`[data-type="${savedTripType}"]`);
+  if (targetButton) {
+    targetButton.classList.add('active');
+    
+    // İlgili bölümleri göster/gizle
+    applyTripTypeSettings(savedTripType);
+  }
+}
+
+// Trip type ayarlarını uygula
+function applyTripTypeSettings(tripType) {
+  const normalSection = document.getElementById("normalFlightSection");
+  const multiCitySection = document.getElementById("multiCitySection");
+  const returnDateField = document.getElementById("returnDate");
+  
+  if (tripType === "multicity") {
+    // Çoklu uçuş → normal bölümü gizle, çoklu uçuş bölümünü göster
+    if (normalSection) normalSection.style.display = "none";
+    if (multiCitySection) multiCitySection.style.display = "block";
+    
+    // Eğer segment'ler yoksa oluştur
+    if (flightSegments.length === 0) {
+      initializeMultiCityFlights();
+    }
+  } else {
+    // Normal uçuş (tek yön veya gidiş-dönüş)
+    if (normalSection) normalSection.style.display = "block";
+    if (multiCitySection) multiCitySection.style.display = "none";
+    
+    if (tripType === "oneway") {
+      // Tek yön → dönüş tarihini gizle
+      if (returnDateField && returnDateField.parentElement) {
+        returnDateField.parentElement.style.display = "none";
+        returnDateField.value = "";
+      }
+    } else {
+      // Roundtrip → dönüş tarihi görünür
+      if (returnDateField && returnDateField.parentElement) {
+        returnDateField.parentElement.style.display = "block";
+      }
+    }
+  }
+  
+  // Yolcu butonunu güncelle
+  updatePassengerButtonText();
+}
+
+// Yolcu butonunun metnini güncelle
+function updatePassengerButtonText() {
+  const totalPassengers = passengerCounts.adult + passengerCounts.child + passengerCounts.infant;
+  const passengerButton = document.querySelector('button[onclick="openPassengerModal()"]');
+  
+  if (passengerButton) {
+    if (currentLanguage === 'tr') {
+      passengerButton.textContent = `${totalPassengers} Yolcu`;
+      passengerButton.setAttribute('data-tr', `${totalPassengers} Yolcu`);
+    } else {
+      const passengerText = totalPassengers === 1 ? '1 Passenger' : `${totalPassengers} Passengers`;
+      passengerButton.textContent = passengerText;
+      passengerButton.setAttribute('data-en', passengerText);
+    }
+  }
+}
+
+// Yolcu sayılarını kaydet
+function savePassengerCounts() {
+  localStorage.setItem('passengerCounts', JSON.stringify(passengerCounts));
+}
+
+// Yolcu sayılarını geri yükle
+function restorePassengerCounts() {
+  const savedCounts = localStorage.getItem('passengerCounts');
+  if (savedCounts) {
+    try {
+      const parsedCounts = JSON.parse(savedCounts);
+      passengerCounts.adult = parsedCounts.adult || 1;
+      passengerCounts.child = parsedCounts.child || 0;
+      passengerCounts.infant = parsedCounts.infant || 0;
+    } catch (e) {
+      console.error('Error parsing saved passenger counts:', e);
+      // Varsayılan değerleri kullan
+      passengerCounts = { adult: 1, child: 0, infant: 0 };
+    }
+  }
+}
+
 /* ================== INITIALIZATION ================== */
 // Sayfa yüklendiğinde çalışacak fonksiyonlar
 
@@ -1135,11 +1773,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
+  // Trip type durumunu yükle
+  restoreTripTypeState();
+  
   // Havalimanı arama fonksiyonunu başlat
   setupAirportSearch();
   
+  // Havalimanı listesi event listener'ını ekle
+  const airportList = document.getElementById('airportList');
+  if (airportList) {
+    airportList.addEventListener('click', function(e) {
+      const airportItem = e.target.closest('.airport-item');
+      if (airportItem) {
+        // Airport nesnesini bul
+        const code = airportItem.querySelector('.airport-code-modal').textContent;
+        const airport = airports.find(a => a.code === code);
+        if (airport) {
+          selectAirport(airport);
+        }
+      }
+    });
+  }
+  
   // Seyahat türü değişikliklerini dinle
   handleTripTypeChange();
+  
+  // Tarih validasyonu event listener'larını ekle
+  setupDateValidation();
   
   // Modal'ları kapatmak için dış tıklama
   document.addEventListener('click', function(event) {
@@ -1180,61 +1840,39 @@ const returnDateField = document.getElementById("returnDate");
     btn.classList.add("active");
 
     const type = btn.dataset.type;
+    
+    // Trip type'ı kaydet
+    saveTripTypeState(type);
 
     // SEYAHAT TÜRÜNE GÖRE DAVRANIŞ
-    if (type === "oneway") {
-      // Tek yön → dönüş tarihini gizle
-      returnDateField.parentElement.style.display = "none";
-      returnDateField.value = "";
-    } 
-    else {
-      // Roundtrip & Çoklu uçuş → dönüş tarihi görünür
-      returnDateField.parentElement.style.display = "block";
+    const normalSection = document.getElementById("normalFlightSection");
+    const multiCitySection = document.getElementById("multiCitySection");
+    
+    if (type === "multicity") {
+      // Çoklu uçuş → normal bölümü gizle, çoklu uçuş bölümünü göster
+      normalSection.style.display = "none";
+      multiCitySection.style.display = "block";
+      
+      // İlk iki uçuş segmentini oluştur
+      initializeMultiCityFlights();
+    } else {
+      // Normal uçuş (tek yön veya gidiş-dönüş)
+      normalSection.style.display = "block";
+      multiCitySection.style.display = "none";
+      
+      if (type === "oneway") {
+        // Tek yön → dönüş tarihini gizle
+        returnDateField.parentElement.style.display = "none";
+        returnDateField.value = "";
+      } else {
+        // Roundtrip → dönüş tarihi görünür
+        returnDateField.parentElement.style.display = "block";
+      }
     }
 
     });
   });
   
-// Uçak Seçimi Hangi kutu için seçim yapıldığını tutalım
-  let selectingAirport = 'departure';
-
-  function openAirportModal(which) {
-    selectingAirport = which; // 'departure' | 'destination'
-    document.getElementById('airportModal').classList.add('show');
-    document.body.classList.add('modal-open');
-  }
-
-  function closeAirportModal() {
-    document.getElementById('airportModal').classList.remove('show');
-    document.body.classList.remove('modal-open');
-  }
-
-  // Airport listesinde tıklanan item'ı yakala (event delegation)
-  const listEl = document.getElementById('airportList');
-  if (listEl) {
-    listEl.addEventListener('click', (e) => {
-      const item = e.target.closest('.airport-item');
-      if (!item) return;
-
-      // item üzerinde data-attribute'lar olduğunu varsayıyoruz:
-      // <div class="airport-item" data-code="IST" data-city="İstanbul" data-full="İstanbul (Tümü)">
-      const code = item.dataset.code || '';
-      const city = item.dataset.city || '';
-      const full = item.dataset.full || '';
-
-      if (selectingAirport === 'departure') {
-        document.getElementById('departureCode').textContent = code;
-        document.getElementById('departureName').textContent = city;
-        document.getElementById('departureFullName').textContent = full;
-      } else {
-        document.getElementById('destinationCode').textContent = code;
-        document.getElementById('destinationName').textContent = city;
-        document.getElementById('destinationFullName').textContent = full;
-      }
-
-      closeAirportModal();
-    });
-  }
 
 
 
@@ -1246,6 +1884,10 @@ const returnDateField = document.getElementById("returnDate");
       closeMobileSidebar();
     }
   });
+  
+  // Sayfa yüklendiğinde dil ayarlarını uygula
+  applyLanguageSettings();
+  updatePageLanguage();
   
   console.log('Trabzon Airlines sistemi yüklendi!');
   });

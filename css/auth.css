@@ -1,18 +1,3 @@
-/* ================== AUTH PAGES STYLES ================== */
-/* Login ve Signup sayfaları özel stilleri */
-/* 
- * Bu dosya kimlik doğrulama sayfaları (login, signup) için özel stiller içerir.
- * 
- * İçerik:
- * - Auth sayfası genel layout (iki kolonlu tasarım)
- * - Form stilleri ve validasyon
- * - Bilgi paneli ve avantajlar listesi
- * - Sosyal medya login butonları
- * - Modal düzeltmeleri
- * - Responsive tasarım kuralları
- * - Animasyonlar
- */
-
 /* Auth sayfası genel layout */
 .auth-page {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);

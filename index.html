@@ -139,63 +139,81 @@
 <section class="hero">
   <div class="hero-overlay"></div>
 
-  <h1 class="hero-title">Sizi nereye götürebiliriz?</h1>
+  <h1 class="hero-title" data-tr="Sizi nereye götürebiliriz?" data-en="Where can we take you?">Sizi nereye götürebiliriz?</h1>
 
   <div class="flight-card">
 
     <!-- Üst seçenek butonları -->
     <div class="flight-top-options">
-      <button class="top-opt active" data-type="roundtrip">Gidiş - Dönüş</button>
-      <button class="top-opt" data-type="oneway">Tek yön</button>
-      <button class="top-opt" data-type="multicity">Çoklu uçuş</button>
+      <button class="top-opt" data-type="roundtrip" data-tr="Gidiş - Dönüş" data-en="Round Trip">Gidiş - Dönüş</button>
+      <button class="top-opt" data-type="oneway" data-tr="Tek yön" data-en="One Way">Tek yön</button>
+      <button class="top-opt" data-type="multicity" data-tr="Çoklu uçuş" data-en="Multi City">Çoklu uçuş</button>
 
       <label class="top-opt checkbox-opt">
         <input type="checkbox" id="awardTicket">
-        Ödül bileti
+        <span data-tr="Ödül bileti" data-en="Award Ticket">Ödül bileti</span>
       </label>
 
-      <button class="top-opt" onclick="openPassengerModal()">1 Yolcu</button>
+      <button class="top-opt" onclick="openPassengerModal()" data-tr="1 Yolcu" data-en="1 Passenger">1 Yolcu</button>
     </div>
 
-    <!-- Lokasyon seçimi -->
-    <div class="location-row-aircanada">
-      <div class="loc-box" onclick="openAirportModal('departure')">
-        <span class="loc-code" id="departureCode">TZX</span>
-        <span class="loc-city" id="departureName">Trabzon</span>
+    <!-- Normal uçuş (Gidiş-Dönüş ve Tek Yön) -->
+    <div id="normalFlightSection">
+      <!-- Lokasyon seçimi -->
+      <div class="location-row-aircanada">
+        <div class="loc-box" onclick="openAirportModal('departure')">
+          <span class="loc-code" id="departureCode">TZX</span>
+          <span class="loc-city" id="departureName">Trabzon</span>
+        </div>
+
+        <button class="loc-swap" onclick="swapAirports()">
+          <i class="fa-solid fa-right-left"></i>
+        </button>
+
+        <div class="loc-box" onclick="openAirportModal('destination')">
+          <span class="loc-code" id="destinationCode">?</span>
+          <span class="loc-city" id="destinationName" data-tr="Nereye" data-en="Where to">Nereye</span>
+        </div>
       </div>
 
-      <button class="loc-swap" onclick="swapAirports()">
-        <i class="fa-solid fa-right-left"></i>
-      </button>
+      <!-- Tarih alanları -->
+      <div class="date-row">
+        <div class="date-col">
+          <label data-tr="Gidiş tarihi" data-en="Departure date">Gidiş tarihi</label>
+          <input type="date" id="departureDate">
+        </div>
 
-      <div class="loc-box" onclick="openAirportModal('destination')">
-        <span class="loc-code" id="destinationCode">?</span>
-        <span class="loc-city" id="destinationName">Nereye</span>
+        <div class="date-col">
+          <label data-tr="Dönüş tarihi" data-en="Return date">Dönüş tarihi</label>
+          <input type="date" id="returnDate">
+        </div>
       </div>
     </div>
 
-    <!-- Tarih alanları -->
-    <div class="date-row">
-      <div class="date-col">
-        <label>Gidiş tarihi</label>
-        <input type="date" id="departureDate">
+    <!-- Çoklu uçuş bölümü -->
+    <div id="multiCitySection" style="display: none;">
+      <div id="flightSegments">
+        <!-- Uçuş segmentleri buraya dinamik olarak eklenecek -->
       </div>
-
-      <div class="date-col">
-        <label>Dönüş tarihi</label>
-        <input type="date" id="returnDate">
+      
+      <!-- Uçuş ekle butonu -->
+      <div class="add-flight-row">
+        <button type="button" class="add-flight-btn" onclick="addFlightSegment()">
+          <i class="fa-solid fa-plus"></i>
+          <span data-tr="Uçuş Ekle" data-en="Add Flight">Uçuş Ekle</span>
+        </button>
       </div>
     </div>
 
     <!-- Promosyon & Arama -->
     <div class="promo-row">
       <div class="promo-col">
-        <label>Promosyon kodu</label>
-        <input type="text" id="promoCode" placeholder="Promosyon kodunuz">
+        <label data-tr="Promosyon kodu" data-en="Promo code">Promosyon kodu</label>
+        <input type="text" id="promoCode" placeholder="Promosyon kodunuz" data-placeholder-tr="Promosyon kodunuz" data-placeholder-en="Your promo code">
       </div>
 
       <button class="search-btn" onclick="searchFlights()">
-        Uçuş ara <i class="fa-solid fa-arrow-right"></i>
+        <span data-tr="Uçuş ara" data-en="Search flights">Uçuş ara</span> <i class="fa-solid fa-arrow-right"></i>
       </button>
     </div>
 
@@ -242,9 +260,9 @@
             <small data-tr="12 yaş ve üzeri" data-en="12 years and above">12 yaş ve üzeri</small>
           </div>
           <div class="counter-controls">
-            <button onclick="changePassengerCount('adult', -1)">-</button>
+            <button type="button" onclick="changePassengerCount('adult', -1)">-</button>
             <span id="adultCount">1</span>
-            <button onclick="changePassengerCount('adult', 1)">+</button>
+            <button type="button" onclick="changePassengerCount('adult', 1)">+</button>
           </div>
         </div>
         <div class="counter-row">
@@ -253,9 +271,9 @@
             <small data-tr="2-11 yaş" data-en="2-11 years">2-11 yaş</small>
           </div>
           <div class="counter-controls">
-            <button onclick="changePassengerCount('child', -1)">-</button>
+            <button type="button" onclick="changePassengerCount('child', -1)">-</button>
             <span id="childCount">0</span>
-            <button onclick="changePassengerCount('child', 1)">+</button>
+            <button type="button" onclick="changePassengerCount('child', 1)">+</button>
           </div>
         </div>
         <div class="counter-row">
@@ -264,9 +282,9 @@
             <small data-tr="0-23 ay" data-en="0-23 months">0-23 ay</small>
           </div>
           <div class="counter-controls">
-            <button onclick="changePassengerCount('infant', -1)">-</button>
+            <button type="button" onclick="changePassengerCount('infant', -1)">-</button>
             <span id="infantCount">0</span>
-            <button onclick="changePassengerCount('infant', 1)">+</button>
+            <button type="button" onclick="changePassengerCount('infant', 1)">+</button>
           </div>
         </div>
       </div>

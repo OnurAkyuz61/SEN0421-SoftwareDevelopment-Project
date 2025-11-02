@@ -1,17 +1,3 @@
-/* ================== ABOUT PAGE STYLES ================== */
-/* Hakkımızda sayfası özel stilleri */
-/* 
- * Bu dosya Hakkımızda sayfası için özel stiller içerir.
- * 
- * İçerik:
- * - Hero bölümü (başlık ve açıklama)
- * - Şirket bilgileri kartları (misyon, vizyon, değerler)
- * - İstatistikler bölümü
- * - Ekip üyeleri kartları
- * - Hover efektleri ve animasyonlar
- * - Responsive tasarım kuralları
- */
-
 /* Ana içerik bölümü */
 .about-hero {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
