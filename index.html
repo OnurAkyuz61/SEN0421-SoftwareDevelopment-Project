@@ -52,7 +52,7 @@
     
     <!-- Site logosu -->
     <div class="logo-container">
-      <img src="https://pngimg.com/d/air_canada_PNG21.png" class="site-logo" alt="Trabzon Airlines Logo">
+      <img src="assets/logo/logo.png" width="240" class="site-logo" alt="Trabzon Airlines Logo">
       <span class="logo-text">Trabzon Airlines</span>
     </div>
   </div>
@@ -114,11 +114,7 @@
     <hr class="menu-divider">
 
     <!-- Otel rezervasyonu -->
-    <li><a href="#"><i class="fa-solid fa-bed"></i> <span data-tr="Oteller" data-en="Hotels">Oteller</span></a></li>
-    <!-- Araç kiralama -->
-    <li><a href="#"><i class="fa-solid fa-car"></i> <span data-tr="Araç Kiralama" data-en="Car Rental">Araç Kiralama</span></a></li>
-    <!-- Uçuş geçişleri -->
-    <li><a href="#"><i class="fa-solid fa-ticket"></i> <span data-tr="Uçuş Geçişleri" data-en="Flight Passes">Uçuş Geçişleri</span></a></li>
+    <li><a href="#"><i class="fa-solid fa-robot"></i> <span data-tr="Trip AI" data-en="Trip AI">Trip AI</span></a></li>
   </ul>
 
   <!-- Daha fazla seçenekler -->
@@ -141,148 +137,71 @@
 
 <!-- HERO SEARCH SECTION - Ana arama bölümü -->
 <section class="hero">
-  <div class="container">
-    <!-- Ana başlık -->
-    <h1 class="hero-title" data-tr="Sizi nereye götürebiliriz?" data-en="Where can we take you?">Sizi nereye götürebiliriz?</h1>
+  <div class="hero-overlay"></div>
 
-    <!-- Uçuş arama formu -->
-    <div class="search-box">
-      
-      <!-- Tab seçenekleri -->
-      <div class="search-tabs">
-        <button class="tab-btn active" data-tab="flight" data-tr="Uçak bileti" data-en="Flight ticket">
-          <i class="fa-solid fa-plane"></i>
-          <span data-tr="Uçak bileti" data-en="Flight ticket">Uçak bileti</span>
-        </button>
-        <button class="tab-btn" data-tab="hotel" data-tr="Uçak bileti + Otel" data-en="Flight + Hotel">
-          <i class="fa-solid fa-bed"></i>
-          <span data-tr="Uçak bileti + Otel" data-en="Flight + Hotel">Uçak bileti + Otel</span>
-        </button>
-        <button class="tab-btn" data-tab="checkin" data-tr="Check-in" data-en="Check-in">
-          <i class="fa-solid fa-clipboard-check"></i>
-          <span data-tr="Check-in" data-en="Check-in">Check-in</span>
-        </button>
-        <button class="tab-btn" data-tab="manage" data-tr="Bilet yönetimi" data-en="Manage booking">
-          <i class="fa-solid fa-ticket"></i>
-          <span data-tr="Bilet yönetimi" data-en="Manage booking">Bilet yönetimi</span>
-        </button>
-        <button class="tab-btn" data-tab="status" data-tr="Uçuş durumu" data-en="Flight status">
-          <i class="fa-solid fa-info-circle"></i>
-          <span data-tr="Uçuş durumu" data-en="Flight status">Uçuş durumu</span>
-        </button>
-      </div>
+  <h1 class="hero-title">Sizi nereye götürebiliriz?</h1>
 
-      <!-- Uçak bileti tab içeriği -->
-      <div class="tab-content active" id="flight-tab">
-        
-        <!-- Seyahat türü seçimi -->
-        <div class="trip-type-selection">
-          <div class="radio-group">
-            <input type="radio" id="roundtrip" name="tripType" value="roundtrip" checked>
-            <label for="roundtrip" data-tr="Gidiş - Dönüş" data-en="Round-trip">Gidiş - Dönüş</label>
-          </div>
-          <div class="radio-group">
-            <input type="radio" id="oneway" name="tripType" value="oneway">
-            <label for="oneway" data-tr="Tek yön" data-en="One-way">Tek yön</label>
-          </div>
-          <div class="radio-group">
-            <input type="radio" id="stopover" name="tripType" value="stopover">
-            <label for="stopover" data-tr="İstanbul'da Stopover" data-en="Istanbul Stopover">İstanbul'da Stopover</label>
-          </div>
-          <div class="radio-group">
-            <input type="radio" id="multicity" name="tripType" value="multicity">
-            <label for="multicity" data-tr="Çoklu uçuş" data-en="Multi-city">Çoklu uçuş</label>
-          </div>
-          
-          <!-- Ödül bileti seçeneği -->
-          <div class="reward-ticket">
-            <input type="checkbox" id="rewardTicket">
-            <label for="rewardTicket" data-tr="Ödül bileti - Millerinizle bilet alın" data-en="Award ticket - Buy with miles">
-              <i class="fa-solid fa-gift"></i>
-              <span data-tr="Ödül bileti - Millerinizle bilet alın" data-en="Award ticket - Buy with miles">Ödül bileti - Millerinizle bilet alın</span>
-            </label>
-          </div>
-        </div>
+  <div class="flight-card">
 
-        <!-- Lokasyon ve tarih seçimi -->
-        <div class="flight-search-form">
-          
-          <!-- Kalkış ve varış -->
-          <div class="location-selection">
-            <!-- Nereden -->
-            <div class="location-input" onclick="openAirportModal('departure')">
-              <label data-tr="Nereden" data-en="From">Nereden</label>
-              <div class="airport-display">
-                <span class="airport-code" id="departureCode">TZX</span>
-                <span class="airport-name" id="departureName" data-tr="Trabzon" data-en="Trabzon">Trabzon</span>
-                <small class="airport-full" id="departureFullName" data-tr="Trabzon (Tümü)" data-en="Trabzon (All)">Trabzon (Tümü)</small>
-              </div>
-            </div>
+    <!-- Üst seçenek butonları -->
+    <div class="flight-top-options">
+      <button class="top-opt active" data-type="roundtrip">Gidiş - Dönüş</button>
+      <button class="top-opt" data-type="oneway">Tek yön</button>
+      <button class="top-opt" data-type="multicity">Çoklu uçuş</button>
 
-            <!-- Swap butonu -->
-            <button class="swap-locations" onclick="swapAirports()" aria-label="Havalimanlarını değiştir">
-              <i class="fa-solid fa-right-left"></i>
-            </button>
+      <label class="top-opt checkbox-opt">
+        <input type="checkbox" id="awardTicket">
+        Ödül bileti
+      </label>
 
-            <!-- Nereye -->
-            <div class="location-input" onclick="openAirportModal('destination')">
-              <label data-tr="Nereye" data-en="To">Nereye</label>
-              <div class="airport-display">
-                <span class="airport-code" id="destinationCode">?</span>
-                <span class="airport-name" id="destinationName" data-tr="Nereye" data-en="Where">Nereye</span>
-                <small class="airport-full" id="destinationFullName"></small>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tarih seçimi -->
-          <div class="date-selection">
-            <div class="date-input-group">
-              <label data-tr="Tarih" data-en="Date">Tarih</label>
-              <input type="date" id="departureDate" class="date-input" required>
-            </div>
-            <div class="date-input-group return-date">
-              <label data-tr="Dönüş" data-en="Return">Dönüş</label>
-              <input type="date" id="returnDate" class="date-input">
-            </div>
-          </div>
-
-          <!-- Yolcu seçimi -->
-          <div class="passenger-selection" onclick="openPassengerModal()">
-            <label data-tr="Yolcular" data-en="Passengers">Yolcular</label>
-            <div class="passenger-display">
-              <span id="passengerSummary" data-tr="1 Yolcu" data-en="1 Passenger">1 Yolcu</span>
-              <small id="passengerDetails" data-tr="ECO" data-en="ECO">ECO</small>
-            </div>
-            <i class="fa-solid fa-chevron-down"></i>
-          </div>
-
-          <!-- Arama butonu -->
-          <button class="flight-search-btn" onclick="searchFlights()">
-            <span data-tr="Uçuş ara" data-en="Search flights">Uçuş ara</span>
-            <i class="fa-solid fa-arrow-right"></i>
-          </button>
-        </div>
-
-        <!-- Gelişmiş seçenekler -->
-        <div class="advanced-options">
-          <button class="advanced-toggle" onclick="toggleAdvancedOptions()">
-            <span data-tr="Uygun fırsatları gör" data-en="See available deals">Uygun fırsatları gör</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="advanced-content" id="advancedOptions">
-            <div class="promo-code">
-              <label data-tr="Promosyon kodu" data-en="Promo code">Promosyon kodu</label>
-              <input type="text" id="promoCode" placeholder="Promosyon kodunuz">
-            </div>
-          </div>
-        </div>
-
-      </div>
-
+      <button class="top-opt" onclick="openPassengerModal()">1 Yolcu</button>
     </div>
+
+    <!-- Lokasyon seçimi -->
+    <div class="location-row-aircanada">
+      <div class="loc-box" onclick="openAirportModal('departure')">
+        <span class="loc-code" id="departureCode">TZX</span>
+        <span class="loc-city" id="departureName">Trabzon</span>
+      </div>
+
+      <button class="loc-swap" onclick="swapAirports()">
+        <i class="fa-solid fa-right-left"></i>
+      </button>
+
+      <div class="loc-box" onclick="openAirportModal('destination')">
+        <span class="loc-code" id="destinationCode">?</span>
+        <span class="loc-city" id="destinationName">Nereye</span>
+      </div>
+    </div>
+
+    <!-- Tarih alanları -->
+    <div class="date-row">
+      <div class="date-col">
+        <label>Gidiş tarihi</label>
+        <input type="date" id="departureDate">
+      </div>
+
+      <div class="date-col">
+        <label>Dönüş tarihi</label>
+        <input type="date" id="returnDate">
+      </div>
+    </div>
+
+    <!-- Promosyon & Arama -->
+    <div class="promo-row">
+      <div class="promo-col">
+        <label>Promosyon kodu</label>
+        <input type="text" id="promoCode" placeholder="Promosyon kodunuz">
+      </div>
+
+      <button class="search-btn" onclick="searchFlights()">
+        Uçuş ara <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+
   </div>
 </section>
+
 
 <!-- Havalimanı seçim modal'ı -->
 <div class="airport-modal" id="airportModal">
@@ -500,12 +419,21 @@
 <!-- FOOTER - Alt bilgi -->
 <footer class="main-footer">
   <div class="footer-content">
-    <p>&copy; 2025 Trabzon Airlines | <span data-tr="Tüm hakları saklıdır" data-en="All rights reserved">Tüm hakları saklıdır</span></p>
+
+    <!-- Marka -->
+    <p class="footer-brand">&copy; 2025 <span>Trabzon Airlines</span></p>
+
+    <!-- Linkler alt kısımda ortalı -->
     <div class="footer-links">
       <a href="pages/about.html" data-tr="Hakkımızda" data-en="About Us">Hakkımızda</a>
       <a href="pages/contact.html" data-tr="İletişim" data-en="Contact">İletişim</a>
       <a href="#" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</a>
     </div>
+
+    <p class="footer-copy" data-tr="Tüm hakları saklıdır" data-en="All rights reserved">
+      Tüm hakları saklıdır
+    </p>
+
   </div>
 </footer>
 

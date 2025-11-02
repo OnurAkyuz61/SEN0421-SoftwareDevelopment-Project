@@ -259,6 +259,62 @@ const airports = [
   { code: 'TJK', name: 'Tokat', fullName: 'Tokat Havalimanı', enName: 'Tokat', enFullName: 'Tokat Airport', category: 'domestic' }
 ];
 
+const airportListEl = document.getElementById("airportList");
+
+// Listeyi modal içine yazdır
+function renderAirportList(list) {
+  airportListEl.innerHTML = list.map(a => `
+    <div class="airport-item" 
+         data-code="${a.code}" 
+         data-city="${a.name}" 
+         data-full="${a.fullName}">
+      <span class="airport-code-modal">${a.code}</span>
+      <div class="airport-info">
+        <span class="airport-city-modal">${a.name}</span>
+        <small class="airport-full-modal">${a.fullName}</small>
+      </div>
+    </div>
+  `).join("");
+}
+
+// Sayfa yüklenince listeyi göster
+renderAirportList(airports);
+
+let selectingAirport = "departure";
+
+function openAirportModal(which) {
+  selectingAirport = which;
+  document.getElementById("airportModal").classList.add("show");
+  document.body.classList.add("modal-open");
+}
+
+function closeAirportModal() {
+  document.getElementById("airportModal").classList.remove("show");
+  document.body.classList.remove("modal-open");
+}
+
+airportListEl.addEventListener("click", (e) => {
+  const item = e.target.closest(".airport-item");
+  if (!item) return;
+
+  const code = item.dataset.code;
+  const city = item.dataset.city;
+  const full = item.dataset.full;
+
+  if (selectingAirport === "departure") {
+    document.getElementById("departureCode").textContent = code;
+    document.getElementById("departureName").textContent = city;
+    document.getElementById("departureFullName").textContent = full;
+  } else {
+    document.getElementById("destinationCode").textContent = code;
+    document.getElementById("destinationName").textContent = city;
+    document.getElementById("destinationFullName").textContent = full;
+  }
+
+  closeAirportModal();
+});
+
+
 // Yolcu sayıları
 let passengerCounts = {
   adult: 1,
@@ -1107,7 +1163,81 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+
+
+  // Gidiş Dönüş 
+
+  const tripButtons = document.querySelectorAll(".top-opt");
+const returnDateField = document.getElementById("returnDate");
+
+  tripButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+
+    // Tüm butonlardan active sınıfını kaldır
+    tripButtons.forEach(b => b.classList.remove("active"));
+
+    // Tıklanan butona active ekle
+    btn.classList.add("active");
+
+    const type = btn.dataset.type;
+
+    // SEYAHAT TÜRÜNE GÖRE DAVRANIŞ
+    if (type === "oneway") {
+      // Tek yön → dönüş tarihini gizle
+      returnDateField.parentElement.style.display = "none";
+      returnDateField.value = "";
+    } 
+    else {
+      // Roundtrip & Çoklu uçuş → dönüş tarihi görünür
+      returnDateField.parentElement.style.display = "block";
+    }
+
+    });
+  });
   
+// Uçak Seçimi Hangi kutu için seçim yapıldığını tutalım
+  let selectingAirport = 'departure';
+
+  function openAirportModal(which) {
+    selectingAirport = which; // 'departure' | 'destination'
+    document.getElementById('airportModal').classList.add('show');
+    document.body.classList.add('modal-open');
+  }
+
+  function closeAirportModal() {
+    document.getElementById('airportModal').classList.remove('show');
+    document.body.classList.remove('modal-open');
+  }
+
+  // Airport listesinde tıklanan item'ı yakala (event delegation)
+  const listEl = document.getElementById('airportList');
+  if (listEl) {
+    listEl.addEventListener('click', (e) => {
+      const item = e.target.closest('.airport-item');
+      if (!item) return;
+
+      // item üzerinde data-attribute'lar olduğunu varsayıyoruz:
+      // <div class="airport-item" data-code="IST" data-city="İstanbul" data-full="İstanbul (Tümü)">
+      const code = item.dataset.code || '';
+      const city = item.dataset.city || '';
+      const full = item.dataset.full || '';
+
+      if (selectingAirport === 'departure') {
+        document.getElementById('departureCode').textContent = code;
+        document.getElementById('departureName').textContent = city;
+        document.getElementById('departureFullName').textContent = full;
+      } else {
+        document.getElementById('destinationCode').textContent = code;
+        document.getElementById('destinationName').textContent = city;
+        document.getElementById('destinationFullName').textContent = full;
+      }
+
+      closeAirportModal();
+    });
+  }
+
+
+
   // ESC tuşu ile modal'ları kapat
   document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
@@ -1118,4 +1248,4 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   console.log('Trabzon Airlines sistemi yüklendi!');
-});
+  });

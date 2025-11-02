@@ -144,8 +144,8 @@ a:hover {
 }
 
 .site-logo {
-  height: 40px;
-  width: auto;
+  height: auto;
+  width: 100px;
   transition: transform var(--transition-fast) ease;
 }
 
@@ -391,516 +391,197 @@ body.sidebar-collapsed .page-content {
   margin-left: var(--sidebar-collapsed-width);
 }
 
-/* ================== HERO SECTION ================== */
-/* Ana sayfa hero bölümü */
-
+/* ================== HERO SECTION (MODERN TASARIM) ================== */
 .hero {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-  color: var(--white);
-  padding: 4rem 0;
+  width: 100%;
+  min-height: 520px;
+  background: url("https://images.unsplash.com/photo-1522441815192-d9f04eb0615c") center/cover no-repeat;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  overflow: hidden;
+  padding: 4rem 1rem;
 }
 
-.hero::before {
-  content: '';
+.hero-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M0,0 L100,0 L100,80 Q50,100 0,80 Z" fill="rgba(255,255,255,0.05)"/></svg>');
-  background-size: cover;
-  pointer-events: none;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
 }
 
 .hero-title {
-  font-size: 3rem;
+  position: relative;
+  color: #fff;
+  font-size: 2.8rem;
   font-weight: 700;
-  text-align: center;
   margin-bottom: 2rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 4px 14px rgba(0,0,0,0.8);
 }
 
-/* Arama formu */
-.search-box {
-  background: var(--white);
-  border-radius: var(--radius-medium);
+.flight-card {
+  position: relative;
+  background: #fff;
+  border-radius: 22px;
   padding: 2rem;
-  box-shadow: var(--shadow-heavy);
-  color: var(--black);
-  position: relative;
-  z-index: 10;
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width: 1150px;
+  width: 100%;
+  box-shadow: 0 22px 50px rgba(0,0,0,0.25);
 }
 
-.search-options {
+/* Üst seçenek butonları */
+.flight-top-options {
   display: flex;
+  gap: 0.8rem;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  align-items: center;
+  margin-bottom: 1.8rem;
 }
 
-.trip-select, .passenger-select {
-  position: relative;
-}
-
-.dropdown-btn {
-  background: var(--light-gray);
-  border: 2px solid #e1e5e9;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-small);
+.top-opt {
+  background: #f2f2f2;
+  border: none;
+  border-radius: 20px;
+  padding: 0.7rem 1.4rem;
   cursor: pointer;
+  font-size: 0.95rem;
+  transition: 0.25s;
+}
+.top-opt.active {
+  background: #0066cc;
+  color: #fff;
+}
+.checkbox-opt input { margin-right: 0.5rem; }
+
+/* Lokasyon kutuları */
+.location-row-aircanada {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: all var(--transition-fast) ease;
-  min-width: 150px;
+  margin-bottom: 1.8rem;
 }
 
-.dropdown-btn:hover {
-  border-color: var(--primary-color);
-  background: #f8f9fa;
+.loc-box {
+  flex: 1;
+  border-radius: 16px;
+  border: 2px solid #d7d7d7;
+  padding: 1.4rem 1.2rem;
+  cursor: pointer;
+  transition: 0.25s;
 }
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--white);
-  border: 1px solid #e1e5e9;
-  border-radius: var(--radius-small);
-  box-shadow: var(--shadow-medium);
-  display: none;
-  z-index: 100;
+.loc-box:hover {
+  border-color: #0066cc;
 }
-
-.dropdown-menu.show {
+.loc-code {
   display: block;
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #0066cc;
+}
+.loc-city {
+  font-size: 0.95rem;
+  color: #333;
 }
 
-.dropdown-menu li {
-  list-style: none;
+.loc-swap {
+  margin: 0 1rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #d7d7d7;
+  background: #fff;
+  cursor: pointer;
+  transition: 0.25s;
+}
+.loc-swap:hover {
+  border-color: #0066cc;
+  color: #0066cc;
+  transform: rotate(180deg);
 }
 
-.dropdown-menu a {
-  display: block;
-  padding: 0.75rem 1rem;
-  color: var(--black);
-  text-decoration: none;
-  transition: background-color var(--transition-fast) ease;
-}
-
-.dropdown-menu a:hover {
-  background: var(--light-gray);
-  color: var(--primary-color);
-}
-
-.points-option {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.points-option input[type="checkbox"] {
-  width: auto;
-}
-
-/* Lokasyon seçimi */
-.location-row {
+/* Tarihler */
+.date-row {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  margin-bottom: 1.8rem;
+}
+.date-col label {
+  font-size: 0.82rem;
+  color: #666;
+}
+.date-col input {
+  width: 100%;
+  padding: 0.9rem;
+  border-radius: 14px;
+  border: 2px solid #d7d7d7;
+}
+
+/* Promosyon ve arama */
+.promo-row {
+  display: flex;
+  align-items: flex-end;
   gap: 1rem;
-  margin-bottom: 2rem;
-  align-items: center;
+}
+.promo-col { flex: 1; }
+.promo-col input {
+  width: 100%;
+  padding: 0.9rem;
+  border-radius: 14px;
+  border: 2px solid #d7d7d7;
 }
 
-.location-box {
-  background: var(--light-gray);
-  border: 2px solid #e1e5e9;
-  border-radius: var(--radius-medium);
-  padding: 1.5rem;
-  text-align: center;
+.search-btn {
+  background: #0066cc;
+  color: #fff;
+  border: none;
+  border-radius: 26px;
+  padding: 1rem 2rem;
+  font-size: 1.05rem;
   cursor: pointer;
-  transition: all var(--transition-fast) ease;
+  transition: 0.25s;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
-
-.location-box:hover {
-  border-color: var(--primary-color);
-  background: #f8f9fa;
+.search-btn:hover {
+  background: #004e9e;
   transform: translateY(-2px);
 }
 
-.location-code {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  margin-bottom: 0.5rem;
-}
 
-.location-name {
-  color: var(--gray);
-  font-size: 0.9rem;
-}
-
-.swap-container {
-  display: flex;
-  justify-content: center;
-}
-
-.swap-btn {
-  background: var(--white);
-  border: 2px solid #e1e5e9;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all var(--transition-fast) ease;
-  font-size: 1.2rem;
-  color: var(--gray);
-}
-
-.swap-btn:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  transform: rotate(180deg);
-}
-
-/* ================== SEARCH TABS ================== */
-/* Arama tab sistemi */
-
-.search-tabs {
-  display: flex;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-medium) var(--radius-medium) 0 0;
-  overflow: hidden;
-  margin-bottom: 0;
-}
-
-.tab-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
-  padding: 1rem 0.5rem;
-  cursor: pointer;
-  transition: all var(--transition-fast) ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.tab-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--white);
-}
-
-.tab-btn.active {
-  background: var(--white);
-  color: var(--black);
-}
-
-.tab-btn i {
-  font-size: 1.2rem;
-}
-
-.tab-content {
-  display: none;
-  background: var(--white);
-  border-radius: 0 0 var(--radius-medium) var(--radius-medium);
-  padding: 2rem;
-}
-
-.tab-content.active {
-  display: block;
-}
-
-/* ================== TRIP TYPE SELECTION ================== */
-/* Seyahat türü seçimi */
-
-.trip-type-selection {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e1e5e9;
-}
-
-.radio-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-right: 2rem;
-  margin-bottom: 1rem;
-}
-
-.radio-group input[type="radio"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary-color);
-}
-
-.radio-group label {
-  font-weight: 500;
-  color: var(--black);
-  cursor: pointer;
-}
-
-.reward-ticket {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: var(--light-gray);
-  border-radius: var(--radius-small);
-  border-left: 4px solid var(--accent-color);
-}
-
-.reward-ticket label {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.reward-ticket i {
-  color: var(--accent-color);
-  font-size: 1.2rem;
-}
-
-/* ================== FLIGHT SEARCH FORM ================== */
-/* Uçuş arama formu */
-
-.flight-search-form {
-  display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr 120px;
-  gap: 1rem;
-  align-items: end;
-  margin-bottom: 1.5rem;
-}
-
-.location-selection {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.location-input {
-  flex: 1;
-  background: var(--light-gray);
-  border: 2px solid #e1e5e9;
-  border-radius: var(--radius-small);
-  padding: 1rem;
-  cursor: pointer;
-  transition: all var(--transition-fast) ease;
-  position: relative;
-}
-
-.location-input:hover {
-  border-color: var(--primary-color);
-  background: #f8f9fa;
-}
-
-.location-input label {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--gray);
-  margin-bottom: 0.25rem;
-  font-weight: 500;
-}
-
-.airport-display {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.airport-code {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--black);
-}
-
-.airport-name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--black);
-}
-
-.airport-full {
-  font-size: 0.8rem;
-  color: var(--gray);
-}
-
-.swap-locations {
-  background: var(--white);
-  border: 2px solid #e1e5e9;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all var(--transition-fast) ease;
-  color: var(--gray);
-  margin: 0 0.5rem;
-}
-
-.swap-locations:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  transform: rotate(180deg);
-}
-
-.date-selection {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.date-input-group {
-  flex: 1;
-}
-
-.date-input-group label {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--gray);
-  margin-bottom: 0.25rem;
-  font-weight: 500;
-}
-
-.date-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e1e5e9;
-  border-radius: var(--radius-small);
-  font-size: 1rem;
-  transition: all var(--transition-fast) ease;
-}
-
-.date-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(228, 0, 43, 0.1);
-}
-
-.return-date {
-  position: relative;
-}
-
+/* Soft Glow Hover Effect */
+.loc-box,
+.date-col input,
+.promo-col input,
 .passenger-selection {
-  background: var(--light-gray);
-  border: 2px solid #e1e5e9;
-  border-radius: var(--radius-small);
-  padding: 1rem;
-  cursor: pointer;
-  transition: all var(--transition-fast) ease;
-  position: relative;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
 }
 
+.loc-box:hover,
+.date-col input:hover,
+.promo-col input:hover,
 .passenger-selection:hover {
-  border-color: var(--primary-color);
-  background: #f8f9fa;
+  border-color: #0066cc;
+  box-shadow: 0 0 18px rgba(0,102,204,0.25);
+  transform: translateY(-2px);
 }
 
-.passenger-selection label {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--gray);
-  margin-bottom: 0.25rem;
-  font-weight: 500;
+
+/* Elastic Bounce Animation */
+@keyframes swapBounce {
+  0%   { transform: rotate(0) scale(1); }
+  40%  { transform: rotate(180deg) scale(1.3); }
+  60%  { transform: rotate(180deg) scale(0.9); }
+  100% { transform: rotate(180deg) scale(1); }
 }
 
-.passenger-display {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.loc-swap {
+  transition: border-color .25s, color .25s;
 }
 
-.passenger-selection i {
-  position: absolute;
-  top: 50%;
-  right: 1rem;
-  transform: translateY(-50%);
-  color: var(--gray);
-}
-
-.flight-search-btn {
-  background: var(--primary-color);
-  color: var(--white);
-  border: none;
-  border-radius: var(--radius-small);
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast) ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  height: fit-content;
-}
-
-.flight-search-btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-}
-
-/* ================== ADVANCED OPTIONS ================== */
-/* Gelişmiş seçenekler */
-
-.advanced-options {
-  border-top: 1px solid #e1e5e9;
-  padding-top: 1rem;
-}
-
-.advanced-toggle {
-  background: none;
-  border: none;
-  color: var(--primary-color);
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: color var(--transition-fast) ease;
-}
-
-.advanced-toggle:hover {
-  color: var(--primary-dark);
-}
-
-.advanced-content {
-  display: none;
-  margin-top: 1rem;
-  padding: 1rem;
-  background: var(--light-gray);
-  border-radius: var(--radius-small);
-}
-
-.advanced-content.show {
-  display: block;
-}
-
-.promo-code label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.promo-code input {
-  width: 100%;
-  max-width: 300px;
-  padding: 0.75rem;
-  border: 2px solid #e1e5e9;
-  border-radius: var(--radius-small);
+.loc-swap:active {
+  animation: swapBounce 0.45s ease;
+  border-color: #0066cc;
+  color: #0066cc;
 }
 
 /* ================== MODAL STYLES ================== */
@@ -968,58 +649,119 @@ body.sidebar-collapsed .page-content {
   overflow-y: auto;
 }
 
-/* Havalimanı modal'ı */
+/* ================== AIRPORT SEARCH ================== */
+
 .airport-search input {
   width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e1e5e9;
-  border-radius: var(--radius-small);
+  padding: 0.85rem 1rem;
+  border: 2px solid #dfe3e8;
+  border-radius: 10px;
   font-size: 1rem;
-  margin-bottom: 1rem;
+  outline: none;
+  transition: 0.25s;
 }
+
+.airport-search input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(228, 0, 43, 0.12);
+}
+
+/* ================== AIRPORT LIST ================== */
 
 .airport-list {
-  max-height: 300px;
+  max-height: 360px;
   overflow-y: auto;
+  padding-right: 4px;
+  scroll-behavior: smooth;
 }
 
+/* Scrollbar */
+.airport-list::-webkit-scrollbar {
+  width: 6px;
+}
+.airport-list::-webkit-scrollbar-thumb {
+  background: #c7c7c7;
+  border-radius: 4px;
+}
+.airport-list::-webkit-scrollbar-thumb:hover {
+  background: #b1b1b1;
+}
+
+/* ================== AIRPORT ITEM ================== */
+
 .airport-item {
-  padding: 1rem;
-  border-bottom: 1px solid #e1e5e9;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 12px;
+  border-bottom: 1px solid #eef1f4;
   cursor: pointer;
-  transition: background-color var(--transition-fast) ease;
+  transition: all 0.25s ease;
+  border-radius: 8px;
+  position: relative;
 }
 
 .airport-item:hover {
-  background: var(--light-gray);
+  background: #f6f9ff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  transform: translateY(-1px);
 }
 
 .airport-item:last-child {
   border-bottom: none;
 }
 
+/* Code */
 .airport-code-modal {
   font-weight: 700;
+  font-size: 1.05rem;
+  min-width: 60px;
+  letter-spacing: 0.5px;
   color: var(--primary-color);
-  margin-right: 0.5rem;
 }
 
+/* Name & Full name stack */
+.airport-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.airport-city-modal {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1a1a1a;
+}
+
+.airport-full-modal {
+  font-size: 0.85rem;
+  color: #6c727f;
+}
+
+/* ================== CATEGORY HEADER ================== */
+
 .airport-category-header {
-  padding: 0.75rem 1rem;
-  background: var(--light-gray);
-  border-bottom: 1px solid #e1e5e9;
-  font-size: 0.9rem;
-  color: var(--gray);
+  padding: 8px 12px;
+  background: #f2f4f7;
+  border-bottom: 1px solid #dfe3e8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5f6368;
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 9;
+  text-transform: uppercase;
 }
+
+/* ================== NO RESULT ================== */
 
 .no-results {
   padding: 2rem;
   text-align: center;
-  color: var(--gray);
+  color: #8e8e8e;
+  font-size: 0.95rem;
 }
+
 
 /* Yolcu modal'ı */
 .passenger-counters {
@@ -1359,37 +1101,54 @@ body.sidebar-collapsed .page-content {
 }
 
 /* ================== FOOTER ================== */
-/* Alt bilgi bölümü */
 
 .main-footer {
   background: var(--dark-gray);
   color: var(--white);
-  padding: 2rem 0;
-  margin-top: auto;
+  padding: 2.5rem 0;
+  text-align: center;
 }
 
 .footer-content {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  flex-wrap: wrap;
   gap: 1rem;
+}
+
+.footer-brand {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.footer-brand span {
+  color: var(--primary-color);
 }
 
 .footer-links {
   display: flex;
   gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .footer-links a {
-  color: #ccc;
+  color: #dcdcdc;
+  font-size: 1rem;
   text-decoration: none;
-  transition: color var(--transition-fast) ease;
+  transition: 0.3s;
 }
 
 .footer-links a:hover {
   color: var(--primary-color);
 }
+
+.footer-copy {
+  font-size: 0.9rem;
+  color: #bbbbbb;
+  margin-top: 0.5rem;
+}
+
 
 /* ================== MODAL STYLES ================== */
 /* Modal ve popup stilleri */
