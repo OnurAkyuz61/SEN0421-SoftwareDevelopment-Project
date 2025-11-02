@@ -1063,6 +1063,13 @@ body.sidebar-collapsed .page-content {
   font-weight: 500;
 }
 
+/* Sidebar açıkken mobil alt navigasyonu gizle */
+.mobile-bottom-nav.hide {
+  transform: translateY(100%);
+  opacity: 0;
+  visibility: hidden;
+}
+
 /* Mobil overlay */
 .drawer-overlay {
   position: fixed;

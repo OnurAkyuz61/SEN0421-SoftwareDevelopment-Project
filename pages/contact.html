@@ -40,7 +40,7 @@
   <!-- Sağ taraf - Arama, dil seçimi ve giriş butonları -->
   <div class="header-right">
     <!-- Arama butonu -->
-    <div class="header-search" onclick="toggleSearch()">
+    <div class="header-search" onclick="showComingSoonAlert('search')">
       <span data-tr="Arama" data-en="Search">Arama</span>
       <i class="fa-solid fa-magnifying-glass"></i>
     </div>
@@ -54,8 +54,8 @@
     </div>
 
     <!-- Kayıt ol ve giriş yap butonları -->
-    <button class="join-btn" onclick="window.location.href='signup.html'" data-tr="Kayıt Ol" data-en="Sign Up">Kayıt Ol</button>
-    <button class="signin-btn" onclick="window.location.href='login.html'" data-tr="Giriş Yap" data-en="Login">Giriş Yap</button>
+    <button class="join-btn" onclick="showComingSoonAlert('signup')" data-tr="Kayıt Ol" data-en="Sign Up">Kayıt Ol</button>
+    <button class="signin-btn" onclick="showComingSoonAlert('login')" data-tr="Giriş Yap" data-en="Login">Giriş Yap</button>
   </div>
 </header>
 
@@ -66,19 +66,19 @@
     <!-- Uçuş rezervasyonu -->
     <li><a href="../index.html"><i class="fa-solid fa-plane"></i> <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span></a></li>
     <!-- Paket turlar -->
-    <li><a href="#"><i class="fa-solid fa-suitcase-rolling"></i> <span data-tr="Paketler" data-en="Packages">Paketler</span></a></li>
+    <li><a href="#" onclick="showComingSoonAlert('packages'); return false;"><i class="fa-solid fa-suitcase-rolling"></i> <span data-tr="Paketler" data-en="Packages">Paketler</span></a></li>
     <!-- Özel teklifler -->
-    <li><a href="#"><i class="fa-solid fa-tag"></i> <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span></a></li>
+    <li><a href="#" onclick="showComingSoonAlert('deals'); return false;"><i class="fa-solid fa-tag"></i> <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span></a></li>
 
     <!-- Menü ayırıcısı -->
     <hr class="menu-divider">
 
     <!-- Seyahat planları -->
-    <li><a href="#"><i class="fa-solid fa-map"></i> <span data-tr="Seyahatler" data-en="Trips">Seyahatler</span></a></li>
+    <li><a href="#" onclick="showComingSoonAlert('trips'); return false;"><i class="fa-solid fa-map"></i> <span data-tr="Seyahatler" data-en="Trips">Seyahatler</span></a></li>
     <!-- Online check-in -->
-    <li><a href="#"><i class="fa-solid fa-clipboard-check"></i> <span data-tr="Check-in" data-en="Check-in">Check-in</span></a></li>
+    <li><a href="#" onclick="showComingSoonAlert('checkin'); return false;"><i class="fa-solid fa-clipboard-check"></i> <span data-tr="Check-in" data-en="Check-in">Check-in</span></a></li>
     <!-- Uçuş durumu sorgulama -->
-    <li><a href="#"><i class="fa-solid fa-list-check"></i> <span data-tr="Uçuş Durumu" data-en="Flight Status">Uçuş Durumu</span></a></li>
+    <li><a href="#" onclick="showComingSoonAlert('status'); return false;"><i class="fa-solid fa-list-check"></i> <span data-tr="Uçuş Durumu" data-en="Flight Status">Uçuş Durumu</span></a></li>
 
     <!-- Menü ayırıcısı -->
     <hr class="menu-divider">
@@ -88,18 +88,18 @@
     <!-- İletişim sayfası -->
     <li><a href="contact.html" class="active"><i class="fa-solid fa-envelope"></i> <span data-tr="İletişim" data-en="Contact">İletişim</span></a></li>
     <!-- Müşteri hizmetleri -->
-    <li><a href="#"><i class="fa-solid fa-headset"></i> <span data-tr="Destek" data-en="Support">Destek</span></a></li>
+    <li><a href="#" onclick="showComingSoonAlert('support'); return false;"><i class="fa-solid fa-headset"></i> <span data-tr="Destek" data-en="Support">Destek</span></a></li>
 
     <!-- Menü ayırıcısı -->
     <hr class="menu-divider">
 
     <!-- Trip AI -->
-    <li><a href="#"><i class="fa-solid fa-robot"></i> <span data-tr="Trip AI" data-en="Trip AI">Trip AI</span></a></li>
+    <li><a href="#" onclick="showComingSoonAlert('tripai'); return false;"><i class="fa-solid fa-robot"></i> <span data-tr="Trip AI" data-en="Trip AI">Trip AI</span></a></li>
   </ul>
 
   <!-- Daha fazla seçenekler -->
   <div class="sidebar-more">
-    <a href="#"><i class="fa-solid fa-ellipsis"></i><span data-tr="Daha Fazla" data-en="More">Daha Fazla</span></a>
+    <a href="#" onclick="showComingSoonAlert('more'); return false;"><i class="fa-solid fa-ellipsis"></i><span data-tr="Daha Fazla" data-en="More">Daha Fazla</span></a>
   </div>
 </div>
 
@@ -190,7 +190,7 @@
       <div class="contact-form-container">
         <h2 class="form-title" data-tr="Mesaj Gönderin" data-en="Send Message">Mesaj Gönderin</h2>
         
-        <form class="contact-form" id="contactForm" onsubmit="submitContactForm(event)">
+        <form class="contact-form" id="contactForm" onsubmit="showComingSoonAlert('contact'); return false;">
           
           <!-- Ad Soyad -->
           <div class="form-group">
@@ -256,7 +256,7 @@
             <input type="checkbox" id="kvkk" name="kvkk" required>
             <label for="kvkk" class="checkbox-label">
               <span data-tr="Kişisel verilerimin işlenmesine ve " data-en="I agree to the processing of my personal data and ">Kişisel verilerimin işlenmesine ve </span>
-              <a href="#" data-tr="KVKK Aydınlatma Metni" data-en="Privacy Policy">KVKK Aydınlatma Metni</a>
+              <a href="#" onclick="showComingSoonAlert('privacy'); return false;" data-tr="KVKK Aydınlatma Metni" data-en="Privacy Policy">KVKK Aydınlatma Metni</a>
               <span data-tr="'ni okuduğumu kabul ediyorum. *" data-en=" and confirm that I have read it. *">'ni okuduğumu kabul ediyorum. *</span>
             </label>
           </div>
@@ -344,38 +344,6 @@
 </main>
 </div>
 
-<!-- MOBILE BOTTOM NAV - Mobil alt navigasyon -->
-<nav class="mobile-bottom-nav">
-  <!-- Uçuşlar -->
-  <a href="../index.html" class="nav-item">
-    <i class="fa-solid fa-plane"></i>
-    <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span>
-  </a>
-
-  <!-- Seyahatler -->
-  <a href="#" class="nav-item">
-    <i class="fa-solid fa-map"></i>
-    <span data-tr="Seyahatler" data-en="Trips">Seyahatler</span>
-  </a>
-
-  <!-- Durum -->
-  <a href="#" class="nav-item">
-    <i class="fa-solid fa-list-check"></i>
-    <span data-tr="Durum" data-en="Status">Durum</span>
-  </a>
-
-  <!-- Fırsatlar -->
-  <a href="#" class="nav-item">
-    <i class="fa-solid fa-tag"></i>
-    <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span>
-  </a>
-
-  <!-- İletişim -->
-  <a href="contact.html" class="nav-item active">
-    <i class="fa-solid fa-envelope"></i>
-    <span data-tr="İletişim" data-en="Contact">İletişim</span>
-  </a>
-</nav>
 
 <!-- LANGUAGE & CURRENCY MODAL - Dil ve para birimi seçim modal'ı -->
 <div class="lang-modal" id="langModal">
@@ -420,7 +388,7 @@
     <div class="footer-links">
       <a href="about.html" data-tr="Hakkımızda" data-en="About Us">Hakkımızda</a>
       <a href="contact.html" data-tr="İletişim" data-en="Contact">İletişim</a>
-      <a href="#" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</a>
+      <a href="#" onclick="showComingSoonAlert('privacy'); return false;" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</a>
     </div>
   </div>
 </footer>

@@ -1034,331 +1034,109 @@ function toggleFaq(faqNumber) {
   }
 }
 
-/* ================== AUTH FUNCTIONS ================== */
-// Kimlik doğrulama fonksiyonları
 
-// Şifre göster/gizle
-function togglePassword(inputId) {
-  const input = document.getElementById(inputId);
-  const button = input?.nextElementSibling?.querySelector('i');
+/* ================== COMING SOON ALERTS ================== */
+// Yakında eklenecek özellikler için uyarı fonksiyonu
+function showComingSoonAlert(feature) {
+  const currentLanguage = localStorage.getItem('language') || 'tr';
   
-  if (input && button) {
-    if (input.type === 'password') {
-      input.type = 'text';
-      button.classList.remove('fa-eye');
-      button.classList.add('fa-eye-slash');
-    } else {
-      input.type = 'password';
-      button.classList.remove('fa-eye-slash');
-      button.classList.add('fa-eye');
-    }
-  }
-}
-
-// TC Kimlik numarası input'unu aç/kapat
-function toggleTcInput() {
-  const tcInput = document.getElementById('tcNumber');
-  const checkbox = document.getElementById('notTurkishCitizen');
+  let title, message;
   
-  if (tcInput && checkbox) {
-    tcInput.disabled = checkbox.checked;
-    if (checkbox.checked) {
-      tcInput.value = '';
-      tcInput.style.backgroundColor = '#f5f5f5';
-      tcInput.style.color = '#999';
-    } else {
-      tcInput.style.backgroundColor = '';
-      tcInput.style.color = '';
-    }
-  }
-}
-
-// Şifre gücü kontrolü
-function checkPasswordStrength() {
-  const password = document.getElementById('signupPassword')?.value || '';
-  const strengthFill = document.getElementById('strengthFill');
-  const strengthText = document.getElementById('strengthText');
-  
-  if (!strengthFill || !strengthText) return;
-  
-  let strength = 0;
-  let strengthLabel = '';
-  
-  // Şifre uzunluğu kontrolü
-  if (password.length >= 8) strength += 1;
-  if (password.length >= 12) strength += 1;
-  
-  // Büyük harf kontrolü
-  if (/[A-Z]/.test(password)) strength += 1;
-  
-  // Küçük harf kontrolü
-  if (/[a-z]/.test(password)) strength += 1;
-  
-  // Rakam kontrolü
-  if (/[0-9]/.test(password)) strength += 1;
-  
-  // Özel karakter kontrolü
-  if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-  
-  // Güç seviyesini belirle
-  strengthFill.className = 'strength-fill';
-  
-  if (password.length === 0) {
-    strengthFill.style.width = '0%';
-    strengthLabel = currentLanguage === 'tr' ? 'Şifre gücü' : 'Password strength';
-  } else if (strength <= 2) {
-    strengthFill.classList.add('weak');
-    strengthFill.style.width = '25%';
-    strengthLabel = currentLanguage === 'tr' ? 'Zayıf' : 'Weak';
-  } else if (strength <= 3) {
-    strengthFill.classList.add('fair');
-    strengthFill.style.width = '50%';
-    strengthLabel = currentLanguage === 'tr' ? 'Orta' : 'Fair';
-  } else if (strength <= 4) {
-    strengthFill.classList.add('good');
-    strengthFill.style.width = '75%';
-    strengthLabel = currentLanguage === 'tr' ? 'İyi' : 'Good';
-  } else {
-    strengthFill.classList.add('strong');
-    strengthFill.style.width = '100%';
-    strengthLabel = currentLanguage === 'tr' ? 'Güçlü' : 'Strong';
-  }
-  
-  strengthText.textContent = strengthLabel;
-}
-
-// TC Kimlik numarası validasyonu
-function validateTcNumber(tcNumber) {
-  if (!tcNumber || tcNumber.length !== 11) return false;
-  
-  // Tüm rakamlar aynı olamaz
-  if (/^(\d)\1{10}$/.test(tcNumber)) return false;
-  
-  // İlk rakam 0 olamaz
-  if (tcNumber[0] === '0') return false;
-  
-  // TC kimlik algoritması
-  const digits = tcNumber.split('').map(Number);
-  
-  // İlk 10 rakamın toplamı
-  const sum1 = digits.slice(0, 10).reduce((a, b) => a + b, 0);
-  if (sum1 % 10 !== digits[10]) return false;
-  
-  // Tek ve çift pozisyonların toplamı
-  const oddSum = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
-  const evenSum = digits[1] + digits[3] + digits[5] + digits[7];
-  
-  if ((oddSum * 7 - evenSum) % 10 !== digits[9]) return false;
-  
-  return true;
-}
-
-// Kayıt formu işlemi
-function handleSignup(event) {
-  event.preventDefault();
-  
-  const form = event.target;
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData);
-  
-  // TC Kimlik kontrolü (eğer TC vatandaşıysa)
-  const notTurkishCitizen = data.notTurkishCitizen;
-  if (!notTurkishCitizen && data.tcNumber) {
-    if (!validateTcNumber(data.tcNumber)) {
-      showAuthMessage('error', 
-        currentLanguage === 'tr' ? 'Geçerli bir TC Kimlik numarası girin!' : 'Please enter a valid Turkish ID number!'
-      );
-      return;
-    }
-  }
-  
-  // Gerekli alanları kontrol et
-  const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'birthDate', 'gender', 'password', 'confirmPassword', 'kvkk', 'terms'];
-  let isValid = true;
-  
-  for (let field of requiredFields) {
-    if (!data[field] || data[field].trim() === '') {
-      isValid = false;
+  // Özellik türüne göre mesajları belirle
+  switch(feature) {
+    case 'login':
+      title = currentLanguage === 'tr' ? '🔐 Giriş Yap' : '🔐 Login';
+      message = currentLanguage === 'tr' ? 
+        'Giriş yapma özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Login feature coming soon!\n\nCurrently under development.';
       break;
-    }
+    case 'signup':
+      title = currentLanguage === 'tr' ? '📝 Kayıt Ol' : '📝 Sign Up';
+      message = currentLanguage === 'tr' ? 
+        'Kayıt olma özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Sign up feature coming soon!\n\nCurrently under development.';
+      break;
+    case 'search':
+      title = currentLanguage === 'tr' ? '✈️ Uçuş Arama' : '✈️ Flight Search';
+      message = currentLanguage === 'tr' ? 
+        'Uçuş arama özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Flight search feature coming soon!\n\nCurrently under development.';
+      break;
+    case 'booking':
+      title = currentLanguage === 'tr' ? '🎫 Rezervasyon' : '🎫 Booking';
+      message = currentLanguage === 'tr' ? 
+        'Rezervasyon özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Booking feature coming soon!\n\nCurrently under development.';
+      break;
+    case 'packages':
+      title = currentLanguage === 'tr' ? '🧳 Paketler' : '🧳 Packages';
+      message = currentLanguage === 'tr' ? 
+        'Paket turlar özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Package tours feature coming soon!\n\nCurrently under development.';
+      break;
+    case 'deals':
+      title = currentLanguage === 'tr' ? '🏷️ Fırsatlar' : '🏷️ Deals';
+      message = currentLanguage === 'tr' ? 
+        'Özel fırsatlar özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Special deals feature coming soon!\n\nCurrently under development.';
+      break;
+    case 'trips':
+      title = currentLanguage === 'tr' ? '🗺️ Seyahatler' : '🗺️ Trips';
+      message = currentLanguage === 'tr' ? 
+        'Seyahat planları özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Trip planning feature coming soon!\n\nCurrently under development.';
+      break;
+    case 'checkin':
+      title = currentLanguage === 'tr' ? '✅ Check-in' : '✅ Check-in';
+      message = currentLanguage === 'tr' ? 
+        'Online check-in özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Online check-in feature coming soon!\n\nCurrently under development.';
+      break;
+    case 'status':
+      title = currentLanguage === 'tr' ? '📊 Uçuş Durumu' : '📊 Flight Status';
+      message = currentLanguage === 'tr' ? 
+        'Uçuş durumu sorgulama özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Flight status feature coming soon!\n\nCurrently under development.';
+      break;
+    case 'support':
+      title = currentLanguage === 'tr' ? '🎧 Destek' : '🎧 Support';
+      message = currentLanguage === 'tr' ? 
+        'Müşteri destek özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Customer support feature coming soon!\n\nCurrently under development.';
+      break;
+    case 'tripai':
+      title = currentLanguage === 'tr' ? '🤖 Trip AI' : '🤖 Trip AI';
+      message = currentLanguage === 'tr' ? 
+        'AI destekli seyahat planlama özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'AI-powered trip planning feature coming soon!\n\nCurrently under development.';
+      break;
+    case 'more':
+      title = currentLanguage === 'tr' ? '➕ Daha Fazla' : '➕ More';
+      message = currentLanguage === 'tr' ? 
+        'Ek özellikler yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Additional features coming soon!\n\nCurrently under development.';
+      break;
+    case 'privacy':
+      title = currentLanguage === 'tr' ? '🔒 Gizlilik Politikası' : '🔒 Privacy Policy';
+      message = currentLanguage === 'tr' ? 
+        'Gizlilik politikası sayfası yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Privacy policy page coming soon!\n\nCurrently under development.';
+      break;
+    case 'contact':
+      title = currentLanguage === 'tr' ? '📧 İletişim Formu' : '📧 Contact Form';
+      message = currentLanguage === 'tr' ? 
+        'İletişim formu gönderme özelliği yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'Contact form submission feature coming soon!\n\nCurrently under development.';
+      break;
+    default:
+      title = currentLanguage === 'tr' ? '🚧 Yakında' : '🚧 Coming Soon';
+      message = currentLanguage === 'tr' ? 
+        'Bu özellik yakında eklenecek!\n\nŞu anda geliştirme aşamasında.' : 
+        'This feature coming soon!\n\nCurrently under development.';
   }
   
-  if (!isValid) {
-    showAuthMessage('error', 
-      currentLanguage === 'tr' ? 'Lütfen tüm zorunlu alanları doldurun!' : 'Please fill in all required fields!'
-    );
-    return;
-  }
-  
-  // E-posta formatını kontrol et
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(data.email)) {
-    showAuthMessage('error', 
-      currentLanguage === 'tr' ? 'Geçerli bir e-posta adresi girin!' : 'Please enter a valid email address!'
-    );
-    return;
-  }
-  
-  // Şifre kontrolü
-  if (data.password.length < 8) {
-    showAuthMessage('error', 
-      currentLanguage === 'tr' ? 'Şifre en az 8 karakter olmalıdır!' : 'Password must be at least 8 characters!'
-    );
-    return;
-  }
-  
-  // Şifre eşleşme kontrolü
-  if (data.password !== data.confirmPassword) {
-    showAuthMessage('error', 
-      currentLanguage === 'tr' ? 'Şifreler eşleşmiyor!' : 'Passwords do not match!'
-    );
-    return;
-  }
-  
-  console.log('Kayıt formu gönderildi:', data);
-  
-  showAuthMessage('success', 
-    currentLanguage === 'tr' ? 'Kayıt işlemi başarıyla tamamlandı! Giriş yapabilirsiniz.' : 'Registration completed successfully! You can now sign in.'
-  );
-  
-  // 2 saniye sonra login sayfasına yönlendir
-  setTimeout(() => {
-    window.location.href = 'login.html';
-  }, 2000);
-}
-
-// Giriş formu işlemi
-function handleLogin(event) {
-  event.preventDefault();
-  
-  const form = event.target;
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData);
-  
-  // Gerekli alanları kontrol et
-  if (!data.email || !data.password) {
-    showAuthMessage('error', 
-      currentLanguage === 'tr' ? 'E-posta ve şifre alanları zorunludur!' : 'Email and password fields are required!'
-    );
-    return;
-  }
-  
-  // E-posta formatını kontrol et
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(data.email)) {
-    showAuthMessage('error', 
-      currentLanguage === 'tr' ? 'Geçerli bir e-posta adresi girin!' : 'Please enter a valid email address!'
-    );
-    return;
-  }
-  
-  console.log('Giriş formu gönderildi:', data);
-  
-  showAuthMessage('success', 
-    currentLanguage === 'tr' ? 'Giriş yapılıyor... Ana sayfaya yönlendiriliyorsunuz.' : 'Signing in... Redirecting to homepage.'
-  );
-  
-  // 2 saniye sonra ana sayfaya yönlendir
-  setTimeout(() => {
-    window.location.href = '../index.html';
-  }, 2000);
-}
-
-// Auth mesajı gösterme fonksiyonu
-function showAuthMessage(type, message) {
-  // Mevcut mesajları kaldır
-  const existingMessages = document.querySelectorAll('.auth-message');
-  existingMessages.forEach(msg => msg.remove());
-  
-  // Yeni mesaj oluştur
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `auth-message ${type}`;
-  messageDiv.innerHTML = `
-    <i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
-    <span>${message}</span>
-  `;
-  
-  // Mesajı forma ekle
-  const form = document.querySelector('.auth-form');
-  if (form) {
-    form.insertBefore(messageDiv, form.firstChild);
-    messageDiv.style.display = 'flex';
-    
-    // Hata mesajları 5 saniye sonra kaybolur, başarı mesajları kalır
-    if (type === 'error') {
-      setTimeout(() => {
-        messageDiv.style.opacity = '0';
-        setTimeout(() => {
-          if (messageDiv.parentNode) {
-            messageDiv.remove();
-          }
-        }, 300);
-      }, 5000);
-    }
-  }
-}
-
-// Sosyal medya giriş/kayıt
-function signupWithGoogle() {
-  console.log('Google ile kayıt');
-  alert(currentLanguage === 'tr' ? 'Google ile kayıt özelliği yakında!' : 'Sign up with Google coming soon!');
-}
-
-function signupWithFacebook() {
-  console.log('Facebook ile kayıt');
-  alert(currentLanguage === 'tr' ? 'Facebook ile kayıt özelliği yakında!' : 'Sign up with Facebook coming soon!');
-}
-
-function loginWithGoogle() {
-  console.log('Google ile giriş');
-  alert(currentLanguage === 'tr' ? 'Google ile giriş özelliği yakında!' : 'Sign in with Google coming soon!');
-}
-
-function loginWithFacebook() {
-  console.log('Facebook ile giriş');
-  alert(currentLanguage === 'tr' ? 'Facebook ile giriş özelliği yakında!' : 'Sign in with Facebook coming soon!');
-}
-
-// Şifremi unuttum modal
-function openForgotPasswordModal() {
-  const modal = document.getElementById('forgotModal');
-  if (modal) {
-    modal.style.display = 'flex';
-  }
-}
-
-function closeForgotPasswordModal() {
-  const modal = document.getElementById('forgotModal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
-}
-
-function handleForgotPassword(event) {
-  event.preventDefault();
-  const email = document.getElementById('forgotEmail')?.value;
-  
-  if (!email) {
-    alert(currentLanguage === 'tr' ? 'Lütfen e-posta adresinizi girin!' : 'Please enter your email address!');
-    return;
-  }
-  
-  // E-posta formatını kontrol et
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    alert(currentLanguage === 'tr' ? 'Geçerli bir e-posta adresi girin!' : 'Please enter a valid email address!');
-    return;
-  }
-  
-  console.log('Şifre sıfırlama e-postası gönderildi:', email);
-  
-  // Başarı mesajı
-  alert(currentLanguage === 'tr' ? 
-    'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi! E-posta kutunuzu kontrol edin.' : 
-    'Password reset link sent to your email! Please check your inbox.'
-  );
-  
-  closeForgotPasswordModal();
+  // Güzel bir alert göster
+  alert(title + '\n\n' + message);
 }
 
 /* ================== MULTI-CITY FLIGHTS ================== */
