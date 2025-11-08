@@ -1097,6 +1097,8 @@ body.sidebar-collapsed .page-content {
   color: var(--white);
   padding: 2.5rem 0;
   text-align: center;
+  margin-left: var(--sidebar-width);
+  transition: margin-left var(--transition-normal) ease;
 }
 
 .footer-content {
@@ -1104,6 +1106,14 @@ body.sidebar-collapsed .page-content {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Sidebar collapsed olduğunda footer margin'i */
+body.sidebar-collapsed .main-footer {
+  margin-left: var(--sidebar-collapsed-width);
 }
 
 .footer-brand {
@@ -1494,6 +1504,10 @@ body.sidebar-collapsed .page-content {
   .offers-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+  
+  .main-footer {
+    margin-left: 0;
   }
   
   .footer-content {

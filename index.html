@@ -51,7 +51,7 @@
     </button>
     
     <!-- Site logosu -->
-    <div class="logo-container">
+    <div class="logo-container" onclick="window.location.href='index.html'" style="cursor: pointer;">
       <img src="assets/logo/logo.png" width="240" class="site-logo" alt="Trabzon Airlines Logo">
       <span class="logo-text">Trabzon Airlines</span>
     </div>
@@ -125,6 +125,30 @@
 
 <!-- Mobil cihazlarda sidebar kapatmak için arka plan overlay -->
 <div id="drawerOverlay" class="drawer-overlay" onclick="closeMobileSidebar()"></div>
+
+<!-- Mobil alt navigasyon -->
+<div class="mobile-bottom-nav">
+  <a href="index.html" class="nav-item active">
+    <i class="fa-solid fa-plane"></i>
+    <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span>
+  </a>
+  <a href="#" onclick="showComingSoonAlert('packages'); return false;" class="nav-item">
+    <i class="fa-solid fa-suitcase-rolling"></i>
+    <span data-tr="Paketler" data-en="Packages">Paketler</span>
+  </a>
+  <a href="#" onclick="showComingSoonAlert('deals'); return false;" class="nav-item">
+    <i class="fa-solid fa-tag"></i>
+    <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span>
+  </a>
+  <a href="pages/about.html" class="nav-item">
+    <i class="fa-solid fa-info-circle"></i>
+    <span data-tr="Hakkımızda" data-en="About">Hakkımızda</span>
+  </a>
+  <a href="pages/contact.html" class="nav-item">
+    <i class="fa-solid fa-envelope"></i>
+    <span data-tr="İletişim" data-en="Contact">İletişim</span>
+  </a>
+</div>
 
 <!-- Desktop'ta sidebar'ı açıp kapatmak için buton -->
 <button class="toggle-btn-outside" id="toggleButton" onclick="toggleSidebar()" aria-label="Sidebar'ı aç/kapat">
@@ -322,7 +346,7 @@
       <!-- İstanbul teklifi -->
       <div class="offer-card">
         <div class="offer-image">
-          <img src="https://images.unsplash.com/photo-1549880338-65ddcdfd017b" alt="İstanbul">
+          <img src="assets/images/destinations/istanbul.jpg" alt="İstanbul">
           <div class="offer-badge" data-tr="Sınırlı Teklif" data-en="Limited Offer">Sınırlı Teklif</div>
         </div>
         <div class="offer-content">
@@ -335,7 +359,7 @@
       <!-- Ankara teklifi -->
       <div class="offer-card">
         <div class="offer-image">
-          <img src="https://images.unsplash.com/photo-1505761671935-60b3a7427bad" alt="Ankara">
+          <img src="assets/images/destinations/ankara.jpg" alt="Ankara">
           <div class="offer-badge" data-tr="Sınırlı Teklif" data-en="Limited Offer">Sınırlı Teklif</div>
         </div>
         <div class="offer-content">
@@ -348,7 +372,7 @@
       <!-- İzmir teklifi -->
       <div class="offer-card">
         <div class="offer-image">
-          <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05" alt="İzmir">
+          <img src="assets/images/destinations/izmir.jpg" alt="İzmir">
           <div class="offer-badge" data-tr="Sınırlı Teklif" data-en="Limited Offer">Sınırlı Teklif</div>
         </div>
         <div class="offer-content">
@@ -411,6 +435,7 @@
 
     <!-- Linkler alt kısımda ortalı -->
     <div class="footer-links">
+      <a href="index.html" data-tr="Ana Sayfa" data-en="Home">Ana Sayfa</a>
       <a href="pages/about.html" data-tr="Hakkımızda" data-en="About Us">Hakkımızda</a>
       <a href="pages/contact.html" data-tr="İletişim" data-en="Contact">İletişim</a>
       <a href="#" onclick="showComingSoonAlert('privacy'); return false;" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</a>

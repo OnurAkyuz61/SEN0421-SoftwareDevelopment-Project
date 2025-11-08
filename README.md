@@ -29,25 +29,26 @@ Trabzon Airlines, modern web teknolojileri kullanılarak geliştirilmiş kapsaml
   - Gerçek zamanlı fiyat karşılaştırması
   - Esnek tarih seçenekleri
 
-- 👤 **Kullanıcı Yönetimi**
-  - Güvenli kayıt ve giriş sistemi
-  - Profil yönetimi
-  - Rezervasyon geçmişi
-
-- 🌍 **Çok Dilli Destek**
+- 🌍 **Çok Dilli Destek** ✅
   - Türkçe ve İngilizce dil seçenekleri
   - Dinamik dil değiştirme
-  - Yerelleştirme desteği
+  - Sayfa geçişlerinde dil korunması
 
-- 📱 **Responsive Tasarım**
+- 📱 **Responsive Tasarım** ✅
   - Mobil uyumlu arayüz
+  - Mobil alt navigasyon çubuğu
   - Tablet ve desktop optimizasyonu
   - Modern UI/UX tasarımı
 
-- 💳 **Ödeme Sistemi**
-  - Güvenli ödeme altyapısı
-  - Çoklu para birimi desteği
-  - Kredi kartı ve dijital cüzdan entegrasyonu
+- 🖼️ **Optimized Media** ✅
+  - Yerel resim dosyaları
+  - SVG placeholder'lar
+  - Hızlı yükleme performansı
+
+- 🧭 **Gelişmiş Navigasyon** ✅
+  - Logo tıklaması ile ana sayfa
+  - Ortalanmış footer tasarımı
+  - Responsive sidebar menü
 
 ## 🛠️ Kullanılan Teknolojiler
 
@@ -79,19 +80,20 @@ Trabzon Airlines/
 ├── 📄 index.html              # Ana sayfa - Uçuş arama ve rezervasyon
 ├── 📁 pages/                  # Alt sayfalar
 │   ├── about.html             # Hakkımızda - Şirket bilgileri
-│   ├── contact.html           # İletişim - İletişim formu
-│   ├── login.html             # Giriş yap - Kullanıcı girişi
-│   └── signup.html            # Kayıt ol - Yeni kullanıcı kaydı
+│   └── contact.html           # İletişim - İletişim formu
 ├── 📁 css/                    # Stil dosyaları
 │   ├── style.css              # Ana CSS - Genel stiller ve layout
-│   ├── auth.css               # Kimlik doğrulama sayfaları stilleri
 │   ├── about.css              # Hakkımızda sayfası stilleri
 │   └── contact.css            # İletişim sayfası stilleri
 ├── 📁 js/                     # JavaScript dosyaları
 │   └── script.js              # Ana JS - İnteraktif özellikler
 ├── 📁 assets/                 # Medya dosyaları
-│   └── icons/                 # Favicon ve diğer ikonlar
-├── 📁 images/                 # Görseller ve resimler
+│   ├── icons/                 # Favicon ve diğer ikonlar
+│   ├── logo/                  # Logo dosyaları
+│   └── images/                # Tüm resim dosyaları
+│       ├── destinations/      # Destinasyon resimleri (İstanbul, Ankara, İzmir)
+│       ├── team/              # Ekip üyesi resimleri (CEO, CTO, OPS)
+│       └── placeholders/      # Placeholder resimler
 └── 📄 README.md               # Proje dokümantasyonu
 ```
 
@@ -105,8 +107,8 @@ Trabzon Airlines/
 
 1. **Projeyi klonlayın:**
    ```bash
-   git clone https://github.com/username/trabzon-airlines.git
-   cd trabzon-airlines
+   git clone https://github.com/OnurAkyuz61/COM5005-WebProgramming-Project.git
+   cd COM5005-WebProgramming-Project
    ```
 
 2. **Yerel sunucu başlatın (opsiyonel):**
@@ -145,10 +147,6 @@ Trabzon Airlines/
 - Sık sorulan sorular (FAQ)
 - Harita entegrasyonu (planlanan)
 
-### 🔐 Kimlik Doğrulama
-- **Giriş Yap (login.html):** Kullanıcı girişi
-- **Kayıt Ol (signup.html):** Yeni kullanıcı kaydı
-
 ## 🎨 Tasarım Özellikleri
 
 ### Renk Paleti
@@ -168,122 +166,26 @@ Trabzon Airlines/
 - Sidebar açılma/kapanma animasyonları
 - Form validasyon feedback'leri
 
-## 🌟 Öne Çıkan Özellikler
+## 🌐 GitHub Repository
 
-### Çift Dilli Sistem
-- Türkçe ve İngilizce dil desteği
-- `data-tr` ve `data-en` attributeları ile dinamik çeviri
-- Kullanıcı tercihlerinin localStorage'da saklanması
-- Modal ve form elementlerinde dil desteği
+**Proje Linki:** [https://github.com/OnurAkyuz61/COM5005-WebProgramming-Project](https://github.com/OnurAkyuz61/COM5005-WebProgramming-Project)
 
-### Responsive Sidebar ve Navigasyon
-- Desktop'ta daraltılabilir sidebar
-- Mobil'de drawer tarzı açılım
-- Smooth animasyonlar ve geçişler
-- Alt navigasyon çubuğu (mobil)
+## 🎯 Gerçekleştirilen Özellikler
 
-### Modern Form Tasarımı ve Validasyon
-- Gelişmiş form validasyonu ve geri bildirimler
-- Şifre gücü göstergesi
-- Sosyal medya login seçenekleri
-- İki kolonlu kayıt formu tasarımı
+### ✅ Tamamlanan Fonksiyonlar
+- **Responsive Tasarım**: Mobil, tablet ve desktop uyumluluğu
+- **Çift Dil Desteği**: Türkçe/İngilizce dinamik dil değiştirme
+- **Mobil Navigasyon**: Alt navigasyon çubuğu ve hamburger menü
+- **Logo Navigasyonu**: Tüm sayfalarda ana sayfaya yönlendirme
+- **Optimized Media**: Yerel resim dosyaları ve hızlı yükleme
+- **Ortalanmış Footer**: Tüm sayfalarda tutarlı footer tasarımı
 
-### SEO ve Sosyal Medya Optimizasyonu
-- Kapsamlı meta tag implementasyonu
-- Open Graph ve Twitter Card desteği
-- Arama motoru dostu URL yapısı
-- Canonical URL tanımlamaları
-
-### Accessibility (Erişilebilirlik)
-- ARIA labels ve semantic HTML5
-- Keyboard navigation desteği
-- Screen reader uyumluluğu
-- Yüksek kontrast renk paleti
-
-### Modal ve Popup Sistemleri
-- Z-index optimizasyonu
-- Backdrop blur efektleri
-- Responsive modal tasarımı
-- Smooth açılma/kapanma animasyonları
-
-## 📈 Geliştirme Süreci
-
-### Faz 1: Planlama ve Tasarım ✅
-- Proje gereksinimlerinin belirlenmesi
-- Wireframe ve mockup tasarımları
-- Teknoloji stack seçimi
-- Renk paleti ve tipografi belirlenmesi
-
-### Faz 2: Frontend Geliştirme ✅
-- HTML5 semantik yapısının oluşturulması
-- CSS3 ile responsive tasarım implementasyonu
-- JavaScript ile interaktif özellikler
-- Çoklu sayfa yapısının kurulması
-
-### Faz 3: UI/UX İyileştirmeleri ✅
-- Modal sistemleri ve popup'lar
-- Form validasyonları ve kullanıcı geri bildirimleri
-- Animasyonlar ve geçiş efektleri
-- Accessibility (erişilebilirlik) iyileştirmeleri
-
-### Faz 4: SEO ve Optimizasyon ✅
-- Meta tag optimizasyonları
-- Open Graph ve Twitter Card entegrasyonu
-- Performance optimizasyonu
-- Cross-browser uyumluluk testleri
-
-### Faz 5: Final Testler ve Dokümantasyon ✅
-- Responsive tasarım testleri
-- Kod dokümantasyonu ve yorumlar
-- README güncellemeleri
-- Son kullanıcı testleri
-
-## 🧪 Test Senaryoları
-
-### Fonksiyonel Testler
-- [x] Uçuş arama formu ve filtreleme
-- [x] Kullanıcı kayıt ve giriş sayfaları
-- [x] Dil değiştirme sistemi
-- [x] Form validasyonları ve geri bildirimler
-- [x] Responsive tasarım ve layout
-- [x] Modal sistemleri ve popup'lar
-- [x] Navigasyon ve sidebar işlevselliği
-
-### Uyumluluk Testleri
-- [x] Chrome, Firefox, Safari, Edge
-- [x] iOS Safari, Android Chrome
-- [x] Tablet ve desktop çözünürlükleri
-- [x] Mobil cihazlarda touch navigation
-
-### SEO ve Erişilebilirlik Testleri
-- [x] Meta tag optimizasyonu
-- [x] Open Graph ve Twitter Card testleri
-- [x] Semantic HTML yapısı
-- [x] ARIA label implementasyonu
-- [x] Keyboard navigation desteği
-
-## 🔒 Güvenlik Önlemleri
-
-- XSS koruması
-- CSRF token kullanımı
-- Input sanitization
-- Güvenli authentication
-- HTTPS protokolü (production)
-
-## 📊 Performance Metrikleri
-
-- Sayfa yükleme süresi: < 3 saniye
-- First Contentful Paint: < 1.5 saniye
-- Lighthouse Score: > 90
-- Mobile-friendly test: Passed
-
-## 🤝 Katkıda Bulunma
-
-1. Fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add amazing feature'`)
-4. Branch'i push edin (`git push origin feature/amazing-feature`)
-5. Pull Request oluşturun
+### 🔧 Teknik Özellikler
+- Modern CSS3 (Grid, Flexbox, Custom Properties)
+- Vanilla JavaScript (ES6+)
+- Font Awesome 6.5.0 ikon kütüphanesi
+- SEO optimizasyonu (Meta tags, Open Graph)
+- Cross-browser uyumluluk
 
 ## 📝 Lisans
 

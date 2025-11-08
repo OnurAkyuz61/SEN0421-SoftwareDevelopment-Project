@@ -1,6 +1,15 @@
 // Mevcut dil ayarı
 let currentLanguage = localStorage.getItem('language') || 'tr';
 
+// Sayfa yüklenmeden önce dil ayarlarını uygula
+document.addEventListener('DOMContentLoaded', function() {
+  // Dil ayarlarını hemen uygula
+  applyLanguageSettings();
+  updatePageLanguage();
+  
+  console.log('Dil sistemi yüklendi. Mevcut dil:', currentLanguage);
+});
+
 /* ================== SIDEBAR CONTROL ================== */
 // Desktop sidebar daraltma/genişletme
 function toggleSidebar() {
@@ -68,6 +77,18 @@ window.addEventListener("resize", autoSidebar);
 function openLangModal() {
   const modal = document.getElementById("langModal");
   if (modal) {
+    // Mevcut ayarları modal'da göster
+    const currencySelect = document.getElementById("currencySelect");
+    const languageSelect = document.getElementById("languageSelect");
+    
+    if (currencySelect) {
+      currencySelect.value = localStorage.getItem("currency") || "₺";
+    }
+    
+    if (languageSelect) {
+      languageSelect.value = localStorage.getItem("language") || "tr";
+    }
+    
     modal.classList.add("show");
     modal.style.display = "flex";
   }
@@ -98,6 +119,8 @@ function confirmLanguageChange() {
     // Dil kodunu güncelle
     currentLanguage = selectedLanguage;
     
+    console.log('Dil değiştirildi:', selectedLanguage);
+    
     // Ayarları uygula
     applyLanguageSettings();
     updatePageLanguage();
@@ -110,6 +133,9 @@ function confirmLanguageChange() {
 function applyLanguageSettings() {
   const currency = localStorage.getItem("currency") || "₺";
   const language = localStorage.getItem("language") || "tr";
+  
+  // Global dil değişkenini güncelle
+  currentLanguage = language;
   
   // Header'daki dil ve para birimi göstergelerini güncelle
   const headerCurrency = document.getElementById("headerCurrency");
@@ -140,6 +166,18 @@ function applyLanguageSettings() {
       authLang.textContent = "EN";
       authFlag.src = "https://flagcdn.com/w20/us.png";
     }
+  }
+  
+  // Modal select'leri de güncelle
+  const currencySelect = document.getElementById("currencySelect");
+  const languageSelect = document.getElementById("languageSelect");
+  
+  if (currencySelect) {
+    currencySelect.value = currency;
+  }
+  
+  if (languageSelect) {
+    languageSelect.value = language;
   }
 }
 
@@ -184,6 +222,35 @@ function updatePageLanguage() {
       titleElement.textContent = enTitle;
     }
   }
+  
+  // Modal option'larını da güncelle
+  updateModalOptions();
+}
+
+// Modal option'larını güncelle
+function updateModalOptions() {
+  const modalOptions = document.querySelectorAll('#currencySelect option, #languageSelect option');
+  
+  modalOptions.forEach(option => {
+    const trText = option.getAttribute('data-tr');
+    const enText = option.getAttribute('data-en');
+    
+    if (currentLanguage === 'tr' && trText) {
+      option.textContent = trText;
+    } else if (currentLanguage === 'en' && enText) {
+      option.textContent = enText;
+    }
+  });
+}
+
+// Test fonksiyonu - dil değiştirmeyi test etmek için
+function testLanguageSwitch() {
+  const newLang = currentLanguage === 'tr' ? 'en' : 'tr';
+  localStorage.setItem('language', newLang);
+  currentLanguage = newLang;
+  applyLanguageSettings();
+  updatePageLanguage();
+  console.log('Test: Dil değiştirildi ->', newLang);
 }
 
 /* ================== FLIGHT SEARCH FUNCTIONS ================== */
@@ -1662,10 +1729,6 @@ const returnDateField = document.getElementById("returnDate");
       closeMobileSidebar();
     }
   });
-  
-  // Sayfa yüklendiğinde dil ayarlarını uygula
-  applyLanguageSettings();
-  updatePageLanguage();
   
   console.log('Trabzon Airlines sistemi yüklendi!');
   });
