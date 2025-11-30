@@ -1,0 +1,251 @@
+@{
+    ViewBag.Title = "Kayıt Ol";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/auth.css">
+}
+
+<!-- SIGNUP SECTION - Kayıt ol bölümü -->
+<section class="auth-section">
+  <div class="auth-container">
+    
+    <!-- Kayıt formu kartı -->
+    <div class="auth-card">
+      
+      <!-- Form başlığı -->
+      <div class="auth-header-content">
+        <h1 class="auth-title" data-tr="Hesap Oluştur" data-en="Create Account">Hesap Oluştur</h1>
+        <p class="auth-subtitle" data-tr="Trabzon Airlines'a hoş geldiniz! Hemen üye olun ve avantajlardan yararlanın." 
+           data-en="Welcome to Trabzon Airlines! Sign up now and enjoy the benefits.">
+          Trabzon Airlines'a hoş geldiniz! Hemen üye olun ve avantajlardan yararlanın.
+        </p>
+      </div>
+
+      <!-- Kayıt formu -->
+      <form class="auth-form" id="signupForm" onsubmit="handleSignup(event)">
+        
+        <!-- Ad Soyad -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName" data-tr="Ad *" data-en="First Name *">Ad *</label>
+            <input type="text" id="firstName" name="firstName" required 
+                   placeholder="Adınız" 
+                   data-placeholder-tr="Adınız" 
+                   data-placeholder-en="Your first name">
+          </div>
+          <div class="form-group">
+            <label for="lastName" data-tr="Soyad *" data-en="Last Name *">Soyad *</label>
+            <input type="text" id="lastName" name="lastName" required 
+                   placeholder="Soyadınız" 
+                   data-placeholder-tr="Soyadınız" 
+                   data-placeholder-en="Your last name">
+          </div>
+        </div>
+
+        <!-- E-posta -->
+        <div class="form-group">
+          <label for="signupEmail" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
+          <input type="email" id="signupEmail" name="email" required 
+                 placeholder="ornek@email.com" 
+                 data-placeholder-tr="ornek@email.com" 
+                 data-placeholder-en="example@email.com">
+        </div>
+
+        <!-- Telefon -->
+        <div class="form-group">
+          <label for="signupPhone" data-tr="Telefon Numarası *" data-en="Phone Number *">Telefon Numarası *</label>
+          <input type="tel" id="signupPhone" name="phone" required 
+                 placeholder="+90 5XX XXX XX XX" 
+                 data-placeholder-tr="+90 5XX XXX XX XX" 
+                 data-placeholder-en="+90 5XX XXX XX XX">
+        </div>
+
+        <!-- TC Kimlik No -->
+        <div class="form-group">
+          <label for="tcNumber" data-tr="TC Kimlik Numarası" data-en="Turkish ID Number">TC Kimlik Numarası</label>
+          <input type="text" id="tcNumber" name="tcNumber" maxlength="11" 
+                 placeholder="12345678901" 
+                 data-placeholder-tr="12345678901" 
+                 data-placeholder-en="12345678901">
+          <div class="tc-citizenship">
+            <input type="checkbox" id="notTurkishCitizen" name="notTurkishCitizen" onchange="toggleTcInput()">
+            <label for="notTurkishCitizen" class="checkbox-label" data-tr="TC Vatandaşı değilim" data-en="I am not a Turkish citizen">
+              TC Vatandaşı değilim
+            </label>
+          </div>
+        </div>
+
+        <!-- Doğum Tarihi ve Cinsiyet -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="birthDate" data-tr="Doğum Tarihi *" data-en="Birth Date *">Doğum Tarihi *</label>
+            <input type="date" id="birthDate" name="birthDate" required>
+          </div>
+          <div class="form-group">
+            <label for="gender" data-tr="Cinsiyet *" data-en="Gender *">Cinsiyet *</label>
+            <select id="gender" name="gender" required>
+              <option value="" data-tr="Seçiniz" data-en="Select">Seçiniz</option>
+              <option value="male" data-tr="Erkek" data-en="Male">Erkek</option>
+              <option value="female" data-tr="Kadın" data-en="Female">Kadın</option>
+              <option value="other" data-tr="Diğer" data-en="Other">Diğer</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Şifre -->
+        <div class="form-group">
+          <label for="signupPassword" data-tr="Şifre *" data-en="Password *">Şifre *</label>
+          <div class="password-input">
+            <input type="password" id="signupPassword" name="password" required 
+                   placeholder="En az 8 karakter" 
+                   data-placeholder-tr="En az 8 karakter" 
+                   data-placeholder-en="At least 8 characters"
+                   oninput="checkPasswordStrength()">
+            <button type="button" class="password-toggle" onclick="togglePassword('signupPassword')">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <div class="password-strength">
+            <div class="strength-bar">
+              <div class="strength-fill" id="strengthFill"></div>
+            </div>
+            <span class="strength-text" id="strengthText" data-tr="Şifre gücü" data-en="Password strength">Şifre gücü</span>
+          </div>
+        </div>
+
+        <!-- Şifre Tekrar -->
+        <div class="form-group">
+          <label for="confirmPassword" data-tr="Şifre Tekrar *" data-en="Confirm Password *">Şifre Tekrar *</label>
+          <div class="password-input">
+            <input type="password" id="confirmPassword" name="confirmPassword" required 
+                   placeholder="Şifrenizi tekrar girin" 
+                   data-placeholder-tr="Şifrenizi tekrar girin" 
+                   data-placeholder-en="Re-enter your password">
+            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pazarlama İzni -->
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="marketing" name="marketing">
+          <label for="marketing" class="checkbox-label" data-tr="Kampanya ve fırsatlardan haberdar olmak istiyorum" 
+                 data-en="I want to be informed about campaigns and opportunities">
+            Kampanya ve fırsatlardan haberdar olmak istiyorum
+          </label>
+        </div>
+
+        <!-- KVKK Onayı -->
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="signupKvkk" name="kvkk" required>
+          <label for="signupKvkk" class="checkbox-label">
+            <span data-tr="Kişisel verilerimin işlenmesine ve " data-en="I agree to the processing of my personal data and ">Kişisel verilerimin işlenmesine ve </span>
+            <a href="#" onclick="showComingSoonAlert('privacy'); return false;" data-tr="KVKK Aydınlatma Metni" data-en="Privacy Policy">KVKK Aydınlatma Metni</a>
+            <span data-tr="'ni okuduğumu kabul ediyorum. *" data-en=" and confirm that I have read it. *">'ni okuduğumu kabul ediyorum. *</span>
+          </label>
+        </div>
+
+        <!-- Kullanım Koşulları -->
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="terms" name="terms" required>
+          <label for="terms" class="checkbox-label">
+            <a href="#" onclick="showComingSoonAlert('privacy'); return false;" data-tr="Kullanım Koşulları" data-en="Terms of Service">Kullanım Koşulları</a>
+            <span data-tr="'nı okudum ve kabul ediyorum. *" data-en=" and agree to them. *">'nı okudum ve kabul ediyorum. *</span>
+          </label>
+        </div>
+
+        <!-- Kayıt ol butonu -->
+        <button type="submit" class="auth-submit-btn" data-tr="Hesap Oluştur" data-en="Create Account">
+          <i class="fa-solid fa-user-plus"></i>
+          <span data-tr="Hesap Oluştur" data-en="Create Account">Hesap Oluştur</span>
+        </button>
+
+      </form>
+
+      <!-- Sosyal medya ile kayıt -->
+      <div class="social-auth">
+        <div class="divider">
+          <span data-tr="veya" data-en="or">veya</span>
+        </div>
+        
+        <div class="social-buttons">
+          <button class="social-btn google-btn" onclick="signupWithGoogle()">
+            <i class="fa-brands fa-google"></i>
+            <span data-tr="Google ile Kayıt Ol" data-en="Sign up with Google">Google ile Kayıt Ol</span>
+          </button>
+          
+          <button class="social-btn facebook-btn" onclick="signupWithFacebook()">
+            <i class="fa-brands fa-facebook-f"></i>
+            <span data-tr="Facebook ile Kayıt Ol" data-en="Sign up with Facebook">Facebook ile Kayıt Ol</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Giriş yap linki -->
+      <div class="auth-footer">
+        <p>
+          <span data-tr="Zaten hesabınız var mı? " data-en="Already have an account? ">Zaten hesabınız var mı? </span>
+          <a href="@Url.Action("Login", "Home")" class="auth-link" data-tr="Giriş Yap" data-en="Sign In">Giriş Yap</a>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Yan bilgi paneli -->
+    <div class="auth-info-panel">
+      <div class="info-content">
+        <h2 data-tr="Trabzon Airlines'a Hoş Geldiniz" data-en="Welcome to Trabzon Airlines">Trabzon Airlines'a Hoş Geldiniz</h2>
+        <p data-tr="Üye olun ve özel avantajlardan yararlanın" data-en="Sign up and enjoy exclusive benefits">Üye olun ve özel avantajlardan yararlanın</p>
+        
+        <div class="benefit-item">
+          <i class="fa-solid fa-gift"></i>
+          <div>
+            <h4 data-tr="Miles&Smiles Puan Sistemi" data-en="Miles&Smiles Point System">Miles&Smiles Puan Sistemi</h4>
+            <p data-tr="Her uçuşta mil kazanın, ücretsiz biletler ve yükseltmeler alın" data-en="Earn miles on every flight, get free tickets and upgrades">Her uçuşta mil kazanın, ücretsiz biletler ve yükseltmeler alın</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <i class="fa-solid fa-plane-departure"></i>
+          <div>
+            <h4 data-tr="Öncelikli Hizmetler" data-en="Priority Services">Öncelikli Hizmetler</h4>
+            <p data-tr="Hızlı check-in, öncelikli boarding ve bagaj teslimi" data-en="Fast check-in, priority boarding and baggage delivery">Hızlı check-in, öncelikli boarding ve bagaj teslimi</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <i class="fa-solid fa-percent"></i>
+          <div>
+            <h4 data-tr="Özel İndirimler" data-en="Special Discounts">Özel İndirimler</h4>
+            <p data-tr="Üyelere özel kampanyalar ve erken rezervasyon fırsatları" data-en="Member-exclusive campaigns and early booking opportunities">Üyelere özel kampanyalar ve erken rezervasyon fırsatları</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <i class="fa-solid fa-shield-halved"></i>
+          <div>
+            <h4 data-tr="Esnek Rezervasyon" data-en="Flexible Booking">Esnek Rezervasyon</h4>
+            <p data-tr="Ücretsiz değişiklik ve iptal hakları" data-en="Free change and cancellation rights">Ücretsiz değişiklik ve iptal hakları</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <i class="fa-solid fa-headset"></i>
+          <div>
+            <h4 data-tr="7/24 Müşteri Desteği" data-en="24/7 Customer Support">7/24 Müşteri Desteği</h4>
+            <p data-tr="Özel müşteri hizmetleri hattı ve canlı destek" data-en="Dedicated customer service line and live support">Özel müşteri hizmetleri hattı ve canlı destek</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+@section scripts {
+    <script src="~/Scripts/auth.js"></script>
+}
+

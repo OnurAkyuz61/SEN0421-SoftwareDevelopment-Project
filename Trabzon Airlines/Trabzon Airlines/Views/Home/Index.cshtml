@@ -1,0 +1,138 @@
+﻿@{
+    ViewBag.Title = "Ana Sayfa";
+}
+
+<!-- HERO SEARCH SECTION - Ana arama bölümü -->
+<section class="hero">
+  <div class="hero-overlay"></div>
+
+  <h1 class="hero-title" data-tr="Sizi nereye götürebiliriz?" data-en="Where can we take you?">Sizi nereye götürebiliriz?</h1>
+
+  <div class="flight-card">
+
+    <!-- Üst seçenek butonları -->
+    <div class="flight-top-options">
+      <button class="top-opt active" data-type="roundtrip" data-tr="Gidiş - Dönüş" data-en="Round Trip">Gidiş - Dönüş</button>
+      <button class="top-opt" data-type="oneway" data-tr="Tek yön" data-en="One Way">Tek yön</button>
+      <button class="top-opt" data-type="multicity" data-tr="Çoklu uçuş" data-en="Multi City">Çoklu uçuş</button>
+
+      <label class="top-opt checkbox-opt">
+        <input type="checkbox" id="awardTicket">
+        <span data-tr="Ödül bileti" data-en="Award Ticket">Ödül bileti</span>
+      </label>
+
+      <button class="top-opt" onclick="openPassengerModal()" data-tr="1 Yolcu" data-en="1 Passenger">1 Yolcu</button>
+    </div>
+
+    <!-- Normal uçuş (Gidiş-Dönüş ve Tek Yön) -->
+    <div id="normalFlightSection">
+      <!-- Lokasyon seçimi -->
+      <div class="location-row-aircanada">
+        <div class="loc-box" onclick="openAirportModal('departure')">
+          <span class="loc-code" id="departureCode">TZX</span>
+          <span class="loc-city" id="departureName">Trabzon</span>
+        </div>
+
+        <button class="loc-swap" onclick="swapAirports()">
+          <i class="fa-solid fa-right-left"></i>
+        </button>
+
+        <div class="loc-box" onclick="openAirportModal('destination')">
+          <span class="loc-code" id="destinationCode">?</span>
+          <span class="loc-city" id="destinationName" data-tr="Nereye" data-en="Where to">Nereye</span>
+        </div>
+      </div>
+
+      <!-- Tarih alanları -->
+      <div class="date-row">
+        <div class="date-col">
+          <label data-tr="Gidiş tarihi" data-en="Departure date">Gidiş tarihi</label>
+          <input type="date" id="departureDate">
+        </div>
+
+        <div class="date-col return-date">
+          <label data-tr="Dönüş tarihi" data-en="Return date">Dönüş tarihi</label>
+          <input type="date" id="returnDate">
+        </div>
+      </div>
+    </div>
+
+    <!-- Çoklu uçuş bölümü -->
+    <div id="multiCitySection" style="display: none;">
+      <div id="flightSegments">
+        <!-- Uçuş segmentleri buraya dinamik olarak eklenecek -->
+      </div>
+      
+      <!-- Uçuş ekle butonu -->
+      <div class="add-flight-row">
+        <button type="button" class="add-flight-btn" onclick="addFlightSegment()">
+          <i class="fa-solid fa-plus"></i>
+          <span data-tr="Uçuş Ekle" data-en="Add Flight">Uçuş Ekle</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Promosyon & Arama -->
+    <div class="promo-row">
+      <div class="promo-col">
+        <label data-tr="Promosyon kodu" data-en="Promo code">Promosyon kodu</label>
+        <input type="text" id="promoCode" placeholder="Promosyon kodunuz" data-placeholder-tr="Promosyon kodunuz" data-placeholder-en="Your promo code">
+      </div>
+
+      <button class="search-btn" onclick="showComingSoonAlert('search')">
+        <span data-tr="Uçuş ara" data-en="Search flights">Uçuş ara</span> <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+
+  </div>
+</section>
+
+<!-- FEATURED OFFERS - Öne çıkan uçuş teklifleri -->
+<section class="featured-offers">
+  <div class="container">
+    <!-- Bölüm başlığı -->
+    <h2 class="section-title" data-tr="Öne Çıkan Uçuş Teklifleri" data-en="Featured Flight Offers">Öne Çıkan Uçuş Teklifleri</h2>
+
+    <!-- Teklif kartları -->
+    <div class="offers-grid">
+      <!-- İstanbul teklifi -->
+      <div class="offer-card">
+        <div class="offer-image">
+          <img src="~/assets/images/destinations/istanbul.jpg" alt="İstanbul">
+          <div class="offer-badge" data-tr="Sınırlı Teklif" data-en="Limited Offer">Sınırlı Teklif</div>
+        </div>
+        <div class="offer-content">
+          <h3 class="offer-destination" data-tr="İstanbul, Türkiye" data-en="Istanbul, Turkey">İstanbul, Türkiye</h3>
+          <p class="offer-price" data-tr="₺850'den başlayan fiyatlarla • Gidiş-Dönüş" data-en="From ₺850 • Round-trip">₺850'den başlayan fiyatlarla • Gidiş-Dönüş</p>
+          <button class="offer-btn" onclick="showComingSoonAlert('booking')" data-tr="Şimdi Rezerve Et" data-en="Book Now">Şimdi Rezerve Et</button>
+        </div>
+      </div>
+
+      <!-- Ankara teklifi -->
+      <div class="offer-card">
+        <div class="offer-image">
+          <img src="~/assets/images/destinations/ankara.jpg" alt="Ankara">
+          <div class="offer-badge" data-tr="Sınırlı Teklif" data-en="Limited Offer">Sınırlı Teklif</div>
+        </div>
+        <div class="offer-content">
+          <h3 class="offer-destination" data-tr="Ankara, Türkiye" data-en="Ankara, Turkey">Ankara, Türkiye</h3>
+          <p class="offer-price" data-tr="₺650'den başlayan fiyatlarla • Gidiş-Dönüş" data-en="From ₺650 • Round-trip">₺650'den başlayan fiyatlarla • Gidiş-Dönüş</p>
+          <button class="offer-btn" onclick="showComingSoonAlert('booking')" data-tr="Şimdi Rezerve Et" data-en="Book Now">Şimdi Rezerve Et</button>
+        </div>
+      </div>
+
+      <!-- İzmir teklifi -->
+      <div class="offer-card">
+        <div class="offer-image">
+          <img src="~/assets/images/destinations/izmir.jpg" alt="İzmir">
+          <div class="offer-badge" data-tr="Sınırlı Teklif" data-en="Limited Offer">Sınırlı Teklif</div>
+        </div>
+        <div class="offer-content">
+          <h3 class="offer-destination" data-tr="İzmir, Türkiye" data-en="Izmir, Turkey">İzmir, Türkiye</h3>
+          <p class="offer-price" data-tr="₺750'den başlayan fiyatlarla • Gidiş-Dönüş" data-en="From ₺750 • Round-trip">₺750'den başlayan fiyatlarla • Gidiş-Dönüş</p>
+          <button class="offer-btn" onclick="showComingSoonAlert('booking')" data-tr="Şimdi Rezerve Et" data-en="Book Now">Şimdi Rezerve Et</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,191 @@
+@{
+    ViewBag.Title = "Giriş Yap";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/auth.css">
+}
+
+<!-- LOGIN SECTION - Giriş yap bölümü -->
+<section class="auth-section">
+  <div class="auth-container">
+    
+    <!-- Giriş formu kartı -->
+    <div class="auth-card">
+      
+      <!-- Form başlığı -->
+      <div class="auth-header-content">
+        <h1 class="auth-title" data-tr="Hesabınıza Giriş Yapın" data-en="Sign In to Your Account">Hesabınıza Giriş Yapın</h1>
+        <p class="auth-subtitle" data-tr="Trabzon Airlines hesabınıza giriş yaparak tüm hizmetlerimizden yararlanın." 
+           data-en="Sign in to your Trabzon Airlines account to access all our services.">
+          Trabzon Airlines hesabınıza giriş yaparak tüm hizmetlerimizden yararlanın.
+        </p>
+      </div>
+
+      <!-- Giriş formu -->
+      <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+        
+        <!-- E-posta -->
+        <div class="form-group">
+          <label for="loginEmail" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
+          <input type="email" id="loginEmail" name="email" required 
+                 placeholder="ornek@email.com" 
+                 data-placeholder-tr="ornek@email.com" 
+                 data-placeholder-en="example@email.com">
+        </div>
+
+        <!-- Şifre -->
+        <div class="form-group">
+          <label for="loginPassword" data-tr="Şifre *" data-en="Password *">Şifre *</label>
+          <div class="password-input">
+            <input type="password" id="loginPassword" name="password" required 
+                   placeholder="Şifrenizi girin" 
+                   data-placeholder-tr="Şifrenizi girin" 
+                   data-placeholder-en="Enter your password">
+            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Beni hatırla ve şifremi unuttum -->
+        <div class="form-options">
+          <div class="checkbox-group">
+            <input type="checkbox" id="rememberMe" name="rememberMe">
+            <label for="rememberMe" class="checkbox-label" data-tr="Beni hatırla" data-en="Remember me">
+              Beni hatırla
+            </label>
+          </div>
+          <a href="#" class="forgot-password" onclick="openForgotPasswordModal()" data-tr="Şifremi unuttum" data-en="Forgot password">
+            Şifremi unuttum
+          </a>
+        </div>
+
+        <!-- Giriş yap butonu -->
+        <button type="submit" class="auth-submit-btn" data-tr="Giriş Yap" data-en="Sign In">
+          <i class="fa-solid fa-sign-in-alt"></i>
+          <span data-tr="Giriş Yap" data-en="Sign In">Giriş Yap</span>
+        </button>
+
+      </form>
+
+      <!-- Sosyal medya ile giriş -->
+      <div class="social-auth">
+        <div class="divider">
+          <span data-tr="veya" data-en="or">veya</span>
+        </div>
+        
+        <div class="social-buttons">
+          <button class="social-btn google-btn" onclick="loginWithGoogle()">
+            <i class="fa-brands fa-google"></i>
+            <span data-tr="Google ile Giriş Yap" data-en="Sign in with Google">Google ile Giriş Yap</span>
+          </button>
+          
+          <button class="social-btn facebook-btn" onclick="loginWithFacebook()">
+            <i class="fa-brands fa-facebook-f"></i>
+            <span data-tr="Facebook ile Giriş Yap" data-en="Sign in with Facebook">Facebook ile Giriş Yap</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Kayıt ol linki -->
+      <div class="auth-footer">
+        <p>
+          <span data-tr="Henüz hesabınız yok mu? " data-en="Don't have an account yet? ">Henüz hesabınız yok mu? </span>
+          <a href="@Url.Action("Signup", "Home")" class="auth-link" data-tr="Kayıt Ol" data-en="Sign Up">Kayıt Ol</a>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Yan bilgi paneli -->
+    <div class="auth-info-panel">
+      <div class="info-content">
+        <h2 data-tr="Hoş Geldiniz" data-en="Welcome Back">Hoş Geldiniz</h2>
+        <p data-tr="Trabzon Airlines ile seyahat etmeye devam edin. Hesabınıza giriş yaparak:" 
+           data-en="Continue traveling with Trabzon Airlines. Sign in to your account to:">
+          Trabzon Airlines ile seyahat etmeye devam edin. Hesabınıza giriş yaparak:
+        </p>
+        
+        <div class="benefit-item">
+          <i class="fa-solid fa-ticket"></i>
+          <div>
+            <h4 data-tr="Rezervasyonlarınızı Yönetin" data-en="Manage Your Reservations">Rezervasyonlarınızı Yönetin</h4>
+            <p data-tr="Biletlerinizi görüntüleyin ve değiştirin" data-en="View and modify your tickets">Biletlerinizi görüntüleyin ve değiştirin</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <div>
+            <h4 data-tr="Geçmiş Seyahatler" data-en="Travel History">Geçmiş Seyahatler</h4>
+            <p data-tr="Tüm uçuş geçmişinizi inceleyin" data-en="Review your complete flight history">Tüm uçuş geçmişinizi inceleyin</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <i class="fa-solid fa-star"></i>
+          <div>
+            <h4 data-tr="Puan Durumunuz" data-en="Your Points Status">Puan Durumunuz</h4>
+            <p data-tr="Biriktirdiğiniz puanları kontrol edin" data-en="Check your accumulated points">Biriktirdiğiniz puanları kontrol edin</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <i class="fa-solid fa-user-cog"></i>
+          <div>
+            <h4 data-tr="Profil Ayarları" data-en="Profile Settings">Profil Ayarları</h4>
+            <p data-tr="Kişisel bilgilerinizi güncelleyin" data-en="Update your personal information">Kişisel bilgilerinizi güncelleyin</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FORGOT PASSWORD MODAL - Şifremi unuttum modal'ı -->
+<div class="forgot-modal" id="forgotModal">
+  <div class="forgot-modal-content">
+    <!-- Modal kapatma butonu -->
+    <button class="modal-close" onclick="closeForgotPasswordModal()" aria-label="Modal'ı kapat">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <!-- Modal başlığı -->
+    <h3 class="modal-title" data-tr="Şifrenizi Sıfırlayın" data-en="Reset Your Password">Şifrenizi Sıfırlayın</h3>
+    <p class="modal-subtitle" data-tr="E-posta adresinizi girin, size şifre sıfırlama bağlantısı gönderelim." 
+       data-en="Enter your email address and we'll send you a password reset link.">
+      E-posta adresinizi girin, size şifre sıfırlama bağlantısı gönderelim.
+    </p>
+
+    <!-- Şifre sıfırlama formu -->
+    <form class="forgot-form" onsubmit="handleForgotPassword(event)">
+      <div class="form-group">
+        <label for="forgotEmail" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
+        <input type="email" id="forgotEmail" name="email" required 
+               placeholder="ornek@email.com" 
+               data-placeholder-tr="ornek@email.com" 
+               data-placeholder-en="example@email.com">
+      </div>
+
+      <button type="submit" class="modal-submit-btn" data-tr="Sıfırlama Bağlantısı Gönder" data-en="Send Reset Link">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span data-tr="Sıfırlama Bağlantısı Gönder" data-en="Send Reset Link">Sıfırlama Bağlantısı Gönder</span>
+      </button>
+    </form>
+
+    <!-- Geri dön linki -->
+    <div class="modal-footer">
+      <a href="#" onclick="closeForgotPasswordModal()" class="back-link" data-tr="← Giriş sayfasına dön" data-en="← Back to sign in">
+        ← Giriş sayfasına dön
+      </a>
+    </div>
+  </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/auth.js"></script>
+}
+
