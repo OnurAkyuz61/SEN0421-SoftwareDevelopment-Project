@@ -296,6 +296,26 @@ function togglePassword(inputId) {
     console.log('Facebook ile giriş');
     alert(currentLanguage === 'tr' ? 'Facebook ile giriş özelliği yakında!' : 'Sign in with Facebook coming soon!');
   }
+
+  // Apple ile giriş yap fonksiyonu
+  // Sign in with Apple function
+  function loginWithApple() {
+    const currentLanguage = localStorage.getItem('language') || 'tr';
+    console.log('Apple ile giriş');
+    // Apple Sign In entegrasyonu buraya eklenecek
+    // Apple Sign In integration will be added here
+    alert(currentLanguage === 'tr' ? 'Apple ile giriş özelliği yakında!' : 'Sign in with Apple coming soon!');
+  }
+
+  // Apple ile kayıt ol fonksiyonu
+  // Sign up with Apple function
+  function signupWithApple() {
+    const currentLanguage = localStorage.getItem('language') || 'tr';
+    console.log('Apple ile kayıt');
+    // Apple Sign In entegrasyonu buraya eklenecek
+    // Apple Sign In integration will be added here
+    alert(currentLanguage === 'tr' ? 'Apple ile kayıt özelliği yakında!' : 'Sign up with Apple coming soon!');
+  }
   
   // Şifremi unuttum modal
   function openForgotPasswordModal() {

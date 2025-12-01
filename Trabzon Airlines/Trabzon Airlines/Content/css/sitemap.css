@@ -1,0 +1,305 @@
+/* ================== SITEMAP STİLLERİ ================== */
+/* ================== SITEMAP STYLES ================== */
+
+/* Reset ve temel stiller */
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Aeonik Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #ffffff;
+    color: #1a1a1a;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+}
+
+/* Header */
+.sitemap-header {
+    padding: 2rem 2rem 1.5rem 2rem;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.sitemap-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-img {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #e4002b;
+    letter-spacing: -0.5px;
+}
+
+/* Main Content */
+.sitemap-main {
+    flex: 1;
+    padding: 3rem 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.sitemap-container {
+    max-width: 800px;
+    width: 100%;
+}
+
+/* Title Section */
+.sitemap-title-section {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.sitemap-subtitle {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #666666;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.sitemap-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    margin: 0;
+}
+
+/* Section */
+.sitemap-section {
+    margin-bottom: 3rem;
+}
+
+.section-category {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e5e5;
+}
+
+/* Sitemap List */
+.sitemap-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.sitemap-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    text-decoration: none;
+    color: #1a1a1a;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.sitemap-item:hover {
+    color: #e4002b;
+    padding-left: 0.5rem;
+    background: rgba(228, 0, 43, 0.02);
+}
+
+.sitemap-item:last-child {
+    border-bottom: none;
+}
+
+.item-name {
+    font-size: 1rem;
+    font-weight: 400;
+    color: inherit;
+    letter-spacing: -0.01em;
+}
+
+.sitemap-item i {
+    font-size: 0.75rem;
+    color: #999999;
+    transition: all 0.2s ease;
+}
+
+.sitemap-item:hover i {
+    color: #e4002b;
+    transform: translateX(4px);
+}
+
+/* Footer */
+.sitemap-footer {
+    padding: 2rem;
+    border-top: 1px solid #e5e5e5;
+    background: #fafafa;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-left {
+    flex: 1;
+    min-width: 150px;
+}
+
+.footer-brand {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #666666;
+    letter-spacing: 1px;
+}
+
+.footer-center {
+    flex: 1;
+    text-align: center;
+    min-width: 200px;
+}
+
+.footer-copyright {
+    font-size: 0.875rem;
+    color: #666666;
+}
+
+.footer-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    min-width: 150px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.footer-logo-img {
+    height: 24px;
+    width: auto;
+    object-fit: contain;
+}
+
+.footer-logo-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #e4002b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sitemap-header {
+        padding: 1.5rem 1.5rem 1rem 1.5rem;
+    }
+
+    .logo-text {
+        font-size: 1.25rem;
+    }
+
+    .sitemap-main {
+        padding: 2rem 1.5rem;
+    }
+
+    .sitemap-title {
+        font-size: 2.5rem;
+    }
+
+    .sitemap-subtitle {
+        font-size: 0.75rem;
+    }
+
+    .sitemap-title-section {
+        margin-bottom: 3rem;
+    }
+
+    .sitemap-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .footer-left,
+    .footer-center,
+    .footer-right {
+        flex: none;
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .sitemap-header {
+        padding: 1rem;
+    }
+
+    .logo-img {
+        height: 32px;
+    }
+
+    .logo-text {
+        font-size: 1.125rem;
+    }
+
+    .sitemap-main {
+        padding: 1.5rem 1rem;
+    }
+
+    .sitemap-title {
+        font-size: 2rem;
+    }
+
+    .sitemap-item {
+        padding: 0.875rem 0;
+    }
+
+    .item-name {
+        font-size: 0.9375rem;
+    }
+
+    .footer-content {
+        padding: 0;
+    }
+
+    .footer-copyright {
+        font-size: 0.75rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .sitemap-header,
+    .sitemap-footer {
+        display: none;
+    }
+
+    .sitemap-main {
+        padding: 0;
+    }
+}
+

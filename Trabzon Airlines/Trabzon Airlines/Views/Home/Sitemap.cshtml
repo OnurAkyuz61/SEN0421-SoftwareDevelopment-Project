@@ -1,0 +1,141 @@
+@{
+    // Sitemap sayfası - Tüm sayfaların listesi
+    // Sitemap page - List of all pages
+    ViewBag.Title = "Sitemap";
+    Layout = null; // Navbar ve footer olmadan
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sitemap - Trabzon Airlines</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/Content/css/sitemap.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="sitemap-header">
+        <div class="sitemap-logo">
+            <img src="~/assets/logo/logo.png" alt="Trabzon Airlines" class="logo-img">
+            <span class="logo-text">Trabzon Airlines</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="sitemap-main">
+        <div class="sitemap-container">
+            <!-- Title -->
+            <div class="sitemap-title-section">
+                <p class="sitemap-subtitle">TRABZON AIRLINES</p>
+                <h1 class="sitemap-title">Sitemap</h1>
+            </div>
+
+            <!-- Public Pages -->
+            <section class="sitemap-section">
+                <h2 class="section-category">Public Pages</h2>
+                <div class="sitemap-list">
+                    <a href="@Url.Action("Index", "Home")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Homepage</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("About", "Home")" target="_blank" class="sitemap-item">
+                        <span class="item-name">About Us</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Contact", "Home")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Contact</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Packages", "Home")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Packages</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Deals", "Home")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Deals</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Sitemap", "Home")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Sitemap</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Privacy", "Home")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Privacy Policy</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </div>
+            </section>
+
+            <!-- User Pages -->
+            <section class="sitemap-section">
+                <h2 class="section-category">User Pages</h2>
+                <div class="sitemap-list">
+                    <a href="@Url.Action("Login", "Home")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Login</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Signup", "Home")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Sign Up</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Settings", "Home")" target="_blank" class="sitemap-item">
+                        <span class="item-name">User Settings</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Admin Pages -->
+            <section class="sitemap-section">
+                <h2 class="section-category">Admin Pages</h2>
+                <div class="sitemap-list">
+                    <a href="@Url.Action("Login", "Admin")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Admin Login</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Dashboard", "Admin")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Admin Dashboard</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Packages", "Admin")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Admin Packages</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("AddPackage", "Admin")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Add Package</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Deals", "Admin")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Admin Deals</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("AddDeal", "Admin")" target="_blank" class="sitemap-item">
+                        <span class="item-name">Add Deal</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="sitemap-footer">
+        <div class="footer-content">
+            <div class="footer-left">
+                <span class="footer-brand">TRABZON AIRLINES</span>
+            </div>
+            <div class="footer-center">
+                <span class="footer-copyright">© 2025 Trabzon Airlines. All rights reserved.</span>
+            </div>
+            <div class="footer-right">
+                <div class="footer-logo">
+                    <img src="~/assets/logo/logo.png" alt="Trabzon Airlines" class="footer-logo-img">
+                    <span class="footer-logo-text">Trabzon Airlines</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+

@@ -1,0 +1,83 @@
+@model IEnumerable<Trabzon_Airlines.Models.Deal>
+
+@{
+    // Fırsatlar yönetim sayfası
+    // Deals management page
+    ViewBag.Title = "Fırsatlar Yönetimi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/admin.css">
+}
+
+<section class="admin-dashboard">
+    <div class="admin-dashboard-header">
+        <h1><i class="fa-solid fa-tag"></i> Fırsatlar Yönetimi</h1>
+        <p>Tüm kampanya ve fırsatları buradan yönetebilirsiniz</p>
+    </div>
+
+    <div class="admin-table-container">
+        <div class="admin-table-header">
+            <h2>Fırsat Listesi</h2>
+            <a href="@Url.Action("AddDeal", "Admin")" class="admin-btn">
+                <i class="fa-solid fa-plus"></i> Yeni Fırsat Ekle
+            </a>
+        </div>
+
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Başlık</th>
+                    <th>İndirim</th>
+                    <th>Kampanya Kodu</th>
+                    <th>Başlangıç</th>
+                    <th>Bitiş</th>
+                    <th>Durum</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var deal in Model)
+                {
+                    <tr>
+                        <td>@deal.Id</td>
+                        <td>@deal.Title</td>
+                        <td>%@deal.DiscountPercentage</td>
+                        <td>@(deal.CampaignCode ?? "-")</td>
+                        <td>@deal.StartDate.ToString("dd.MM.yyyy")</td>
+                        <td>@deal.EndDate.ToString("dd.MM.yyyy")</td>
+                        <td>
+                            @if (deal.IsActive)
+                            {
+                                <span style="color: #28a745;"><i class="fa-solid fa-check-circle"></i> Aktif</span>
+                            }
+                            else
+                            {
+                                <span style="color: #dc3545;"><i class="fa-solid fa-times-circle"></i> Pasif</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="admin-actions">
+                                <a href="@Url.Action("EditDeal", "Admin", new { id = deal.Id })" class="admin-btn admin-btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                    <i class="fa-solid fa-edit"></i> Düzenle
+                                </a>
+                                <a href="@Url.Action("DeleteDeal", "Admin", new { id = deal.Id })" class="admin-btn admin-btn-danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="return confirm('Bu fırsatı silmek istediğinize emin misiniz?');">
+                                    <i class="fa-solid fa-trash"></i> Sil
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 1rem;">
+        <a href="@Url.Action("Dashboard", "Admin")" class="admin-btn admin-btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Dashboard'a Dön
+        </a>
+    </div>
+</section>
+

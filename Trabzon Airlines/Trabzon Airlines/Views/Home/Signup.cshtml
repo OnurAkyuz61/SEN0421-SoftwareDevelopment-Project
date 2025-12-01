@@ -48,8 +48,8 @@
         <div class="form-group">
           <label for="signupEmail" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
           <input type="email" id="signupEmail" name="email" required 
-                 placeholder="ornek@email.com" 
-                 data-placeholder-tr="ornek@email.com" 
+                 placeholder="örnek@email.com" 
+                 data-placeholder-tr="örnek@email.com" 
                  data-placeholder-en="example@email.com">
         </div>
 
@@ -143,8 +143,8 @@
           <input type="checkbox" id="signupKvkk" name="kvkk" required>
           <label for="signupKvkk" class="checkbox-label">
             <span data-tr="Kişisel verilerimin işlenmesine ve " data-en="I agree to the processing of my personal data and ">Kişisel verilerimin işlenmesine ve </span>
-            <a href="#" onclick="showComingSoonAlert('privacy'); return false;" data-tr="KVKK Aydınlatma Metni" data-en="Privacy Policy">KVKK Aydınlatma Metni</a>
-            <span data-tr="'ni okuduğumu kabul ediyorum. *" data-en=" and confirm that I have read it. *">'ni okuduğumu kabul ediyorum. *</span>
+            <a href="@Url.Action("Privacy", "Home")" target="_blank" data-tr="KVKK Aydınlatma Metni" data-en="Privacy Policy">KVKK Aydınlatma Metni</a>
+            <span data-tr="'ni okuduğumu ve kabul ediyorum. *" data-en=" and confirm that I have read it. *">'ni okuduğumu ve kabul ediyorum. *</span>
           </label>
         </div>
 
@@ -152,7 +152,7 @@
         <div class="form-group checkbox-group">
           <input type="checkbox" id="terms" name="terms" required>
           <label for="terms" class="checkbox-label">
-            <a href="#" onclick="showComingSoonAlert('privacy'); return false;" data-tr="Kullanım Koşulları" data-en="Terms of Service">Kullanım Koşulları</a>
+            <a href="@Url.Action("Privacy", "Home")" target="_blank" data-tr="Kullanım Koşulları" data-en="Terms of Service">Kullanım Koşulları</a>
             <span data-tr="'nı okudum ve kabul ediyorum. *" data-en=" and agree to them. *">'nı okudum ve kabul ediyorum. *</span>
           </label>
         </div>
@@ -172,14 +172,20 @@
         </div>
         
         <div class="social-buttons">
+          <!-- Google ile kayıt butonu -->
+          <!-- Google sign up button -->
           <button class="social-btn google-btn" onclick="signupWithGoogle()">
-            <i class="fa-brands fa-google"></i>
+            <img src="~/assets/icons/google-icon.svg" alt="Google" class="social-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <i class="fa-brands fa-google" style="display:none;"></i>
             <span data-tr="Google ile Kayıt Ol" data-en="Sign up with Google">Google ile Kayıt Ol</span>
           </button>
           
-          <button class="social-btn facebook-btn" onclick="signupWithFacebook()">
-            <i class="fa-brands fa-facebook-f"></i>
-            <span data-tr="Facebook ile Kayıt Ol" data-en="Sign up with Facebook">Facebook ile Kayıt Ol</span>
+          <!-- Apple ile kayıt butonu -->
+          <!-- Apple sign up button -->
+          <button class="social-btn apple-btn" onclick="signupWithApple()">
+            <img src="~/assets/icons/apple-icon.svg" alt="Apple" class="social-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <i class="fa-brands fa-apple" style="display:none;"></i>
+            <span data-tr="Apple ile Kayıt Ol" data-en="Sign up with Apple">Apple ile Kayıt Ol</span>
           </button>
         </div>
       </div>

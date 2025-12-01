@@ -5,6 +5,8 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using System.Text;
+using System.Globalization;
 
 namespace Trabzon_Airlines
 {
@@ -16,6 +18,19 @@ namespace Trabzon_Airlines
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+        }
+
+        protected void Application_BeginRequest(object sender, EventArgs e)
+        {
+            // Türkçe karakter desteği için encoding ayarları
+            // Encoding settings for Turkish character support
+            Response.ContentEncoding = Encoding.UTF8;
+            Response.Charset = "utf-8";
+            
+            // Türkçe kültür ayarları
+            // Turkish culture settings
+            System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
+            System.Threading.Thread.CurrentThread.CurrentUICulture = new CultureInfo("tr-TR");
         }
     }
 }

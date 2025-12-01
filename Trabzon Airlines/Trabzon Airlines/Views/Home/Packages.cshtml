@@ -1,0 +1,234 @@
+@model IEnumerable<Trabzon_Airlines.Models.Package>
+
+@{
+    // Sayfa başlığı - Paketler sayfası
+    // Page title - Packages page
+    ViewBag.Title = "Paketler";
+    // Layout dosyası - Ana şablon
+    // Layout file - Main template
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <!-- Paketler sayfası CSS dosyası -->
+    <!-- Packages page CSS file -->
+    <link rel="stylesheet" href="~/Content/css/packages.css">
+}
+
+<!-- PAKETLER HERO BÖLÜMÜ - Sayfanın üst kısmındaki büyük başlık alanı -->
+<!-- PACKAGES HERO SECTION - Large header area at the top of the page -->
+<section class="packages-hero">
+    <!-- Hero üst katman - Gradyan overlay -->
+    <!-- Hero overlay - Gradient overlay -->
+    <div class="hero-overlay"></div>
+    <!-- Hero içerik alanı -->
+    <!-- Hero content area -->
+    <div class="hero-content">
+        <!-- Ana başlık - Çok dilli destek (Türkçe/İngilizce) -->
+        <!-- Main title - Multi-language support (Turkish/English) -->
+        <h1 class="hero-title" data-tr="Seyahat Paketlerimiz" data-en="Our Travel Packages">Seyahat Paketlerimiz</h1>
+        <!-- Alt başlık - Açıklayıcı metin -->
+        <!-- Subtitle - Descriptive text -->
+        <p class="hero-subtitle" data-tr="Hayalinizdeki tatili keşfedin, en uygun fiyatlarla rezervasyon yapın" data-en="Discover your dream vacation, book at the best prices">Hayalinizdeki tatili keşfedin, en uygun fiyatlarla rezervasyon yapın</p>
+    </div>
+</section>
+
+<!-- PAKETLER FİLTRE BÖLÜMÜ - Paket filtreleme sekmeleri -->
+<!-- PACKAGES FILTER SECTION - Package filtering tabs -->
+<section class="packages-filter">
+    <!-- Konteyner - İçerik sarmalayıcı -->
+    <!-- Container - Content wrapper -->
+    <div class="container">
+        <!-- Filtre sekmeleri -->
+        <!-- Filter tabs -->
+        <div class="filter-tabs">
+            <!-- Tümü filtresi - Tüm paketleri göster -->
+            <!-- All filter - Show all packages -->
+            <button class="filter-tab active" data-filter="all" data-tr="Tümü" data-en="All"><i class="fa-solid fa-list"></i> Tümü</button>
+            <!-- Yurt İçi filtresi - Türkiye içi paketler -->
+            <!-- Domestic filter - Turkey domestic packages -->
+            <button class="filter-tab" data-filter="domestic" data-tr="Yurt İçi" data-en="Domestic"><i class="fa-solid fa-map-marked-alt"></i> Yurt İçi</button>
+            <!-- Yurt Dışı filtresi - Uluslararası paketler -->
+            <!-- International filter - International packages -->
+            <button class="filter-tab" data-filter="international" data-tr="Yurt Dışı" data-en="International"><i class="fa-solid fa-globe"></i> Yurt Dışı</button>
+            <!-- Plaj filtresi - Plaj tatili paketleri -->
+            <!-- Beach filter - Beach holiday packages -->
+            <button class="filter-tab" data-filter="beach" data-tr="Plaj" data-en="Beach"><i class="fa-solid fa-umbrella-beach"></i> Plaj</button>
+            <!-- Şehir filtresi - Şehir turu paketleri -->
+            <!-- City filter - City tour packages -->
+            <button class="filter-tab" data-filter="city" data-tr="Şehir" data-en="City"><i class="fa-solid fa-city"></i> Şehir</button>
+            <!-- Macera filtresi - Macera turu paketleri -->
+            <!-- Adventure filter - Adventure tour packages -->
+            <button class="filter-tab" data-filter="adventure" data-tr="Macera" data-en="Adventure"><i class="fa-solid fa-mountain"></i> Macera</button>
+        </div>
+    </div>
+</section>
+
+<!-- PAKETLER GRID BÖLÜMÜ - Paket kartlarının gösterildiği ana alan -->
+<!-- PACKAGES GRID SECTION - Main area where package cards are displayed -->
+<section class="packages-section">
+    <!-- Konteyner - İçerik sarmalayıcı -->
+    <!-- Container - Content wrapper -->
+    <div class="container">
+        <!-- Paketler grid düzeni - JavaScript filtreleme için ID -->
+        <!-- Packages grid layout - ID for JavaScript filtering -->
+        <div class="packages-grid" id="packagesGrid">
+            
+            @if (Model != null && Model.Any())
+            {
+                <!-- Veritabanından gelen paketler -->
+                <!-- Packages from database -->
+                @foreach (var package in Model)
+                {
+                    <!-- Paket kartı - Veritabanından gelen veri -->
+                    <!-- Package card - Data from database -->
+                    <div class="package-card" data-category="@package.Category @(package.SubCategory ?? "")">
+                        <!-- Paket görseli alanı -->
+                        <!-- Package image area -->
+                        <div class="package-image">
+                            <!-- Paket görseli -->
+                            <!-- Package image -->
+                            <img src="@(string.IsNullOrEmpty(package.ImageUrl) ? "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&h=600&fit=crop" : package.ImageUrl)" alt="@package.Title">
+                            
+                            @if (!string.IsNullOrEmpty(package.Badge))
+                            {
+                                <!-- Paket rozeti -->
+                                <!-- Package badge -->
+                                <div class="package-badge @(package.DiscountPercentage > 0 ? "discount" : "")" data-tr="@package.Badge" data-en="@package.Badge">
+                                    @if (package.Badge.Contains("İndirim") || package.Badge.Contains("Discount"))
+                                    {
+                                        <i class="fa-solid fa-percent"></i>
+                                    }
+                                    else if (package.Badge.Contains("Popüler") || package.Badge.Contains("Popular"))
+                                    {
+                                        <i class="fa-solid fa-fire"></i>
+                                    }
+                                    else if (package.Badge.Contains("Yeni") || package.Badge.Contains("New"))
+                                    {
+                                        <i class="fa-solid fa-sparkles"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-star"></i>
+                                    }
+                                    @package.Badge
+                                </div>
+                            }
+                            
+                            <!-- Paket üst katman - Hover'da görünen overlay -->
+                            <!-- Package overlay - Overlay visible on hover -->
+                            <div class="package-overlay">
+                                <!-- Detay görüntüleme butonu -->
+                                <!-- Detail view button -->
+                                <a href="@Url.Action("PackageDetail", "Home", new { id = package.Id })" class="package-view-btn" data-tr="Detayları Gör" data-en="View Details">
+                                    <i class="fa-solid fa-eye"></i> Detayları Gör
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Paket içerik alanı -->
+                        <!-- Package content area -->
+                        <div class="package-content">
+                            <!-- Paket başlık alanı -->
+                            <!-- Package header area -->
+                            <div class="package-header">
+                                <!-- Paket başlığı -->
+                                <!-- Package title -->
+                                <h3 class="package-title">@package.Title</h3>
+                                <!-- Paket puanlama - Yıldız ve puan -->
+                                <!-- Package rating - Star and score -->
+                                <div class="package-rating">
+                                    <i class="fa-solid fa-star"></i>
+                                    <span>@package.Rating.ToString("F1")</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Paket açıklaması -->
+                            <!-- Package description -->
+                            <p class="package-description">
+                                @(string.IsNullOrEmpty(package.ShortDescription) ? package.Description : package.ShortDescription)
+                            </p>
+                            
+                            <!-- Paket özellikleri - İkonlar ve açıklamalar -->
+                            <!-- Package features - Icons and descriptions -->
+                            <div class="package-features">
+                                @if (package.FlightIncluded)
+                                {
+                                    <!-- Özellik - Uçak bileti -->
+                                    <!-- Feature - Flight ticket -->
+                                    <span class="feature-item">
+                                        <i class="fa-solid fa-plane"></i>
+                                        <span data-tr="Uçak Bileti Dahil" data-en="Flight Included">Uçak Bileti Dahil</span>
+                                    </span>
+                                }
+                                
+                                @if (package.HotelStars.HasValue && package.HotelStars.Value > 0)
+                                {
+                                    <!-- Özellik - Otel -->
+                                    <!-- Feature - Hotel -->
+                                    <span class="feature-item">
+                                        <i class="fa-solid fa-hotel"></i>
+                                        <span>@package.HotelStars.Value Yıldızlı Otel</span>
+                                    </span>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(package.MealType))
+                                {
+                                    <!-- Özellik - Yemek -->
+                                    <!-- Feature - Meal -->
+                                    <span class="feature-item">
+                                        <i class="fa-solid fa-utensils"></i>
+                                        <span>@package.MealType</span>
+                                    </span>
+                                }
+                            </div>
+                            
+                            <!-- Paket alt bilgi alanı - Fiyat ve buton -->
+                            <!-- Package footer area - Price and button -->
+                            <div class="package-footer">
+                                <!-- Paket fiyat alanı -->
+                                <!-- Package price area -->
+                                <div class="package-price">
+                                    @if (package.OldPrice.HasValue && package.OldPrice.Value > package.Price)
+                                    {
+                                        <!-- Eski fiyat - Üstü çizili -->
+                                        <!-- Old price - Strikethrough -->
+                                        <span class="price-old">₺@package.OldPrice.Value.ToString("N2")</span>
+                                    }
+                                    <!-- Yeni fiyat - Vurgulu -->
+                                    <!-- New price - Emphasized -->
+                                    <span class="price-new">₺@package.Price.ToString("N2")</span>
+                                    <!-- Fiyat birimi - Kişi başı -->
+                                    <!-- Price unit - Per person -->
+                                    <span class="price-per" data-tr="kişi başı" data-en="per person">kişi başı</span>
+                                </div>
+                                
+                                <!-- Detay sayfasına git butonu -->
+                                <!-- Go to detail page button -->
+                                <a href="@Url.Action("PackageDetail", "Home", new { id = package.Id })" class="package-book-btn" data-tr="Detayları Gör" data-en="View Details">
+                                    <i class="fa-solid fa-eye"></i> Detayları Gör
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- Paket bulunamadı mesajı -->
+                <!-- No packages found message -->
+                <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+                    <i class="fa-solid fa-inbox" style="font-size: 4rem; color: var(--gray); margin-bottom: 1rem;"></i>
+                    <h3 style="color: var(--gray); margin-bottom: 0.5rem;">Henüz paket bulunmamaktadır</h3>
+                    <p style="color: var(--gray);">Yakında harika paketler eklenecek!</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section scripts {
+    <!-- Paketler sayfası JavaScript dosyası - Filtreleme ve etkileşimler -->
+    <!-- Packages page JavaScript file - Filtering and interactions -->
+    <script src="~/Scripts/packages.js"></script>
+}

@@ -30,8 +30,8 @@
         <div class="form-group">
           <label for="loginEmail" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
           <input type="email" id="loginEmail" name="email" required 
-                 placeholder="ornek@email.com" 
-                 data-placeholder-tr="ornek@email.com" 
+                 placeholder="örnek@email.com" 
+                 data-placeholder-tr="örnek@email.com" 
                  data-placeholder-en="example@email.com">
         </div>
 
@@ -77,14 +77,20 @@
         </div>
         
         <div class="social-buttons">
+          <!-- Google ile giriş butonu -->
+          <!-- Google sign in button -->
           <button class="social-btn google-btn" onclick="loginWithGoogle()">
-            <i class="fa-brands fa-google"></i>
+            <img src="~/assets/icons/google-icon.svg" alt="Google" class="social-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <i class="fa-brands fa-google" style="display:none;"></i>
             <span data-tr="Google ile Giriş Yap" data-en="Sign in with Google">Google ile Giriş Yap</span>
           </button>
           
-          <button class="social-btn facebook-btn" onclick="loginWithFacebook()">
-            <i class="fa-brands fa-facebook-f"></i>
-            <span data-tr="Facebook ile Giriş Yap" data-en="Sign in with Facebook">Facebook ile Giriş Yap</span>
+          <!-- Apple ile giriş butonu -->
+          <!-- Apple sign in button -->
+          <button class="social-btn apple-btn" onclick="loginWithApple()">
+            <img src="~/assets/icons/apple-icon.svg" alt="Apple" class="social-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <i class="fa-brands fa-apple" style="display:none;"></i>
+            <span data-tr="Apple ile Giriş Yap" data-en="Sign in with Apple">Apple ile Giriş Yap</span>
           </button>
         </div>
       </div>
@@ -165,8 +171,8 @@
       <div class="form-group">
         <label for="forgotEmail" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
         <input type="email" id="forgotEmail" name="email" required 
-               placeholder="ornek@email.com" 
-               data-placeholder-tr="ornek@email.com" 
+               placeholder="örnek@email.com" 
+               data-placeholder-tr="örnek@email.com" 
                data-placeholder-en="example@email.com">
       </div>
 

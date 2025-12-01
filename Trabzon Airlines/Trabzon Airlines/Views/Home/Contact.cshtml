@@ -96,8 +96,8 @@
           <div class="form-group">
             <label for="email" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
             <input type="email" id="email" name="email" required 
-                   placeholder="ornek@email.com" 
-                   data-placeholder-tr="ornek@email.com" 
+                   placeholder="örnek@email.com" 
+                   data-placeholder-tr="örnek@email.com" 
                    data-placeholder-en="example@email.com">
           </div>
 
@@ -147,8 +147,8 @@
             <input type="checkbox" id="kvkk" name="kvkk" required>
             <label for="kvkk" class="checkbox-label">
               <span data-tr="Kişisel verilerimin işlenmesine ve " data-en="I agree to the processing of my personal data and ">Kişisel verilerimin işlenmesine ve </span>
-              <a href="#" onclick="showComingSoonAlert('privacy'); return false;" data-tr="KVKK Aydınlatma Metni" data-en="Privacy Policy">KVKK Aydınlatma Metni</a>
-              <span data-tr="'ni okuduğumu kabul ediyorum. *" data-en=" and confirm that I have read it. *">'ni okuduğumu kabul ediyorum. *</span>
+              <a href="@Url.Action("Privacy", "Home")" target="_blank" data-tr="KVKK Aydınlatma Metni" data-en="Privacy Policy">KVKK Aydınlatma Metni</a>
+              <span data-tr="'ni okuduğumu ve kabul ediyorum. *" data-en=" and confirm that I have read it. *">'ni okuduğumu ve kabul ediyorum. *</span>
             </label>
           </div>
 

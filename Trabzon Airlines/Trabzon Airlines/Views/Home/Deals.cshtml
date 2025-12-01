@@ -1,0 +1,267 @@
+@model IEnumerable<Trabzon_Airlines.Models.Deal>
+
+@{
+    // Fırsatlar sayfası
+    // Deals page
+    ViewBag.Title = "Fırsatlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/deals.css">
+}
+
+<!-- FIRSATLAR HERO BÖLÜMÜ - Sayfanın üst kısmındaki büyük başlık alanı -->
+<!-- DEALS HERO SECTION - Large header area at the top of the page -->
+<section class="deals-hero">
+    <!-- Hero üst katman - Turuncu gradyan overlay -->
+    <!-- Hero overlay - Orange gradient overlay -->
+    <div class="hero-overlay"></div>
+    <!-- Hero içerik alanı -->
+    <!-- Hero content area -->
+    <div class="hero-content">
+        <!-- Ana başlık - Çok dilli destek (Türkçe/İngilizce) -->
+        <!-- Main title - Multi-language support (Turkish/English) -->
+        <h1 class="hero-title" data-tr="Özel Fırsatlar" data-en="Special Deals"><i class="fa-solid fa-tags"></i> Özel Fırsatlar</h1>
+        <!-- Alt başlık - Açıklayıcı metin -->
+        <!-- Subtitle - Descriptive text -->
+        <p class="hero-subtitle" data-tr="Sınırlı süreli kampanyalar ve özel indirimlerle seyahat etmeye başlayın" data-en="Start traveling with limited-time campaigns and special discounts">Sınırlı süreli kampanyalar ve özel indirimlerle seyahat etmeye başlayın</p>
+    </div>
+</section>
+
+<!-- ÖNE ÇIKAN FIRSATLAR BÖLÜMÜ - Büyük vurgulu fırsat kartları -->
+<!-- FEATURED DEALS SECTION - Large emphasized deal cards -->
+@{
+    var featuredDeals = Model != null ? Model.Where(d => d.IsFeatured).Take(3).ToList() : new List<Trabzon_Airlines.Models.Deal>();
+    var otherDeals = Model != null ? Model.Where(d => !d.IsFeatured || !featuredDeals.Contains(d)).ToList() : new List<Trabzon_Airlines.Models.Deal>();
+}
+
+@if (featuredDeals.Any())
+{
+    <section class="featured-deals">
+        <!-- Konteyner - İçerik sarmalayıcı -->
+        <!-- Container - Content wrapper -->
+        <div class="container">
+            <!-- Bölüm başlığı - Alt çizgili stil -->
+            <!-- Section title - Underlined style -->
+            <h2 class="section-title" data-tr="Öne Çıkan Fırsatlar" data-en="Featured Deals"><i class="fa-solid fa-star"></i> Öne Çıkan Fırsatlar</h2>
+            
+            <div class="featured-grid">
+                @for (int i = 0; i < featuredDeals.Count; i++)
+                {
+                    var deal = featuredDeals[i];
+                    <!-- Öne çıkan fırsat kartı -->
+                    <!-- Featured deal card -->
+                    <div class="featured-deal-card @(i == 0 ? "large" : "")">
+                        <!-- Fırsat görseli alanı -->
+                        <!-- Deal image area -->
+                        <div class="deal-image">
+                            <!-- Fırsat görseli -->
+                            <!-- Deal image -->
+                            <img src="@(string.IsNullOrEmpty(deal.ImageUrl) ? "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=800&fit=crop" : deal.ImageUrl)" alt="@deal.Title">
+                            
+                            @if (!string.IsNullOrEmpty(deal.Badge))
+                            {
+                                <!-- Fırsat rozeti -->
+                                <!-- Deal badge -->
+                                <div class="deal-badge @(deal.Badge.Contains("Sıcak") || deal.Badge.Contains("Hot") ? "hot" : deal.Badge.Contains("Son Dakika") || deal.Badge.Contains("Last Minute") ? "urgent" : "")" data-tr="@deal.Badge" data-en="@deal.Badge">
+                                    @if (deal.Badge.Contains("Sıcak") || deal.Badge.Contains("Hot"))
+                                    {
+                                        <i class="fa-solid fa-fire"></i>
+                                    }
+                                    else if (deal.Badge.Contains("Son Dakika") || deal.Badge.Contains("Last Minute"))
+                                    {
+                                        <i class="fa-solid fa-clock"></i>
+                                    }
+                                    else if (deal.Badge.Contains("Yeni") || deal.Badge.Contains("New"))
+                                    {
+                                        <i class="fa-solid fa-sparkles"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-star"></i>
+                                    }
+                                    @deal.Badge
+                                </div>
+                            }
+                            
+                            <!-- İndirim yüzdesi rozeti -->
+                            <!-- Discount percentage badge -->
+                            <div class="deal-discount">%@deal.DiscountPercentage</div>
+                        </div>
+                        
+                        <!-- Fırsat içerik alanı -->
+                        <!-- Deal content area -->
+                        <div class="deal-content">
+                            <!-- Fırsat başlığı -->
+                            <!-- Deal title -->
+                            <h3 class="deal-title">@deal.Title</h3>
+                            
+                            <!-- Fırsat açıklaması -->
+                            <!-- Deal description -->
+                            <p class="deal-description">
+                                @(string.IsNullOrEmpty(deal.ShortDescription) ? deal.Description : deal.ShortDescription)
+                            </p>
+                            
+                            <!-- Fırsat bilgi alanı -->
+                            <!-- Deal info area -->
+                            <div class="deal-info">
+                                <span class="deal-date">
+                                    <i class="fa-solid fa-calendar"></i>
+                                    <span>@deal.StartDate.ToString("dd.MM.yyyy") - @deal.EndDate.ToString("dd.MM.yyyy")</span>
+                                </span>
+                                
+                                @if (!string.IsNullOrEmpty(deal.CampaignCode))
+                                {
+                                    <span class="deal-code">
+                                        <i class="fa-solid fa-tag"></i>
+                                        <span>Kod: @deal.CampaignCode</span>
+                                    </span>
+                                }
+                            </div>
+                            
+                            <!-- Fırsat butonu -->
+                            <!-- Deal button -->
+                            <a href="@Url.Action("DealDetail", "Home", new { id = deal.Id })" class="deal-btn" data-tr="Fırsatı Kaçırma" data-en="Don't Miss Out">
+                                <i class="fa-solid fa-bolt"></i> Fırsatı Kaçırma
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- TÜM FIRSATLAR BÖLÜMÜ -->
+<!-- ALL DEALS SECTION -->
+@if (otherDeals.Any())
+{
+    <section class="all-deals-section">
+        <!-- Konteyner - İçerik sarmalayıcı -->
+        <!-- Container - Content wrapper -->
+        <div class="container">
+            <!-- Bölüm başlığı -->
+            <!-- Section title -->
+            <h2 class="section-title" data-tr="Tüm Fırsatlar" data-en="All Deals"><i class="fa-solid fa-list"></i> Tüm Fırsatlar</h2>
+            
+            <!-- Fırsatlar grid düzeni -->
+            <!-- Deals grid layout -->
+            <div class="deals-grid">
+                @foreach (var deal in otherDeals)
+                {
+                    <!-- Fırsat kartı -->
+                    <!-- Deal card -->
+                    <div class="deal-card">
+                        <!-- Fırsat görseli alanı -->
+                        <!-- Deal image area -->
+                        <div class="deal-image">
+                            <!-- Fırsat görseli -->
+                            <!-- Deal image -->
+                            <img src="@(string.IsNullOrEmpty(deal.ImageUrl) ? "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&h=400&fit=crop" : deal.ImageUrl)" alt="@deal.Title">
+                            
+                            @if (!string.IsNullOrEmpty(deal.Badge))
+                            {
+                                <!-- Fırsat rozeti -->
+                                <!-- Deal badge -->
+                                <div class="deal-badge" data-tr="@deal.Badge" data-en="@deal.Badge">
+                                    @if (deal.Badge.Contains("Özel") || deal.Badge.Contains("Special"))
+                                    {
+                                        <i class="fa-solid fa-star"></i>
+                                    }
+                                    else if (deal.Badge.Contains("Popüler") || deal.Badge.Contains("Popular"))
+                                    {
+                                        <i class="fa-solid fa-fire"></i>
+                                    }
+                                    else if (deal.Badge.Contains("Bonus"))
+                                    {
+                                        <i class="fa-solid fa-gift"></i>
+                                    }
+                                    else if (deal.Badge.Contains("Grup") || deal.Badge.Contains("Group"))
+                                    {
+                                        <i class="fa-solid fa-users"></i>
+                                    }
+                                    else if (deal.Badge.Contains("Sezon") || deal.Badge.Contains("Season"))
+                                    {
+                                        <i class="fa-solid fa-sun"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-sparkles"></i>
+                                    }
+                                    @deal.Badge
+                                </div>
+                            }
+                            
+                            <!-- İndirim yüzdesi rozeti -->
+                            <!-- Discount percentage badge -->
+                            <div class="deal-discount">%@deal.DiscountPercentage</div>
+                        </div>
+                        
+                        <!-- Fırsat içerik alanı -->
+                        <!-- Deal content area -->
+                        <div class="deal-content">
+                            <!-- Fırsat başlığı -->
+                            <!-- Deal title -->
+                            <h3 class="deal-title">@deal.Title</h3>
+                            
+                            <!-- Fırsat açıklaması -->
+                            <!-- Deal description -->
+                            <p class="deal-description">
+                                @(string.IsNullOrEmpty(deal.ShortDescription) ? deal.Description : deal.ShortDescription)
+                            </p>
+                            
+                            <!-- Fırsat bilgi alanı -->
+                            <!-- Deal info area -->
+                            <div class="deal-info">
+                                <span class="deal-date">
+                                    <i class="fa-solid fa-calendar"></i>
+                                    <span>@deal.StartDate.ToString("dd.MM.yyyy") - @deal.EndDate.ToString("dd.MM.yyyy")</span>
+                                </span>
+                            </div>
+                            
+                            <!-- Detay butonu -->
+                            <!-- Detail button -->
+                            <a href="@Url.Action("DealDetail", "Home", new { id = deal.Id })" class="deal-btn-small" data-tr="Detaylar" data-en="Details">
+                                <i class="fa-solid fa-info-circle"></i> Detaylar
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@if (!Model.Any())
+{
+    <!-- Fırsat bulunamadı mesajı -->
+    <!-- No deals found message -->
+    <section class="all-deals-section">
+        <div class="container">
+            <div style="text-align: center; padding: 4rem 2rem;">
+                <i class="fa-solid fa-inbox" style="font-size: 4rem; color: var(--gray); margin-bottom: 1rem;"></i>
+                <h3 style="color: var(--gray); margin-bottom: 0.5rem;">Henüz fırsat bulunmamaktadır</h3>
+                <p style="color: var(--gray);">Yakında harika fırsatlar eklenecek!</p>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- NEWSLETTER SECTION -->
+<section class="newsletter-section">
+    <div class="container">
+        <div class="newsletter-content">
+            <h2 class="newsletter-title" data-tr="Fırsatlardan İlk Siz Haberdar Olun" data-en="Be The First To Know About Deals">Fırsatlardan İlk Siz Haberdar Olun</h2>
+            <p class="newsletter-subtitle" data-tr="E-posta adresinizi girin, özel kampanyalardan ve fırsatlardan haberdar olun" data-en="Enter your email address to be informed about special campaigns and deals">E-posta adresinizi girin, özel kampanyalardan ve fırsatlardan haberdar olun</p>
+            <form class="newsletter-form" onsubmit="handleNewsletter(event)">
+                <input type="email" placeholder="E-posta adresiniz" data-placeholder-tr="E-posta adresiniz" data-placeholder-en="Your email address" required>
+                <button type="submit" class="newsletter-btn" data-tr="Abone Ol" data-en="Subscribe"><i class="fa-solid fa-paper-plane"></i> Abone Ol</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section scripts {
+    <script src="~/Scripts/deals.js"></script>
+}

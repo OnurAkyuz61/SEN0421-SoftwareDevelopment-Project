@@ -1,0 +1,573 @@
+/* ================== FIRSATLAR SAYFASI STİLLERİ ================== */
+/* ================== DEALS PAGE STYLES ================== */
+
+/* Hero Bölümü - Sayfanın üst kısmındaki büyük başlık alanı (turuncu tonlar) */
+/* Hero Section - Large header area at the top of the page (orange tones) */
+.deals-hero {
+    position: relative; /* Pozisyon: göreceli */
+    height: 400px; /* Yükseklik: 400 piksel */
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); /* Arka plan: turuncu gradyan */
+    display: flex; /* Görünüm: esnek kutu */
+    align-items: center; /* Dikey hizalama: orta */
+    justify-content: center; /* Yatay hizalama: orta */
+    text-align: center; /* Metin hizalama: orta */
+    color: var(--white); /* Metin rengi: beyaz */
+    overflow: hidden; /* Taşan içerik: gizli */
+}
+
+/* Hero arka plan görseli - ::before pseudo elementi */
+/* Hero background image - ::before pseudo element */
+.deals-hero::before {
+    content: ''; /* İçerik: boş */
+    position: absolute; /* Pozisyon: mutlak */
+    top: 0; /* Üst: 0 */
+    left: 0; /* Sol: 0 */
+    right: 0; /* Sağ: 0 */
+    bottom: 0; /* Alt: 0 */
+    background: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&h=1080&fit=crop') center/cover; /* Arka plan görseli */
+    opacity: 0.2; /* Opaklık: %20 */
+    z-index: 0; /* Katman sırası: 0 */
+}
+
+/* Hero üst katman - turuncu gradyan overlay */
+/* Hero overlay - orange gradient overlay */
+.hero-overlay {
+    position: absolute; /* Pozisyon: mutlak */
+    top: 0; /* Üst: 0 */
+    left: 0; /* Sol: 0 */
+    right: 0; /* Sağ: 0 */
+    bottom: 0; /* Alt: 0 */
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.9) 0%, rgba(247, 147, 30, 0.9) 100%); /* Arka plan: yarı saydam turuncu gradyan */
+    z-index: 1; /* Katman sırası: 1 */
+}
+
+/* Hero içerik alanı */
+/* Hero content area */
+.hero-content {
+    position: relative; /* Pozisyon: göreceli */
+    z-index: 2; /* Katman sırası: 2 */
+    max-width: 800px; /* Maksimum genişlik: 800 piksel */
+    padding: 0 2rem; /* İç boşluk: üst-alt 0, yanlar 2rem */
+}
+
+/* Hero başlık */
+/* Hero title */
+.hero-title {
+    font-size: 3rem; /* Yazı boyutu: 3rem */
+    font-weight: 700; /* Yazı kalınlığı: 700 (kalın) */
+    margin-bottom: 1rem; /* Alt boşluk: 1rem */
+    color: var(--white); /* Metin rengi: beyaz */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Metin gölgesi */
+}
+
+/* Hero alt başlık */
+/* Hero subtitle */
+.hero-subtitle {
+    font-size: 1.25rem; /* Yazı boyutu: 1.25rem */
+    color: rgba(255, 255, 255, 0.95); /* Metin rengi: yarı saydam beyaz */
+    line-height: 1.6; /* Satır yüksekliği: 1.6 */
+}
+
+/* Bölüm Başlığı - Alt çizgili stil */
+/* Section Title - Underlined style */
+.section-title {
+    font-size: 2.5rem; /* Yazı boyutu: 2.5rem */
+    font-weight: 700; /* Yazı kalınlığı: 700 (kalın) */
+    text-align: center; /* Metin hizalama: orta */
+    margin-bottom: 3rem; /* Alt dış boşluk: 3rem */
+    color: var(--black); /* Metin rengi: siyah */
+    position: relative; /* Pozisyon: göreceli */
+    padding-bottom: 1rem; /* Alt iç boşluk: 1rem */
+}
+
+/* Bölüm başlığı alt çizgisi - ::after pseudo elementi */
+/* Section title underline - ::after pseudo element */
+.section-title::after {
+    content: ''; /* İçerik: boş */
+    position: absolute; /* Pozisyon: mutlak */
+    bottom: 0; /* Alt: 0 */
+    left: 50%; /* Sol: %50 */
+    transform: translateX(-50%); /* Dönüşüm: yatayda ortala */
+    width: 80px; /* Genişlik: 80 piksel */
+    height: 4px; /* Yükseklik: 4 piksel */
+    background: var(--primary-color); /* Arka plan: ana renk */
+    border-radius: 2px; /* Kenar yuvarlaklığı: 2 piksel */
+}
+
+/* Öne Çıkan Fırsatlar Bölümü */
+/* Featured Deals Section */
+.featured-deals {
+    padding: 4rem 0; /* İç boşluk: üst-alt 4rem, yanlar 0 */
+    background: var(--white); /* Arka plan: beyaz */
+}
+
+/* Konteyner - İçerik sarmalayıcı */
+/* Container - Content wrapper */
+.container {
+    max-width: 1400px; /* Maksimum genişlik: 1400 piksel */
+    margin: 0 auto; /* Dış boşluk: üst-alt 0, yanlar otomatik (ortala) */
+    padding: 0 2rem; /* İç boşluk: üst-alt 0, yanlar 2rem */
+}
+
+/* Öne çıkan fırsatlar grid düzeni - Büyük kart + 2 küçük kart */
+/* Featured deals grid layout - Large card + 2 small cards */
+.featured-grid {
+    display: grid; /* Görünüm: grid */
+    grid-template-columns: 2fr 1fr 1fr; /* Grid sütunları: 2 birim büyük, 1 birim küçük, 1 birim küçük */
+    gap: 2rem; /* Boşluk: 2rem */
+    margin-bottom: 4rem; /* Alt dış boşluk: 4rem */
+}
+
+/* Öne çıkan fırsat kartı */
+/* Featured deal card */
+.featured-deal-card {
+    background: var(--white); /* Arka plan: beyaz */
+    border-radius: var(--radius-medium); /* Kenar yuvarlaklığı: orta */
+    overflow: hidden; /* Taşan içerik: gizli */
+    box-shadow: var(--shadow-medium); /* Kutu gölgesi: orta */
+    transition: all var(--transition-normal) ease; /* Geçiş: tüm özellikler, normal hız */
+    display: flex; /* Görünüm: esnek kutu */
+    flex-direction: column; /* Esnek yön: dikey */
+    animation: fadeInUp 0.6s ease; /* Animasyon: yukarıdan belirme */
+}
+
+/* Öne çıkan fırsat kartı üzerine gelindiğinde */
+/* Featured deal card on hover */
+.featured-deal-card:hover {
+    transform: translateY(-8px); /* Dönüşüm: yukarı 8 piksel kaydır */
+    box-shadow: var(--shadow-heavy); /* Kutu gölgesi: ağır */
+}
+
+/* Büyük öne çıkan fırsat kartı - 2 satır kaplar */
+/* Large featured deal card - Spans 2 rows */
+.featured-deal-card.large {
+    grid-row: span 2; /* Grid satırı: 2 satır kapla */
+}
+
+/* Fırsat görseli alanı */
+/* Deal image area */
+.deal-image {
+    position: relative; /* Pozisyon: göreceli */
+    width: 100%; /* Genişlik: %100 */
+    height: 250px; /* Yükseklik: 250 piksel */
+    overflow: hidden; /* Taşan içerik: gizli */
+}
+
+/* Büyük kartın görseli - Daha yüksek */
+/* Large card image - Taller */
+.featured-deal-card.large .deal-image {
+    height: 100%; /* Yükseklik: %100 */
+    min-height: 500px; /* Minimum yükseklik: 500 piksel */
+}
+
+/* Fırsat görseli */
+/* Deal image */
+.deal-image img {
+    width: 100%; /* Genişlik: %100 */
+    height: 100%; /* Yükseklik: %100 */
+    object-fit: cover; /* Nesne uyumu: kapsama */
+    transition: transform var(--transition-slow) ease; /* Geçiş: dönüşüm, yavaş */
+}
+
+/* Fırsat kartı üzerine gelindiğinde görsel büyütme */
+/* Image zoom on deal card hover */
+.featured-deal-card:hover .deal-image img {
+    transform: scale(1.1); /* Dönüşüm: %10 büyüt */
+}
+
+/* Fırsat rozeti - Sıcak Fırsat, Yeni, Son Dakika vb. */
+/* Deal badge - Hot Deal, New, Last Minute etc. */
+.deal-badge {
+    position: absolute; /* Pozisyon: mutlak */
+    top: 1rem; /* Üst: 1rem */
+    left: 1rem; /* Sol: 1rem */
+    background: var(--primary-color); /* Arka plan: ana renk */
+    color: var(--white); /* Metin rengi: beyaz */
+    padding: 0.5rem 1rem; /* İç boşluk: üst-alt 0.5rem, yanlar 1rem */
+    border-radius: var(--radius-small); /* Kenar yuvarlaklığı: küçük */
+    font-size: 0.85rem; /* Yazı boyutu: 0.85rem */
+    font-weight: 600; /* Yazı kalınlığı: 600 */
+    z-index: 2; /* Katman sırası: 2 */
+}
+
+/* Sıcak fırsat rozeti - Turuncu renk, nabız animasyonu */
+/* Hot deal badge - Orange color, pulse animation */
+.deal-badge.hot {
+    background: #ff6b35; /* Arka plan: turuncu */
+    animation: pulse 2s infinite; /* Animasyon: nabız, 2 saniye, sonsuz */
+}
+
+/* Acil fırsat rozeti - Kırmızı renk */
+/* Urgent deal badge - Red color */
+.deal-badge.urgent {
+    background: #dc3545; /* Arka plan: kırmızı */
+}
+
+/* İndirim yüzdesi rozeti - Yuvarlak, sağ üstte */
+/* Discount percentage badge - Round, top right */
+.deal-discount {
+    position: absolute; /* Pozisyon: mutlak */
+    top: 1rem; /* Üst: 1rem */
+    right: 1rem; /* Sağ: 1rem */
+    background: rgba(255, 255, 255, 0.95); /* Arka plan: yarı saydam beyaz */
+    color: var(--primary-color); /* Metin rengi: ana renk */
+    padding: 1rem; /* İç boşluk: 1rem */
+    border-radius: 50%; /* Kenar yuvarlaklığı: daire */
+    font-size: 1.5rem; /* Yazı boyutu: 1.5rem */
+    font-weight: 700; /* Yazı kalınlığı: 700 (kalın) */
+    width: 80px; /* Genişlik: 80 piksel */
+    height: 80px; /* Yükseklik: 80 piksel */
+    display: flex; /* Görünüm: esnek kutu */
+    align-items: center; /* Dikey hizalama: orta */
+    justify-content: center; /* Yatay hizalama: orta */
+    z-index: 2; /* Katman sırası: 2 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Kutu gölgesi */
+}
+
+/* Fırsat içerik alanı */
+/* Deal content area */
+.deal-content {
+    padding: 1.5rem; /* İç boşluk: 1.5rem */
+    flex: 1; /* Esnek büyüme: 1 */
+    display: flex; /* Görünüm: esnek kutu */
+    flex-direction: column; /* Esnek yön: dikey */
+}
+
+/* Fırsat başlığı */
+/* Deal title */
+.deal-title {
+    font-size: 1.5rem; /* Yazı boyutu: 1.5rem */
+    font-weight: 700; /* Yazı kalınlığı: 700 (kalın) */
+    color: var(--black); /* Metin rengi: siyah */
+    margin-bottom: 0.75rem; /* Alt dış boşluk: 0.75rem */
+}
+
+/* Büyük kartın başlığı - Daha büyük yazı */
+/* Large card title - Larger text */
+.featured-deal-card.large .deal-title {
+    font-size: 2rem; /* Yazı boyutu: 2rem */
+}
+
+/* Fırsat açıklaması */
+/* Deal description */
+.deal-description {
+    color: var(--gray); /* Metin rengi: gri */
+    line-height: 1.6; /* Satır yüksekliği: 1.6 */
+    margin-bottom: 1rem; /* Alt dış boşluk: 1rem */
+    flex: 1; /* Esnek büyüme: 1 */
+}
+
+/* Fırsat bilgi alanı - Tarih, kod vb. */
+/* Deal info area - Date, code etc. */
+.deal-info {
+    display: flex; /* Görünüm: esnek kutu */
+    flex-wrap: wrap; /* Esnek sarma: aktif */
+    gap: 1rem; /* Boşluk: 1rem */
+    margin-bottom: 1.5rem; /* Alt dış boşluk: 1.5rem */
+    padding-bottom: 1rem; /* Alt iç boşluk: 1rem */
+    border-bottom: 1px solid #e1e5e9; /* Alt kenarlık: 1 piksel düz açık gri */
+}
+
+/* Fırsat tarihi ve kodu */
+/* Deal date and code */
+.deal-date,
+.deal-code {
+    display: flex; /* Görünüm: esnek kutu */
+    align-items: center; /* Dikey hizalama: orta */
+    gap: 0.5rem; /* Boşluk: 0.5rem */
+    font-size: 0.9rem; /* Yazı boyutu: 0.9rem */
+    color: var(--gray); /* Metin rengi: gri */
+}
+
+/* Fırsat tarihi ve kodu ikonları */
+/* Deal date and code icons */
+.deal-date i,
+.deal-code i {
+    color: var(--primary-color); /* Metin rengi: ana renk */
+}
+
+/* Fırsat butonu - Büyük buton */
+/* Deal button - Large button */
+.deal-btn {
+    background: var(--primary-color); /* Arka plan: ana renk */
+    color: var(--white); /* Metin rengi: beyaz */
+    border: none; /* Kenarlık: yok */
+    padding: 1rem 2rem; /* İç boşluk: üst-alt 1rem, yanlar 2rem */
+    border-radius: var(--radius-small); /* Kenar yuvarlaklığı: küçük */
+    font-weight: 600; /* Yazı kalınlığı: 600 */
+    font-size: 1rem; /* Yazı boyutu: 1rem */
+    cursor: pointer; /* İmleç: işaretçi */
+    transition: all var(--transition-fast) ease; /* Geçiş: tüm özellikler, hızlı */
+    width: 100%; /* Genişlik: %100 */
+}
+
+/* Fırsat butonu üzerine gelindiğinde */
+/* Deal button on hover */
+.deal-btn:hover {
+    background: var(--primary-dark); /* Arka plan: koyu ana renk */
+    transform: translateY(-2px); /* Dönüşüm: yukarı 2 piksel kaydır */
+    box-shadow: 0 4px 12px rgba(228, 0, 43, 0.3); /* Kutu gölgesi: kırmızı tonlu */
+}
+
+/* Tüm Fırsatlar Bölümü */
+/* All Deals Section */
+.all-deals-section {
+    padding: 4rem 0; /* İç boşluk: üst-alt 4rem, yanlar 0 */
+    background: var(--light-gray); /* Arka plan: açık gri */
+}
+
+/* Fırsatlar grid düzeni */
+/* Deals grid layout */
+.deals-grid {
+    display: grid; /* Görünüm: grid */
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Grid sütunları: otomatik doldur, minimum 350px */
+    gap: 2rem; /* Boşluk: 2rem */
+}
+
+/* Fırsat kartı - Normal boyutlu kart */
+/* Deal card - Normal sized card */
+.deal-card {
+    background: var(--white); /* Arka plan: beyaz */
+    border-radius: var(--radius-medium); /* Kenar yuvarlaklığı: orta */
+    overflow: hidden; /* Taşan içerik: gizli */
+    box-shadow: var(--shadow-medium); /* Kutu gölgesi: orta */
+    transition: all var(--transition-normal) ease; /* Geçiş: tüm özellikler, normal hız */
+    display: flex; /* Görünüm: esnek kutu */
+    flex-direction: column; /* Esnek yön: dikey */
+    animation: fadeInUp 0.6s ease; /* Animasyon: yukarıdan belirme */
+}
+
+/* Fırsat kartı üzerine gelindiğinde */
+/* Deal card on hover */
+.deal-card:hover {
+    transform: translateY(-8px); /* Dönüşüm: yukarı 8 piksel kaydır */
+    box-shadow: var(--shadow-heavy); /* Kutu gölgesi: ağır */
+}
+
+/* Normal kartın görseli - Daha kısa */
+/* Normal card image - Shorter */
+.deal-card .deal-image {
+    height: 200px; /* Yükseklik: 200 piksel */
+}
+
+/* Normal kartın indirim rozeti - Daha küçük */
+/* Normal card discount badge - Smaller */
+.deal-card .deal-discount {
+    width: 60px; /* Genişlik: 60 piksel */
+    height: 60px; /* Yükseklik: 60 piksel */
+    font-size: 1.2rem; /* Yazı boyutu: 1.2rem */
+    padding: 0.5rem; /* İç boşluk: 0.5rem */
+}
+
+/* Normal kartın başlığı - Daha küçük yazı */
+/* Normal card title - Smaller text */
+.deal-card .deal-title {
+    font-size: 1.2rem; /* Yazı boyutu: 1.2rem */
+}
+
+/* Fırsat butonu - Küçük buton */
+/* Deal button - Small button */
+.deal-btn-small {
+    background: var(--primary-color); /* Arka plan: ana renk */
+    color: var(--white); /* Metin rengi: beyaz */
+    border: none; /* Kenarlık: yok */
+    padding: 0.75rem 1.5rem; /* İç boşluk: üst-alt 0.75rem, yanlar 1.5rem */
+    border-radius: var(--radius-small); /* Kenar yuvarlaklığı: küçük */
+    font-weight: 600; /* Yazı kalınlığı: 600 */
+    cursor: pointer; /* İmleç: işaretçi */
+    transition: all var(--transition-fast) ease; /* Geçiş: tüm özellikler, hızlı */
+    width: 100%; /* Genişlik: %100 */
+    margin-top: auto; /* Üst dış boşluk: otomatik (aşağı it) */
+}
+
+/* Küçük fırsat butonu üzerine gelindiğinde */
+/* Small deal button on hover */
+.deal-btn-small:hover {
+    background: var(--primary-dark); /* Arka plan: koyu ana renk */
+    transform: translateY(-2px); /* Dönüşüm: yukarı 2 piksel kaydır */
+}
+
+/* Newsletter (Haber Bülteni) Bölümü */
+/* Newsletter Section */
+.newsletter-section {
+    padding: 4rem 0; /* İç boşluk: üst-alt 4rem, yanlar 0 */
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); /* Arka plan: kırmızı gradyan */
+    color: var(--white); /* Metin rengi: beyaz */
+}
+
+/* Newsletter içerik alanı */
+/* Newsletter content area */
+.newsletter-content {
+    max-width: 700px; /* Maksimum genişlik: 700 piksel */
+    margin: 0 auto; /* Dış boşluk: üst-alt 0, yanlar otomatik (ortala) */
+    text-align: center; /* Metin hizalama: orta */
+}
+
+/* Newsletter başlığı */
+/* Newsletter title */
+.newsletter-title {
+    font-size: 2.5rem; /* Yazı boyutu: 2.5rem */
+    font-weight: 700; /* Yazı kalınlığı: 700 (kalın) */
+    margin-bottom: 1rem; /* Alt dış boşluk: 1rem */
+    color: var(--white); /* Metin rengi: beyaz */
+}
+
+/* Newsletter alt başlığı */
+/* Newsletter subtitle */
+.newsletter-subtitle {
+    font-size: 1.1rem; /* Yazı boyutu: 1.1rem */
+    margin-bottom: 2rem; /* Alt dış boşluk: 2rem */
+    color: rgba(255, 255, 255, 0.9); /* Metin rengi: yarı saydam beyaz */
+    line-height: 1.6; /* Satır yüksekliği: 1.6 */
+}
+
+/* Newsletter formu */
+/* Newsletter form */
+.newsletter-form {
+    display: flex; /* Görünüm: esnek kutu */
+    gap: 1rem; /* Boşluk: 1rem */
+    max-width: 500px; /* Maksimum genişlik: 500 piksel */
+    margin: 0 auto; /* Dış boşluk: üst-alt 0, yanlar otomatik (ortala) */
+}
+
+/* Newsletter e-posta input alanı */
+/* Newsletter email input field */
+.newsletter-form input {
+    flex: 1; /* Esnek büyüme: 1 */
+    padding: 1rem 1.5rem; /* İç boşluk: üst-alt 1rem, yanlar 1.5rem */
+    border: none; /* Kenarlık: yok */
+    border-radius: var(--radius-small); /* Kenar yuvarlaklığı: küçük */
+    font-size: 1rem; /* Yazı boyutu: 1rem */
+    outline: none; /* Dış çizgi: yok */
+}
+
+/* Newsletter abone ol butonu */
+/* Newsletter subscribe button */
+.newsletter-btn {
+    background: var(--white); /* Arka plan: beyaz */
+    color: var(--primary-color); /* Metin rengi: ana renk */
+    border: none; /* Kenarlık: yok */
+    padding: 1rem 2rem; /* İç boşluk: üst-alt 1rem, yanlar 2rem */
+    border-radius: var(--radius-small); /* Kenar yuvarlaklığı: küçük */
+    font-weight: 600; /* Yazı kalınlığı: 600 */
+    font-size: 1rem; /* Yazı boyutu: 1rem */
+    cursor: pointer; /* İmleç: işaretçi */
+    transition: all var(--transition-fast) ease; /* Geçiş: tüm özellikler, hızlı */
+    white-space: nowrap; /* Beyaz boşluk: satır kırma yok */
+}
+
+/* Newsletter butonu üzerine gelindiğinde */
+/* Newsletter button on hover */
+.newsletter-btn:hover {
+    background: var(--light-gray); /* Arka plan: açık gri */
+    transform: translateY(-2px); /* Dönüşüm: yukarı 2 piksel kaydır */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Kutu gölgesi */
+}
+
+/* Animasyonlar */
+/* Animations */
+@keyframes fadeInUp {
+    from { /* Başlangıç durumu */
+        opacity: 0; /* Opaklık: 0 (görünmez) */
+        transform: translateY(30px); /* Dönüşüm: aşağıdan 30 piksel */
+    }
+    to { /* Bitiş durumu */
+        opacity: 1; /* Opaklık: 1 (görünür) */
+        transform: translateY(0); /* Dönüşüm: normal pozisyon */
+    }
+}
+
+/* Nabız animasyonu - Sıcak fırsat rozeti için */
+/* Pulse animation - For hot deal badge */
+@keyframes pulse {
+    0%, 100% { /* Başlangıç ve bitiş */
+        opacity: 1; /* Opaklık: 1 (tam görünür) */
+    }
+    50% { /* Orta nokta */
+        opacity: 0.7; /* Opaklık: 0.7 (%70 görünür) */
+    }
+}
+
+/* Responsive Tasarım - Tablet ve küçük ekranlar */
+/* Responsive Design - Tablet and small screens */
+@media (max-width: 1200px) {
+    .featured-grid {
+        grid-template-columns: 1fr 1fr; /* Grid sütunları: 2 eşit sütun */
+    }
+
+    .featured-deal-card.large {
+        grid-row: span 1; /* Grid satırı: 1 satır kapla */
+    }
+
+    .deals-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Grid sütunları: minimum 300px */
+    }
+}
+
+/* Responsive Tasarım - Mobil cihazlar */
+/* Responsive Design - Mobile devices */
+@media (max-width: 768px) {
+    .deals-hero {
+        height: 300px; /* Yükseklik: 300 piksel */
+    }
+
+    .hero-title {
+        font-size: 2rem; /* Yazı boyutu: 2rem */
+    }
+
+    .hero-subtitle {
+        font-size: 1rem; /* Yazı boyutu: 1rem */
+    }
+
+    .section-title {
+        font-size: 2rem; /* Yazı boyutu: 2rem */
+    }
+
+    .featured-grid {
+        grid-template-columns: 1fr; /* Grid sütunları: tek sütun */
+    }
+
+    .featured-deal-card.large .deal-image {
+        min-height: 300px; /* Minimum yükseklik: 300 piksel */
+    }
+
+    .deals-grid {
+        grid-template-columns: 1fr; /* Grid sütunları: tek sütun */
+    }
+
+    .newsletter-form {
+        flex-direction: column; /* Esnek yön: dikey */
+    }
+
+    .newsletter-btn {
+        width: 100%; /* Genişlik: %100 */
+    }
+}
+
+/* Responsive Tasarım - Küçük mobil cihazlar */
+/* Responsive Design - Small mobile devices */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 1rem; /* İç boşluk: üst-alt 0, yanlar 1rem */
+    }
+
+    .deals-hero {
+        height: 250px; /* Yükseklik: 250 piksel */
+    }
+
+    .hero-title {
+        font-size: 1.5rem; /* Yazı boyutu: 1.5rem */
+    }
+
+    .section-title {
+        font-size: 1.5rem; /* Yazı boyutu: 1.5rem */
+    }
+
+    .deal-content {
+        padding: 1rem; /* İç boşluk: 1rem */
+    }
+
+    .newsletter-title {
+        font-size: 1.8rem; /* Yazı boyutu: 1.8rem */
+    }
+}

@@ -52,12 +52,36 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - TC Kimlik validasyonu
   - Şifre gücü göstergesi
 
+- 📦 **Paket ve Fırsat Yönetimi**
+  - Paket listeleme ve detay sayfaları
+  - Fırsat listeleme ve detay sayfaları
+  - Paket rezervasyon sistemi
+  - Fırsat rezervasyon sistemi
+  - Aktif/Pasif paket yönetimi
+  - Öne çıkan paket/fırsat işaretleme
+
+- 👨‍💼 **Admin Paneli** ✅
+  - Admin giriş sistemi (yetkilendirme ile)
+  - Dashboard (istatistikler ve özet bilgiler)
+  - Paket yönetimi (Ekleme, Düzenleme, Silme, Listeleme)
+  - Fırsat yönetimi (Ekleme, Düzenleme, Silme, Listeleme)
+  - Kullanıcı yönetimi
+  - Rezervasyon takibi
+  - Super Admin yetkilendirme sistemi
+
 - 📄 **Sayfalar**
   - Ana Sayfa (Index) - Uçuş arama ve öne çıkan teklifler
   - Hakkımızda (About) - Şirket bilgileri, misyon, vizyon, ekip
   - İletişim (Contact) - İletişim formu ve FAQ
   - Giriş Yap (Login) - Kullanıcı girişi
   - Kayıt Ol (Signup) - Yeni kullanıcı kaydı
+  - Paketler (Packages) - Tüm paketleri listeleme
+  - Paket Detay (PackageDetail) - Paket detay sayfası
+  - Fırsatlar (Deals) - Tüm fırsatları listeleme
+  - Fırsat Detay (DealDetail) - Fırsat detay sayfası
+  - Ayarlar (Settings) - Kullanıcı profil ve ayar yönetimi
+  - Site Haritası (Sitemap) - Site yapısı
+  - Gizlilik Politikası (Privacy) - KVKK ve gizlilik bilgileri
 
 ## 🛠️ Kullanılan Teknolojiler
 
@@ -67,6 +91,10 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
 - **C#** - Programlama dili
 - **Razor View Engine** - View rendering
 - **Bundle & Minification** - CSS/JS optimizasyonu
+- **Entity Framework 6.5.1** - ORM (Object-Relational Mapping)
+- **SQL Server LocalDB** - Veritabanı (MSSQLLocalDB)
+- **SHA256** - Şifre hash'leme algoritması
+- **Session Management** - Kullanıcı oturum yönetimi
 
 ### Frontend
 - **HTML5** - Semantik yapı ve erişilebilirlik
@@ -112,14 +140,41 @@ web-prog-proj/
 │       │   ├── FilterConfig.cs   # Filter yapılandırması
 │       │   └── RouteConfig.cs     # Route yapılandırması
 │       ├── Controllers/
-│       │   └── HomeController.cs  # Ana controller (Index, About, Contact, Login, Signup)
+│       │   ├── HomeController.cs   # Ana controller (Index, About, Contact, Login, Signup, Packages, Deals, Settings)
+│       │   └── AdminController.cs  # Admin controller (Dashboard, Packages, Deals yönetimi)
+│       ├── Models/
+│       │   ├── User.cs             # Kullanıcı modeli
+│       │   ├── Admin.cs            # Admin modeli
+│       │   ├── Package.cs          # Paket modeli
+│       │   ├── Deal.cs             # Fırsat modeli
+│       │   ├── PackageReservation.cs # Paket rezervasyon modeli
+│       │   ├── DealReservation.cs  # Fırsat rezervasyon modeli
+│       │   └── TrabzonAirlinesDbContext.cs # Entity Framework DbContext
+│       ├── Attributes/
+│       │   └── AuthorizeAdminAttribute.cs # Admin yetkilendirme attribute'u
 │       ├── Views/
 │       │   ├── Home/
-│       │   │   ├── Index.cshtml   # Ana sayfa - Uçuş arama
-│       │   │   ├── About.cshtml   # Hakkımızda
-│       │   │   ├── Contact.cshtml # İletişim
-│       │   │   ├── Login.cshtml   # Giriş yap
-│       │   │   └── Signup.cshtml  # Kayıt ol
+│       │   │   ├── Index.cshtml      # Ana sayfa - Uçuş arama
+│       │   │   ├── About.cshtml      # Hakkımızda
+│       │   │   ├── Contact.cshtml   # İletişim
+│       │   │   ├── Login.cshtml      # Giriş yap
+│       │   │   ├── Signup.cshtml     # Kayıt ol
+│       │   │   ├── Packages.cshtml   # Paketler listesi
+│       │   │   ├── PackageDetail.cshtml # Paket detay
+│       │   │   ├── Deals.cshtml      # Fırsatlar listesi
+│       │   │   ├── DealDetail.cshtml # Fırsat detay
+│       │   │   ├── Settings.cshtml   # Kullanıcı ayarları
+│       │   │   ├── Sitemap.cshtml    # Site haritası
+│       │   │   └── Privacy.cshtml    # Gizlilik politikası
+│       │   ├── Admin/
+│       │   │   ├── Login.cshtml      # Admin giriş
+│       │   │   ├── Dashboard.cshtml  # Admin dashboard
+│       │   │   ├── Packages.cshtml   # Paket yönetimi listesi
+│       │   │   ├── AddPackage.cshtml  # Paket ekleme
+│       │   │   ├── EditPackage.cshtml # Paket düzenleme
+│       │   │   ├── Deals.cshtml      # Fırsat yönetimi listesi
+│       │   │   ├── AddDeal.cshtml    # Fırsat ekleme
+│       │   │   └── EditDeal.cshtml   # Fırsat düzenleme
 │       │   └── Shared/
 │       │       └── _Layout.cshtml # Master layout
 │       ├── Content/
@@ -148,7 +203,8 @@ web-prog-proj/
 │       │   │   └── team/         # Ekip üyesi resimleri
 │       │   └── logo/
 │       │       └── logo.png      # Logo
-│       ├── Web.config             # Web yapılandırması
+│       ├── App_Data/              # Veritabanı dosyaları (LocalDB)
+│       ├── Web.config             # Web yapılandırması (Connection String dahil)
 │       ├── Global.asax            # Global uygulama dosyası
 │       └── packages.config        # NuGet paketleri
 ├── css/                            # Orijinal CSS dosyaları (referans)
@@ -164,6 +220,7 @@ web-prog-proj/
 ### Gereksinimler
 - **Visual Studio 2022** veya **Visual Studio 2019**
 - **.NET Framework 4.7.2** veya üzeri
+- **SQL Server LocalDB** (Visual Studio ile birlikte gelir veya ayrı yüklenebilir)
 - **IIS Express** (Visual Studio ile birlikte gelir)
 - Modern web tarayıcısı (Chrome, Firefox, Safari, Edge)
 
@@ -176,10 +233,16 @@ web-prog-proj/
    ```
 
 2. **Visual Studio'da açın:**
-   - `Trabzon Airlines/Trabzon Airlines/Trabzon Airlines.csproj` dosyasını Visual Studio ile açın
+   - `Trabzon Airlines/Trabzon Airlines.sln` dosyasını Visual Studio ile açın
    - NuGet paketlerinin otomatik olarak restore edilmesini bekleyin
 
-3. **Projeyi çalıştırın:**
+3. **Veritabanını oluşturun:**
+   - Proje ilk çalıştırıldığında Entity Framework otomatik olarak veritabanını oluşturacaktır
+   - Veritabanı: `TrabzonAirlinesDb` (LocalDB)
+   - Connection String: `Web.config` dosyasında tanımlıdır
+   - İlk admin kullanıcısı oluşturmak için veritabanına manuel olarak eklenmelidir
+
+4. **Projeyi çalıştırın:**
    - Visual Studio'da `F5` tuşuna basın veya "Start Debugging" butonuna tıklayın
    - IIS Express otomatik olarak başlatılacak ve tarayıcı açılacak
    - Varsayılan URL: `http://localhost:port/`
@@ -231,6 +294,49 @@ web-prog-proj/
 - Sosyal medya ile kayıt (Google, Facebook)
 - Üyelik avantajları bilgilendirmesi
 - Giriş yap sayfasına yönlendirme
+- Otomatik giriş yapma (kayıt sonrası)
+
+### 📦 Paketler (Home/Packages)
+- Aktif paketlerin listelenmesi
+- Öne çıkan paketlerin öncelikli gösterimi
+- Paket filtreleme ve sıralama
+- Paket detay sayfasına yönlendirme
+
+### 🎁 Fırsatlar (Home/Deals)
+- Aktif fırsatların listelenmesi
+- Tarih kontrolü (geçmiş fırsatlar gösterilmez)
+- Öne çıkan fırsatların öncelikli gösterimi
+- Fırsat detay sayfasına yönlendirme
+
+### ⚙️ Ayarlar (Home/Settings)
+- Kullanıcı profil bilgilerini görüntüleme ve düzenleme
+- Şifre değiştirme (mevcut şifre doğrulama ile)
+- E-posta değiştirme
+- Kişisel bilgileri güncelleme
+- KVKK ve pazarlama izinlerini yönetme
+
+### 👨‍💼 Admin Paneli (Admin/*)
+- **Admin Giriş (Admin/Login)**: Kullanıcı adı ve şifre ile giriş
+- **Dashboard (Admin/Dashboard)**: 
+  - Toplam paket sayısı
+  - Aktif paket sayısı
+  - Toplam fırsat sayısı
+  - Aktif fırsat sayısı
+  - Toplam kullanıcı sayısı
+  - Toplam rezervasyon sayısı
+- **Paket Yönetimi (Admin/Packages)**:
+  - Paket listeleme
+  - Yeni paket ekleme
+  - Paket düzenleme
+  - Paket silme
+  - Aktif/Pasif durumu yönetimi
+- **Fırsat Yönetimi (Admin/Deals)**:
+  - Fırsat listeleme
+  - Yeni fırsat ekleme
+  - Fırsat düzenleme
+  - Fırsat silme
+  - Tarih aralığı yönetimi
+  - İndirim yüzdesi ayarlama
 
 ## 🎨 Tasarım Özellikleri
 
@@ -272,6 +378,17 @@ web-prog-proj/
 - `/Home/Contact` - İletişim
 - `/Home/Login` - Giriş yap
 - `/Home/Signup` - Kayıt ol
+- `/Home/Packages` - Paketler listesi
+- `/Home/PackageDetail/{id}` - Paket detay
+- `/Home/Deals` - Fırsatlar listesi
+- `/Home/DealDetail/{id}` - Fırsat detay
+- `/Home/Settings` - Kullanıcı ayarları
+- `/Home/Sitemap` - Site haritası
+- `/Home/Privacy` - Gizlilik politikası
+- `/Admin/Login` - Admin giriş
+- `/Admin/Dashboard` - Admin dashboard
+- `/Admin/Packages` - Admin paket yönetimi
+- `/Admin/Deals` - Admin fırsat yönetimi
 
 ### Özellikler
 - **Havalimanı Yönetimi:** 66+ Türkiye havalimanı (uluslararası ve yerel)
@@ -279,6 +396,11 @@ web-prog-proj/
 - **Form Validasyonu:** Client-side ve server-side validasyon
 - **Responsive Design:** Mobil, tablet ve desktop uyumluluğu
 - **Modal Sistemleri:** Havalimanı seçimi, yolcu seçimi, dil seçimi
+- **Veritabanı:** Entity Framework Code First yaklaşımı
+- **Güvenlik:** SHA256 şifre hash'leme, Session yönetimi, Anti-forgery token
+- **Yetkilendirme:** Admin paneli için özel yetkilendirme attribute'u
+- **CRUD İşlemleri:** Paket ve fırsat yönetimi için tam CRUD desteği
+- **Rezervasyon Sistemi:** Paket ve fırsat rezervasyonları için model yapısı
 
 ## 🎯 Gerçekleştirilen Özellikler
 
@@ -289,20 +411,31 @@ web-prog-proj/
 - **Mobil Navigasyon:** Alt navigasyon çubuğu ve hamburger menü
 - **Sidebar Sistemi:** Desktop'ta daraltılabilir sidebar, mobilde drawer
 - **Uçuş Arama:** Gelişmiş arama formu ve validasyon
-- **Kullanıcı Yönetimi:** Login ve Signup sayfaları
-- **Form Validasyonu:** Client-side validasyon ve hata mesajları
+- **Kullanıcı Yönetimi:** Login, Signup ve Settings sayfaları
+- **Form Validasyonu:** Client-side ve server-side validasyon
 - **Modal Sistemleri:** Havalimanı, yolcu, dil seçim modalları
 - **Bundle & Minification:** CSS/JS optimizasyonu
+- **Veritabanı Entegrasyonu:** Entity Framework ile LocalDB kullanımı
+- **Admin Paneli:** Tam özellikli admin yönetim sistemi
+- **Paket Yönetimi:** CRUD işlemleri ile paket yönetimi
+- **Fırsat Yönetimi:** CRUD işlemleri ile fırsat yönetimi
+- **Güvenlik:** SHA256 şifre hash'leme, Session yönetimi
+- **Yetkilendirme:** Admin paneli için özel yetkilendirme sistemi
 
 ### 🔧 Teknik Özellikler
 - ASP.NET MVC 5 (.NET Framework 4.7.2)
 - Razor View Engine
 - Bundle & Minification
+- Entity Framework 6.5.1 (Code First)
+- SQL Server LocalDB
 - Modern CSS3 (Grid, Flexbox, Custom Properties)
 - Vanilla JavaScript (ES6+)
 - Font Awesome 6.5.0 ikon kütüphanesi
 - jQuery 3.7.0
 - Bootstrap 5
+- SHA256 şifre hash'leme
+- Session yönetimi
+- Anti-forgery token koruması
 - SEO optimizasyonu (Meta tags, Open Graph)
 - Cross-browser uyumluluk
 
@@ -312,13 +445,36 @@ web-prog-proj/
 - `BundleConfig.cs` - CSS/JS bundle yapılandırması
 - `_Layout.cshtml` - Master layout (header, sidebar, footer, modals)
 - `HomeController.cs` - Ana controller ve action'lar
-- `Web.config` - Web uygulaması yapılandırması
+- `AdminController.cs` - Admin paneli controller'ı
+- `TrabzonAirlinesDbContext.cs` - Entity Framework veritabanı bağlamı
+- `AuthorizeAdminAttribute.cs` - Admin yetkilendirme attribute'u
+- `Web.config` - Web uygulaması yapılandırması (Connection String dahil)
+- `Models/` - Veritabanı modelleri (User, Admin, Package, Deal, vb.)
+
+### Veritabanı Modelleri
+- **User:** Kullanıcı bilgileri (Ad, Soyad, E-posta, Şifre, TC, vb.)
+- **Admin:** Admin kullanıcı bilgileri (Kullanıcı adı, Şifre, Super Admin durumu)
+- **Package:** Paket bilgileri (Başlık, Açıklama, Fiyat, İndirim, Kategori, vb.)
+- **Deal:** Fırsat bilgileri (Başlık, Açıklama, İndirim, Tarih aralığı, Kampanya kodu, vb.)
+- **PackageReservation:** Paket rezervasyonları
+- **DealReservation:** Fırsat rezervasyonları
 
 ### Assets Klasörü
-Assets klasörü (`assets/`) proje kök dizininde bulunmalıdır. Eğer yoksa, orijinal HTML projesinden kopyalanmalıdır:
+Assets klasörü (`Trabzon Airlines/Trabzon Airlines/assets/`) proje içinde bulunmalıdır:
 - `assets/images/destinations/` - Destinasyon resimleri
 - `assets/images/team/` - Ekip üyesi resimleri
 - `assets/logo/` - Logo dosyaları
+- `assets/fonts/` - Özel font dosyaları
+- `assets/icons/` - SVG ikon dosyaları
+
+### Veritabanı Kurulumu
+1. Proje ilk çalıştırıldığında Entity Framework otomatik olarak veritabanını oluşturur
+2. Veritabanı: `TrabzonAirlinesDb` (LocalDB)
+3. Connection String: `Web.config` dosyasında `TrabzonAirlinesDb` olarak tanımlıdır
+4. İlk admin kullanıcısı oluşturmak için:
+   - Veritabanına manuel olarak admin eklenmelidir
+   - Şifre SHA256 ile hash'lenmelidir
+   - `IsActive = true` ve `IsSuperAdmin = true` olarak ayarlanmalıdır
 
 ## 🌐 GitHub Repository
 

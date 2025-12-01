@@ -1,0 +1,180 @@
+@model Trabzon_Airlines.Models.Package
+
+@{
+    // Paket detay sayfası
+    // Package detail page
+    ViewBag.Title = Model != null ? Model.Title : "Paket Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/package-detail.css">
+}
+
+@if (Model != null)
+{
+    <!-- PAKET DETAY HERO BÖLÜMÜ -->
+    <!-- PACKAGE DETAIL HERO SECTION -->
+    <section class="package-detail-hero" style="background-image: url('@(string.IsNullOrEmpty(Model.ImageUrl) ? "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&h=1080&fit=crop" : Model.ImageUrl)');">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">@Model.Title</h1>
+            <div class="hero-meta">
+                <span class="hero-rating">
+                    <i class="fa-solid fa-star"></i>
+                    @Model.Rating.ToString("F1") (@Model.RatingCount değerlendirme)
+                </span>
+                @if (!string.IsNullOrEmpty(Model.Badge))
+                {
+                    <span class="hero-badge">@Model.Badge</span>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- PAKET DETAY İÇERİK BÖLÜMÜ -->
+    <!-- PACKAGE DETAIL CONTENT SECTION -->
+    <section class="package-detail-section">
+        <div class="container">
+            <div class="package-detail-grid">
+                <!-- Sol taraf - Detaylar -->
+                <!-- Left side - Details -->
+                <div class="package-detail-main">
+                    <!-- Paket açıklaması -->
+                    <!-- Package description -->
+                    <div class="detail-card">
+                        <h2 class="detail-card-title"><i class="fa-solid fa-info-circle"></i> Paket Hakkında</h2>
+                        <p class="detail-description">@Model.Description</p>
+                    </div>
+
+                    <!-- Paket özellikleri -->
+                    <!-- Package features -->
+                    <div class="detail-card">
+                        <h2 class="detail-card-title"><i class="fa-solid fa-list-check"></i> Paket Özellikleri</h2>
+                        <div class="features-list">
+                            @if (Model.FlightIncluded)
+                            {
+                                <div class="feature-item-large">
+                                    <i class="fa-solid fa-plane"></i>
+                                    <div>
+                                        <h4>Uçak Bileti Dahil</h4>
+                                        <p>Gidiş-dönüş uçak bileti pakete dahildir</p>
+                                    </div>
+                                </div>
+                            }
+                            
+                            @if (Model.HotelStars.HasValue && Model.HotelStars.Value > 0)
+                            {
+                                <div class="feature-item-large">
+                                    <i class="fa-solid fa-hotel"></i>
+                                    <div>
+                                        <h4>@Model.HotelStars.Value Yıldızlı Otel</h4>
+                                        <p>Konforlu ve lüks otel konaklaması</p>
+                                    </div>
+                                </div>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(Model.MealType))
+                            {
+                                <div class="feature-item-large">
+                                    <i class="fa-solid fa-utensils"></i>
+                                    <div>
+                                        <h4>@Model.MealType</h4>
+                                        <p>Yemek hizmeti pakete dahildir</p>
+                                    </div>
+                                </div>
+                            }
+                            
+                            <div class="feature-item-large">
+                                <i class="fa-solid fa-calendar-days"></i>
+                                <div>
+                                    <h4>@Model.Duration Gün @Model.Nights Gece</h4>
+                                    <p>Paket süresi</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paket kategorisi -->
+                    <!-- Package category -->
+                    <div class="detail-card">
+                        <h2 class="detail-card-title"><i class="fa-solid fa-tags"></i> Kategori</h2>
+                        <div class="category-tags">
+                            <span class="category-tag">@Model.Category</span>
+                            @if (!string.IsNullOrEmpty(Model.SubCategory))
+                            {
+                                <span class="category-tag">@Model.SubCategory</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sağ taraf - Rezervasyon kartı -->
+                <!-- Right side - Booking card -->
+                <div class="package-booking-sidebar">
+                    <div class="booking-card">
+                        <h3 class="booking-card-title">Rezervasyon</h3>
+                        
+                        <div class="booking-price">
+                            @if (Model.OldPrice.HasValue && Model.OldPrice.Value > Model.Price)
+                            {
+                                <div class="price-old">₺@Model.OldPrice.Value.ToString("N2")</div>
+                            }
+                            <div class="price-new">₺@Model.Price.ToString("N2")</div>
+                            <div class="price-per">kişi başı</div>
+                        </div>
+
+                        <div class="booking-info">
+                            <div class="booking-info-item">
+                                <i class="fa-solid fa-calendar-days"></i>
+                                <span>@Model.Duration Gün @Model.Nights Gece</span>
+                            </div>
+                            <div class="booking-info-item">
+                                <i class="fa-solid fa-star"></i>
+                                <span>@Model.Rating.ToString("F1") Puan</span>
+                            </div>
+                        </div>
+
+                        <button class="booking-btn" onclick="window.location.href='@Url.Action("Login", "Home")'">
+                            <i class="fa-solid fa-calendar-check"></i>
+                            Rezervasyon Yap
+                        </button>
+
+                        <div class="booking-features">
+                            <div class="booking-feature">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span>Güvenli Ödeme</span>
+                            </div>
+                            <div class="booking-feature">
+                                <i class="fa-solid fa-undo"></i>
+                                <span>Ücretsiz İptal</span>
+                            </div>
+                            <div class="booking-feature">
+                                <i class="fa-solid fa-headset"></i>
+                                <span>7/24 Destek</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    <!-- Paket bulunamadı -->
+    <!-- Package not found -->
+    <section class="package-detail-section">
+        <div class="container">
+            <div style="text-align: center; padding: 4rem 2rem;">
+                <i class="fa-solid fa-exclamation-triangle" style="font-size: 4rem; color: var(--gray); margin-bottom: 1rem;"></i>
+                <h2 style="color: var(--gray); margin-bottom: 0.5rem;">Paket bulunamadı</h2>
+                <p style="color: var(--gray);">Aradığınız paket mevcut değil veya kaldırılmış olabilir.</p>
+                <a href="@Url.Action("Packages", "Home")" class="admin-btn" style="margin-top: 2rem;">
+                    <i class="fa-solid fa-arrow-left"></i> Paketlere Dön
+                </a>
+            </div>
+        </div>
+    </section>
+}
+

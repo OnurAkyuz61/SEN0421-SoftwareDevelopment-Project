@@ -52,9 +52,28 @@
         <i class="fa-solid fa-chevron-down"></i>
     </div>
 
-    <!-- Kayıt ol ve giriş yap butonları -->
-    <button class="join-btn" onclick="window.location.href='@Url.Action("Signup", "Home")'" data-tr="Kayıt Ol" data-en="Sign Up">Kayıt Ol</button>
-    <button class="signin-btn" onclick="window.location.href='@Url.Action("Login", "Home")'" data-tr="Giriş Yap" data-en="Login">Giriş Yap</button>
+    <!-- Kullanıcı giriş durumu -->
+    @if (Session["UserId"] != null)
+    {
+        <!-- Giriş yapmış kullanıcı -->
+        <div class="user-menu">
+            <span class="user-name">@Session["UserName"]</span>
+            <div class="user-dropdown">
+                <a href="@Url.Action("Settings", "Home")" class="user-menu-item">
+                    <i class="fa-solid fa-user-cog"></i> Ayarlar
+                </a>
+                <a href="@Url.Action("Logout", "Home")" class="user-menu-item">
+                    <i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Kayıt ol ve giriş yap butonları -->
+        <button class="join-btn" onclick="window.location.href='@Url.Action("Signup", "Home")'" data-tr="Kayıt Ol" data-en="Sign Up">Kayıt Ol</button>
+        <button class="signin-btn" onclick="window.location.href='@Url.Action("Login", "Home")'" data-tr="Giriş Yap" data-en="Login">Giriş Yap</button>
+    }
   </div>
 </header>
 
@@ -65,12 +84,19 @@
     <!-- Uçuş rezervasyonu -->
     <li><a href="@Url.Action("Index", "Home")"><i class="fa-solid fa-plane"></i> <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span></a></li>
     <!-- Paket turlar -->
-    <li><a href="#" onclick="showComingSoonAlert('packages'); return false;"><i class="fa-solid fa-suitcase-rolling"></i> <span data-tr="Paketler" data-en="Packages">Paketler</span></a></li>
+    <li><a href="@Url.Action("Packages", "Home")"><i class="fa-solid fa-suitcase-rolling"></i> <span data-tr="Paketler" data-en="Packages">Paketler</span></a></li>
     <!-- Özel teklifler -->
-    <li><a href="#" onclick="showComingSoonAlert('deals'); return false;"><i class="fa-solid fa-tag"></i> <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span></a></li>
+    <li><a href="@Url.Action("Deals", "Home")"><i class="fa-solid fa-tag"></i> <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span></a></li>
 
     <!-- Menü ayırıcısı -->
     <hr class="menu-divider">
+
+    @if (Session["UserId"] != null)
+    {
+        <!-- Kullanıcı ayarları -->
+        <li><a href="@Url.Action("Settings", "Home")"><i class="fa-solid fa-user-cog"></i> <span data-tr="Ayarlar" data-en="Settings">Ayarlar</span></a></li>
+        <hr class="menu-divider">
+    }
 
     <!-- Seyahat planları -->
     <li><a href="#" onclick="showComingSoonAlert('trips'); return false;"><i class="fa-solid fa-map"></i> <span data-tr="Seyahatler" data-en="Trips">Seyahatler</span></a></li>
@@ -111,11 +137,11 @@
     <i class="fa-solid fa-plane"></i>
     <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span>
   </a>
-  <a href="#" onclick="showComingSoonAlert('packages'); return false;" class="nav-item">
+  <a href="@Url.Action("Packages", "Home")" class="nav-item">
     <i class="fa-solid fa-suitcase-rolling"></i>
     <span data-tr="Paketler" data-en="Packages">Paketler</span>
   </a>
-  <a href="#" onclick="showComingSoonAlert('deals'); return false;" class="nav-item">
+  <a href="@Url.Action("Deals", "Home")" class="nav-item">
     <i class="fa-solid fa-tag"></i>
     <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span>
   </a>
@@ -278,7 +304,7 @@
       <a href="@Url.Action("Index", "Home")" data-tr="Ana Sayfa" data-en="Home">Ana Sayfa</a>
       <a href="@Url.Action("About", "Home")" data-tr="Hakkımızda" data-en="About Us">Hakkımızda</a>
       <a href="@Url.Action("Contact", "Home")" data-tr="İletişim" data-en="Contact">İletişim</a>
-      <a href="#" onclick="showComingSoonAlert('privacy'); return false;" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</a>
+      <a href="@Url.Action("Privacy", "Home")" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</a>
     </div>
 
     <p class="footer-copy" data-tr="Tüm hakları saklıdır" data-en="All rights reserved">
