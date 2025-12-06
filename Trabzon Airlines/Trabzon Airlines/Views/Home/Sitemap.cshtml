@@ -16,6 +16,7 @@
 </head>
 <body>
     <!-- Header -->
+    <!-- Başlık -->
     <header class="sitemap-header">
         <div class="sitemap-logo">
             <img src="~/assets/logo/logo.png" alt="Trabzon Airlines" class="logo-img">
@@ -24,94 +25,87 @@
     </header>
 
     <!-- Main Content -->
+    <!-- Ana İçerik -->
     <main class="sitemap-main">
         <div class="sitemap-container">
             <!-- Title -->
+            <!-- Başlık -->
             <div class="sitemap-title-section">
-                <p class="sitemap-subtitle">TRABZON AIRLINES</p>
-                <h1 class="sitemap-title">Sitemap</h1>
+                <p class="sitemap-subtitle" data-tr="TRABZON AIRLINES" data-en="TRABZON AIRLINES">TRABZON AIRLINES</p>
+                <h1 class="sitemap-title" data-tr="Site Haritası" data-en="Sitemap">Site Haritası</h1>
             </div>
 
             <!-- Public Pages -->
+            <!-- Genel Sayfalar -->
             <section class="sitemap-section">
-                <h2 class="section-category">Public Pages</h2>
+                <h2 class="section-category" data-tr="Genel Sayfalar" data-en="Public Pages">Genel Sayfalar</h2>
                 <div class="sitemap-list">
-                    <a href="@Url.Action("Index", "Home")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Homepage</span>
+                    <a href="@Url.Action("Index", "Home")" class="sitemap-item">
+                        <span class="item-name" data-tr="Ana Sayfa" data-en="Homepage">Ana Sayfa</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="@Url.Action("About", "Home")" target="_blank" class="sitemap-item">
-                        <span class="item-name">About Us</span>
+                    <a href="@Url.Action("About", "Home")" class="sitemap-item">
+                        <span class="item-name" data-tr="Hakkımızda" data-en="About Us">Hakkımızda</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="@Url.Action("Contact", "Home")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Contact</span>
+                    <a href="@Url.Action("Contact", "Home")" class="sitemap-item">
+                        <span class="item-name" data-tr="İletişim" data-en="Contact">İletişim</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="@Url.Action("Packages", "Home")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Packages</span>
+                    <a href="@Url.Action("Index", "Flights")" class="sitemap-item">
+                        <span class="item-name" data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="@Url.Action("Deals", "Home")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Deals</span>
+                    <a href="@Url.Action("Status", "Flights")" class="sitemap-item">
+                        <span class="item-name" data-tr="Uçuş Durumu" data-en="Flight Status">Uçuş Durumu</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="@Url.Action("Sitemap", "Home")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Sitemap</span>
+                    <a href="@Url.Action("Privacy", "Home")" class="sitemap-item">
+                        <span class="item-name" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="@Url.Action("Privacy", "Home")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Privacy Policy</span>
+                    <a href="@Url.Action("Sitemap", "Home")" class="sitemap-item">
+                        <span class="item-name" data-tr="Site Haritası" data-en="Sitemap">Site Haritası</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
                 </div>
             </section>
 
             <!-- User Pages -->
+            <!-- Kullanıcı Sayfaları -->
             <section class="sitemap-section">
-                <h2 class="section-category">User Pages</h2>
+                <h2 class="section-category" data-tr="Kullanıcı Sayfaları" data-en="User Pages">Kullanıcı Sayfaları</h2>
                 <div class="sitemap-list">
-                    <a href="@Url.Action("Login", "Home")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Login</span>
+                    <a href="@Url.Action("Login", "Home")" class="sitemap-item">
+                        <span class="item-name" data-tr="Giriş Yap" data-en="Login">Giriş Yap</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="@Url.Action("Signup", "Home")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Sign Up</span>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                    <a href="@Url.Action("Settings", "Home")" target="_blank" class="sitemap-item">
-                        <span class="item-name">User Settings</span>
+                    <a href="@Url.Action("Signup", "Home")" class="sitemap-item">
+                        <span class="item-name" data-tr="Kayıt Ol" data-en="Sign Up">Kayıt Ol</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
                 </div>
             </section>
 
             <!-- Admin Pages -->
+            <!-- Admin Sayfaları -->
             <section class="sitemap-section">
-                <h2 class="section-category">Admin Pages</h2>
+                <h2 class="section-category" data-tr="Admin Sayfaları" data-en="Admin Pages">Admin Sayfaları</h2>
                 <div class="sitemap-list">
-                    <a href="@Url.Action("Login", "Admin")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Admin Login</span>
+                    <a href="@Url.Action("Login", "Admin")" class="sitemap-item">
+                        <span class="item-name" data-tr="Admin Giriş" data-en="Admin Login">Admin Giriş</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="@Url.Action("Dashboard", "Admin")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Admin Dashboard</span>
+                    <a href="@Url.Action("Dashboard", "Admin")" class="sitemap-item">
+                        <span class="item-name" data-tr="Admin Dashboard" data-en="Admin Dashboard">Admin Dashboard</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="@Url.Action("Packages", "Admin")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Admin Packages</span>
+                    <a href="@Url.Action("Index", "AdminFlights")" class="sitemap-item">
+                        <span class="item-name" data-tr="Uçuş Yönetimi" data-en="Flight Management">Uçuş Yönetimi</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="@Url.Action("AddPackage", "Admin")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Add Package</span>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                    <a href="@Url.Action("Deals", "Admin")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Admin Deals</span>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                    <a href="@Url.Action("AddDeal", "Admin")" target="_blank" class="sitemap-item">
-                        <span class="item-name">Add Deal</span>
+                    <a href="@Url.Action("Create", "AdminFlights")" class="sitemap-item">
+                        <span class="item-name" data-tr="Yeni Uçuş Ekle" data-en="Add New Flight">Yeni Uçuş Ekle</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
                 </div>
@@ -120,13 +114,16 @@
     </main>
 
     <!-- Footer -->
+    <!-- Alt Bilgi -->
     <footer class="sitemap-footer">
         <div class="footer-content">
             <div class="footer-left">
                 <span class="footer-brand">TRABZON AIRLINES</span>
             </div>
             <div class="footer-center">
-                <span class="footer-copyright">© 2025 Trabzon Airlines. All rights reserved.</span>
+                <span class="footer-copyright" data-tr="© 2025 Trabzon Airlines. Tüm hakları saklıdır." data-en="© 2025 Trabzon Airlines. All rights reserved.">
+                    © 2025 Trabzon Airlines. Tüm hakları saklıdır.
+                </span>
             </div>
             <div class="footer-right">
                 <div class="footer-logo">
@@ -136,6 +133,15 @@
             </div>
         </div>
     </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Dil değişikliği için otomatik güncelleme
+        // Automatic update for language change
+        if (typeof updateLanguage === 'function') {
+            updateLanguage();
+        }
+    </script>
 </body>
 </html>
 

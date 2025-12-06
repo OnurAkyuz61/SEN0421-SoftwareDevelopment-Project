@@ -1,0 +1,62 @@
+@model IEnumerable<Trabzon_Airlines.Models.Flight>
+@{
+    ViewBag.Title = "Uçuþ Durumu";
+}
+
+<div class="page-content">
+    <div class="container">
+        <h2 class="page-title">Uçuþ Durumu</h2>
+
+        @if (!Model.Any())
+        {
+            <p>Henüz uçuþ eklenmemiþ.</p>
+        }
+        else
+        {
+            <table class="table table-bordered table-striped fly-table">
+                <thead>
+                    <tr>
+                        <th>Sefer No</th>
+                        <th>Güzergah</th>
+                        <th>Kalkýþ Saati</th>
+                        <th>Hava Durumu</th>
+                        <th>Rötar Riski</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.FlightNumber</td>
+
+                            <td>@item.FromCode ? @item.ToCode</td>
+
+                            <td>@item.DepartureTime.ToString("dd.MM.yyyy HH:mm")</td>
+
+                            <td>@item.WeatherCondition</td>
+
+                            <td>
+                                @if (item.DelayRisk == "Yüksek")
+                                {
+                                    <span class="badge bg-danger">Yüksek</span>
+                                }
+                                else if (item.DelayRisk == "Orta")
+                                {
+                                    <span class="badge bg-warning text-dark">Orta</span>
+                                }
+                                else if (item.DelayRisk == "Düþük")
+                                {
+                                    <span class="badge bg-success">Düþük</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Belirtilmedi</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

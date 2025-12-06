@@ -1,0 +1,40 @@
+@model Trabzon_Airlines.Models.Flight
+
+@{
+    ViewBag.Title = "Sefer Sil";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Sefer Sil</h2>
+
+<h3>Bu seferi silmek istediðinize emin misiniz?</h3>
+<hr />
+
+<dl class="dl-horizontal">
+    <dt>Sefer No</dt>
+    <dd>@Model.FlightNumber</dd>
+
+    <dt>Kalkýþ</dt>
+    <dd>@Model.FromCode</dd>
+
+    <dt>Varýþ</dt>
+    <dd>@Model.ToCode</dd>
+
+    <dt>Kalkýþ Zamaný</dt>
+    <dd>@Model.DepartureTime.ToString("dd.MM.yyyy HH:mm")</dd>
+
+    <dt>Varýþ Zamaný</dt>
+    <dd>@Model.ArrivalTime.ToString("dd.MM.yyyy HH:mm")</dd>
+
+    <dt>Fiyat</dt>
+    <dd>@Model.Price.ToString("C")</dd>
+</dl>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="form-actions">
+        <input type="submit" value="Sil" class="btn btn-danger" />
+        @Html.ActionLink("Ýptal", "Index", null, new { @class = "btn btn-default" })
+    </div>
+}

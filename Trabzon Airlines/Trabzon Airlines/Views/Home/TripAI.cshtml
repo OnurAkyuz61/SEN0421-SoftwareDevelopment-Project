@@ -1,0 +1,110 @@
+﻿
+@{
+    ViewBag.Title = "TripAI";
+}
+
+<div class="page-content">
+    <div class="container">
+
+        <!-- HERO / ÜST BÖLÜM -->
+        <section class="tripai-hero">
+            <h1 class="tripai-title" >
+                Trip AI – Akıllı Seyahat Planlayıcı
+            </h1>
+            <p class="tripai-subtitle">
+                Sadece birkaç bilgi gir, senin için hazır planı gösterelim.
+            </p>
+        </section>
+
+        <!-- FORM + SONUÇ -->
+        <section class="tripai-main">
+
+            <!-- Sol: Form -->
+            <div class="tripai-form-card">
+                <h2>Seyahat Tercihlerin</h2>
+
+                <div class="tripai-form-group">
+                    <label for="destinationSelect">Şehir</label>
+                    <select id="destinationSelect" class="tripai-input">
+                        <option value="">Seçiniz</option>
+                        <option value="antalya">Antalya</option>
+                        <option value="istanbul">İstanbul</option>
+                        <option value="izmir">İzmir</option>
+                        <option value="trabzon">Trabzon</option>
+                    </select>
+                </div>
+
+                <div class="tripai-form-group">
+                    <label for="durationSelect">Seyahat Süresi</label>
+                    <select id="durationSelect" class="tripai-input">
+                        <option value="">Seçiniz</option>
+                        <option value="2">2 Gün</option>
+                        <option value="3">3 Gün</option>
+                        <option value="5">5 Gün</option>
+                        <option value="7">7 Gün</option>
+                    </select>
+                </div>
+
+                <div class="tripai-form-group">
+                    <label for="budgetSelect">Bütçe</label>
+                    <select id="budgetSelect" class="tripai-input">
+                        <option value="">Seçiniz</option>
+                        <option value="ekonomik">Ekonomik</option>
+                        <option value="orta">Orta</option>
+                        <option value="premium">Premium</option>
+                    </select>
+                </div>
+
+                <div class="tripai-form-group">
+                    <label for="interestSelect">İlgi Alanı</label>
+                    <select id="interestSelect" class="tripai-input">
+                        <option value="">Seçiniz</option>
+                        <option value="tarih">Tarih & Kültür</option>
+                        <option value="deniz">Deniz & Plaj</option>
+                        <option value="dogal">Doğa & Manzara</option>
+                        <option value="alisveris">Alışveriş & Şehir</option>
+                    </select>
+                </div>
+
+                <button type="button" class="tripai-btn" onclick="generateTripPlan()">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span >Plan Oluştur </span>
+                </button>
+
+                <small class="tripai-note">
+                     Bu sayfadaki tüm planlar örnek olarak önceden hazırlanmıştır.
+                </small>
+            </div>
+
+            <!-- Sağ: AI Çıktı Alanı -->
+            <div class="tripai-result-card">
+                <div class="tripai-result-header">
+                    <span class="tripai-ai-label">Trip AI</span>
+                    <span class="tripai-status" id="tripaiStatus">Hazır</span>
+                </div>
+
+                <div id="tripResult" class="tripai-chat-area">
+                    <div class="tripai-message ai">
+                        <div class="bubble">
+                            <p>
+                                Merhaba! Soldaki formdan seyahat bilgilerini seç, senin için hazır bir plan göstereyim.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+</div>
+
+
+@section styles {
+    <link href="~/Content/Trip.css" rel="stylesheet" />
+}
+
+@section Scripts {
+    <script src="~/Scripts/tripai.js"></script>
+}
+

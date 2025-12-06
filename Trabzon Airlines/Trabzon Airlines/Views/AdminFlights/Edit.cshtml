@@ -1,0 +1,110 @@
+@model Trabzon_Airlines.Models.Flight
+
+@{
+    ViewBag.Title = "Sefer Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Sefer Düzenle</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.HiddenFor(m => m.FlightId)
+
+<div class="form-horizontal">
+    <hr />
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.FlightNumber, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.FlightNumber, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.FlightNumber, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.FromCode, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.FromCode, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.FromCode, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.ToCode, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.ToCode, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.ToCode, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.DepartureTime, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(
+                m => m.DepartureTime,
+                "{0:yyyy-MM-ddTHH:mm}",
+                new { @class = "form-control", type = "datetime-local" }
+            )
+            @Html.ValidationMessageFor(m => m.DepartureTime, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.ArrivalTime, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(
+                m => m.ArrivalTime,
+                "{0:yyyy-MM-ddTHH:mm}",
+                new { @class = "form-control", type = "datetime-local" }
+            )
+            @Html.ValidationMessageFor(m => m.ArrivalTime, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Price, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Price, new { @class = "form-control", type = "number", step = "0.01" })
+            @Html.ValidationMessageFor(m => m.Price, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.IsActive, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            <label>
+                @Html.CheckBoxFor(m => m.IsActive) Aktif
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Kaydet" class="btn btn-primary" />
+            @Html.ActionLink("Listeye Dön", "Index", null, new { @class = "btn btn-default" })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.WeatherCondition, "Hava Durumu", htmlAttributes: new { @class = "control-label" })
+        @Html.DropDownListFor(
+            m => m.WeatherCondition,
+            (IEnumerable<SelectListItem>)ViewBag.WeatherOptions,
+            new { @class = "form-control" }
+        )
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.DelayRisk, "Rötar Riski", htmlAttributes: new { @class = "control-label" })
+        @Html.DropDownListFor(
+            m => m.DelayRisk,
+            (IEnumerable<SelectListItem>)ViewBag.DelayRiskOptions,
+            new { @class = "form-control" }
+        )
+    </div>
+</div>
+}

@@ -12,98 +12,114 @@
   <div class="auth-container">
     
     <!-- Giriş formu kartı -->
-    <div class="auth-card">
-      
-      <!-- Form başlığı -->
-      <div class="auth-header-content">
-        <h1 class="auth-title" data-tr="Hesabınıza Giriş Yapın" data-en="Sign In to Your Account">Hesabınıza Giriş Yapın</h1>
-        <p class="auth-subtitle" data-tr="Trabzon Airlines hesabınıza giriş yaparak tüm hizmetlerimizden yararlanın." 
-           data-en="Sign in to your Trabzon Airlines account to access all our services.">
-          Trabzon Airlines hesabınıza giriş yaparak tüm hizmetlerimizden yararlanın.
-        </p>
-      </div>
+      <div class="auth-card">
 
-      <!-- Giriş formu -->
-      <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
-        
-        <!-- E-posta -->
-        <div class="form-group">
-          <label for="loginEmail" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
-          <input type="email" id="loginEmail" name="email" required 
-                 placeholder="örnek@email.com" 
-                 data-placeholder-tr="örnek@email.com" 
-                 data-placeholder-en="example@email.com">
-        </div>
-
-        <!-- Şifre -->
-        <div class="form-group">
-          <label for="loginPassword" data-tr="Şifre *" data-en="Password *">Şifre *</label>
-          <div class="password-input">
-            <input type="password" id="loginPassword" name="password" required 
-                   placeholder="Şifrenizi girin" 
-                   data-placeholder-tr="Şifrenizi girin" 
-                   data-placeholder-en="Enter your password">
-            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
-              <i class="fa-solid fa-eye"></i>
-            </button>
+          <!-- Form başlığı -->
+          <div class="auth-header-content">
+              <h1 class="auth-title" data-tr="Hesabınıza Giriş Yapın" data-en="Sign In to Your Account">Hesabınıza Giriş Yapın</h1>
+              <p class="auth-subtitle" data-tr="Trabzon Airlines hesabınıza giriş yaparak tüm hizmetlerimizden yararlanın."
+                 data-en="Sign in to your Trabzon Airlines account to access all our services.">
+                  Trabzon Airlines hesabınıza giriş yaparak tüm hizmetlerimizden yararlanın.
+              </p>
           </div>
-        </div>
 
-        <!-- Beni hatırla ve şifremi unuttum -->
-        <div class="form-options">
-          <div class="checkbox-group">
-            <input type="checkbox" id="rememberMe" name="rememberMe">
-            <label for="rememberMe" class="checkbox-label" data-tr="Beni hatırla" data-en="Remember me">
-              Beni hatırla
-            </label>
+          <!-- 🔥 DİL DESTEKLİ MESAJ BLOKLARI (BURADA DURACAK) -->
+          @if (TempData["Error_tr"] != null)
+          {
+              <div class="alert alert-danger"
+                   data-tr='@TempData["Error_tr"]'
+                   data-en='@TempData["Error_en"]'
+                   style="margin-bottom: 15px; font-size:16px; border-radius:6px;">
+                  @TempData["Error_tr"]
+              </div>
+          }
+
+          @if (TempData["Success_tr"] != null)
+          {
+              <div class="alert alert-success"
+                   data-tr='@TempData["Success_tr"]'
+                   data-en='@TempData["Success_en"]'
+                   style="margin-bottom: 15px; font-size:16px; border-radius:6px;">
+                  @TempData["Success_tr"]
+              </div>
+          }
+          <!-- 🔥 MESAJ BLOKLARI BURADA BİTER -->
+          <!-- Giriş formu -->
+          <form class="auth-form" id="loginForm" method="post" action="/Account/Login">
+
+
+              <!-- E-posta -->
+              <div class="form-group">
+                  <label for="loginEmail" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
+                  <input type="email" id="loginEmail" name="email" required
+                         placeholder="ornek@email.com"
+                         data-placeholder-tr="ornek@email.com"
+                         data-placeholder-en="example@email.com">
+              </div>
+
+              <!-- Şifre -->
+              <div class="form-group">
+                  <label for="loginPassword" data-tr="Şifre *" data-en="Password *">Şifre *</label>
+                  <div class="password-input">
+                      <input type="password" id="loginPassword" name="password" required
+                             placeholder="Şifrenizi girin"
+                             data-placeholder-tr="Şifrenizi girin"
+                             data-placeholder-en="Enter your password">
+                      <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
+                          <i class="fa-solid fa-eye"></i>
+                      </button>
+                  </div>
+              </div>
+
+              <!-- Beni hatırla ve şifremi unuttum -->
+              <div class="form-options">
+                  <div class="checkbox-group">
+                      <input type="checkbox" id="rememberMe" name="rememberMe">
+                      <label for="rememberMe" class="checkbox-label" data-tr="Beni hatırla" data-en="Remember me">
+                          Beni hatırla
+                      </label>
+                  </div>
+                  <a href="#" class="forgot-password" onclick="openForgotPasswordModal()" data-tr="Şifremi unuttum" data-en="Forgot password">
+                      Şifremi unuttum
+                  </a>
+              </div>
+
+              <!-- Giriş yap butonu -->
+              <button type="submit" class="auth-submit-btn" data-tr="Giriş Yap" data-en="Sign In">
+                  <i class="fa-solid fa-sign-in-alt"></i>
+                  <span data-tr="Giriş Yap" data-en="Sign In">Giriş Yap</span>
+              </button>
+
+          </form>
+
+          <!-- Sosyal medya ile giriş -->
+          <div class="social-auth">
+              <div class="divider">
+                  <span data-tr="veya" data-en="or">veya</span>
+              </div>
+
+              <div class="social-buttons">
+                  <button class="social-btn google-btn" onclick="loginWithGoogle()">
+                      <i class="fa-brands fa-google"></i>
+                      <span data-tr="Google ile Giriş Yap" data-en="Sign in with Google">Google ile Giriş Yap</span>
+                  </button>
+
+                  <button class="social-btn facebook-btn" onclick="loginWithFacebook()">
+                      <i class="fa-brands fa-facebook-f"></i>
+                      <span data-tr="Facebook ile Giriş Yap" data-en="Sign in with Facebook">Facebook ile Giriş Yap</span>
+                  </button>
+              </div>
           </div>
-          <a href="#" class="forgot-password" onclick="openForgotPasswordModal()" data-tr="Şifremi unuttum" data-en="Forgot password">
-            Şifremi unuttum
-          </a>
-        </div>
 
-        <!-- Giriş yap butonu -->
-        <button type="submit" class="auth-submit-btn" data-tr="Giriş Yap" data-en="Sign In">
-          <i class="fa-solid fa-sign-in-alt"></i>
-          <span data-tr="Giriş Yap" data-en="Sign In">Giriş Yap</span>
-        </button>
+          <!-- Kayıt ol linki -->
+          <div class="auth-footer">
+              <p>
+                  <span data-tr="Henüz hesabınız yok mu? " data-en="Don't have an account yet? ">Henüz hesabınız yok mu? </span>
+                  <a href="@Url.Action("Signup", "Home")" class="auth-link" data-tr="Kayıt Ol" data-en="Sign Up">Kayıt Ol</a>
+              </p>
+          </div>
 
-      </form>
-
-      <!-- Sosyal medya ile giriş -->
-      <div class="social-auth">
-        <div class="divider">
-          <span data-tr="veya" data-en="or">veya</span>
-        </div>
-        
-        <div class="social-buttons">
-          <!-- Google ile giriş butonu -->
-          <!-- Google sign in button -->
-          <button class="social-btn google-btn" onclick="loginWithGoogle()">
-            <img src="~/assets/icons/google-icon.svg" alt="Google" class="social-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-            <i class="fa-brands fa-google" style="display:none;"></i>
-            <span data-tr="Google ile Giriş Yap" data-en="Sign in with Google">Google ile Giriş Yap</span>
-          </button>
-          
-          <!-- Apple ile giriş butonu -->
-          <!-- Apple sign in button -->
-          <button class="social-btn apple-btn" onclick="loginWithApple()">
-            <img src="~/assets/icons/apple-icon.svg" alt="Apple" class="social-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-            <i class="fa-brands fa-apple" style="display:none;"></i>
-            <span data-tr="Apple ile Giriş Yap" data-en="Sign in with Apple">Apple ile Giriş Yap</span>
-          </button>
-        </div>
       </div>
-
-      <!-- Kayıt ol linki -->
-      <div class="auth-footer">
-        <p>
-          <span data-tr="Henüz hesabınız yok mu? " data-en="Don't have an account yet? ">Henüz hesabınız yok mu? </span>
-          <a href="@Url.Action("Signup", "Home")" class="auth-link" data-tr="Kayıt Ol" data-en="Sign Up">Kayıt Ol</a>
-        </p>
-      </div>
-
-    </div>
 
     <!-- Yan bilgi paneli -->
     <div class="auth-info-panel">
@@ -171,8 +187,8 @@
       <div class="form-group">
         <label for="forgotEmail" data-tr="E-posta Adresi *" data-en="Email Address *">E-posta Adresi *</label>
         <input type="email" id="forgotEmail" name="email" required 
-               placeholder="örnek@email.com" 
-               data-placeholder-tr="örnek@email.com" 
+               placeholder="ornek@email.com" 
+               data-placeholder-tr="ornek@email.com" 
                data-placeholder-en="example@email.com">
       </div>
 

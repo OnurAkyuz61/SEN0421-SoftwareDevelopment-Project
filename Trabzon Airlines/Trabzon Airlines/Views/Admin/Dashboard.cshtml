@@ -1,127 +1,20 @@
+﻿
 @{
-    // Admin dashboard sayfası
-    // Admin dashboard page
     ViewBag.Title = "Admin Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@section styles {
-    <!-- Admin panel CSS -->
-    <!-- Admin panel CSS -->
-    <link rel="stylesheet" href="~/Content/css/admin.css">
-}
+<h2 data-tr="Admin Paneli" data-en="Admin Panel">Admin Paneli</h2>
 
-<!-- ADMIN DASHBOARD BÖLÜMÜ -->
-<!-- ADMIN DASHBOARD SECTION -->
-<section class="admin-dashboard">
-    <!-- Dashboard başlık -->
-    <!-- Dashboard header -->
-    <div class="admin-dashboard-header">
-        <h1><i class="fa-solid fa-tachometer-alt"></i> Admin Dashboard</h1>
-        <p>Hoş geldiniz, @Session["AdminUsername"]</p>
-        <div style="margin-top: 1rem;">
-            <a href="@Url.Action("Logout", "Admin")" class="admin-btn admin-btn-danger">
-                <i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap
-            </a>
-        </div>
-    </div>
+<p data-tr="Hoş geldin" data-en="Welcome">Hoş geldin</p>
+<b>@Session["AdminName"]!</b>
 
-    <!-- İstatistik kartları -->
-    <!-- Statistics cards -->
-    <div class="admin-stats-grid">
-        <!-- Toplam Paketler -->
-        <!-- Total Packages -->
-        <div class="admin-stat-card">
-            <div class="admin-stat-icon packages">
-                <i class="fa-solid fa-suitcase-rolling"></i>
-            </div>
-            <div class="admin-stat-content">
-                <div class="admin-stat-number">@ViewBag.TotalPackages</div>
-                <div class="admin-stat-label">Toplam Paket</div>
-            </div>
-        </div>
+<div style="padding:20px; background:#eee; border-radius:6px; margin-top:15px;">
+    <h3 data-tr="Yönetim Paneli" data-en="Management Panel">Yönetim Paneli</h3>
+    <p data-tr="Buradan uçuş, koltuk ve rezervasyon işlemlerini yönetebilirsiniz."
+       data-en="From here you can manage flights, seats and reservations.">
+        Buradan uçuş, koltuk ve rezervasyon işlemlerini yönetebilirsiniz.
+    </p>
+</div>
 
-        <!-- Aktif Paketler -->
-        <!-- Active Packages -->
-        <div class="admin-stat-card">
-            <div class="admin-stat-icon packages">
-                <i class="fa-solid fa-check-circle"></i>
-            </div>
-            <div class="admin-stat-content">
-                <div class="admin-stat-number">@ViewBag.ActivePackages</div>
-                <div class="admin-stat-label">Aktif Paket</div>
-            </div>
-        </div>
-
-        <!-- Toplam Fırsatlar -->
-        <!-- Total Deals -->
-        <div class="admin-stat-card">
-            <div class="admin-stat-icon deals">
-                <i class="fa-solid fa-tag"></i>
-            </div>
-            <div class="admin-stat-content">
-                <div class="admin-stat-number">@ViewBag.TotalDeals</div>
-                <div class="admin-stat-label">Toplam Fırsat</div>
-            </div>
-        </div>
-
-        <!-- Aktif Fırsatlar -->
-        <!-- Active Deals -->
-        <div class="admin-stat-card">
-            <div class="admin-stat-icon deals">
-                <i class="fa-solid fa-fire"></i>
-            </div>
-            <div class="admin-stat-content">
-                <div class="admin-stat-number">@ViewBag.ActiveDeals</div>
-                <div class="admin-stat-label">Aktif Fırsat</div>
-            </div>
-        </div>
-
-        <!-- Toplam Kullanıcılar -->
-        <!-- Total Users -->
-        <div class="admin-stat-card">
-            <div class="admin-stat-icon users">
-                <i class="fa-solid fa-users"></i>
-            </div>
-            <div class="admin-stat-content">
-                <div class="admin-stat-number">@ViewBag.TotalUsers</div>
-                <div class="admin-stat-label">Toplam Kullanıcı</div>
-            </div>
-        </div>
-
-        <!-- Toplam Rezervasyonlar -->
-        <!-- Total Reservations -->
-        <div class="admin-stat-card">
-            <div class="admin-stat-icon reservations">
-                <i class="fa-solid fa-calendar-check"></i>
-            </div>
-            <div class="admin-stat-content">
-                <div class="admin-stat-number">@ViewBag.TotalReservations</div>
-                <div class="admin-stat-label">Toplam Rezervasyon</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hızlı erişim butonları -->
-    <!-- Quick access buttons -->
-    <div class="admin-table-container">
-        <div class="admin-table-header">
-            <h2><i class="fa-solid fa-bolt"></i> Hızlı Erişim</h2>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-            <a href="@Url.Action("Packages", "Admin")" class="admin-btn">
-                <i class="fa-solid fa-suitcase-rolling"></i> Paketleri Yönet
-            </a>
-            <a href="@Url.Action("Deals", "Admin")" class="admin-btn">
-                <i class="fa-solid fa-tag"></i> Fırsatları Yönet
-            </a>
-            <a href="@Url.Action("AddPackage", "Admin")" class="admin-btn admin-btn-secondary">
-                <i class="fa-solid fa-plus"></i> Yeni Paket Ekle
-            </a>
-            <a href="@Url.Action("AddDeal", "Admin")" class="admin-btn admin-btn-secondary">
-                <i class="fa-solid fa-plus"></i> Yeni Fırsat Ekle
-            </a>
-        </div>
-    </div>
-</section>
 

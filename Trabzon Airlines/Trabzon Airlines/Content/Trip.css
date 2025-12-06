@@ -1,0 +1,175 @@
+﻿.tripai-hero {
+    margin-bottom: 2rem;
+    padding: 2rem 0;
+}
+
+.tripai-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.tripai-subtitle {
+    color: var(--gray);
+}
+
+.tripai-main {
+    display: grid;
+    grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+    gap: 2rem;
+}
+
+/* Sol kart (form) */
+.tripai-form-card {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-light);
+    position : relative;
+    z-index : 5;
+}
+
+.tripai-form-group {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.tripai-input {
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    border: 2px solid #e1e5e9;
+}
+
+    .tripai-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(228,0,43,0.1);
+    }
+
+.tripai-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+    .tripai-btn:hover {
+        background: var(--primary-dark);
+    }
+
+.tripai-note {
+    display: block;
+    margin-top: 0.8rem;
+    font-size: 0.8rem;
+    color: var(--gray);
+}
+
+/* Sağ kart (chat/çıktı) */
+.tripai-result-card {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-light);
+    display: flex;
+    flex-direction: column;
+    height: auto;
+}
+
+.tripai-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.tripai-ai-label {
+    font-weight: 700;
+}
+
+.tripai-status {
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
+.tripai-chat-area {
+    flex: 1;
+    border-radius: 10px;
+    background: #f7f8fa;
+    padding: 1rem;
+    overflow-y: auto;
+    max-height: 450px;
+}
+
+.tripai-message {
+    margin-bottom: 0.75rem;
+    display: flex;
+}
+
+    .tripai-message.ai {
+        justify-content: flex-start;
+    }
+
+    .tripai-message.user {
+        justify-content: flex-end;
+    }
+
+    .tripai-message .bubble {
+        max-width: 80%;
+        padding: 0.7rem 0.9rem;
+        border-radius: 14px;
+        font-size: 0.95rem;
+    }
+
+    .tripai-message.ai .bubble {
+        background: #ffffff;
+        border: 1px solid #e1e5e9;
+    }
+
+    .tripai-message.user .bubble {
+        background: var(--secondary-color);
+        color: #fff;
+    }
+
+/* Gün listesi */
+.tripai-days {
+    padding-left: 1.1rem;
+    margin: 0.5rem 0 0.5rem;
+}
+
+    .tripai-days li {
+        margin-bottom: 0.3rem;
+    }
+
+
+@keyframes typingBounce {
+    0%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: translateY(-3px);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tripai-main {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+

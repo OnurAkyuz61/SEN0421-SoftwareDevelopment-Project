@@ -1,26 +1,25 @@
-using System;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using Trabzon_Airlines.Models;
-using Trabzon_Airlines.Attributes;
-using System.Security.Cryptography;
-using System.Text;
-using System.Web.Security;
+﻿using System.Linq; // LINQ sorguları için
+using System.Web.Mvc; // MVC controller için
+using Trabzon_Airlines.Data; // Veritabanı bağlamı için
+using Trabzon_Airlines.Models; // Model sınıfları için
+using System.Security.Cryptography; // Şifre hash'leme için
+using System.Text; // String işlemleri için
 
 namespace Trabzon_Airlines.Controllers
 {
-    // Admin Controller - Yönetici paneli için
-    // Admin Controller - For administrator panel
+    // Admin Controller - Yönetici paneli için controller sınıfı
+    // Admin Controller - Controller class for administrator panel
     public class AdminController : Controller
     {
-        // Veritabanı bağlamı
-        // Database context
-        private TrabzonAirlinesDbContext db = new TrabzonAirlinesDbContext();
+        // Veritabanı bağlamı - TAContext sınıfından instance
+        // Database context - Instance from TAContext class
+        TAContext db = new TAContext();
 
-        // Admin giriş sayfası - GET
-        // Admin login page - GET
-        [HttpGet]
+        // --------------------------
+        // ADMIN LOGIN - GET
+        // Admin giriş sayfası - GET metodu
+        // --------------------------
+        [HttpGet] // HTTP GET isteği için
         public ActionResult Login()
         {
             // Eğer zaten giriş yapılmışsa dashboard'a yönlendir
@@ -29,306 +28,158 @@ namespace Trabzon_Airlines.Controllers
             {
                 return RedirectToAction("Dashboard");
             }
-            return View();
+
+            // AdminLogin view'ını döndür
+            // Return AdminLogin view
+            return View("AdminLogin");
         }
 
-        // Admin giriş işlemi - POST
-        // Admin login process - POST
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Login(string username, string password)
+        // --------------------------
+        // ADMIN LOGIN - POST
+        // Admin giriş işlemi - POST metodu
+        // --------------------------
+        [HttpPost] // HTTP POST isteği için
+        [ValidateAntiForgeryToken] // CSRF koruması için
+        public ActionResult Login(string email, string password)
         {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            // E-posta ve şifre boş kontrolü
+            // Check if email and password are empty
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
-                ViewBag.Error = "Kullanıcı adı ve şifre gereklidir";
-                return View();
+                TempData["AdminErrorKey"] = "EmptyFields";
+                TempData["AdminError_tr"] = "E-posta ve şifre gereklidir!";
+                TempData["AdminError_en"] = "Email and password are required!";
+                return RedirectToAction("Login");
             }
 
-            // Şifreyi hash'le
-            // Hash the password
+            // Şifreyi hash'le - SHA256 algoritması ile
+            // Hash the password - Using SHA256 algorithm
             string hashedPassword = HashPassword(password);
 
-            // Admin'i veritabanından bul
-            // Find admin from database
-            var admin = db.Admins.FirstOrDefault(a => a.Username == username && a.Password == hashedPassword && a.IsActive);
+            // Veritabanından admin kullanıcısını bul
+            // Find admin user from database
+            var admin = db.Admins.FirstOrDefault(x => x.Email == email && x.Password == hashedPassword);
 
-            if (admin != null)
+            // Admin bulunamadıysa hata mesajı göster
+            // If admin not found, show error message
+            if (admin == null)
             {
-                // Giriş başarılı - Session'a kaydet
-                // Login successful - Save to session
-                Session["AdminId"] = admin.Id;
-                Session["AdminUsername"] = admin.Username;
-                Session["IsSuperAdmin"] = admin.IsSuperAdmin;
-
-                // Son giriş tarihini güncelle
-                // Update last login date
-                admin.LastLoginDate = DateTime.Now;
-                db.SaveChanges();
-
-                return RedirectToAction("Dashboard");
+                TempData["AdminErrorKey"] = "WrongCredentials";
+                TempData["AdminError_tr"] = "E-posta veya şifre hatalı!";
+                TempData["AdminError_en"] = "Email or password is incorrect!";
+                return RedirectToAction("Login");
             }
-            else
-            {
-                ViewBag.Error = "Kullanıcı adı veya şifre hatalı";
-                return View();
-            }
+
+            // Giriş başarılı - Session'a admin bilgilerini kaydet
+            // Login successful - Save admin information to session
+            Session["AdminId"] = admin.AdminId;
+            Session["AdminName"] = admin.FullName;
+            Session["AdminEmail"] = admin.Email;
+
+            // Başarı mesajı
+            // Success message
+            TempData["AdminSuccessKey"] = "LoginSuccess";
+            TempData["AdminSuccess_tr"] = "Giriş başarılı! Admin paneline yönlendirildiniz.";
+            TempData["AdminSuccess_en"] = "Login successful! You have been redirected to the admin panel.";
+
+            // Dashboard'a yönlendir
+            // Redirect to dashboard
+            return RedirectToAction("Dashboard");
         }
 
+        // --------------------------
+        // ADMIN DASHBOARD
+        // Admin ana sayfa - Dashboard
+        // --------------------------
+        [HttpGet] // HTTP GET isteği için
+        public ActionResult Dashboard()
+        {
+            // Session kontrolü - Giriş yapılmamışsa login sayfasına yönlendir
+            // Session check - If not logged in, redirect to login page
+            if (Session["AdminId"] == null)
+            {
+                TempData["AdminErrorKey"] = "NotLoggedIn";
+                TempData["AdminError_tr"] = "Lütfen önce giriş yapın!";
+                TempData["AdminError_en"] = "Please login first!";
+                return RedirectToAction("Login");
+            }
+
+            // Admin sayfası olduğunu belirt
+            // Indicate that this is an admin page
+            ViewBag.IsAdminPage = true;
+
+            // Dashboard view'ını döndür
+            // Return Dashboard view
+            return View("Dashboard");
+        }
+
+        // --------------------------
+        // ADMIN LOGOUT
         // Admin çıkış işlemi
-        // Admin logout process
+        // --------------------------
+        [HttpGet] // HTTP GET isteği için
         public ActionResult Logout()
         {
+            // Session'ı temizle
+            // Clear session
             Session.Clear();
             Session.Abandon();
+
+            // Çıkış başarı mesajı
+            // Logout success message
+            TempData["AdminSuccessKey"] = "LoggedOut";
+            TempData["AdminSuccess_tr"] = "Oturum başarıyla kapatıldı.";
+            TempData["AdminSuccess_en"] = "You have been logged out successfully.";
+
+            // Login sayfasına yönlendir
+            // Redirect to login page
             return RedirectToAction("Login");
         }
 
-        // Admin dashboard - Ana sayfa
-        // Admin dashboard - Main page
-        [AuthorizeAdmin] // Özel yetkilendirme attribute'u
-        public ActionResult Dashboard()
-        {
-            // İstatistikler
-            // Statistics
-            ViewBag.TotalPackages = db.Packages.Count();
-            ViewBag.ActivePackages = db.Packages.Count(p => p.IsActive);
-            ViewBag.TotalDeals = db.Deals.Count();
-            ViewBag.ActiveDeals = db.Deals.Count(d => d.IsActive);
-            ViewBag.TotalUsers = db.Users.Count();
-            ViewBag.TotalReservations = db.PackageReservations.Count() + db.DealReservations.Count();
-
-            return View();
-        }
-
-        // Paketler listesi
-        // Packages list
-        [AuthorizeAdmin]
-        public ActionResult Packages()
-        {
-            var packages = db.Packages.OrderByDescending(p => p.CreatedAt).ToList();
-            return View(packages);
-        }
-
-        // Paket ekleme sayfası - GET
-        // Add package page - GET
-        [AuthorizeAdmin]
-        [HttpGet]
-        public ActionResult AddPackage()
-        {
-            return View();
-        }
-
-        // Paket ekleme işlemi - POST
-        // Add package process - POST
-        [AuthorizeAdmin]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult AddPackage(Package package)
-        {
-            if (ModelState.IsValid)
-            {
-                package.CreatedAt = DateTime.Now;
-                package.IsActive = true;
-                db.Packages.Add(package);
-                db.SaveChanges();
-                return RedirectToAction("Packages");
-            }
-            return View(package);
-        }
-
-        // Paket düzenleme sayfası - GET
-        // Edit package page - GET
-        [AuthorizeAdmin]
-        [HttpGet]
-        public ActionResult EditPackage(int id)
-        {
-            var package = db.Packages.Find(id);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-            return View(package);
-        }
-
-        // Paket düzenleme işlemi - POST
-        // Edit package process - POST
-        [AuthorizeAdmin]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult EditPackage(Package package)
-        {
-            if (ModelState.IsValid)
-            {
-                var existingPackage = db.Packages.Find(package.Id);
-                if (existingPackage != null)
-                {
-                    existingPackage.Title = package.Title;
-                    existingPackage.Description = package.Description;
-                    existingPackage.ShortDescription = package.ShortDescription;
-                    existingPackage.ImageUrl = package.ImageUrl;
-                    existingPackage.Price = package.Price;
-                    existingPackage.OldPrice = package.OldPrice;
-                    existingPackage.DiscountPercentage = package.DiscountPercentage;
-                    existingPackage.Category = package.Category;
-                    existingPackage.SubCategory = package.SubCategory;
-                    existingPackage.Duration = package.Duration;
-                    existingPackage.Nights = package.Nights;
-                    existingPackage.Rating = package.Rating;
-                    existingPackage.Badge = package.Badge;
-                    existingPackage.Features = package.Features;
-                    existingPackage.HotelStars = package.HotelStars;
-                    existingPackage.FlightIncluded = package.FlightIncluded;
-                    existingPackage.MealType = package.MealType;
-                    existingPackage.IsActive = package.IsActive;
-                    existingPackage.IsFeatured = package.IsFeatured;
-                    existingPackage.UpdatedAt = DateTime.Now;
-                    db.SaveChanges();
-                    return RedirectToAction("Packages");
-                }
-            }
-            return View(package);
-        }
-
-        // Paket silme işlemi
-        // Delete package process
-        [AuthorizeAdmin]
-        public ActionResult DeletePackage(int id)
-        {
-            var package = db.Packages.Find(id);
-            if (package != null)
-            {
-                db.Packages.Remove(package);
-                db.SaveChanges();
-            }
-            return RedirectToAction("Packages");
-        }
-
-        // Fırsatlar listesi
-        // Deals list
-        [AuthorizeAdmin]
-        public ActionResult Deals()
-        {
-            var deals = db.Deals.OrderByDescending(d => d.CreatedAt).ToList();
-            return View(deals);
-        }
-
-        // Fırsat ekleme sayfası - GET
-        // Add deal page - GET
-        [AuthorizeAdmin]
-        [HttpGet]
-        public ActionResult AddDeal()
-        {
-            return View();
-        }
-
-        // Fırsat ekleme işlemi - POST
-        // Add deal process - POST
-        [AuthorizeAdmin]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult AddDeal(Deal deal)
-        {
-            if (ModelState.IsValid)
-            {
-                deal.CreatedAt = DateTime.Now;
-                deal.IsActive = true;
-                db.Deals.Add(deal);
-                db.SaveChanges();
-                return RedirectToAction("Deals");
-            }
-            return View(deal);
-        }
-
-        // Fırsat düzenleme sayfası - GET
-        // Edit deal page - GET
-        [AuthorizeAdmin]
-        [HttpGet]
-        public ActionResult EditDeal(int id)
-        {
-            var deal = db.Deals.Find(id);
-            if (deal == null)
-            {
-                return HttpNotFound();
-            }
-            return View(deal);
-        }
-
-        // Fırsat düzenleme işlemi - POST
-        // Edit deal process - POST
-        [AuthorizeAdmin]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult EditDeal(Deal deal)
-        {
-            if (ModelState.IsValid)
-            {
-                var existingDeal = db.Deals.Find(deal.Id);
-                if (existingDeal != null)
-                {
-                    existingDeal.Title = deal.Title;
-                    existingDeal.Description = deal.Description;
-                    existingDeal.ShortDescription = deal.ShortDescription;
-                    existingDeal.ImageUrl = deal.ImageUrl;
-                    existingDeal.DiscountPercentage = deal.DiscountPercentage;
-                    existingDeal.Badge = deal.Badge;
-                    existingDeal.CampaignCode = deal.CampaignCode;
-                    existingDeal.StartDate = deal.StartDate;
-                    existingDeal.EndDate = deal.EndDate;
-                    existingDeal.MinPersonCount = deal.MinPersonCount;
-                    existingDeal.MaxPersonCount = deal.MaxPersonCount;
-                    existingDeal.IsStudentDiscount = deal.IsStudentDiscount;
-                    existingDeal.IsFamilyDiscount = deal.IsFamilyDiscount;
-                    existingDeal.IsGroupDiscount = deal.IsGroupDiscount;
-                    existingDeal.IsActive = deal.IsActive;
-                    existingDeal.IsFeatured = deal.IsFeatured;
-                    existingDeal.UpdatedAt = DateTime.Now;
-                    db.SaveChanges();
-                    return RedirectToAction("Deals");
-                }
-            }
-            return View(deal);
-        }
-
-        // Fırsat silme işlemi
-        // Delete deal process
-        [AuthorizeAdmin]
-        public ActionResult DeleteDeal(int id)
-        {
-            var deal = db.Deals.Find(id);
-            if (deal != null)
-            {
-                db.Deals.Remove(deal);
-                db.SaveChanges();
-            }
-            return RedirectToAction("Deals");
-        }
-
-        // Şifre hash'leme fonksiyonu - SHA256
+        // --------------------------
+        // ŞİFRE HASH'LEME FONKSİYONU
         // Password hashing function - SHA256
+        // --------------------------
         private string HashPassword(string password)
         {
+            // SHA256 hash algoritması kullanarak şifreyi hash'le
+            // Hash the password using SHA256 hash algorithm
             using (SHA256 sha256Hash = SHA256.Create())
             {
+                // Şifreyi byte array'e çevir
+                // Convert password to byte array
                 byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+                // Byte array'i hexadecimal string'e çevir
+                // Convert byte array to hexadecimal string
                 StringBuilder builder = new StringBuilder();
                 for (int i = 0; i < bytes.Length; i++)
                 {
-                    builder.Append(bytes[i].ToString("x2"));
+                    builder.Append(bytes[i].ToString("x2")); // Her byte'ı 2 haneli hex'e çevir
                 }
+
+                // Hash'lenmiş şifreyi döndür
+                // Return hashed password
                 return builder.ToString();
             }
         }
 
-        // Dispose - Kaynakları temizle
+        // --------------------------
+        // DISPOSE - KAYNAKLARI TEMİZLE
         // Dispose - Clean up resources
+        // --------------------------
         protected override void Dispose(bool disposing)
         {
+            // Eğer disposing true ise veritabanı bağlantısını kapat
+            // If disposing is true, close database connection
             if (disposing)
             {
-                db.Dispose();
+                db.Dispose(); // Veritabanı bağlantısını kapat
             }
+
+            // Base dispose metodunu çağır
+            // Call base dispose method
             base.Dispose(disposing);
         }
     }
 }
-

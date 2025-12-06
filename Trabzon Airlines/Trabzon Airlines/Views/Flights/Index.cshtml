@@ -1,0 +1,29 @@
+@model List<Trabzon_Airlines.Models.Flight>
+
+<h2>Uçuþ Listesi</h2>
+<hr />
+
+<table class="table table-bordered">
+    <tr>
+        <th>Sefer No</th>
+        <th>Kalkýþ</th>
+        <th>Varýþ</th>
+        <th>Kalkýþ Zamaný</th>
+        <th>Varýþ Zamaný</th>
+        <th></th>
+    </tr>
+
+    @foreach (var f in Model)
+    {
+        <tr>
+            <td>@f.FlightNumber</td>
+            <td>@f.FromCode</td>
+            <td>@f.ToCode</td>
+            <td>@f.DepartureTime</td>
+            <td>@f.ArrivalTime</td>
+            <td>
+                @Html.ActionLink("Koltuk Seç", "SelectSeat", "Booking", new { flightId = f.FlightId }, new { @class = "btn btn-primary" })
+            </td>
+        </tr>
+    }
+</table>

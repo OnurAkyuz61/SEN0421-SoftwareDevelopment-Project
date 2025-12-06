@@ -1,0 +1,82 @@
+@model IEnumerable<Trabzon_Airlines.Models.Flight>
+
+@{
+    ViewBag.Title = "Uçuþ Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Uçuþ Listesi</h2>
+
+<p>
+    @Html.ActionLink("Yeni Sefer Ekle", "Create", null, new { @class = "btn btn-primary" })
+</p>
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Sefer No</th>
+            <th>Güzergah</th>
+            <th>Kalkýþ Zamaný</th>
+            <th>Varýþ Zamaný</th>
+            <th>Hava Durumu</th>
+            <th>Rötar Riski</th>
+            <th>Fiyat</th>
+            <th>Durum</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.FlightNumber</td>
+
+                <td>@item.FromCode ? @item.ToCode</td>
+
+                <td>@item.DepartureTime.ToString("dd.MM.yyyy HH:mm")</td>
+                <td>@item.ArrivalTime.ToString("dd.MM.yyyy HH:mm")</td>
+
+                <td>@item.WeatherCondition</td>
+
+                <td>
+                    @if (item.DelayRisk == "Yüksek")
+                    {
+                        <span class="badge bg-danger">Yüksek</span>
+                    }
+                    else if (item.DelayRisk == "Orta")
+                    {
+                        <span class="badge bg-warning text-dark">Orta</span>
+                    }
+                    else if (item.DelayRisk == "Düþük")
+                    {
+                        <span class="badge bg-success">Düþük</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">-</span>
+                    }
+                </td>
+
+                <td>@item.Price.ToString("C")</td>
+
+                <td>
+                    @if (item.IsActive)
+                    {
+                        <span class="badge bg-success">Aktif</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Pasif</span>
+                    }
+                </td>
+
+                <td>
+                    @Html.ActionLink("Düzenle", "Edit", new { id = item.FlightId }) |
+                    @Html.ActionLink("Sil", "Delete", new { id = item.FlightId }) |
+                    @Html.ActionLink("Koltuklarý Yönet", "Seats", new { flightId = item.FlightId })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+

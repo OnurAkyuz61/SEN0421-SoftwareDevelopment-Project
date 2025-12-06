@@ -63,12 +63,11 @@
   
   /* Auth ana bölüm */
   .auth-section {
-    padding: 0;
-    min-height: calc(100vh - var(--header-height));
+    padding: 3rem 1rem 1rem 1rem;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   }
   
   .auth-container {
@@ -78,7 +77,6 @@
     max-width: 1400px;
     width: 100%;
     align-items: stretch;
-    padding: 3rem 2rem;
   }
   
   /* Auth kartı */
@@ -371,26 +369,6 @@
     border-color: #4267B2;
     background: #4267B2;
     color: var(--white);
-  }
-
-  /* Apple butonu */
-  /* Apple button */
-  .apple-btn {
-    background: var(--black);
-    color: var(--white);
-  }
-
-  .apple-btn:hover {
-    background: #1a1a1a;
-    color: var(--white);
-  }
-
-  /* Sosyal medya ikonları */
-  /* Social media icons */
-  .social-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 0.5rem;
   }
   
   /* Auth footer */
@@ -713,16 +691,6 @@
   }
   
   @media (max-width: 768px) {
-    .auth-section {
-      min-height: calc(100vh - var(--header-height));
-      padding: 0;
-    }
-
-    .auth-container {
-      padding: 1.5rem 1rem;
-      gap: 1.5rem;
-    }
-    
     .auth-header {
       padding: 1rem;
     }
@@ -770,13 +738,7 @@
   
   @media (max-width: 480px) {
     .auth-section {
-      min-height: calc(100vh - var(--header-height));
-      padding: 0;
-    }
-
-    .auth-container {
-      padding: 1rem 0.75rem;
-      gap: 1rem;
+      padding: 1rem;
     }
     
     .auth-card,

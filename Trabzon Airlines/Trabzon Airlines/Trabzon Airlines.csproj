@@ -16,7 +16,6 @@
     <RootNamespace>Trabzon_Airlines</RootNamespace>
     <AssemblyName>Trabzon Airlines</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <LangVersion>8.0</LangVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
@@ -128,18 +127,42 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="Attributes\AuthorizeAdminAttribute.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
+    <Compile Include="Controllers\AdminFlightsController.cs" />
+    <Compile Include="Controllers\BookingController.cs" />
+    <Compile Include="Controllers\FlightsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Data\TAContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202512032108338_InitialCreate.cs" />
+    <Compile Include="Migrations\202512032108338_InitialCreate.Designer.cs">
+      <DependentUpon>202512032108338_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512032123101_AddSeatBooking.cs" />
+    <Compile Include="Migrations\202512032123101_AddSeatBooking.Designer.cs">
+      <DependentUpon>202512032123101_AddSeatBooking.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512040729203_AddFlightStatusFields.cs" />
+    <Compile Include="Migrations\202512040729203_AddFlightStatusFields.Designer.cs">
+      <DependentUpon>202512040729203_AddFlightStatusFields.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512042119075_AddUsersTable.cs" />
+    <Compile Include="Migrations\202512042119075_AddUsersTable.Designer.cs">
+      <DependentUpon>202512042119075_AddUsersTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512042119378_AddAdminsTable.cs" />
+    <Compile Include="Migrations\202512042119378_AddAdminsTable.Designer.cs">
+      <DependentUpon>202512042119378_AddAdminsTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Admin.cs" />
-    <Compile Include="Models\Deal.cs" />
-    <Compile Include="Models\DealReservation.cs" />
-    <Compile Include="Models\Package.cs" />
-    <Compile Include="Models\PackageReservation.cs" />
-    <Compile Include="Models\TrabzonAirlinesDbContext.cs" />
+    <Compile Include="Models\Booking.cs" />
+    <Compile Include="Models\Flight.cs" />
+    <Compile Include="Models\FlightSeat.cs" />
+    <Compile Include="Models\Seat.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -160,6 +183,8 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
+    <Content Include="Content\SeatMap.css" />
+    <Content Include="Content\Trip.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
@@ -180,6 +205,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\tripai.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -194,9 +220,25 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Home\TripAI.cshtml" />
+    <Content Include="Views\AdminFlights\Index.cshtml" />
+    <Content Include="Views\AdminFlights\Create.cshtml" />
+    <Content Include="Views\AdminFlights\Delete.cshtml" />
+    <Content Include="Views\AdminFlights\Edit.cshtml" />
+    <Content Include="Views\Booking\SelectSeat.cshtml" />
+    <Content Include="Views\Booking\BookingResult.cshtml" />
+    <Content Include="Views\AdminFlights\Seats.cshtml" />
+    <Content Include="Views\AdminFlights\SeatDetail.cshtml" />
+    <Content Include="Views\Flights\Index.cshtml" />
+    <Content Include="Views\Flights\Status.cshtml" />
+    <Content Include="Views\Home\Signup.cshtml" />
+    <Content Include="Views\Home\Login.cshtml" />
+    <Content Include="Views\Admin\AdminLogin.cshtml" />
+    <Content Include="Views\Admin\Dashboard.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\Account\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -224,6 +266,23 @@
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.0.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\202512032108338_InitialCreate.resx">
+      <DependentUpon>202512032108338_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512032123101_AddSeatBooking.resx">
+      <DependentUpon>202512032123101_AddSeatBooking.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512040729203_AddFlightStatusFields.resx">
+      <DependentUpon>202512040729203_AddFlightStatusFields.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512042119075_AddUsersTable.resx">
+      <DependentUpon>202512042119075_AddUsersTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512042119378_AddAdminsTable.resx">
+      <DependentUpon>202512042119378_AddAdminsTable.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -1,223 +1,512 @@
 @{
+    // Gizlilik Politikası sayfası - KVKK uyumlu, çift dil desteği
+    // Privacy Policy page - KVKK compliant, dual language support
     ViewBag.Title = "Gizlilik Politikası";
 }
 
 @section styles {
     <link rel="stylesheet" href="~/Content/css/about.css">
+    <style>
+        /* Privacy Policy özel stilleri */
+        /* Privacy Policy custom styles */
+        .privacy-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .privacy-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 3px solid #e4002b;
+        }
+
+        .privacy-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+        }
+
+        .privacy-subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .privacy-last-updated {
+            font-size: 0.9rem;
+            color: #999;
+            font-style: italic;
+        }
+
+        .privacy-content {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .privacy-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .privacy-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e4002b;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-content {
+            line-height: 1.8;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .section-content p {
+            margin-bottom: 1rem;
+        }
+
+        .section-content ul,
+        .section-content ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .section-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight-box {
+            background: #f8f9fa;
+            border-left: 4px solid #e4002b;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 6px;
+        }
+
+        .contact-info {
+            background: #fff3f3;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+
+        .contact-info strong {
+            color: #e4002b;
+        }
+
+        @@media (max-width: 768px) {
+            .privacy-container {
+                padding: 1rem;
+            }
+
+            .privacy-content {
+                padding: 1.5rem;
+            }
+
+            .privacy-title {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
 }
 
-<!-- PRIVACY HERO SECTION - Gizlilik Politikası ana bölümü -->
-<section class="about-hero">
-  <div class="container">
-    <div class="about-hero-content">
-      <!-- Ana başlık -->
-      <h1 class="about-title" data-tr="Gizlilik Politikası ve KVKK Aydınlatma Metni" data-en="Privacy Policy and KVKK Disclosure">Gizlilik Politikası ve KVKK Aydınlatma Metni</h1>
-      
-      <!-- Alt başlık -->
-      <p class="about-subtitle" data-tr="Kişisel verilerinizin korunması bizim için önemlidir" data-en="The protection of your personal data is important to us">
-        Kişisel verilerinizin korunması bizim için önemlidir
-      </p>
+<!-- PRIVACY POLICY SECTION - Gizlilik Politikası bölümü -->
+<section class="privacy-container">
+    <!-- Başlık bölümü -->
+    <!-- Header section -->
+    <div class="privacy-header">
+        <h1 class="privacy-title" 
+            data-tr="Gizlilik Politikası" 
+            data-en="Privacy Policy">
+            Gizlilik Politikası
+        </h1>
+        <p class="privacy-subtitle" 
+           data-tr="Kişisel verilerinizin korunması bizim için önemlidir" 
+           data-en="Protecting your personal data is important to us">
+            Kişisel verilerinizin korunması bizim için önemlidir
+        </p>
+        <p class="privacy-last-updated" 
+           data-tr="Son Güncelleme: @DateTime.Now.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))" 
+           data-en="Last Updated: @DateTime.Now.ToString("MMMM dd, yyyy", new System.Globalization.CultureInfo("en-US"))">
+            Son Güncelleme: @DateTime.Now.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))
+        </p>
     </div>
-  </div>
+
+    <!-- İçerik bölümü -->
+    <!-- Content section -->
+    <div class="privacy-content">
+        
+        <!-- 1. GİRİŞ -->
+        <!-- 1. INTRODUCTION -->
+        <div class="privacy-section">
+            <h2 class="section-title" 
+                data-tr="1. Giriş" 
+                data-en="1. Introduction">
+                1. Giriş
+            </h2>
+            <div class="section-content">
+                <p data-tr="Trabzon Airlines olarak, kişisel verilerinizin korunmasına büyük önem vermekteyiz. Bu Gizlilik Politikası, web sitemizi ziyaret ettiğinizde veya hizmetlerimizi kullandığınızda topladığımız bilgileri ve bu bilgileri nasıl kullandığımızı açıklamaktadır." 
+                   data-en="As Trabzon Airlines, we attach great importance to the protection of your personal data. This Privacy Policy explains what information we collect when you visit our website or use our services and how we use this information.">
+                    Trabzon Airlines olarak, kişisel verilerinizin korunmasına büyük önem vermekteyiz. Bu Gizlilik Politikası, web sitemizi ziyaret ettiğinizde veya hizmetlerimizi kullandığınızda topladığımız bilgileri ve bu bilgileri nasıl kullandığımızı açıklamaktadır.
+                </p>
+                <p data-tr="6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) ve ilgili mevzuat hükümlerine uygun olarak, kişisel verilerinizi işlerken yükümlülüklerimizi yerine getirmekteyiz." 
+                   data-en="In accordance with Law No. 6698 on the Protection of Personal Data (KVKK) and related legislation, we fulfill our obligations when processing your personal data.">
+                    6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) ve ilgili mevzuat hükümlerine uygun olarak, kişisel verilerinizi işlerken yükümlülüklerimizi yerine getirmekteyiz.
+                </p>
+            </div>
+        </div>
+
+        <!-- 2. TOPLANAN BİLGİLER -->
+        <!-- 2. INFORMATION COLLECTED -->
+        <div class="privacy-section">
+            <h2 class="section-title" 
+                data-tr="2. Toplanan Bilgiler" 
+                data-en="2. Information Collected">
+                2. Toplanan Bilgiler
+            </h2>
+            <div class="section-content">
+                <p data-tr="Aşağıdaki bilgileri toplayabiliriz:" 
+                   data-en="We may collect the following information:">
+                    Aşağıdaki bilgileri toplayabiliriz:
+                </p>
+                <ul>
+                    <li data-tr="<strong>Kimlik Bilgileri:</strong> Ad, soyad, doğum tarihi, cinsiyet, TC Kimlik Numarası (yasal zorunluluklar çerçevesinde)" 
+                        data-en="<strong>Identity Information:</strong> Name, surname, date of birth, gender, Turkish ID Number (within the framework of legal obligations)">
+                        <strong>Kimlik Bilgileri:</strong> Ad, soyad, doğum tarihi, cinsiyet, TC Kimlik Numarası (yasal zorunluluklar çerçevesinde)
+                    </li>
+                    <li data-tr="<strong>İletişim Bilgileri:</strong> E-posta adresi, telefon numarası, adres bilgileri" 
+                        data-en="<strong>Contact Information:</strong> Email address, phone number, address information">
+                        <strong>İletişim Bilgileri:</strong> E-posta adresi, telefon numarası, adres bilgileri
+                    </li>
+                    <li data-tr="<strong>Rezervasyon Bilgileri:</strong> Uçuş rezervasyonları, koltuk seçimleri, ödeme bilgileri" 
+                        data-en="<strong>Reservation Information:</strong> Flight reservations, seat selections, payment information">
+                        <strong>Rezervasyon Bilgileri:</strong> Uçuş rezervasyonları, koltuk seçimleri, ödeme bilgileri
+                    </li>
+                    <li data-tr="<strong>Teknik Bilgiler:</strong> IP adresi, tarayıcı türü, işletim sistemi, sayfa görüntüleme bilgileri" 
+                        data-en="<strong>Technical Information:</strong> IP address, browser type, operating system, page view information">
+                        <strong>Teknik Bilgiler:</strong> IP adresi, tarayıcı türü, işletim sistemi, sayfa görüntüleme bilgileri
+                    </li>
+                    <li data-tr="<strong>Çerez Bilgileri:</strong> Web sitesi deneyiminizi iyileştirmek için kullanılan çerezler" 
+                        data-en="<strong>Cookie Information:</strong> Cookies used to improve your website experience">
+                        <strong>Çerez Bilgileri:</strong> Web sitesi deneyiminizi iyileştirmek için kullanılan çerezler
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 3. BİLGİLERİN KULLANIM AMACI -->
+        <!-- 3. PURPOSE OF USING INFORMATION -->
+        <div class="privacy-section">
+            <h2 class="section-title" 
+                data-tr="3. Bilgilerin Kullanım Amacı" 
+                data-en="3. Purpose of Using Information">
+                3. Bilgilerin Kullanım Amacı
+            </h2>
+            <div class="section-content">
+                <p data-tr="Topladığımız bilgileri aşağıdaki amaçlarla kullanmaktayız:" 
+                   data-en="We use the information we collect for the following purposes:">
+                    Topladığımız bilgileri aşağıdaki amaçlarla kullanmaktayız:
+                </p>
+                <ul>
+                    <li data-tr="Uçuş rezervasyonlarınızı gerçekleştirmek ve yönetmek" 
+                        data-en="To process and manage your flight reservations">
+                        Uçuş rezervasyonlarınızı gerçekleştirmek ve yönetmek
+                    </li>
+                    <li data-tr="Hesabınızı oluşturmak ve yönetmek" 
+                        data-en="To create and manage your account">
+                        Hesabınızı oluşturmak ve yönetmek
+                    </li>
+                    <li data-tr="Size özel hizmetler sunmak ve müşteri desteği sağlamak" 
+                        data-en="To provide you with personalized services and customer support">
+                        Size özel hizmetler sunmak ve müşteri desteği sağlamak
+                    </li>
+                    <li data-tr="Yasal yükümlülüklerimizi yerine getirmek" 
+                        data-en="To fulfill our legal obligations">
+                        Yasal yükümlülüklerimizi yerine getirmek
+                    </li>
+                    <li data-tr="Güvenlik ve dolandırıcılık önleme" 
+                        data-en="Security and fraud prevention">
+                        Güvenlik ve dolandırıcılık önleme
+                    </li>
+                    <li data-tr="Kampanya ve promosyonlar hakkında bilgilendirme (izin verdiğiniz takdirde)" 
+                        data-en="Informing about campaigns and promotions (if you have given consent)">
+                        Kampanya ve promosyonlar hakkında bilgilendirme (izin verdiğiniz takdirde)
+                    </li>
+                    <li data-tr="Web sitesi performansını analiz etmek ve iyileştirmek" 
+                        data-en="To analyze and improve website performance">
+                        Web sitesi performansını analiz etmek ve iyileştirmek
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 4. BİLGİLERİN PAYLAŞIMI -->
+        <!-- 4. SHARING OF INFORMATION -->
+        <div class="privacy-section">
+            <h2 class="section-title" 
+                data-tr="4. Bilgilerin Paylaşımı" 
+                data-en="4. Sharing of Information">
+                4. Bilgilerin Paylaşımı
+            </h2>
+            <div class="section-content">
+                <p data-tr="Kişisel verilerinizi, yasal zorunluluklar ve hizmetlerimizin sunumu için gerekli olan durumlar dışında üçüncü taraflarla paylaşmayız. Bilgilerinizi aşağıdaki durumlarda paylaşabiliriz:" 
+                   data-en="We do not share your personal data with third parties except in cases required by legal obligations and for the provision of our services. We may share your information in the following cases:">
+                    Kişisel verilerinizi, yasal zorunluluklar ve hizmetlerimizin sunumu için gerekli olan durumlar dışında üçüncü taraflarla paylaşmayız. Bilgilerinizi aşağıdaki durumlarda paylaşabiliriz:
+                </p>
+                <ul>
+                    <li data-tr="Havayolu iş ortaklarımız (uçuş operasyonları için)" 
+                        data-en="Our airline business partners (for flight operations)">
+                        Havayolu iş ortaklarımız (uçuş operasyonları için)
+                    </li>
+                    <li data-tr="Ödeme işlemcileri (güvenli ödeme işlemleri için)" 
+                        data-en="Payment processors (for secure payment transactions)">
+                        Ödeme işlemcileri (güvenli ödeme işlemleri için)
+                    </li>
+                    <li data-tr="Yasal yetkili makamlar (yasal zorunluluklar çerçevesinde)" 
+                        data-en="Legally authorized authorities (within the framework of legal obligations)">
+                        Yasal yetkili makamlar (yasal zorunluluklar çerçevesinde)
+                    </li>
+                    <li data-tr="Hizmet sağlayıcılarımız (veri işleme ve depolama için)" 
+                        data-en="Our service providers (for data processing and storage)">
+                        Hizmet sağlayıcılarımız (veri işleme ve depolama için)
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 5. VERİ GÜVENLİĞİ -->
+        <!-- 5. DATA SECURITY -->
+        <div class="privacy-section">
+            <h2 class="section-title" 
+                data-tr="5. Veri Güvenliği" 
+                data-en="5. Data Security">
+                5. Veri Güvenliği
+            </h2>
+            <div class="section-content">
+                <p data-tr="Kişisel verilerinizin güvenliğini sağlamak için teknik ve idari önlemler almaktayız:" 
+                   data-en="We take technical and administrative measures to ensure the security of your personal data:">
+                    Kişisel verilerinizin güvenliğini sağlamak için teknik ve idari önlemler almaktayız:
+                </p>
+                <ul>
+                    <li data-tr="SSL/TLS şifreleme teknolojisi kullanımı" 
+                        data-en="Use of SSL/TLS encryption technology">
+                        SSL/TLS şifreleme teknolojisi kullanımı
+                    </li>
+                    <li data-tr="Güvenli veri depolama sistemleri" 
+                        data-en="Secure data storage systems">
+                        Güvenli veri depolama sistemleri
+                    </li>
+                    <li data-tr="Erişim kontrolü ve yetkilendirme mekanizmaları" 
+                        data-en="Access control and authorization mechanisms">
+                        Erişim kontrolü ve yetkilendirme mekanizmaları
+                    </li>
+                    <li data-tr="Düzenli güvenlik denetimleri" 
+                        data-en="Regular security audits">
+                        Düzenli güvenlik denetimleri
+                    </li>
+                    <li data-tr="Personel eğitimleri ve farkındalık programları" 
+                        data-en="Staff training and awareness programs">
+                        Personel eğitimleri ve farkındalık programları
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 6. ÇEREZLER -->
+        <!-- 6. COOKIES -->
+        <div class="privacy-section">
+            <h2 class="section-title" 
+                data-tr="6. Çerezler (Cookies)" 
+                data-en="6. Cookies">
+                6. Çerezler (Cookies)
+            </h2>
+            <div class="section-content">
+                <p data-tr="Web sitemizde, deneyiminizi iyileştirmek için çerezler kullanmaktayız. Çerez türleri:" 
+                   data-en="We use cookies on our website to improve your experience. Cookie types:">
+                    Web sitemizde, deneyiminizi iyileştirmek için çerezler kullanmaktayız. Çerez türleri:
+                </p>
+                <ul>
+                    <li data-tr="<strong>Zorunlu Çerezler:</strong> Web sitesinin çalışması için gerekli" 
+                        data-en="<strong>Essential Cookies:</strong> Required for the website to function">
+                        <strong>Zorunlu Çerezler:</strong> Web sitesinin çalışması için gerekli
+                    </li>
+                    <li data-tr="<strong>Performans Çerezleri:</strong> Site performansını analiz etmek için" 
+                        data-en="<strong>Performance Cookies:</strong> To analyze site performance">
+                        <strong>Performans Çerezleri:</strong> Site performansını analiz etmek için
+                    </li>
+                    <li data-tr="<strong>Fonksiyonel Çerezler:</strong> Kullanıcı tercihlerini hatırlamak için" 
+                        data-en="<strong>Functional Cookies:</strong> To remember user preferences">
+                        <strong>Fonksiyonel Çerezler:</strong> Kullanıcı tercihlerini hatırlamak için
+                    </li>
+                    <li data-tr="<strong>Hedefleme Çerezleri:</strong> Kişiselleştirilmiş içerik sunmak için" 
+                        data-en="<strong>Targeting Cookies:</strong> To provide personalized content">
+                        <strong>Hedefleme Çerezleri:</strong> Kişiselleştirilmiş içerik sunmak için
+                    </li>
+                </ul>
+                <p data-tr="Tarayıcı ayarlarınızdan çerezleri yönetebilirsiniz, ancak bu durumda bazı özellikler çalışmayabilir." 
+                   data-en="You can manage cookies from your browser settings, but some features may not work in this case.">
+                    Tarayıcı ayarlarınızdan çerezleri yönetebilirsiniz, ancak bu durumda bazı özellikler çalışmayabilir.
+                </p>
+            </div>
+        </div>
+
+        <!-- 7. KULLANICI HAKLARI -->
+        <!-- 7. USER RIGHTS -->
+        <div class="privacy-section">
+            <h2 class="section-title" 
+                data-tr="7. Kullanıcı Hakları (KVKK)" 
+                data-en="7. User Rights (KVKK)">
+                7. Kullanıcı Hakları (KVKK)
+            </h2>
+            <div class="section-content">
+                <p data-tr="KVKK kapsamında aşağıdaki haklara sahipsiniz:" 
+                   data-en="Under KVKK, you have the following rights:">
+                    KVKK kapsamında aşağıdaki haklara sahipsiniz:
+                </p>
+                <ul>
+                    <li data-tr="Kişisel verilerinizin işlenip işlenmediğini öğrenme" 
+                        data-en="To learn whether your personal data is being processed">
+                        Kişisel verilerinizin işlenip işlenmediğini öğrenme
+                    </li>
+                    <li data-tr="İşlenen kişisel verileriniz hakkında bilgi talep etme" 
+                        data-en="To request information about your processed personal data">
+                        İşlenen kişisel verileriniz hakkında bilgi talep etme
+                    </li>
+                    <li data-tr="Kişisel verilerinizin işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme" 
+                        data-en="To learn the purpose of processing your personal data and whether it is used in accordance with the purpose">
+                        Kişisel verilerinizin işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme
+                    </li>
+                    <li data-tr="Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme" 
+                        data-en="To know the third parties to whom your personal data is transferred domestically or abroad">
+                        Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme
+                    </li>
+                    <li data-tr="Kişisel verilerinizin eksik veya yanlış işlenmiş olması halinde bunların düzeltilmesini isteme" 
+                        data-en="To request correction of your personal data if it is incomplete or incorrectly processed">
+                        Kişisel verilerinizin eksik veya yanlış işlenmiş olması halinde bunların düzeltilmesini isteme
+                    </li>
+                    <li data-tr="Kişisel verilerinizin silinmesini veya yok edilmesini isteme" 
+                        data-en="To request deletion or destruction of your personal data">
+                        Kişisel verilerinizin silinmesini veya yok edilmesini isteme
+                    </li>
+                    <li data-tr="İşlenen verilerin münhasıran otomatik sistemler ile analiz edilmesi suretiyle kişinin kendisi aleyhine bir sonucun ortaya çıkmasına itiraz etme" 
+                        data-en="To object to the emergence of a result against the person by analyzing the processed data exclusively through automated systems">
+                        İşlenen verilerin münhasıran otomatik sistemler ile analiz edilmesi suretiyle kişinin kendisi aleyhine bir sonucun ortaya çıkmasına itiraz etme
+                    </li>
+                    <li data-tr="Kişisel verilerinizin kanuna aykırı olarak işlenmesi sebebiyle zarara uğramanız halinde zararın giderilmesini talep etme" 
+                        data-en="To request compensation for damages if you suffer damage due to unlawful processing of your personal data">
+                        Kişisel verilerinizin kanuna aykırı olarak işlenmesi sebebiyle zarara uğramanız halinde zararın giderilmesini talep etme
+                    </li>
+                </ul>
+                <div class="highlight-box">
+                    <p data-tr="<strong>Haklarınızı kullanmak için:</strong> İlgili talebinizi yazılı olarak veya e-posta yoluyla bizimle iletişime geçebilirsiniz." 
+                       data-en="<strong>To exercise your rights:</strong> You can contact us in writing or by email with your relevant request.">
+                        <strong>Haklarınızı kullanmak için:</strong> İlgili talebinizi yazılı olarak veya e-posta yoluyla bizimle iletişime geçebilirsiniz.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. VERİ SAKLAMA SÜRESİ -->
+        <!-- 8. DATA RETENTION PERIOD -->
+        <div class="privacy-section">
+            <h2 class="section-title" 
+                data-tr="8. Veri Saklama Süresi" 
+                data-en="8. Data Retention Period">
+                8. Veri Saklama Süresi
+            </h2>
+            <div class="section-content">
+                <p data-tr="Kişisel verileriniz, işleme amacının gerektirdiği süre boyunca ve yasal saklama sürelerine uygun olarak saklanmaktadır. İşleme amacı ortadan kalktığında veya saklama süresi dolduğunda, verileriniz güvenli bir şekilde silinmekte veya anonim hale getirilmektedir." 
+                   data-en="Your personal data is stored for the period required by the processing purpose and in accordance with legal retention periods. When the processing purpose ceases or the retention period expires, your data is securely deleted or anonymized.">
+                    Kişisel verileriniz, işleme amacının gerektirdiği süre boyunca ve yasal saklama sürelerine uygun olarak saklanmaktadır. İşleme amacı ortadan kalktığında veya saklama süresi dolduğunda, verileriniz güvenli bir şekilde silinmekte veya anonim hale getirilmektedir.
+                </p>
+            </div>
+        </div>
+
+        <!-- 9. DEĞİŞİKLİKLER -->
+        <!-- 9. CHANGES -->
+        <div class="privacy-section">
+            <h2 class="section-title" 
+                data-tr="9. Gizlilik Politikası Değişiklikleri" 
+                data-en="9. Privacy Policy Changes">
+                9. Gizlilik Politikası Değişiklikleri
+            </h2>
+            <div class="section-content">
+                <p data-tr="Bu Gizlilik Politikası'nı zaman zaman güncelleyebiliriz. Önemli değişiklikler durumunda, web sitemizde veya e-posta yoluyla sizi bilgilendireceğiz. Güncel politikayı web sitemizden takip edebilirsiniz." 
+                   data-en="We may update this Privacy Policy from time to time. In case of significant changes, we will inform you through our website or by email. You can follow the current policy from our website.">
+                    Bu Gizlilik Politikası'nı zaman zaman güncelleyebiliriz. Önemli değişiklikler durumunda, web sitemizde veya e-posta yoluyla sizi bilgilendireceğiz. Güncel politikayı web sitemizden takip edebilirsiniz.
+                </p>
+            </div>
+        </div>
+
+        <!-- 10. İLETİŞİM -->
+        <!-- 10. CONTACT -->
+        <div class="privacy-section">
+            <h2 class="section-title" 
+                data-tr="10. İletişim" 
+                data-en="10. Contact">
+                10. İletişim
+            </h2>
+            <div class="section-content">
+                <p data-tr="Gizlilik Politikası ile ilgili sorularınız, önerileriniz veya haklarınızı kullanmak için aşağıdaki iletişim bilgilerinden bize ulaşabilirsiniz:" 
+                   data-en="For questions, suggestions regarding the Privacy Policy, or to exercise your rights, you can contact us using the following contact information:">
+                    Gizlilik Politikası ile ilgili sorularınız, önerileriniz veya haklarınızı kullanmak için aşağıdaki iletişim bilgilerinden bize ulaşabilirsiniz:
+                </p>
+                <div class="contact-info">
+                    <p><strong data-tr="Trabzon Airlines" data-en="Trabzon Airlines">Trabzon Airlines</strong></p>
+                    <p data-tr="E-posta: privacy@trabzonairlines.com" 
+                       data-en="Email: privacy@trabzonairlines.com">
+                        E-posta: privacy@trabzonairlines.com
+                    </p>
+                    <p data-tr="Telefon: +90 (462) 000 00 00" 
+                       data-en="Phone: +90 (462) 000 00 00">
+                        Telefon: +90 (462) 000 00 00
+                    </p>
+                    <p data-tr="Adres: Trabzon Havalimanı, 61000 Trabzon, Türkiye" 
+                       data-en="Address: Trabzon Airport, 61000 Trabzon, Turkey">
+                        Adres: Trabzon Havalimanı, 61000 Trabzon, Türkiye
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Önemli Not -->
+        <!-- Important Note -->
+        <div class="highlight-box">
+            <p data-tr="<strong>Önemli:</strong> Bu Gizlilik Politikası, Trabzon Airlines web sitesi ve hizmetleri için geçerlidir. Üçüncü taraf web sitelerine yönlendirmeler için sorumluluk kabul etmiyoruz." 
+               data-en="<strong>Important:</strong> This Privacy Policy applies to Trabzon Airlines website and services. We do not accept responsibility for redirects to third-party websites.">
+                <strong>Önemli:</strong> Bu Gizlilik Politikası, Trabzon Airlines web sitesi ve hizmetleri için geçerlidir. Üçüncü taraf web sitelerine yönlendirmeler için sorumluluk kabul etmiyoruz.
+            </p>
+        </div>
+
+    </div>
 </section>
 
-<!-- PRIVACY CONTENT SECTION - Gizlilik politikası içeriği -->
-<section class="company-info" style="padding: 4rem 0;">
-  <div class="container">
-    <div class="info-grid" style="grid-template-columns: 1fr; gap: 2rem;">
-      
-      <!-- 1. Veri Sorumlusu -->
-      <div class="info-card">
-        <div class="info-icon">
-          <i class="fa-solid fa-building"></i>
-        </div>
-        <h3 data-tr="1. Veri Sorumlusu" data-en="1. Data Controller">1. Veri Sorumlusu</h3>
-        <p data-tr="6698 sayılı Kişisel Verilerin Korunması Kanunu ('KVKK') uyarınca, kişisel verileriniz Trabzon Airlines tarafından veri sorumlusu sıfatıyla işlenmektedir." 
-           data-en="In accordance with Law No. 6698 on the Protection of Personal Data ('KVKK'), your personal data is processed by Trabzon Airlines as the data controller.">
-          6698 sayılı Kişisel Verilerin Korunması Kanunu ('KVKK') uyarınca, kişisel verileriniz Trabzon Airlines tarafından veri sorumlusu sıfatıyla işlenmektedir.
-        </p>
-        <p style="margin-top: 1rem;" data-tr="İletişim: info@trabzonairlines.com" data-en="Contact: info@trabzonairlines.com">
-          İletişim: info@trabzonairlines.com
-        </p>
-      </div>
-
-      <!-- 2. İşlenen Kişisel Veriler -->
-      <div class="info-card">
-        <div class="info-icon">
-          <i class="fa-solid fa-database"></i>
-        </div>
-        <h3 data-tr="2. İşlenen Kişisel Veriler" data-en="2. Processed Personal Data">2. İşlenen Kişisel Veriler</h3>
-        <p data-tr="Aşağıdaki kişisel verileriniz işlenmektedir:" 
-           data-en="The following personal data is processed:">
-          Aşağıdaki kişisel verileriniz işlenmektedir:
-        </p>
-        <ul style="margin-top: 1rem; padding-left: 1.5rem; line-height: 1.8;">
-          <li data-tr="Kimlik Bilgileri: Ad, soyad, TC kimlik numarası, doğum tarihi, cinsiyet" 
-              data-en="Identity Information: Name, surname, Turkish ID number, date of birth, gender">
-            Kimlik Bilgileri: Ad, soyad, TC kimlik numarası, doğum tarihi, cinsiyet
-          </li>
-          <li data-tr="İletişim Bilgileri: E-posta adresi, telefon numarası, adres" 
-              data-en="Contact Information: Email address, phone number, address">
-            İletişim Bilgileri: E-posta adresi, telefon numarası, adres
-          </li>
-          <li data-tr="Rezervasyon Bilgileri: Uçuş bilgileri, bilet numaraları, seyahat geçmişi" 
-              data-en="Reservation Information: Flight information, ticket numbers, travel history">
-            Rezervasyon Bilgileri: Uçuş bilgileri, bilet numaraları, seyahat geçmişi
-          </li>
-          <li data-tr="Finansal Bilgiler: Ödeme bilgileri, faturalama bilgileri" 
-              data-en="Financial Information: Payment information, billing information">
-            Finansal Bilgiler: Ödeme bilgileri, faturalama bilgileri
-          </li>
-        </ul>
-      </div>
-
-      <!-- 3. Kişisel Verilerin İşlenme Amaçları -->
-      <div class="info-card">
-        <div class="info-icon">
-          <i class="fa-solid fa-bullseye"></i>
-        </div>
-        <h3 data-tr="3. Kişisel Verilerin İşlenme Amaçları" data-en="3. Purposes of Processing Personal Data">3. Kişisel Verilerin İşlenme Amaçları</h3>
-        <p data-tr="Kişisel verileriniz aşağıdaki amaçlarla işlenmektedir:" 
-           data-en="Your personal data is processed for the following purposes:">
-          Kişisel verileriniz aşağıdaki amaçlarla işlenmektedir:
-        </p>
-        <ul style="margin-top: 1rem; padding-left: 1.5rem; line-height: 1.8;">
-          <li data-tr="Uçuş rezervasyonlarının yapılması ve yönetilmesi" 
-              data-en="Making and managing flight reservations">
-            Uçuş rezervasyonlarının yapılması ve yönetilmesi
-          </li>
-          <li data-tr="Müşteri hizmetleri ve destek hizmetlerinin sunulması" 
-              data-en="Providing customer service and support services">
-            Müşteri hizmetleri ve destek hizmetlerinin sunulması
-          </li>
-          <li data-tr="Kampanya, promosyon ve fırsatlar hakkında bilgilendirme (izin verilmesi halinde)" 
-              data-en="Informing about campaigns, promotions and opportunities (if consent is given)">
-            Kampanya, promosyon ve fırsatlar hakkında bilgilendirme (izin verilmesi halinde)
-          </li>
-          <li data-tr="Yasal yükümlülüklerin yerine getirilmesi" 
-              data-en="Fulfillment of legal obligations">
-            Yasal yükümlülüklerin yerine getirilmesi
-          </li>
-          <li data-tr="Güvenlik ve hizmet kalitesinin artırılması" 
-              data-en="Improving security and service quality">
-            Güvenlik ve hizmet kalitesinin artırılması
-          </li>
-        </ul>
-      </div>
-
-      <!-- 4. Kişisel Verilerin Aktarılması -->
-      <div class="info-card">
-        <div class="info-icon">
-          <i class="fa-solid fa-share-nodes"></i>
-        </div>
-        <h3 data-tr="4. Kişisel Verilerin Aktarılması" data-en="4. Transfer of Personal Data">4. Kişisel Verilerin Aktarılması</h3>
-        <p data-tr="Kişisel verileriniz, yukarıda belirtilen amaçlar doğrultusunda, yasal yükümlülüklerimiz ve hizmet kalitesinin sağlanması amacıyla, sınırlı sayıda ve güvenilir üçüncü taraflarla paylaşılabilir. Verileriniz yurt dışına aktarılmamaktadır." 
-           data-en="Your personal data may be shared with a limited number of reliable third parties in line with the purposes stated above, for the fulfillment of our legal obligations and ensuring service quality. Your data is not transferred abroad.">
-          Kişisel verileriniz, yukarıda belirtilen amaçlar doğrultusunda, yasal yükümlülüklerimiz ve hizmet kalitesinin sağlanması amacıyla, sınırlı sayıda ve güvenilir üçüncü taraflarla paylaşılabilir. Verileriniz yurt dışına aktarılmamaktadır.
-        </p>
-      </div>
-
-      <!-- 5. Kişisel Verilerin Saklanma Süresi -->
-      <div class="info-card">
-        <div class="info-icon">
-          <i class="fa-solid fa-clock"></i>
-        </div>
-        <h3 data-tr="5. Kişisel Verilerin Saklanma Süresi" data-en="5. Retention Period of Personal Data">5. Kişisel Verilerin Saklanma Süresi</h3>
-        <p data-tr="Kişisel verileriniz, işlenme amaçlarının gerektirdiği süre boyunca ve yasal saklama sürelerine uygun olarak saklanmaktadır. Bu süre sona erdiğinde, verileriniz yasalara uygun şekilde silinmekte veya anonim hale getirilmektedir." 
-           data-en="Your personal data is stored for the period required by the processing purposes and in accordance with legal retention periods. When this period expires, your data is deleted or anonymized in accordance with the law.">
-          Kişisel verileriniz, işlenme amaçlarının gerektirdiği süre boyunca ve yasal saklama sürelerine uygun olarak saklanmaktadır. Bu süre sona erdiğinde, verileriniz yasalara uygun şekilde silinmekte veya anonim hale getirilmektedir.
-        </p>
-      </div>
-
-      <!-- 6. KVKK Kapsamındaki Haklarınız -->
-      <div class="info-card">
-        <div class="info-icon">
-          <i class="fa-solid fa-user-shield"></i>
-        </div>
-        <h3 data-tr="6. KVKK Kapsamındaki Haklarınız" data-en="6. Your Rights Under KVKK">6. KVKK Kapsamındaki Haklarınız</h3>
-        <p data-tr="KVKK'nın 11. maddesi uyarınca, aşağıdaki haklara sahipsiniz:" 
-           data-en="In accordance with Article 11 of KVKK, you have the following rights:">
-          KVKK'nın 11. maddesi uyarınca, aşağıdaki haklara sahipsiniz:
-        </p>
-        <ul style="margin-top: 1rem; padding-left: 1.5rem; line-height: 1.8;">
-          <li data-tr="Kişisel verilerinizin işlenip işlenmediğini öğrenme" 
-              data-en="Learning whether your personal data is processed">
-            Kişisel verilerinizin işlenip işlenmediğini öğrenme
-          </li>
-          <li data-tr="İşlenmişse buna ilişkin bilgi talep etme" 
-              data-en="Requesting information if processed">
-            İşlenmişse buna ilişkin bilgi talep etme
-          </li>
-          <li data-tr="İşlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenme" 
-              data-en="Learning the purpose of processing and whether they are used in accordance with this purpose">
-            İşlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenme
-          </li>
-          <li data-tr="Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme" 
-              data-en="Knowing the third parties to whom it is transferred domestically or abroad">
-            Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme
-          </li>
-          <li data-tr="Eksik veya yanlış işlenmişse düzeltilmesini isteme" 
-              data-en="Requesting correction if processed incompletely or incorrectly">
-            Eksik veya yanlış işlenmişse düzeltilmesini isteme
-          </li>
-          <li data-tr="KVKK'da öngörülen şartlar çerçevesinde silinmesini veya yok edilmesini isteme" 
-              data-en="Requesting deletion or destruction within the framework of the conditions stipulated in KVKK">
-            KVKK'da öngörülen şartlar çerçevesinde silinmesini veya yok edilmesini isteme
-          </li>
-          <li data-tr="Aktarıldığı üçüncü kişilere yukarıdaki işlemlerin bildirilmesini isteme" 
-              data-en="Requesting that the above operations be notified to third parties to whom it is transferred">
-            Aktarıldığı üçüncü kişilere yukarıdaki işlemlerin bildirilmesini isteme
-          </li>
-          <li data-tr="İşlenen verilerin münhasıran otomatik sistemler ile analiz edilmesi suretiyle kişinin kendisi aleyhine bir sonucun ortaya çıkmasına itiraz etme" 
-              data-en="Objecting to the emergence of a result against the person by analyzing the processed data exclusively through automated systems">
-            İşlenen verilerin münhasıran otomatik sistemler ile analiz edilmesi suretiyle kişinin kendisi aleyhine bir sonucun ortaya çıkmasına itiraz etme
-          </li>
-          <li data-tr="Kişisel verilerin kanuna aykırı olarak işlenmesi sebebiyle zarara uğraması halinde zararın giderilmesini talep etme" 
-              data-en="Requesting compensation for damages in case of damage due to processing of personal data in violation of the law">
-            Kişisel verilerin kanuna aykırı olarak işlenmesi sebebiyle zarara uğraması halinde zararın giderilmesini talep etme
-          </li>
-        </ul>
-      </div>
-
-      <!-- 7. İletişim -->
-      <div class="info-card">
-        <div class="info-icon">
-          <i class="fa-solid fa-envelope"></i>
-        </div>
-        <h3 data-tr="7. İletişim" data-en="7. Contact">7. İletişim</h3>
-        <p data-tr="KVKK kapsamındaki haklarınızı kullanmak için aşağıdaki iletişim kanallarını kullanabilirsiniz:" 
-           data-en="You can use the following contact channels to exercise your rights under KVKK:">
-          KVKK kapsamındaki haklarınızı kullanmak için aşağıdaki iletişim kanallarını kullanabilirsiniz:
-        </p>
-        <p style="margin-top: 1rem;" data-tr="E-posta: kvkk@trabzonairlines.com" data-en="Email: kvkk@trabzonairlines.com">
-          E-posta: kvkk@trabzonairlines.com
-        </p>
-        <p data-tr="Adres: Trabzon Havalimanı, Trabzon, Türkiye" data-en="Address: Trabzon Airport, Trabzon, Turkey">
-          Adres: Trabzon Havalimanı, Trabzon, Türkiye
-        </p>
-      </div>
-
-      <!-- 8. Güvenlik -->
-      <div class="info-card">
-        <div class="info-icon">
-          <i class="fa-solid fa-shield-halved"></i>
-        </div>
-        <h3 data-tr="8. Güvenlik" data-en="8. Security">8. Güvenlik</h3>
-        <p data-tr="Kişisel verilerinizin güvenliği için teknik ve idari tedbirler alınmaktadır. Verileriniz, yetkisiz erişim, değişiklik, ifşa veya imha riskine karşı korunmaktadır." 
-           data-en="Technical and administrative measures are taken for the security of your personal data. Your data is protected against the risk of unauthorized access, modification, disclosure or destruction.">
-          Kişisel verilerinizin güvenliği için teknik ve idari tedbirler alınmaktadır. Verileriniz, yetkisiz erişim, değişiklik, ifşa veya imha riskine karşı korunmaktadır.
-        </p>
-      </div>
-
-      <!-- Son Güncelleme -->
-      <div class="info-card" style="background: #f5f5f5; border: 1px solid #e0e0e0;">
-        <p style="text-align: center; color: #666; font-size: 0.9rem;" data-tr="Son Güncelleme: @DateTime.Now.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))" 
-           data-en="Last Update: @DateTime.Now.ToString("MMMM dd, yyyy", new System.Globalization.CultureInfo("en-US"))">
-          Son Güncelleme: @DateTime.Now.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))
-        </p>
-      </div>
-
-    </div>
-  </div>
-</section>
+@section scripts {
+    <script>
+        // Dil değişikliği için otomatik güncelleme
+        // Automatic update for language change
+        $(document).ready(function() {
+            // Dil değişikliğinde sayfa içeriğini güncelle
+            // Update page content on language change
+            if (typeof updateLanguage === 'function') {
+                updateLanguage();
+            }
+        });
+    </script>
+}
 

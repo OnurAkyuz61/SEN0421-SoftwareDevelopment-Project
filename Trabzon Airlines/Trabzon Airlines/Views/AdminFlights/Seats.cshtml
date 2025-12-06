@@ -1,0 +1,18 @@
+@model List<Trabzon_Airlines.Models.FlightSeat>
+
+<h2>Koltuk Yönetimi</h2>
+<h4>Uçuþ: @ViewBag.Flight.FlightNumber (@ViewBag.Flight.FromCode - @ViewBag.Flight.ToCode)</h4>
+<hr />
+
+<div style="padding:20px;">
+    @foreach (var item in Model)
+    {
+        string color = item.IsReserved ? "red" : "green";
+
+        <a href="@Url.Action("SeatDetail", "AdminFlights", new { id = item.FlightSeatId })"
+           style="margin:10px; display:inline-block; font-weight:bold; color:@color;">
+
+            @item.Seat.SeatNumber (@item.Seat.CabinClass)
+        </a>
+    }
+</div>

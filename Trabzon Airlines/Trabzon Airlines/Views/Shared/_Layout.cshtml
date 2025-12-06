@@ -4,319 +4,450 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - Trabzon Airlines</title>
-    
     <!-- SEO Meta Bilgileri -->
     <meta name="description" content="Trabzon Airlines ile Karadeniz'den dünyaya uçun. Uygun fiyatlı uçak biletleri, güvenli uçuşlar ve kaliteli hizmet.">
     <meta name="keywords" content="trabzon airlines, uçak bileti, trabzon uçak, karadeniz havayolu, uygun uçak bileti">
     <meta name="author" content="Trabzon Airlines">
     <meta name="robots" content="index, follow">
-    
+
     <!-- Font Awesome ikonları -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
+
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
     @RenderSection("styles", required: false)
 </head>
+
 <body>
 
-<!-- HEADER - Üst navigasyon çubuğu -->
-<header class="main-header">
-  <!-- Sol taraf - Logo ve mobil menü butonu -->
-  <div class="header-left">
-    <!-- Mobil cihazlar için hamburger menü butonu -->
-    <button class="mobile-menu-btn" onclick="toggleSidebarMobile()" aria-label="Menüyü aç/kapat">
-      <i class="fa-solid fa-bars"></i>
-    </button>
-    
-    <!-- Site logosu -->
-    <div class="logo-container" onclick="window.location.href='@Url.Action("Index", "Home")'" style="cursor: pointer;">
-      <img src="~/assets/logo/logo.png" width="240" class="site-logo" alt="Trabzon Airlines Logo">
-      <span class="logo-text">Trabzon Airlines</span>
-    </div>
-  </div>
+    <!-- HEADER - Üst navigasyon çubuğu -->
+    <header class="main-header">
 
-  <!-- Sağ taraf - Arama, dil seçimi ve giriş butonları -->
-  <div class="header-right">
-    <!-- Arama butonu -->
-    <div class="header-search" onclick="toggleSearch()">
-      <span data-tr="Arama" data-en="Search">Arama</span>
-      <i class="fa-solid fa-magnifying-glass"></i>
+        <!-- Sol taraf - Logo ve mobil menü butonu -->
+        <div class="header-left">
+
+            <!-- Mobil cihazlar için hamburger menü butonu -->
+            <button class="mobile-menu-btn" onclick="toggleSidebarMobile()" aria-label="Menüyü aç/kapat">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- Site logosu -->
+            <div class="logo-container" onclick="window.location.href='@Url.Action("Index", "Home")'" style="cursor: pointer;">
+                <img src="~/assets/logo/logo.png" width="240" class="site-logo" alt="Trabzon Airlines Logo">
+                <span class="logo-text">Trabzon Airlines</span>
+            </div>
+
+        </div>
+
+        <!-- Sağ taraf - Arama, dil seçimi ve giriş butonları -->
+        <div class="header-right">
+
+            @{
+                string controller = ViewContext.RouteData.Values["controller"].ToString();
+                string action = ViewContext.RouteData.Values["action"].ToString();
+                bool isAdminLoginPage = (controller == "Admin" && action == "Login");
+                bool isAdminPage = (controller == "Admin");
+                bool adminLogged = (Session["AdminId"] != null);
+            }
+
+            @* 1) ADMIN LOGIN SAYFASI: sadece dil, billing YOK *@
+            @if (isAdminLoginPage)
+            {
+                <div class="dropdown-select" onclick="openLangModal()">
+                    <img id="headerFlag" src="https://flagcdn.com/w20/tr.png" class="flag-icon" alt="Dil bayrağı">
+                    <span id="headerLang">Türkçe</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+            }
+
+            @* 2) ADMIN PANEL (login olmuş) : dil + admin adı + logout, billing YOK *@
+            else if (adminLogged && isAdminPage)
+            {
+                <div class="dropdown-select" onclick="openLangModal()">
+                    <img id="headerFlag" src="https://flagcdn.com/w20/tr.png" class="flag-icon" alt="Dil bayrağı">
+                    <span id="headerLang">Türkçe</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+
+                <span style="color:white; margin-right:15px; font-weight:bold;">
+                    👑 Admin (@Session["AdminName"])
+                </span>
+
+                <button class="signin-btn"
+                        style="background:#ff3b30; border-color:#ff3b30;"
+                        onclick="window.location.href='/Admin/Logout'"
+                        data-tr="Çıkış Yap" data-en="Logout">
+                    Çıkış Yap
+                </button>
+            }
+
+            @* 3) NORMAL USER SAYFALARI: her şey normal + billing VAR *@
+            else
+            {
+                <!-- Arama butonu -->
+                <div class="header-search" onclick="toggleSearch()">
+                    <span data-tr="Arama" data-en="Search">Arama</span>
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+
+                <!-- Dil ve para birimi seçici -->
+                <div class="dropdown-select" onclick="openLangModal()">
+                    <img id="headerFlag" src="https://flagcdn.com/w20/tr.png" class="flag-icon" alt="Dil bayrağı">
+                    <span id="headerLang">Türkçe</span>
+                    <span id="headerCurrency">₺</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+
+                <!-- Kayıt ol ve giriş yap butonları -->
+                <button class="join-btn"
+                        onclick="window.location.href='@Url.Action("Signup", "Home")'"
+                        data-tr="Kayıt Ol" data-en="Sign Up">
+                    Kayıt Ol
+                </button>
+
+                <button class="signin-btn"
+                        onclick="window.location.href='@Url.Action("Login", "Home")'"
+                        data-tr="Giriş Yap" data-en="Login">
+                    Giriş Yap
+                </button>
+            }
+
+        </div>
+    </header>
+
+    <!-- SIDEBAR - Yan navigasyon menüsü -->
+    <div class="sidebar" id="sidebar">
+
+        <!-- Ana menü listesi -->
+        <ul class="menu">
+
+            <!-- Uçuş rezervasyonu -->
+            <li>
+                <a href="@Url.Action("Index", "Home")">
+                    <i class="fa-solid fa-plane"></i>
+                    <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span>
+                </a>
+            </li>
+
+            <!-- Paket turlar -->
+            <li>
+                <a href="#" onclick="showComingSoonAlert('packages'); return false;">
+                    <i class="fa-solid fa-suitcase-rolling"></i>
+                    <span data-tr="Paketler" data-en="Packages">Paketler</span>
+                </a>
+            </li>
+
+            <!-- Özel teklifler -->
+            <li>
+                <a href="#" onclick="showComingSoonAlert('deals'); return false;">
+                    <i class="fa-solid fa-tag"></i>
+                    <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span>
+                </a>
+            </li>
+
+            <!-- Menü ayırıcısı -->
+            <hr class="menu-divider">
+
+            <!-- Seyahat planları -->
+            <li>
+                <a href="#" onclick="showComingSoonAlert('trips'); return false;">
+                    <i class="fa-solid fa-map"></i>
+                    <span data-tr="Seyahatler" data-en="Trips">Seyahatler</span>
+                </a>
+            </li>
+
+            <!-- Online check-in -->
+            <li>
+                <a href="#" onclick="showComingSoonAlert('checkin'); return false;">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span data-tr="Check-in" data-en="Check-in">Check-in</span>
+                </a>
+            </li>
+
+            <!-- Uçuş durumu sorgulama -->
+            <li>
+                <a href="@Url.Action("Status","Flights")">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span data-tr="Uçuş Durumu" data-en="Flight Status">Uçuş Durumu</span>
+                </a>
+            </li>
+
+            <!-- Menü ayırıcısı -->
+            <hr class="menu-divider">
+
+            <!-- Hakkımızda -->
+            <li>
+                <a href="@Url.Action("About", "Home")">
+                    <i class="fa-solid fa-info-circle"></i>
+                    <span data-tr="Hakkımızda" data-en="About Us">Hakkımızda</span>
+                </a>
+            </li>
+
+            <!-- İletişim -->
+            <li>
+                <a href="@Url.Action("Contact", "Home")">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span data-tr="İletişim" data-en="Contact">İletişim</span>
+                </a>
+            </li>
+
+            <!-- Destek -->
+            <li>
+                <a href="#" onclick="showComingSoonAlert('support'); return false;">
+                    <i class="fa-solid fa-headset"></i>
+                    <span data-tr="Destek" data-en="Support">Destek</span>
+                </a>
+            </li>
+
+            <!-- Menü ayırıcısı -->
+            <hr class="menu-divider">
+
+            <!-- Trip AI -->
+            <li>
+                <a href="@Url.Action("TripAI", "Home")">
+                    <i class="fa-solid fa-robot"></i>
+                    <span data-tr="Trip AI" data-en="Trip AI">Trip AI</span>
+                </a>
+            </li>
+
+        </ul>
+
+        <!-- Daha fazla -->
+        <div class="sidebar-more">
+            <a href="#" onclick="showComingSoonAlert('more'); return false;">
+                <i class="fa-solid fa-ellipsis"></i>
+                <span data-tr="Daha Fazla" data-en="More">Daha Fazla</span>
+            </a>
+        </div>
+
     </div>
 
-    <!-- Dil ve para birimi seçici -->
-    <div class="dropdown-select" onclick="openLangModal()">
-        <img id="headerFlag" src="https://flagcdn.com/w20/tr.png" class="flag-icon" alt="Dil bayrağı">
-        <span id="headerLang">Türkçe</span>
-        <span id="headerCurrency">₺</span>
-        <i class="fa-solid fa-chevron-down"></i>
+    <!-- Mobil cihazlarda sidebar arka plan overlay -->
+    <div id="drawerOverlay" class="drawer-overlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- Mobil alt navigasyon -->
+    <div class="mobile-bottom-nav">
+        <a href="@Url.Action("Index", "Home")" class="nav-item active">
+            <i class="fa-solid fa-plane"></i>
+            <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span>
+        </a>
+        <a href="#" onclick="showComingSoonAlert('packages'); return false;" class="nav-item">
+            <i class="fa-solid fa-suitcase-rolling"></i>
+            <span data-tr="Paketler" data-en="Packages">Paketler</span>
+        </a>
+        <a href="#" onclick="showComingSoonAlert('deals'); return false;" class="nav-item">
+            <i class="fa-solid fa-tag"></i>
+            <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span>
+        </a>
+        <a href="@Url.Action("About", "Home")" class="nav-item">
+            <i class="fa-solid fa-info-circle"></i>
+            <span data-tr="Hakkımızda" data-en="About">Hakkımızda</span>
+        </a>
+        <a href="@Url.Action("Contact", "Home")" class="nav-item">
+            <i class="fa-solid fa-envelope"></i>
+            <span data-tr="İletişim" data-en="Contact">İletişim</span>
+        </a>
     </div>
 
-    <!-- Kullanıcı giriş durumu -->
-    @if (Session["UserId"] != null)
+    <!-- Desktop sidebar button -->
+    @if (ViewBag.IsAdminPage != true)
     {
-        <!-- Giriş yapmış kullanıcı -->
-        <div class="user-menu">
-            <span class="user-name">@Session["UserName"]</span>
-            <div class="user-dropdown">
-                <a href="@Url.Action("Settings", "Home")" class="user-menu-item">
-                    <i class="fa-solid fa-user-cog"></i> Ayarlar
-                </a>
-                <a href="@Url.Action("Logout", "Home")" class="user-menu-item">
-                    <i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap
-                </a>
+        <button class="toggle-btn-outside" id="toggleButton" onclick="toggleSidebar()" aria-label="Sidebar'ı aç/kapat">
+            <i id="toggleIcon" class="fa-solid fa-angles-left"></i>
+        </button>
+    }
+
+    <!-- Ana içerik -->
+    <div class="site">
+        <main class="page-content">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Havalimanı modal -->
+    <div class="airport-modal" id="airportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="airportModalTitle" data-tr="Havalimanı Seçin" data-en="Select Airport">
+                    Havalimanı Seçin
+                </h3>
+                <button class="modal-close" onclick="closeAirportModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="airport-search">
+                    <input type="text" id="airportSearch"
+                           placeholder="Şehir veya havalimanı ara..."
+                           data-placeholder-tr="Şehir veya havalimanı ara..."
+                           data-placeholder-en="Search city or airport...">
+                </div>
+
+                <div class="airport-list" id="airportList">
+                    <!-- Havalimanları buraya yüklenecek -->
+                </div>
             </div>
         </div>
-    }
-    else
-    {
-        <!-- Kayıt ol ve giriş yap butonları -->
-        <button class="join-btn" onclick="window.location.href='@Url.Action("Signup", "Home")'" data-tr="Kayıt Ol" data-en="Sign Up">Kayıt Ol</button>
-        <button class="signin-btn" onclick="window.location.href='@Url.Action("Login", "Home")'" data-tr="Giriş Yap" data-en="Login">Giriş Yap</button>
-    }
-  </div>
-</header>
-
-<!-- SIDEBAR - Yan navigasyon menüsü -->
-<div class="sidebar" id="sidebar">
-  <!-- Ana menü listesi -->
-  <ul class="menu">
-    <!-- Uçuş rezervasyonu -->
-    <li><a href="@Url.Action("Index", "Home")"><i class="fa-solid fa-plane"></i> <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span></a></li>
-    <!-- Paket turlar -->
-    <li><a href="@Url.Action("Packages", "Home")"><i class="fa-solid fa-suitcase-rolling"></i> <span data-tr="Paketler" data-en="Packages">Paketler</span></a></li>
-    <!-- Özel teklifler -->
-    <li><a href="@Url.Action("Deals", "Home")"><i class="fa-solid fa-tag"></i> <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span></a></li>
-
-    <!-- Menü ayırıcısı -->
-    <hr class="menu-divider">
-
-    @if (Session["UserId"] != null)
-    {
-        <!-- Kullanıcı ayarları -->
-        <li><a href="@Url.Action("Settings", "Home")"><i class="fa-solid fa-user-cog"></i> <span data-tr="Ayarlar" data-en="Settings">Ayarlar</span></a></li>
-        <hr class="menu-divider">
-    }
-
-    <!-- Seyahat planları -->
-    <li><a href="#" onclick="showComingSoonAlert('trips'); return false;"><i class="fa-solid fa-map"></i> <span data-tr="Seyahatler" data-en="Trips">Seyahatler</span></a></li>
-    <!-- Online check-in -->
-    <li><a href="#" onclick="showComingSoonAlert('checkin'); return false;"><i class="fa-solid fa-clipboard-check"></i> <span data-tr="Check-in" data-en="Check-in">Check-in</span></a></li>
-    <!-- Uçuş durumu sorgulama -->
-    <li><a href="#" onclick="showComingSoonAlert('status'); return false;"><i class="fa-solid fa-list-check"></i> <span data-tr="Uçuş Durumu" data-en="Flight Status">Uçuş Durumu</span></a></li>
-
-    <!-- Menü ayırıcısı -->
-    <hr class="menu-divider">
-
-    <!-- Hakkımızda sayfası -->
-    <li><a href="@Url.Action("About", "Home")"><i class="fa-solid fa-info-circle"></i> <span data-tr="Hakkımızda" data-en="About Us">Hakkımızda</span></a></li>
-    <!-- İletişim sayfası -->
-    <li><a href="@Url.Action("Contact", "Home")"><i class="fa-solid fa-envelope"></i> <span data-tr="İletişim" data-en="Contact">İletişim</span></a></li>
-    <!-- Müşteri hizmetleri -->
-    <li><a href="#" onclick="showComingSoonAlert('support'); return false;"><i class="fa-solid fa-headset"></i> <span data-tr="Destek" data-en="Support">Destek</span></a></li>
-
-    <!-- Menü ayırıcısı -->
-    <hr class="menu-divider">
-
-    <!-- Otel rezervasyonu -->
-    <li><a href="#" onclick="showComingSoonAlert('tripai'); return false;"><i class="fa-solid fa-robot"></i> <span data-tr="Trip AI" data-en="Trip AI">Trip AI</span></a></li>
-  </ul>
-
-  <!-- Daha fazla seçenekler -->
-  <div class="sidebar-more">
-    <a href="#" onclick="showComingSoonAlert('more'); return false;"><i class="fa-solid fa-ellipsis"></i><span data-tr="Daha Fazla" data-en="More">Daha Fazla</span></a>
-  </div>
-</div>
-
-<!-- Mobil cihazlarda sidebar kapatmak için arka plan overlay -->
-<div id="drawerOverlay" class="drawer-overlay" onclick="closeMobileSidebar()"></div>
-
-<!-- Mobil alt navigasyon -->
-<div class="mobile-bottom-nav">
-  <a href="@Url.Action("Index", "Home")" class="nav-item active">
-    <i class="fa-solid fa-plane"></i>
-    <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span>
-  </a>
-  <a href="@Url.Action("Packages", "Home")" class="nav-item">
-    <i class="fa-solid fa-suitcase-rolling"></i>
-    <span data-tr="Paketler" data-en="Packages">Paketler</span>
-  </a>
-  <a href="@Url.Action("Deals", "Home")" class="nav-item">
-    <i class="fa-solid fa-tag"></i>
-    <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span>
-  </a>
-  <a href="@Url.Action("About", "Home")" class="nav-item">
-    <i class="fa-solid fa-info-circle"></i>
-    <span data-tr="Hakkımızda" data-en="About">Hakkımızda</span>
-  </a>
-  <a href="@Url.Action("Contact", "Home")" class="nav-item">
-    <i class="fa-solid fa-envelope"></i>
-    <span data-tr="İletişim" data-en="Contact">İletişim</span>
-  </a>
-</div>
-
-<!-- Desktop'ta sidebar'ı açıp kapatmak için buton -->
-<button class="toggle-btn-outside" id="toggleButton" onclick="toggleSidebar()" aria-label="Sidebar'ı aç/kapat">
-  <i id="toggleIcon" class="fa-solid fa-angles-left"></i>
-</button>
-
-<!-- Ana site içeriği -->
-<div class="site">
-<main class="page-content">
-    @RenderBody()
-</main>
-</div>
-
-<!-- Havalimanı seçim modal'ı -->
-<div class="airport-modal" id="airportModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="airportModalTitle" data-tr="Havalimanı Seçin" data-en="Select Airport">Havalimanı Seçin</h3>
-      <button class="modal-close" onclick="closeAirportModal()">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
     </div>
-    <div class="modal-body">
-      <div class="airport-search">
-        <input type="text" id="airportSearch" placeholder="Şehir veya havalimanı ara..." 
-               data-placeholder-tr="Şehir veya havalimanı ara..." 
-               data-placeholder-en="Search city or airport...">
-      </div>
-      <div class="airport-list" id="airportList">
-        <!-- Havalimanları buraya yüklenecek -->
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- Yolcu seçim modal'ı -->
-<div class="passenger-modal" id="passengerModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 data-tr="Yolcu ve Sınıf Seçimi" data-en="Passenger and Class Selection">Yolcu ve Sınıf Seçimi</h3>
-      <button class="modal-close" onclick="closePassengerModal()">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="passenger-counters">
-        <div class="counter-row">
-          <div class="counter-info">
-            <span class="counter-label" data-tr="Yetişkin" data-en="Adult">Yetişkin</span>
-            <small data-tr="12 yaş ve üzeri" data-en="12 years and above">12 yaş ve üzeri</small>
-          </div>
-          <div class="counter-controls">
-            <button type="button" onclick="changePassengerCount('adult', -1)">-</button>
-            <span id="adultCount">1</span>
-            <button type="button" onclick="changePassengerCount('adult', 1)">+</button>
-          </div>
+    <!-- Yolcu seçim modal -->
+    <div class="passenger-modal" id="passengerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-tr="Yolcu ve Sınıf Seçimi" data-en="Passenger and Class Selection">
+                    Yolcu ve Sınıf Seçimi
+                </h3>
+                <button class="modal-close" onclick="closePassengerModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="passenger-counters">
+
+                    <div class="counter-row">
+                        <div class="counter-info">
+                            <span class="counter-label" data-tr="Yetişkin" data-en="Adult">Yetişkin</span>
+                            <small data-tr="12 yaş ve üzeri" data-en="12 years and above">12 yaş ve üzeri</small>
+                        </div>
+                        <div class="counter-controls">
+                            <button type="button" onclick="changePassengerCount('adult', -1)">-</button>
+                            <span id="adultCount">1</span>
+                            <button type="button" onclick="changePassengerCount('adult', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="counter-row">
+                        <div class="counter-info">
+                            <span class="counter-label" data-tr="Çocuk" data-en="Child">Çocuk</span>
+                            <small data-tr="2-11 yaş" data-en="2-11 years">2-11 years</small>
+                        </div>
+                        <div class="counter-controls">
+                            <button type="button" onclick="changePassengerCount('child', -1)">-</button>
+                            <span id="childCount">0</span>
+                            <button type="button" onclick="changePassengerCount('child', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="counter-row">
+                        <div class="counter-info">
+                            <span class="counter-label" data-tr="Bebek" data-en="Infant">Bebek</span>
+                            <small data-tr="0-23 ay" data-en="0-23 months">0-23 ay</small>
+                        </div>
+                        <div class="counter-controls">
+                            <button type="button" onclick="changePassengerCount('infant', -1)">-</button>
+                            <span id="infantCount">0</span>
+                            <button type="button" onclick="changePassengerCount('infant', 1)">+</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="class-selection">
+                    <h4 data-tr="Kabin Sınıfı" data-en="Cabin Class">Kabin Sınıfı</h4>
+
+                    <div class="class-options">
+                        <label class="class-option">
+                            <input type="radio" name="cabinClass" value="economy" checked>
+                            <span data-tr="Ekonomi" data-en="Economy">Ekonomi</span>
+                        </label>
+
+                        <label class="class-option">
+                            <input type="radio" name="cabinClass" value="business">
+                            <span data-tr="Business" data-en="Business">Business</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="modal-confirm" onclick="confirmPassengerSelection()">
+                    <span data-tr="Onayla" data-en="Confirm">Onayla</span>
+                </button>
+
+            </div>
         </div>
-        <div class="counter-row">
-          <div class="counter-info">
-            <span class="counter-label" data-tr="Çocuk" data-en="Child">Çocuk</span>
-            <small data-tr="2-11 yaş" data-en="2-11 years">2-11 years</small>
-          </div>
-          <div class="counter-controls">
-            <button type="button" onclick="changePassengerCount('child', -1)">-</button>
-            <span id="childCount">0</span>
-            <button type="button" onclick="changePassengerCount('child', 1)">+</button>
-          </div>
-        </div>
-        <div class="counter-row">
-          <div class="counter-info">
-            <span class="counter-label" data-tr="Bebek" data-en="Infant">Bebek</span>
-            <small data-tr="0-23 ay" data-en="0-23 months">0-23 ay</small>
-          </div>
-          <div class="counter-controls">
-            <button type="button" onclick="changePassengerCount('infant', -1)">-</button>
-            <span id="infantCount">0</span>
-            <button type="button" onclick="changePassengerCount('infant', 1)">+</button>
-          </div>
-        </div>
-      </div>
-      
-      <div class="class-selection">
-        <h4 data-tr="Kabin Sınıfı" data-en="Cabin Class">Kabin Sınıfı</h4>
-        <div class="class-options">
-          <label class="class-option">
-            <input type="radio" name="cabinClass" value="economy" checked>
-            <span data-tr="Ekonomi" data-en="Economy">Ekonomi</span>
-          </label>
-          <label class="class-option">
-            <input type="radio" name="cabinClass" value="business">
-            <span data-tr="Business" data-en="Business">Business</span>
-          </label>
-        </div>
-      </div>
-      
-      <button class="modal-confirm" onclick="confirmPassengerSelection()">
-        <span data-tr="Onayla" data-en="Confirm">Onayla</span>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- LANGUAGE & CURRENCY MODAL - Dil ve para birimi seçim modal'ı -->
-<div class="lang-modal" id="langModal">
-  <div class="lang-modal-content">
-    <!-- Modal kapatma butonu -->
-    <button class="lang-modal-close" onclick="closeLangModal()" aria-label="Modal'ı kapat">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-
-    <!-- Para birimi seçimi -->
-    <h6 class="modal-title" data-tr="Ülke/Bölge - Para Birimi Seçin" data-en="Select Country/Region - Currency">Ülke/Bölge - Para Birimi Seçin</h6>
-    <select id="currencySelect" class="modal-select">
-        <option value="₺" data-tr="Türkiye - ₺" data-en="Turkey - ₺">Türkiye - ₺</option>
-        <option value="US$" data-tr="Amerika Birleşik Devletleri - US$" data-en="United States - US$">Amerika Birleşik Devletleri - US$</option>
-        <option value="€" data-tr="Avrupa - €" data-en="Europe - €">Avrupa - €</option>
-        <option value="£" data-tr="Birleşik Krallık - £" data-en="United Kingdom - £">Birleşik Krallık - £</option>
-    </select>
-
-    <!-- Bilgilendirme metni -->
-    <small class="modal-info" data-tr="Seçilen para biriminde faturalandırılacaksınız" data-en="You will be billed in selected currency">
-      Seçilen para biriminde faturalandırılacaksınız
-    </small>
-
-    <!-- Dil seçimi -->
-    <h6 class="modal-title" data-tr="Dil Seçin" data-en="Select Language">Dil Seçin</h6>
-    <select id="languageSelect" class="modal-select">
-        <option value="tr" data-tr="Türkçe" data-en="Turkish">Türkçe</option>
-        <option value="en" data-tr="İngilizce" data-en="English">İngilizce</option>
-    </select>
-
-    <!-- Onay butonu -->
-    <button class="modal-confirm-btn" onclick="confirmLanguageChange()" data-tr="Onayla" data-en="Confirm">
-      Onayla
-    </button>
-  </div>
-</div>
-
-<!-- FOOTER - Alt bilgi -->
-<footer class="main-footer">
-  <div class="footer-content">
-
-    <!-- Marka -->
-    <p class="footer-brand">&copy; @DateTime.Now.Year <span>Trabzon Airlines</span></p>
-
-    <!-- Linkler alt kısımda ortalı -->
-    <div class="footer-links">
-      <a href="@Url.Action("Index", "Home")" data-tr="Ana Sayfa" data-en="Home">Ana Sayfa</a>
-      <a href="@Url.Action("About", "Home")" data-tr="Hakkımızda" data-en="About Us">Hakkımızda</a>
-      <a href="@Url.Action("Contact", "Home")" data-tr="İletişim" data-en="Contact">İletişim</a>
-      <a href="@Url.Action("Privacy", "Home")" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</a>
     </div>
 
-    <p class="footer-copy" data-tr="Tüm hakları saklıdır" data-en="All rights reserved">
-      Tüm hakları saklıdır
-    </p>
+    <!-- DİL & PARA BİRİMİ MODAL -->
+    <div class="lang-modal" id="langModal">
+        <div class="lang-modal-content">
 
-  </div>
-</footer>
+            <button class="lang-modal-close" onclick="closeLangModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            @* PARA BİRİMİ (Admin sayfasında gizlenecek) *@
+            @if (!isAdminPage)
+            {
+                <h6 class="modal-title" data-tr="Ülke/Bölge - Para Birimi Seçin" data-en="Select Country/Region - Currency">
+                    Ülke/Bölge - Para Birimi Seçin
+                </h6>
+
+                <select id="currencySelect" class="modal-select">
+                    <option value="₺" data-tr="Türkiye - ₺" data-en="Turkey - ₺">Türkiye - ₺</option>
+                    <option value="US$" data-tr="Amerika Birleşik Devletleri - US$" data-en="United States - US$">
+                        Amerika Birleşik Devletleri - US$
+                    </option>
+                    <option value="€" data-tr="Avrupa - €" data-en="Europe - €">Avrupa - €</option>
+                    <option value="£" data-tr="Birleşik Krallık - £" data-en="United Kingdom - £">
+                        Birleşik Krallık - £
+                    </option>
+                </select>
+
+                <small class="modal-info"
+                       data-tr="Seçilen para biriminde faturalandırılacaksınız"
+                       data-en="You will be billed in selected currency">
+                    Seçilen para biriminde faturalandırılacaksınız
+                </small>
+            }
+
+            @* DİL SEÇİMİ *@
+            <h6 class="modal-title" data-tr="Dil Seçin" data-en="Select Language">Dil Seçin</h6>
+
+            <select id="languageSelect" class="modal-select">
+                <option value="tr" data-tr="Türkçe" data-en="Turkish">Türkçe</option>
+                <option value="en" data-tr="İngilizce" data-en="English">İngilizce</option>
+            </select>
+
+            <button class="modal-confirm-btn" onclick="confirmLanguageChange()"
+                    data-tr="Onayla" data-en="Confirm">
+                Onayla
+            </button>
+
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="main-footer">
+        <div class="footer-content">
+
+            <!-- Marka -->
+            <p class="footer-brand">&copy; @DateTime.Now.Year <span>Trabzon Airlines</span></p>
+
+            <!-- Footer linkleri -->
+            <!-- Footer links -->
+            <div class="footer-links">
+                <a href="@Url.Action("Index", "Home")" data-tr="Ana Sayfa" data-en="Home">Ana Sayfa</a>
+                <a href="@Url.Action("About", "Home")" data-tr="Hakkımızda" data-en="About Us">Hakkımızda</a>
+                <a href="@Url.Action("Contact", "Home")" data-tr="İletişim" data-en="Contact">İletişim</a>
+                <a href="@Url.Action("Privacy", "Home")"
+                   data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</a>
+                <a href="@Url.Action("Sitemap", "Home")"
+                   data-tr="Site Haritası" data-en="Sitemap">Site Haritası</a>
+            </div>
+
+            <p class="footer-copy" data-tr="Tüm hakları saklıdır" data-en="All rights reserved">
+                Tüm hakları saklıdır
+            </p>
+
+        </div>
+    </footer>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/trabzonairlines")
     @RenderSection("scripts", required: false)
+
 </body>
 </html>

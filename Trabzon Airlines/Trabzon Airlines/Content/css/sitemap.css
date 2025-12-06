@@ -22,6 +22,7 @@ body {
 }
 
 /* Header */
+/* Başlık */
 .sitemap-header {
     padding: 2rem 2rem 1.5rem 2rem;
     border-bottom: 1px solid #e5e5e5;
@@ -47,6 +48,7 @@ body {
 }
 
 /* Main Content */
+/* Ana İçerik */
 .sitemap-main {
     flex: 1;
     padding: 3rem 2rem;
@@ -60,6 +62,7 @@ body {
 }
 
 /* Title Section */
+/* Başlık Bölümü */
 .sitemap-title-section {
     text-align: center;
     margin-bottom: 4rem;
@@ -84,6 +87,7 @@ body {
 }
 
 /* Section */
+/* Bölüm */
 .sitemap-section {
     margin-bottom: 3rem;
 }
@@ -98,6 +102,7 @@ body {
 }
 
 /* Sitemap List */
+/* Site Haritası Listesi */
 .sitemap-list {
     display: flex;
     flex-direction: column;
@@ -145,6 +150,7 @@ body {
 }
 
 /* Footer */
+/* Alt Bilgi */
 .sitemap-footer {
     padding: 2rem;
     border-top: 1px solid #e5e5e5;
@@ -210,7 +216,8 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+/* Responsive Tasarım */
+@@media (max-width: 768px) {
     .sitemap-header {
         padding: 1.5rem 1.5rem 1rem 1.5rem;
     }
@@ -253,7 +260,7 @@ body {
     }
 }
 
-@media (max-width: 480px) {
+@@media (max-width: 480px) {
     .sitemap-header {
         padding: 1rem;
     }
@@ -292,7 +299,8 @@ body {
 }
 
 /* Print Styles */
-@media print {
+/* Yazdırma Stilleri */
+@@media print {
     .sitemap-header,
     .sitemap-footer {
         display: none;

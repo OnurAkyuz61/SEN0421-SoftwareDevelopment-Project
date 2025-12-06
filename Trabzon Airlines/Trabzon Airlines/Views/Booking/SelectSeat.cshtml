@@ -1,0 +1,68 @@
+@model List<Trabzon_Airlines.Models.FlightSeat>
+
+<h2>@ViewBag.Flight.FlightNumber Koltuk Seçimi</h2>
+<h4>@ViewBag.Flight.FromCode ==> @ViewBag.Flight.ToCode</h4>
+<hr />
+
+@using (Html.BeginForm("SelectSeat", "Booking", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="FlightId" value="@ViewBag.Flight.FlightId" />
+
+    <div class="plane-body">
+        <div class="cockpit"> CockPit</div>
+
+        @for (int row = 1; row <= 14; row++)
+        {
+            <div class="seat-row">
+                @foreach (var col in new[] { "A", "B", "C", "D" })
+                {
+                    var seatNumber = row + col;
+
+                    var seat = Model.FirstOrDefault(s => s.Seat.SeatNumber == seatNumber);
+
+                    if (seat != null)
+                    {
+                        bool isReserved = seat.IsReserved;
+                        string seatState = isReserved ? "reserved" : "free";
+                        string cabinClass = row <= 4 ? "business" : "economy";
+
+                        <label class="seat-item @seatState @cabinClass" data-seat="@seatNumber">
+                            <input type="radio"
+                                   name="SelectedSeatId"
+                                   value="@seat.SeatId"
+                                   @(isReserved ? "disabled" : "") />
+                            @seatNumber
+                        </label>
+                    }
+                    else
+                    {
+                        <div class="seat-item empty"></div>
+                    }
+
+                    if (col == "B")
+                    { <div class="aisle"></div>;
+                    }
+                }
+            </div>
+        }
+        <div class="tail">Kuyruk</div>
+    </div>
+
+
+
+
+    <div class="seat-info-box">
+        <span class="seat-indicator free"></span> Boþ
+        <span class="seat-indicator reserved"></span> Dolu
+        <span class="seat-indicator business"></span> Business
+        <span class="seat-indicator economy"></span> Economy
+        <span class="seat-indicator selected"></span> Seçili
+    </div>
+
+    <button type="submit" class="btn btn-success" style="margin-top:20px;">Devam Et</button>
+}
+
+@section Styles {
+    <link href="~/Content/SeatMap.css" rel="stylesheet" />
+}

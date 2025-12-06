@@ -1,0 +1,416 @@
+﻿@{
+    // Admin giriş sayfası - Layout olmadan sade tasarım
+    // Admin login page - Simple design without layout
+    ViewBag.Title = "Admin Giriş";
+    Layout = null; // Layout kullanma - header/navbar/sidebar yok
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Trabzon Airlines</title>
+    
+    <!-- Font Awesome ikonları -->
+    <!-- Font Awesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Admin Login CSS -->
+    <style>
+        /* Genel stiller */
+        /* General styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+          body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              background: #ffffff; /* Beyaz arka plan */
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 20px;
+          }
+
+          /* Ana container */
+          /* Main container */
+          .admin-login-container {
+              background: #ffffff;
+              border-radius: 20px;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+              border: 1px solid #e1e5e9;
+              overflow: hidden;
+              max-width: 450px;
+              width: 100%;
+              animation: slideUp 0.5s ease;
+          }
+
+        /* Animasyon */
+        /* Animation */
+        @@keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Logo ve başlık bölümü */
+        /* Logo and title section */
+        .login-header {
+            background: linear-gradient(135deg, #e4002b 0%, #c50023 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .login-logo {
+            width: 180px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+        }
+
+        .login-logo img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Form bölümü */
+        /* Form section */
+        .login-form {
+            padding: 40px 30px;
+        }
+
+        /* Hata mesajları */
+        /* Error messages */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .alert-danger {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .alert i {
+            font-size: 18px;
+        }
+
+        /* Form grupları */
+        /* Form groups */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #e4002b;
+            box-shadow: 0 0 0 3px rgba(228, 0, 43, 0.1);
+        }
+
+        /* Şifre input grubu */
+        /* Password input group */
+        .password-input {
+            position: relative;
+        }
+
+        .password-input input {
+            padding-right: 45px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: #e4002b;
+        }
+
+        /* Submit butonu */
+        /* Submit button */
+        .login-submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #e4002b 0%, #c50023 100%);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .login-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(228, 0, 43, 0.3);
+        }
+
+        .login-submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Footer */
+        .login-footer {
+            text-align: center;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e1e5e9;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .login-footer a {
+            color: #e4002b;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive tasarım */
+        /* Responsive design */
+        @@media (max-width: 480px) {
+            .admin-login-container {
+                border-radius: 15px;
+            }
+
+            .login-header {
+                padding: 30px 20px;
+            }
+
+            .login-form {
+                padding: 30px 20px;
+            }
+
+            .login-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-login-container">
+        <!-- Logo ve başlık -->
+        <!-- Logo and title -->
+        <div class="login-header">
+            <div class="login-logo">
+                <img src="~/assets/logo/logo.png" alt="Trabzon Airlines Logo" />
+            </div>
+            <h1 class="login-title">Admin Panel</h1>
+            <p class="login-subtitle">Yönetim paneline erişmek için giriş yapınız</p>
+        </div>
+
+        <!-- Form bölümü -->
+        <!-- Form section -->
+        <div class="login-form">
+            <!-- Hata mesajları -->
+            <!-- Error messages -->
+            @if (TempData["AdminErrorKey"] != null)
+            {
+                <div class="alert alert-danger">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>
+                        @if (TempData["AdminError_tr"] != null)
+                        {
+                            @TempData["AdminError_tr"]
+                        }
+                        else if (TempData["AdminError_en"] != null)
+                        {
+                            @TempData["AdminError_en"]
+                        }
+                        else
+                        {
+                            <text>E-posta veya şifre hatalı!</text>
+                        }
+                    </span>
+                </div>
+            }
+
+            <!-- Başarı mesajları -->
+            <!-- Success messages -->
+            @if (TempData["AdminSuccessKey"] != null)
+            {
+                <div class="alert alert-success">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>
+                        @if (TempData["AdminSuccess_tr"] != null)
+                        {
+                            @TempData["AdminSuccess_tr"]
+                        }
+                        else if (TempData["AdminSuccess_en"] != null)
+                        {
+                            @TempData["AdminSuccess_en"]
+                        }
+                    </span>
+                </div>
+            }
+
+            <!-- Giriş formu -->
+            <!-- Login form -->
+            <form method="post" action="@Url.Action("Login", "Admin")">
+                @Html.AntiForgeryToken() <!-- CSRF koruması -->
+                
+                <!-- E-posta alanı -->
+                <!-- Email field -->
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fa-solid fa-envelope"></i> E-posta *
+                    </label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           required 
+                           placeholder="admin@trabzonairlines.com"
+                           autocomplete="email">
+                </div>
+
+                <!-- Şifre alanı -->
+                <!-- Password field -->
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fa-solid fa-lock"></i> Şifre *
+                    </label>
+                    <div class="password-input">
+                        <input type="password" 
+                               id="password" 
+                               name="password" 
+                               required 
+                               placeholder="Şifrenizi giriniz"
+                               autocomplete="current-password">
+                        <button type="button" 
+                                class="password-toggle" 
+                                onclick="togglePassword('password')"
+                                aria-label="Şifreyi göster/gizle">
+                            <i class="fa-solid fa-eye" id="password-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Giriş butonu -->
+                <!-- Login button -->
+                <button type="submit" class="login-submit-btn">
+                    <i class="fa-solid fa-sign-in-alt"></i>
+                    <span>Giriş Yap</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <p>&copy; @DateTime.Now.Year Trabzon Airlines. Tüm hakları saklıdır.</p>
+            <p>
+                <a href="@Url.Action("Index", "Home")">
+                    <i class="fa-solid fa-arrow-left"></i> Ana Sayfaya Dön
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Şifre göster/gizle fonksiyonu
+        // Show/hide password function
+        function togglePassword(inputId) {
+            // Input elementi al
+            // Get input element
+            var input = document.getElementById(inputId);
+            
+            // İkon elementi al
+            // Get icon element
+            var icon = document.getElementById('password-icon');
+            
+            // Eğer şifre görünürse gizle, gizliyse göster
+            // If password is visible, hide it; if hidden, show it
+            if (input.type === 'password') {
+                input.type = 'text'; // Şifreyi göster
+                icon.classList.remove('fa-eye'); // Göz ikonunu kaldır
+                icon.classList.add('fa-eye-slash'); // Kapalı göz ikonunu ekle
+            } else {
+                input.type = 'password'; // Şifreyi gizle
+                icon.classList.remove('fa-eye-slash'); // Kapalı göz ikonunu kaldır
+                icon.classList.add('fa-eye'); // Göz ikonunu ekle
+            }
+        }
+
+        // Form gönderildiğinde butonu devre dışı bırak (çift gönderimi önle)
+        // Disable button when form is submitted (prevent double submission)
+        document.querySelector('form').addEventListener('submit', function(e) {
+            var submitBtn = this.querySelector('.login-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Giriş yapılıyor...';
+        });
+    </script>
+</body>
+</html>

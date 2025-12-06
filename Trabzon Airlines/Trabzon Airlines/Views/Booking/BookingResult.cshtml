@@ -1,0 +1,10 @@
+@model Trabzon_Airlines.Models.Booking
+
+<h2>Rezervasyon Tamamlandý</h2>
+<hr />
+
+<p><b>Uçuþ:</b> @Model.Flight.FlightNumber (@Model.Flight.FromCode - @Model.Flight.ToCode)</p>
+<p><b>Koltuk:</b> @Model.Seat.SeatNumber (@Model.Seat.CabinClass)</p>
+<p><b>PNR Kodunuz:</b> @Model.PNR</p>
+
+<p style="color:green;">Bu kodu saklayýn. Sonraki iþlemler için gereklidir.</p>
