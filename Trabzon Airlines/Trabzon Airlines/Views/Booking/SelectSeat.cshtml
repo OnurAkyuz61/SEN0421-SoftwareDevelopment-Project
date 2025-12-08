@@ -157,3 +157,29 @@
     @* Seat map CSS file *@
     <link href="~/Content/css/seatmap.css" rel="stylesheet" />
 }
+
+@* JavaScript bölümü - Seçili koltuk için dinamik class ekleme *@
+@* JavaScript section - Dynamic class addition for selected seat *@
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Radio button değiştiğinde seçili koltuk class'ını güncelle
+            // Update selected seat class when radio button changes
+            $('input[type="radio"][name="SelectedSeatId"]').on('change', function () {
+                // Tüm koltuklardan selected class'ını kaldır
+                // Remove selected class from all seats
+                $('.seat-item').removeClass('selected');
+                
+                // Seçili radio button'un parent label'ına selected class'ı ekle
+                // Add selected class to parent label of selected radio button
+                $(this).closest('.seat-item').addClass('selected');
+            });
+            
+            // Sayfa yüklendiğinde zaten seçili olan koltuk varsa class ekle
+            // If a seat is already selected on page load, add class
+            $('input[type="radio"][name="SelectedSeatId"]:checked').each(function () {
+                $(this).closest('.seat-item').addClass('selected');
+            });
+        });
+    </script>
+}

@@ -5,8 +5,8 @@
     ViewBag.TitleEn = "Flight Results";
 }
 
-<div class="container" style="margin-top: 2rem; margin-left: calc(var(--sidebar-width) + 2rem); padding: 2rem;">
-    <h2 data-tr="Uçuş Sonuçları" data-en="Flight Results">Uçuş Sonuçları</h2>
+<div class="container" style="margin-top: 2rem; margin-left: auto; margin-right: auto; max-width: 1400px; padding: 2rem;">
+    <h2 data-tr="Uçuş Sonuçları" data-en="Flight Results" style="text-align: center;">Uçuş Sonuçları</h2>
     <hr />
 
     <div id="searchResultsContainer">
@@ -335,6 +335,12 @@
 }
 
 <style>
+    .container {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        max-width: 1400px;
+    }
+    
     .flight-results {
         max-width: 1200px;
         margin: 0 auto;
@@ -347,8 +353,10 @@
     
     @@media (max-width: 768px) {
         .container {
-            margin-left: var(--sidebar-collapsed-width) !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
             padding: 1rem !important;
+            max-width: 100% !important;
         }
         
         .flight-card-result > div {

@@ -86,34 +86,39 @@ namespace Trabzon_Airlines.Controllers
                 return RedirectToAction("SelectSeat", new { flightId = FlightId });
             }
 
-            // Koltuğu rezerve et (kilitliyoruz)
-            // Reserve the seat (lock it)
+            // Koltuğu rezerve et (kilitliyoruz) - Geçici olarak
+            // Reserve the seat (lock it) - Temporarily
             fs.IsReserved = true;
+            db.SaveChanges(); // Koltuk rezervasyonunu kaydet - Save seat reservation
 
-            // Benzersiz PNR kodu üret
-            // Generate unique PNR code
-            string pnr = GeneratePNR();
-
-            // Yeni rezervasyon oluştur
-            // Create new booking
-            var booking = new Booking
+            // Uçuş bilgisini al (fiyat için)
+            // Get flight information (for price)
+            var flight = db.Flights.Find(FlightId.Value);
+            if (flight == null)
             {
-                FlightId = FlightId.Value, // Uçuş ID'si
-                SeatId = SelectedSeatId.Value, // Koltuk ID'si
-                PassengerName = "Test", // Yolcu adı (şimdilik test)
-                PassengerSurname = "User", // Yolcu soyadı (şimdilik test)
-                PNR = pnr, // PNR kodu
-                BookingDate = DateTime.Now // Rezervasyon tarihi
+                // Uçuş bulunamadıysa hata döndür
+                // If flight not found, return error
+                TempData["Error"] = "Uçuş bilgisi bulunamadı.";
+                return RedirectToAction("SelectSeat", new { flightId = FlightId });
+            }
+
+            // Rezervasyon bilgilerini Session'a kaydet (ödeme sonrası için)
+            // Save booking information to Session (for after payment)
+            Session["PendingBooking"] = new
+            {
+                FlightId = FlightId.Value,
+                SeatId = SelectedSeatId.Value,
+                FlightNumber = flight.FlightNumber,
+                FromCode = flight.FromCode,
+                ToCode = flight.ToCode,
+                DepartureTime = flight.DepartureTime,
+                ArrivalTime = flight.ArrivalTime,
+                SeatNumber = fs.Seat.SeatNumber
             };
 
-            // Rezervasyonu veritabanına ekle
-            // Add booking to database
-            db.Bookings.Add(booking);
-            db.SaveChanges();
-
-            // Rezervasyon sonuç sayfasına yönlendir
-            // Redirect to booking result page
-            return RedirectToAction("BookingResult", new { bookingId = booking.BookingId });
+            // Ödeme sayfasına yönlendir (uçuş fiyatı ile)
+            // Redirect to payment page (with flight price)
+            return RedirectToAction("Index", "Payment", new { amount = flight.Price });
         }
 
         // --------------------------

@@ -25,12 +25,19 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
 
 ### ✨ Özellikler
 
-- 🔍 **Uçuş Arama ve Rezervasyon**
+- 🔍 **Uçuş Arama ve Rezervasyon** ✅
   - Gelişmiş arama filtreleri (Gidiş-Dönüş, Tek Yön, Çoklu Uçuş)
   - Havalimanı seçim modal'ı
   - Yolcu ve kabin sınıfı seçimi
   - Tarih validasyonu
   - Promosyon kodu desteği
+  - **Veritabanı entegrasyonu ile gerçek zamanlı uçuş arama**
+  - **Uçuş sonuçları sayfası (SearchResults)**
+  - **Uçuş bulunamadığında popup modal uyarısı**
+  - **AJAX ile asenkron arama işlemi**
+  - **Loading durumu göstergesi**
+  - **Koltuk seçimi (SelectSeat)** - Uçuş sonrası koltuk seçimi
+  - **Ödeme sistemi (Payment)** - Iyzico entegrasyonu ile güvenli ödeme
 
 - 🌍 **Çok Dilli Destek** ✅
   - Türkçe ve İngilizce dil seçenekleri
@@ -69,6 +76,16 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - Rezervasyon takibi
   - Super Admin yetkilendirme sistemi
 
+- 💳 **Ödeme Sistemi** ✅
+  - **Iyzico entegrasyonu** - Sandbox ortamında test ödemeleri
+  - **3D Secure desteği** - Güvenli ödeme akışı
+  - **Kredi kartı ödeme formu** - İnteraktif kart gösterimi
+  - **Dinamik kart UI** - Gerçek zamanlı kart bilgisi gösterimi
+  - **Para birimi dönüşümü** - TL, USD, EUR, GBP desteği
+  - **Uçuş bilgisi entegrasyonu** - Ödeme sayfasında uçuş detayları
+  - **Session yönetimi** - Rezervasyon bilgilerinin güvenli aktarımı
+  - **Ödeme başarı/hata sayfaları** - Kullanıcı geri bildirimi
+
 - 📄 **Sayfalar**
   - Ana Sayfa (Index) - Uçuş arama ve öne çıkan teklifler
   - Hakkımızda (About) - Şirket bilgileri, misyon, vizyon, ekip
@@ -82,6 +99,10 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - Ayarlar (Settings) - Kullanıcı profil ve ayar yönetimi
   - Site Haritası (Sitemap) - Site yapısı
   - Gizlilik Politikası (Privacy) - KVKK ve gizlilik bilgileri
+  - **Koltuk Seçimi (Booking/SelectSeat)** - Uçuş sonrası koltuk seçimi
+  - **Güvenli Ödeme (Payment/Index)** - Iyzico entegrasyonu ile ödeme sayfası
+  - **Ödeme Başarı (Payment/success)** - Başarılı ödeme sonrası sayfa
+  - **Ödeme Hata (Payment/error)** - Ödeme hatası durumunda sayfa
 
 ## 🛠️ Kullanılan Teknolojiler
 
@@ -95,6 +116,7 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
 - **SQL Server LocalDB** - Veritabanı (MSSQLLocalDB)
 - **SHA256** - Şifre hash'leme algoritması
 - **Session Management** - Kullanıcı oturum yönetimi
+- **Iyzico Payment SDK** - Ödeme işlemleri için entegrasyon (Sandbox ortamı)
 
 ### Frontend
 - **HTML5** - Semantik yapı ve erişilebilirlik
@@ -141,15 +163,25 @@ web-prog-proj/
 │       │   └── RouteConfig.cs     # Route yapılandırması
 │       ├── Controllers/
 │       │   ├── HomeController.cs   # Ana controller (Index, About, Contact, Login, Signup, Packages, Deals, Settings)
-│       │   └── AdminController.cs  # Admin controller (Dashboard, Packages, Deals yönetimi)
+│       │   ├── AdminController.cs  # Admin controller (Dashboard, Packages, Deals yönetimi)
+│       │   ├── FlightsController.cs # Uçuş controller (Index, Status, Search, SearchResults)
+│       │   ├── AdminFlightsController.cs # Admin uçuş yönetimi (CRUD işlemleri)
+│       │   ├── BookingController.cs # Rezervasyon controller (SelectSeat, vb.)
+│       │   ├── PaymentController.cs # Ödeme controller (Index, Pay, Callback - Iyzico entegrasyonu)
+│       │   └── AccountController.cs # Hesap yönetimi controller
 │       ├── Models/
 │       │   ├── User.cs             # Kullanıcı modeli
 │       │   ├── Admin.cs            # Admin modeli
+│       │   ├── Flight.cs           # Uçuş modeli (FlightNumber, FromCode, ToCode, DepartureTime, ArrivalTime, Price, IsActive, WeatherCondition, DelayRisk)
+│       │   ├── Seat.cs             # Koltuk modeli
+│       │   ├── FlightSeat.cs       # Uçuş-Koltuk ilişki modeli
+│       │   ├── Booking.cs           # Rezervasyon modeli
 │       │   ├── Package.cs          # Paket modeli
 │       │   ├── Deal.cs             # Fırsat modeli
 │       │   ├── PackageReservation.cs # Paket rezervasyon modeli
 │       │   ├── DealReservation.cs  # Fırsat rezervasyon modeli
-│       │   └── TrabzonAirlinesDbContext.cs # Entity Framework DbContext
+│       │   ├── PaymentViewModel.cs # Ödeme formu modeli (Amount, CardHolderName, CardNumber, ExpireDate, Cvc)
+│       │   └── TAContext.cs        # Entity Framework DbContext
 │       ├── Attributes/
 │       │   └── AuthorizeAdminAttribute.cs # Admin yetkilendirme attribute'u
 │       ├── Views/
@@ -166,6 +198,16 @@ web-prog-proj/
 │       │   │   ├── Settings.cshtml   # Kullanıcı ayarları
 │       │   │   ├── Sitemap.cshtml    # Site haritası
 │       │   │   └── Privacy.cshtml    # Gizlilik politikası
+│       │   ├── Flights/
+│       │   │   ├── Index.cshtml      # Aktif uçuş listesi
+│       │   │   ├── Status.cshtml     # Uçuş durum sayfası
+│       │   │   └── SearchResults.cshtml # Uçuş arama sonuçları
+│       │   ├── Booking/
+│       │   │   └── SelectSeat.cshtml # Koltuk seçimi sayfası
+│       │   ├── Payment/
+│       │   │   ├── Index.cshtml      # Güvenli ödeme sayfası (Iyzico entegrasyonu)
+│       │   │   ├── success.cshtml    # Ödeme başarı sayfası
+│       │   │   └── error.cshtml     # Ödeme hata sayfası
 │       │   ├── Admin/
 │       │   │   ├── Login.cshtml      # Admin giriş
 │       │   │   ├── Dashboard.cshtml  # Admin dashboard
@@ -203,9 +245,17 @@ web-prog-proj/
 │       │   │   └── team/         # Ekip üyesi resimleri
 │       │   └── logo/
 │       │       └── logo.png      # Logo
-│       ├── App_Data/              # Veritabanı dosyaları (LocalDB)
-│       ├── Web.config             # Web yapılandırması (Connection String dahil)
-│       ├── Global.asax            # Global uygulama dosyası
+│       ├── Data/
+│       │   └── TAContext.cs       # Entity Framework DbContext (Flights, Seats, FlightSeats, Bookings, Users, Admins)
+│       ├── Migrations/            # Entity Framework Code First Migrations
+│       │   ├── Configuration.cs   # Migration yapılandırması (AutomaticMigrationsEnabled = true)
+│       │   ├── InitialCreate.cs   # İlk veritabanı oluşturma
+│       │   ├── AddSeatBooking.cs  # Koltuk ve rezervasyon tabloları
+│       │   ├── AddFlightStatusFields.cs # Hava durumu ve rötar riski alanları
+│       │   └── ...                 # Diğer migration dosyaları
+│       ├── App_Data/              # Veritabanı dosyaları (LocalDB - TrabzonDB.mdf)
+│       ├── Web.config             # Web yapılandırması (Connection String: TAConn)
+│       ├── Global.asax            # Global uygulama dosyası (Otomatik migration desteği)
 │       └── packages.config        # NuGet paketleri
 ├── css/                            # Orijinal CSS dosyaları (referans)
 ├── js/                             # Orijinal JS dosyaları (referans)
@@ -238,8 +288,11 @@ web-prog-proj/
 
 3. **Veritabanını oluşturun:**
    - Proje ilk çalıştırıldığında Entity Framework otomatik olarak veritabanını oluşturacaktır
-   - Veritabanı: `TrabzonAirlinesDb` (LocalDB)
-   - Connection String: `Web.config` dosyasında tanımlıdır
+   - **Otomatik Migration:** `Global.asax.cs` dosyasında `MigrateDatabaseToLatestVersion` ile otomatik migration etkinleştirilmiştir
+   - **Migration Yapılandırması:** `Migrations/Configuration.cs` dosyasında `AutomaticMigrationsEnabled = true` olarak ayarlanmıştır
+   - Veritabanı: `TrabzonDB` (LocalDB)
+   - Connection String: `Web.config` dosyasında `TAConn` olarak tanımlıdır
+   - Veritabanı dosyası: `App_Data/TrabzonDB.mdf`
    - İlk admin kullanıcısı oluşturmak için veritabanına manuel olarak eklenmelidir
 
 4. **Projeyi çalıştırın:**
@@ -260,9 +313,20 @@ web-prog-proj/
 - Gidiş-Dönüş, Tek Yön, Çoklu Uçuş seçenekleri
 - Havalimanı seçim modal'ı
 - Yolcu ve kabin sınıfı seçimi
+- **Veritabanı entegrasyonu ile gerçek zamanlı uçuş arama**
+- **AJAX ile asenkron arama işlemi**
+- **Loading durumu göstergesi**
 - Öne çıkan uçuş teklifleri (İstanbul, Ankara, İzmir)
 - Responsive sidebar navigasyon
 - Mobil alt navigasyon
+
+### ✈️ Uçuş Arama Sonuçları (Flights/SearchResults)
+- **Gidiş uçuşları listesi** (tarih, saat, fiyat, hava durumu, rötar riski)
+- **Dönüş uçuşları listesi** (gidiş-dönüş seçimi için)
+- **Uçuş detayları:** Kalkış/varış saatleri, uçuş süresi, sefer numarası
+- **Rezervasyon butonu:** Her uçuş için koltuk seçim sayfasına yönlendirme
+- **Arama kriterleri özeti:** Seçilen havalimanları ve tarihler
+- **Responsive tasarım:** Mobil ve desktop uyumlu
 
 ### ℹ️ Hakkımızda (Home/About)
 - Şirket bilgileri ve misyon
@@ -337,6 +401,13 @@ web-prog-proj/
   - Fırsat silme
   - Tarih aralığı yönetimi
   - İndirim yüzdesi ayarlama
+- **Uçuş Yönetimi (AdminFlights/*)**:
+  - Uçuş listeleme
+  - Yeni uçuş ekleme
+  - Uçuş düzenleme
+  - Uçuş silme
+  - Aktif/Pasif durumu yönetimi
+  - Hava durumu ve rötar riski ayarlama
 
 ## 🎨 Tasarım Özellikleri
 
@@ -385,22 +456,46 @@ web-prog-proj/
 - `/Home/Settings` - Kullanıcı ayarları
 - `/Home/Sitemap` - Site haritası
 - `/Home/Privacy` - Gizlilik politikası
+- `/Flights/Index` - Aktif uçuş listesi
+- `/Flights/Status` - Uçuş durum sayfası
+- `/Flights/Search` - Uçuş arama (POST - JSON API)
+- `/Flights/SearchResults` - Uçuş arama sonuçları
+- `/Booking/SelectSeat` - Koltuk seçimi
+- `/Payment/Index` - Güvenli ödeme sayfası (Iyzico entegrasyonu)
+- `/Payment/Pay` - Ödeme işlemi (POST)
+- `/Payment/Callback` - Iyzico 3D Secure callback
+- `/Payment/success` - Ödeme başarı sayfası
+- `/Payment/error` - Ödeme hata sayfası
 - `/Admin/Login` - Admin giriş
 - `/Admin/Dashboard` - Admin dashboard
 - `/Admin/Packages` - Admin paket yönetimi
 - `/Admin/Deals` - Admin fırsat yönetimi
+- `/AdminFlights/Index` - Admin uçuş listesi
+- `/AdminFlights/Create` - Yeni uçuş ekleme
+- `/AdminFlights/Edit/{id}` - Uçuş düzenleme
+- `/AdminFlights/Delete/{id}` - Uçuş silme
 
 ### Özellikler
 - **Havalimanı Yönetimi:** 66+ Türkiye havalimanı (uluslararası ve yerel)
 - **Dil Sistemi:** localStorage ile dil tercihi saklama
 - **Form Validasyonu:** Client-side ve server-side validasyon
 - **Responsive Design:** Mobil, tablet ve desktop uyumluluğu
-- **Modal Sistemleri:** Havalimanı seçimi, yolcu seçimi, dil seçimi
+- **Modal Sistemleri:** Havalimanı seçimi, yolcu seçimi, dil seçimi, uçuş bulunamadı uyarısı
 - **Veritabanı:** Entity Framework Code First yaklaşımı
+- **Otomatik Migration:** Uygulama başlangıcında otomatik veritabanı güncelleme
 - **Güvenlik:** SHA256 şifre hash'leme, Session yönetimi, Anti-forgery token
 - **Yetkilendirme:** Admin paneli için özel yetkilendirme attribute'u
-- **CRUD İşlemleri:** Paket ve fırsat yönetimi için tam CRUD desteği
-- **Rezervasyon Sistemi:** Paket ve fırsat rezervasyonları için model yapısı
+- **CRUD İşlemleri:** Paket, fırsat ve uçuş yönetimi için tam CRUD desteği
+- **Rezervasyon Sistemi:** Paket, fırsat ve uçuş rezervasyonları için model yapısı
+- **Ödeme Sistemi:** Iyzico entegrasyonu ile güvenli ödeme işlemleri
+- **Koltuk Rezervasyonu:** Uçuş sonrası koltuk seçimi ve rezervasyon sistemi
+- **AJAX Entegrasyonu:** Asenkron uçuş arama işlemi
+- **JSON API:** RESTful uçuş arama endpoint'i
+- **Uçuş Arama:** Gerçek zamanlı veritabanı sorgulama ile uçuş arama
+- **Ödeme Entegrasyonu:** Iyzico Sandbox API ile test ödemeleri
+- **3D Secure:** Güvenli ödeme akışı desteği
+- **Session Yönetimi:** Rezervasyon bilgilerinin ödeme sayfasına aktarımı
+- **Dinamik UI:** Gerçek zamanlı kart bilgisi gösterimi ve para birimi dönüşümü
 
 ## 🎯 Gerçekleştirilen Özellikler
 
@@ -411,6 +506,9 @@ web-prog-proj/
 - **Mobil Navigasyon:** Alt navigasyon çubuğu ve hamburger menü
 - **Sidebar Sistemi:** Desktop'ta daraltılabilir sidebar, mobilde drawer
 - **Uçuş Arama:** Gelişmiş arama formu ve validasyon
+- **Uçuş Arama API:** Veritabanı entegrasyonu ile gerçek zamanlı uçuş arama (FlightsController/Search)
+- **Uçuş Sonuçları:** Detaylı uçuş sonuçları sayfası (SearchResults)
+- **Popup Modal:** Uçuş bulunamadığında kullanıcıya bilgilendirme modal'ı
 - **Kullanıcı Yönetimi:** Login, Signup ve Settings sayfaları
 - **Form Validasyonu:** Client-side ve server-side validasyon
 - **Modal Sistemleri:** Havalimanı, yolcu, dil seçim modalları
@@ -421,6 +519,8 @@ web-prog-proj/
 - **Fırsat Yönetimi:** CRUD işlemleri ile fırsat yönetimi
 - **Güvenlik:** SHA256 şifre hash'leme, Session yönetimi
 - **Yetkilendirme:** Admin paneli için özel yetkilendirme sistemi
+- **Ödeme Sistemi:** Iyzico Sandbox entegrasyonu ile test ödemeleri
+- **Koltuk Seçimi:** Uçuş sonrası koltuk seçimi ve rezervasyon sistemi
 
 ### 🔧 Teknik Özellikler
 - ASP.NET MVC 5 (.NET Framework 4.7.2)
@@ -443,17 +543,28 @@ web-prog-proj/
 
 ### Önemli Dosyalar
 - `BundleConfig.cs` - CSS/JS bundle yapılandırması
-- `_Layout.cshtml` - Master layout (header, sidebar, footer, modals)
+- `_Layout.cshtml` - Master layout (header, sidebar, footer, modals - uçuş bulunamadı modal'ı dahil)
 - `HomeController.cs` - Ana controller ve action'lar
 - `AdminController.cs` - Admin paneli controller'ı
-- `TrabzonAirlinesDbContext.cs` - Entity Framework veritabanı bağlamı
+- `FlightsController.cs` - Uçuş controller (Index, Status, Search API, SearchResults)
+- `AdminFlightsController.cs` - Admin uçuş yönetimi controller'ı
+- `BookingController.cs` - Rezervasyon controller'ı (SelectSeat - koltuk seçimi)
+- `PaymentController.cs` - Ödeme controller'ı (Index, Pay, Callback - Iyzico entegrasyonu)
+- `TAContext.cs` - Entity Framework veritabanı bağlamı (Flights, Seats, FlightSeats, Bookings, Users, Admins)
 - `AuthorizeAdminAttribute.cs` - Admin yetkilendirme attribute'u
-- `Web.config` - Web uygulaması yapılandırması (Connection String dahil)
-- `Models/` - Veritabanı modelleri (User, Admin, Package, Deal, vb.)
+- `Web.config` - Web uygulaması yapılandırması (Connection String: TAConn)
+- `Global.asax.cs` - Otomatik migration yapılandırması
+- `Migrations/Configuration.cs` - Migration yapılandırması (AutomaticMigrationsEnabled = true)
+- `Models/` - Veritabanı modelleri (User, Admin, Flight, Seat, FlightSeat, Booking, Package, Deal, vb.)
+- `js/flight-search.js` - Uçuş arama JavaScript fonksiyonları (AJAX entegrasyonu dahil)
 
 ### Veritabanı Modelleri
 - **User:** Kullanıcı bilgileri (Ad, Soyad, E-posta, Şifre, TC, vb.)
 - **Admin:** Admin kullanıcı bilgileri (Kullanıcı adı, Şifre, Super Admin durumu)
+- **Flight:** Uçuş bilgileri (Sefer No, Kalkış/Varış havalimanı kodları, Kalkış/Varış zamanları, Fiyat, Aktif durumu, Hava durumu, Rötar riski)
+- **Seat:** Koltuk bilgileri (Koltuk numarası, Kabin sınıfı)
+- **FlightSeat:** Uçuş-Koltuk ilişki tablosu (Uçuş ID, Koltuk ID, Rezerve durumu)
+- **Booking:** Rezervasyon bilgileri (Uçuş ID, Koltuk ID, Yolcu bilgileri, PNR, Rezervasyon tarihi)
 - **Package:** Paket bilgileri (Başlık, Açıklama, Fiyat, İndirim, Kategori, vb.)
 - **Deal:** Fırsat bilgileri (Başlık, Açıklama, İndirim, Tarih aralığı, Kampanya kodu, vb.)
 - **PackageReservation:** Paket rezervasyonları
@@ -469,9 +580,20 @@ Assets klasörü (`Trabzon Airlines/Trabzon Airlines/assets/`) proje içinde bul
 
 ### Veritabanı Kurulumu
 1. Proje ilk çalıştırıldığında Entity Framework otomatik olarak veritabanını oluşturur
-2. Veritabanı: `TrabzonAirlinesDb` (LocalDB)
-3. Connection String: `Web.config` dosyasında `TrabzonAirlinesDb` olarak tanımlıdır
-4. İlk admin kullanıcısı oluşturmak için:
+2. **Otomatik Migration:** `Global.asax.cs` dosyasında `MigrateDatabaseToLatestVersion` ile otomatik migration etkinleştirilmiştir
+3. **Migration Yapılandırması:** `Migrations/Configuration.cs` dosyasında:
+   - `AutomaticMigrationsEnabled = true` (Otomatik migration etkin)
+   - `AutomaticMigrationDataLossAllowed = true` (Development ortamı için)
+4. Veritabanı: `TrabzonDB` (LocalDB)
+5. Connection String: `Web.config` dosyasında `TAConn` olarak tanımlıdır
+6. Veritabanı dosyası: `App_Data/TrabzonDB.mdf`
+7. **Migration Dosyaları:**
+   - `InitialCreate.cs` - İlk veritabanı oluşturma (Flights tablosu)
+   - `AddSeatBooking.cs` - Koltuk ve rezervasyon tabloları
+   - `AddFlightStatusFields.cs` - Hava durumu ve rötar riski alanları
+   - `AddUsersTable.cs` - Kullanıcılar tablosu
+   - `AddAdminsTable.cs` - Adminler tablosu
+8. İlk admin kullanıcısı oluşturmak için:
    - Veritabanına manuel olarak admin eklenmelidir
    - Şifre SHA256 ile hash'lenmelidir
    - `IsActive = true` ve `IsSuperAdmin = true` olarak ayarlanmalıdır

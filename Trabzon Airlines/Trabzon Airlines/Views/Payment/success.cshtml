@@ -1,0 +1,72 @@
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
+    ViewBag.Title = "Ödeme Başarılı";
+    ViewBag.TitleEn = "Payment Successful";
+}
+
+@* Ana başlık - Çeviri desteği ile *@
+@* Main header - With translation support *@
+<div class="text-center">
+    @* Başarı ikonu *@
+    @* Success icon *@
+    <div class="mb-4">
+        <i class="fa-solid fa-circle-check" style="font-size: 5rem; color: #28a745;"></i>
+    </div>
+    
+    <h2 class="text-success mb-3" data-tr="Ödeme Başarılı!" data-en="Payment Successful!">
+        Ödeme Başarılı!
+    </h2>
+    
+    @* Başarı mesajı *@
+    @* Success message *@
+    @if (ViewBag.Mesaj != null || ViewBag.Message != null)
+    {
+        <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading" data-tr="Tebrikler!" data-en="Congratulations!">
+                <i class="fa-solid fa-check-circle"></i> Tebrikler!
+            </h4>
+            <p>@(ViewBag.Mesaj ?? ViewBag.Message)</p>
+            @if (ViewBag.PaymentId != null)
+            {
+                <hr>
+                <p class="mb-0">
+                    <strong data-tr="Ödeme Referans Numarası:" data-en="Payment Reference Number:">
+                        Ödeme Referans Numarası:
+                    </strong>
+                    <code>@ViewBag.PaymentId</code>
+                </p>
+            }
+        </div>
+    }
+
+    @* Bilgilendirme mesajı *@
+    @* Information message *@
+    <div class="alert alert-info" role="alert">
+        <i class="fa-solid fa-info-circle"></i>
+        <span data-tr="Ödeme işleminiz başarıyla tamamlandı. Rezervasyon bilgileriniz e-posta adresinize gönderilecektir." data-en="Your payment has been successfully completed. Your reservation information will be sent to your email address.">
+            Ödeme işleminiz başarıyla tamamlandı. Rezervasyon bilgileriniz e-posta adresinize gönderilecektir.
+        </span>
+    </div>
+
+    @* Butonlar *@
+    @* Buttons *@
+    <div class="mt-4">
+        @if (ViewBag.BookingId != null)
+        {
+            <a href="@Url.Action("BookingResult", "Booking", new { bookingId = ViewBag.BookingId })" class="btn btn-primary btn-lg mr-2">
+                <i class="fa-solid fa-ticket"></i>
+                <span data-tr="Rezervasyon Detayları" data-en="Booking Details">Rezervasyon Detayları</span>
+            </a>
+        }
+        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary btn-lg mr-2">
+            <i class="fa-solid fa-home"></i>
+            <span data-tr="Ana Sayfaya Dön" data-en="Return to Home">Ana Sayfaya Dön</span>
+        </a>
+        <a href="@Url.Action("Index", "Flights")" class="btn btn-outline-secondary btn-lg">
+            <i class="fa-solid fa-plane"></i>
+            <span data-tr="Yeni Uçuş Ara" data-en="Search New Flight">Yeni Uçuş Ara</span>
+        </a>
+    </div>
+</div>
+

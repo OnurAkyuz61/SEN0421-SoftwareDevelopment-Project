@@ -1,0 +1,63 @@
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
+    ViewBag.Title = "Ödeme Hatası";
+    ViewBag.TitleEn = "Payment Error";
+}
+
+@* Ana başlık - Çeviri desteği ile *@
+@* Main header - With translation support *@
+<div class="text-center">
+    @* Hata ikonu *@
+    @* Error icon *@
+    <div class="mb-4">
+        <i class="fa-solid fa-circle-xmark" style="font-size: 5rem; color: #dc3545;"></i>
+    </div>
+    
+    <h2 class="text-danger mb-3" data-tr="Ödeme Başarısız!" data-en="Payment Failed!">
+        Ödeme Başarısız!
+    </h2>
+    
+    @* Hata mesajı *@
+    @* Error message *@
+    @if (ViewBag.Hata != null || ViewBag.Error != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading" data-tr="Üzgünüz!" data-en="Sorry!">
+                <i class="fa-solid fa-exclamation-triangle"></i> Üzgünüz!
+            </h4>
+            <p>@(ViewBag.Hata ?? ViewBag.Error)</p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning" role="alert">
+            <p data-tr="Ödeme işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin." data-en="An error occurred during the payment process. Please try again.">
+                Ödeme işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin.
+            </p>
+        </div>
+    }
+
+    @* Bilgilendirme mesajı *@
+    @* Information message *@
+    <div class="alert alert-info" role="alert">
+        <i class="fa-solid fa-info-circle"></i>
+        <span data-tr="Ödeme işleminiz gerçekleştirilemedi. Lütfen kart bilgilerinizi kontrol ederek tekrar deneyin. Sorun devam ederse bankanızla iletişime geçin." data-en="Your payment could not be processed. Please check your card information and try again. If the problem persists, contact your bank.">
+            Ödeme işleminiz gerçekleştirilemedi. Lütfen kart bilgilerinizi kontrol ederek tekrar deneyin. Sorun devam ederse bankanızla iletişime geçin.
+        </span>
+    </div>
+
+    @* Butonlar *@
+    @* Buttons *@
+    <div class="mt-4">
+        <a href="@Url.Action("Index", "Payment")" class="btn btn-warning btn-lg mr-2">
+            <i class="fa-solid fa-redo"></i>
+            <span data-tr="Tekrar Dene" data-en="Try Again">Tekrar Dene</span>
+        </a>
+        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary btn-lg">
+            <i class="fa-solid fa-home"></i>
+            <span data-tr="Ana Sayfaya Dön" data-en="Return to Home">Ana Sayfaya Dön</span>
+        </a>
+    </div>
+</div>
+

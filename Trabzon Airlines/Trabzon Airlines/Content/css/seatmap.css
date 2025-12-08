@@ -29,6 +29,7 @@
     user-select: none;
     border: 2px solid transparent;
     position: relative;
+    transition: all 0.3s ease; /* Yumuşak geçiş animasyonu */
 }
 
     .seat-item input {
@@ -49,10 +50,14 @@
         color: white;
     }
 
-    .seat-item.selected,
-    .seat-item input:checked + label {
-        background: #1e88e5 !important;
-        color: white;
+    .seat-item.selected {
+        background: #00c853 !important; /* Koyu yeşil - Belirgin seçili renk */
+        color: white !important;
+        border: 3px solid #00e676 !important; /* Parlak yeşil border */
+        box-shadow: 0 0 15px rgba(0, 200, 83, 0.8) !important; /* Glow efekti */
+        transform: scale(1.15) !important; /* Biraz büyüt */
+        font-weight: bold !important; /* Kalın yazı */
+        z-index: 10 !important; /* Üstte göster */
     }
 
 .aisle {
@@ -88,10 +93,15 @@
     background: #90caf9 !important; /* Mavi */
 }
 
-/* Seçili */
-.seat-item.selected {
-    background: #1e88e5 !important;
+/* Seçili - Belirgin yeşil renk */
+.seat-item.selected,
+.seat-item input:checked ~ * {
+    background: #00c853 !important; /* Koyu yeşil - Belirgin seçili renk */
     color: #fff !important;
+    border: 3px solid #00e676 !important; /* Parlak yeşil border */
+    box-shadow: 0 0 10px rgba(0, 200, 83, 0.6) !important; /* Glow efekti */
+    transform: scale(1.1); /* Biraz büyüt */
+    font-weight: bold !important; /* Kalın yazı */
 }
 
 /* Dolu */
@@ -119,6 +129,7 @@
 }
 
 .seat-indicator.selected {
-    background: #1e88e5;
+    background: #00c853; /* Koyu yeşil - Seçili koltuk rengi */
+    border: 2px solid #00e676; /* Parlak yeşil border */
 }
 

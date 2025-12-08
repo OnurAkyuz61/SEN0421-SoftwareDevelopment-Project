@@ -123,6 +123,9 @@
       <Private>True</Private>
       <HintPath>..\packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="Iyzipay">
+      <HintPath>..\packages\Iyzipay.2.1.67\lib\net45\Iyzipay.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
@@ -139,6 +142,7 @@
     <Compile Include="Controllers\BookingController.cs" />
     <Compile Include="Controllers\FlightsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\PaymentController.cs" />
     <Compile Include="Data\TAContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -168,6 +172,7 @@
     <Compile Include="Models\Booking.cs" />
     <Compile Include="Models\Flight.cs" />
     <Compile Include="Models\FlightSeat.cs" />
+    <Compile Include="Models\PaymentViewModel.cs" />
     <Compile Include="Models\Seat.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -233,6 +238,9 @@
     <Content Include="Views\AdminFlights\Edit.cshtml" />
     <Content Include="Views\Booking\SelectSeat.cshtml" />
     <Content Include="Views\Booking\BookingResult.cshtml" />
+    <Content Include="Views\Payment\Index.cshtml" />
+    <Content Include="Views\Payment\success.cshtml" />
+    <Content Include="Views\Payment\error.cshtml" />
     <Content Include="Views\AdminFlights\Seats.cshtml" />
     <Content Include="Views\AdminFlights\SeatDetail.cshtml" />
     <Content Include="Views\Flights\Index.cshtml" />

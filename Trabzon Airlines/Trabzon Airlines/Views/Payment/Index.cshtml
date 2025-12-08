@@ -1,0 +1,806 @@
+@* Model tanımı - Ödeme view model *@
+@* Model definition - Payment view model *@
+@model Trabzon_Airlines.Models.PaymentViewModel
+
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
+    ViewBag.Title = "Güvenli Ödeme";
+    ViewBag.TitleEn = "Secure Payment";
+}
+
+@* Özel CSS stilleri *@
+@* Custom CSS styles *@
+@section styles {
+    <style>
+        /* Payment Page Styles - Site temasına uygun */
+        .payment-page-wrapper {
+            background-color: #f0f2f5;
+            min-height: calc(100vh - 70px);
+            padding: 2rem 0;
+        }
+
+        /* Centered Header */
+        .payment-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .payment-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .payment-header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        /* Credit Card Display */
+        .credit-card-container {
+            perspective: 1000px;
+            margin-bottom: 2rem;
+        }
+
+        .credit-card {
+            width: 100%;
+            max-width: 520px;
+            height: 260px;
+            margin: 0 auto;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .credit-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            background: linear-gradient(135deg, #e4002b 0%, #c20025 100%);
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #c20025 0%, #e4002b 100%);
+        }
+
+        .card-chip {
+            width: 50px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .card-chip::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 25px;
+            background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+            border-radius: 4px;
+        }
+
+        .card-number {
+            font-size: 1.5rem;
+            letter-spacing: 5px;
+            color: white;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            font-family: 'Courier New', monospace;
+            min-height: 2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-spacing: 1rem;
+            padding-right: 1rem;
+            line-height: 1.2;
+        }
+
+        .card-number.empty::before {
+            content: '0000 0000 0000 0000';
+            opacity: 0.5;
+        }
+
+        .card-info {
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .card-holder-name {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-height: 1.5rem;
+        }
+
+        .card-holder-name.empty::before {
+            content: 'CARD HOLDER';
+            opacity: 0.5;
+        }
+
+        .card-expiry {
+            font-size: 1rem;
+            letter-spacing: 1px;
+            min-height: 1.5rem;
+        }
+
+        .card-expiry.empty::before {
+            content: 'MM/YY';
+            opacity: 0.5;
+        }
+
+        .card-logo {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            font-size: 2rem;
+            color: white;
+            opacity: 0.8;
+        }
+
+        .card-stripe {
+            width: 100%;
+            height: 50px;
+            background: #000;
+            margin-top: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-cvv {
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-align: right;
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            min-height: 2.5rem;
+        }
+
+        .card-cvv.empty::before {
+            content: '***';
+            opacity: 0.5;
+        }
+
+        .card-flip-hint {
+            position: absolute;
+            bottom: 1rem;
+            right: 2rem;
+            color: white;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            cursor: pointer;
+        }
+
+        /* Payment Form */
+        .payment-form-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #e4002b;
+            box-shadow: 0 0 0 3px rgba(228, 0, 43, 0.1);
+            outline: none;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        /* Payment Summary */
+        .payment-summary {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 2rem;
+        }
+
+        .summary-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .flight-info-box {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .flight-route {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .flight-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .price-section {
+            border-top: 2px solid #e0e0e0;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .price-label {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e4002b;
+        }
+
+        .price-currency {
+            font-size: 1.2rem;
+            color: #999;
+            margin-left: 0.5rem;
+        }
+
+        .btn-pay {
+            width: 100%;
+            background: linear-gradient(135deg, #e4002b 0%, #c20025 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-pay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(228, 0, 43, 0.4);
+            background: linear-gradient(135deg, #c20025 0%, #e4002b 100%);
+        }
+
+        .btn-pay:active {
+            transform: translateY(0);
+        }
+
+        .security-info {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .security-badges {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #28a745;
+            font-size: 0.9rem;
+        }
+
+        /* Error Messages */
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .payment-header h1 {
+                font-size: 2rem;
+            }
+
+            .credit-card {
+                max-width: 100%;
+                height: 220px;
+            }
+
+            .card-number {
+                font-size: 1.4rem;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .payment-summary {
+                position: relative;
+                top: 0;
+                margin-top: 2rem;
+            }
+        }
+    </style>
+}
+
+<div class="payment-page-wrapper">
+    <div class="container">
+        @* Ortalanmış Başlık - Centered Header *@
+        <div class="payment-header">
+            <h1 data-tr="Güvenli Ödeme" data-en="Secure Payment">Secure Payment</h1>
+            <p data-tr="Kart bilgilerinizi güvenle girin" data-en="Enter your card information securely">
+                Enter your card information securely
+            </p>
+        </div>
+
+        @* Hata mesajı gösterimi - Error message display *@
+        @if (ViewBag.Hata != null || ViewBag.Error != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                <strong data-tr="Ödeme Başarısız!" data-en="Payment Failed!">Payment Failed!</strong>
+                <span>@(ViewBag.Hata ?? ViewBag.Error)</span>
+            </div>
+        }
+
+        <div class="row">
+            @* Sol taraf - Kart gösterimi ve form - Left side - Card display and form *@
+            <div class="col-lg-7">
+                @* Kredi Kartı Gösterimi - Credit Card Display *@
+                <div class="credit-card-container">
+                    <div class="credit-card" id="creditCard">
+                        @* Kart Ön Yüzü - Card Front *@
+                        <div class="card-front">
+                            <div class="card-logo">
+                                <i class="fa-solid fa-credit-card"></i>
+                            </div>
+                            <div class="card-chip"></div>
+                            <div class="card-number" id="cardNumberDisplay">
+                                <span class="empty">0000 0000 0000 0000</span>
+                            </div>
+                            <div class="card-info">
+                                <div>
+                                    <div class="card-holder-name" id="cardHolderDisplay">
+                                        <span class="empty">CARD HOLDER</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="card-expiry" id="cardExpiryDisplay">
+                                        <span class="empty">MM/YY</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @* Kart Arka Yüzü - Card Back *@
+                        <div class="card-back">
+                            <div class="card-stripe"></div>
+                            <div class="card-cvv" id="cardCvvDisplay">
+                                <span class="empty">***</span>
+                            </div>
+                            <div class="card-flip-hint" onclick="flipCard()">
+                                <i class="fa-solid fa-rotate"></i> Flip
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Ödeme Formu - Payment Form *@
+                <div class="payment-form-container">
+                    @using (Html.BeginForm("Pay", "Payment", FormMethod.Post, new { @class = "payment-form" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        @* Kart Sahibinin Adı Soyadı - Card Holder Name *@
+                        <div class="form-group">
+                            <label class="form-label" for="CardHolderName" data-tr="Kart Sahibinin Adı Soyadı" data-en="Card Holder's Full Name">
+                                Card Holder's Full Name
+                            </label>
+                            @Html.TextBoxFor(m => m.CardHolderName, new { 
+                                @class = "form-control", 
+                                @placeholder = "JOHN DOE",
+                                @required = "required",
+                                @id = "CardHolderName",
+                                @style = "text-transform: uppercase;"
+                            })
+                            @Html.ValidationMessageFor(m => m.CardHolderName, "", new { @class = "text-danger" })
+                        </div>
+
+                        @* Kart Numarası - Card Number *@
+                        <div class="form-group">
+                            <label class="form-label" for="CardNumber" data-tr="Kart Numarası" data-en="Card Number">
+                                Card Number
+                            </label>
+                            @Html.TextBoxFor(m => m.CardNumber, new { 
+                                @class = "form-control", 
+                                @placeholder = "0000 0000 0000 0000",
+                                @required = "required",
+                                @maxlength = "19",
+                                @id = "CardNumber"
+                            })
+                            @Html.ValidationMessageFor(m => m.CardNumber, "", new { @class = "text-danger" })
+                        </div>
+
+                        @* Son Kullanma Tarihi ve CVC - Expiry Date and CVC *@
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label" for="ExpireDate" data-tr="Son Kullanma Tarihi" data-en="Expiry Date">
+                                        Expiry Date
+                                    </label>
+                                    @Html.TextBoxFor(m => m.ExpireDate, new { 
+                                        @class = "form-control", 
+                                        @placeholder = "MM/YY",
+                                        @required = "required",
+                                        @maxlength = "5",
+                                        @id = "ExpireDate"
+                                    })
+                                    @Html.ValidationMessageFor(m => m.ExpireDate, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label" for="Cvc" data-tr="CVV/CVC" data-en="CVV/CVC">
+                                        CVV/CVC
+                                    </label>
+                                    @Html.TextBoxFor(m => m.Cvc, new { 
+                                        @class = "form-control", 
+                                        @placeholder = "***",
+                                        @required = "required",
+                                        @maxlength = "4",
+                                        @id = "Cvc"
+                                    })
+                                    @Html.ValidationMessageFor(m => m.Cvc, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Gizli tutar alanı - Hidden amount field *@
+                        @Html.HiddenFor(m => m.Amount, new { @id = "Amount" })
+
+                        @* Ödeme Butonu - Payment Button *@
+                        <button type="submit" class="btn-pay">
+                            <i class="fa-solid fa-lock"></i>
+                            <span data-tr="Güvenli Öde" data-en="Pay Securely" style="margin-left: 0.5rem;">
+                                Pay Securely
+                            </span>
+                        </button>
+
+                        @* Güvenlik Bilgileri - Security Information *@
+                        <div class="security-info">
+                            <div class="security-badges">
+                                <div class="security-badge">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                    <span data-tr="3D Secure" data-en="3D Secure">3D Secure</span>
+                                </div>
+                                <div class="security-badge">
+                                    <i class="fa-solid fa-lock"></i>
+                                    <span data-tr="256-Bit SSL" data-en="256-Bit SSL">256-Bit SSL</span>
+                                </div>
+                            </div>
+                            <p class="mt-2" data-tr="Devam ederek satış sözleşmesini kabul etmiş sayılırsınız." data-en="By continuing, you agree to the sales agreement.">
+                                By continuing, you agree to the sales agreement.
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Sağ taraf - Ödeme özeti - Right side - Payment summary *@
+            <div class="col-lg-5">
+                <div class="payment-summary">
+                    <h3 class="summary-title" data-tr="Uçuş Özeti" data-en="Flight Summary">Flight Summary</h3>
+                    
+                    @* Uçuş Bilgisi - Flight Information *@
+                    <div class="flight-info-box">
+                        <div class="flight-route" id="flightRouteDisplay">
+                            @if (ViewBag.FlightRoute != null)
+                            {
+                                <i class="fa-solid fa-plane" style="margin-right: 0.5rem;"></i>
+                                @ViewBag.FlightRoute
+                            }
+                            else
+                            {
+                                <span data-tr="Uçuş Bilgisi" data-en="Flight Information">Flight Information</span>
+                            }
+                        </div>
+                        <div class="flight-details" id="flightDetailsDisplay">
+                            @if (ViewBag.FlightNumber != null)
+                            {
+                                <div style="margin-bottom: 0.5rem;">
+                                    <i class="fa-solid fa-ticket" style="margin-right: 0.5rem; color: #e4002b;"></i>
+                                    <strong data-tr="Uçuş No:" data-en="Flight No:">Flight No:</strong> @ViewBag.FlightNumber
+                                </div>
+                            }
+                            @if (ViewBag.DepartureDate != null && ViewBag.DepartureTime != null)
+                            {
+                                <div style="margin-bottom: 0.5rem;">
+                                    <i class="fa-solid fa-calendar-alt" style="margin-right: 0.5rem; color: #e4002b;"></i>
+                                    <strong data-tr="Kalkış:" data-en="Departure:">Departure:</strong> 
+                                    @ViewBag.DepartureDate, @ViewBag.DepartureTime
+                                    @if (ViewBag.FromCode != null)
+                                    {
+                                        <span> (@ViewBag.FromCode)</span>
+                                    }
+                                </div>
+                            }
+                            @if (ViewBag.ArrivalDate != null && ViewBag.ArrivalTime != null)
+                            {
+                                <div style="margin-bottom: 0.5rem;">
+                                    <i class="fa-solid fa-calendar-check" style="margin-right: 0.5rem; color: #e4002b;"></i>
+                                    <strong data-tr="Varış:" data-en="Arrival:">Arrival:</strong> 
+                                    @ViewBag.ArrivalDate, @ViewBag.ArrivalTime
+                                    @if (ViewBag.ToCode != null)
+                                    {
+                                        <span> (@ViewBag.ToCode)</span>
+                                    }
+                                </div>
+                            }
+                            @if (ViewBag.FlightDuration != null)
+                            {
+                                <div style="margin-bottom: 0.5rem;">
+                                    <i class="fa-solid fa-clock" style="margin-right: 0.5rem; color: #e4002b;"></i>
+                                    <strong data-tr="Uçuş Süresi:" data-en="Duration:">Duration:</strong> @ViewBag.FlightDuration
+                                </div>
+                            }
+                            @if (ViewBag.SeatNumber != null)
+                            {
+                                <div style="margin-bottom: 0;">
+                                    <i class="fa-solid fa-chair" style="margin-right: 0.5rem; color: #e4002b;"></i>
+                                    <strong data-tr="Koltuk:" data-en="Seat:">Seat:</strong> @ViewBag.SeatNumber
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @* Fiyat Bölümü - Price Section *@
+                    <div class="price-section">
+                        <div class="price-label" data-tr="Toplam Tutar:" data-en="Total Amount:">Total Amount:</div>
+                        <div class="price-amount">
+                            <span id="priceAmount">@Model.Amount.ToString("N2")</span>
+                            <span class="price-currency" id="priceCurrency">₺</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* JavaScript bölümü - JavaScript section *@
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Döviz kurları - Exchange rates (sitedeki kurlarla aynı)
+            const exchangeRates = {
+                '₺': { rate: 1, symbol: '₺', name: 'TL' },
+                'US$': { rate: 42, symbol: '$', name: 'USD' },
+                '€': { rate: 49, symbol: '€', name: 'EUR' },
+                '£': { rate: 56, symbol: '£', name: 'GBP' }
+            };
+
+            // Para birimi dönüşüm fonksiyonu - Currency conversion function
+            function convertPrice(priceInTL, currencySymbol) {
+                if (currencySymbol === '₺') {
+                    return { price: priceInTL, symbol: '₺', displaySymbol: '₺' };
+                }
+                const currency = exchangeRates[currencySymbol];
+                if (currency && currency.rate > 0) {
+                    const convertedPrice = priceInTL / currency.rate;
+                    // US$ için $ göster, diğerleri için kendi sembollerini göster
+                    // Show $ for US$, show own symbols for others
+                    let displaySymbol = currencySymbol;
+                    if (currencySymbol === 'US$') {
+                        displaySymbol = '$';
+                    }
+                    return { 
+                        price: convertedPrice, 
+                        symbol: currency.symbol, 
+                        displaySymbol: displaySymbol
+                    };
+                }
+                return { price: priceInTL, symbol: '₺', displaySymbol: '₺' };
+            }
+
+            // Fiyatları güncelle - Update prices
+            function updatePrices() {
+                const baseAmount = parseFloat('@Model.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)');
+                const currentCurrency = localStorage.getItem('currency') || '₺';
+                
+                // Ana fiyatı güncelle - Update main price
+                const mainPrice = convertPrice(baseAmount, currentCurrency);
+                $('#priceAmount').text(mainPrice.price.toFixed(2));
+                $('#priceCurrency').text(mainPrice.displaySymbol);
+            }
+
+            // Sayfa yüklendiğinde fiyatları güncelle - Update prices on page load
+            updatePrices();
+
+            // Para birimi değiştiğinde fiyatları güncelle - Update prices when currency changes
+            window.addEventListener('currencyChanged', function(event) {
+                updatePrices();
+            });
+
+            // Para birimi değişikliğini dinle - Listen for currency changes (her 500ms'de kontrol et)
+            let lastCurrency = localStorage.getItem('currency') || '₺';
+            setInterval(function() {
+                const currentCurrency = localStorage.getItem('currency') || '₺';
+                if (currentCurrency !== lastCurrency) {
+                    lastCurrency = currentCurrency;
+                    updatePrices();
+                }
+            }, 500);
+
+            // Kart numarası formatlama ve gösterimi - Card number formatting and display
+            // Sadece rakam kabul et - Only accept numbers
+            $('#CardNumber').on('input', function () {
+                // Sadece rakamları al - Only take numbers
+                var value = $(this).val().replace(/\D/g, '');
+                // Maksimum 16 hane - Maximum 16 digits
+                value = value.substring(0, 16);
+                var formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+                $(this).val(formattedValue);
+                
+                // Kart üzerinde göster - Display on card (tek satırda, düzgün formatlanmış)
+                // Display on card (single line, properly formatted)
+                if (value) {
+                    // 4'erli gruplar halinde ayır - Split into groups of 4
+                    var formatted = value.match(/.{1,4}/g);
+                    if (formatted) {
+                        var displayText = formatted.join(' ');
+                        $('#cardNumberDisplay').html(displayText);
+                    } else {
+                        $('#cardNumberDisplay').html(value);
+                    }
+                } else {
+                    $('#cardNumberDisplay').html('<span class="empty">0000 0000 0000 0000</span>');
+                }
+            });
+
+            // Kart sahibi adı gösterimi - Card holder name display
+            // Sadece harf ve boşluk kabul et - Only accept letters and spaces
+            $('#CardHolderName').on('input', function () {
+                // Sadece harf ve boşlukları al - Only take letters and spaces
+                var value = $(this).val().replace(/[^a-zA-Z\s]/g, '');
+                $(this).val(value.toUpperCase());
+                
+                if (value) {
+                    $('#cardHolderDisplay').html(value.toUpperCase());
+                } else {
+                    $('#cardHolderDisplay').html('<span class="empty">CARD HOLDER</span>');
+                }
+            });
+
+            // Son kullanma tarihi formatlama ve gösterimi - Expiry date formatting and display
+            $('#ExpireDate').on('input', function () {
+                var value = $(this).val().replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+                $(this).val(value);
+                
+                // Kart üzerinde göster - Display on card
+                if (value) {
+                    $('#cardExpiryDisplay').html(value);
+                } else {
+                    $('#cardExpiryDisplay').html('<span class="empty">MM/YY</span>');
+                }
+            });
+
+            // CVC gösterimi - CVC display
+            $('#Cvc').on('input', function () {
+                var value = $(this).val().replace(/\D/g, '');
+                $(this).val(value);
+                
+                // Kart üzerinde göster - Display on card
+                if (value) {
+                    $('#cardCvvDisplay').html(value);
+                    // CVC girildiğinde kartı çevir - Flip card when CVC is entered
+                    if (value.length > 0 && !$('#creditCard').hasClass('flipped')) {
+                        setTimeout(function() {
+                            $('#creditCard').addClass('flipped');
+                        }, 300);
+                    }
+                } else {
+                    $('#cardCvvDisplay').html('<span class="empty">***</span>');
+                }
+            });
+
+            // CVC alanına odaklanıldığında kartı çevir - Flip card when CVC field is focused
+            $('#Cvc').on('focus', function() {
+                $('#creditCard').addClass('flipped');
+            });
+
+            // CVC alanından çıkıldığında kartı geri çevir - Flip card back when CVC field is blurred
+            $('#Cvc').on('blur', function() {
+                if (!$(this).val()) {
+                    $('#creditCard').removeClass('flipped');
+                }
+            });
+
+            // Kart çevirme fonksiyonu - Card flip function
+            window.flipCard = function() {
+                $('#creditCard').toggleClass('flipped');
+            };
+
+            // Form submit edilmeden önce kart numarasını temizle ve Amount'u kontrol et
+            // Clean card number before form submit and check Amount
+            $('.payment-form').on('submit', function(e) {
+                // Kart numarasındaki boşlukları temizle - Remove spaces from card number
+                var cardNumber = $('#CardNumber').val();
+                if (cardNumber) {
+                    // Tüm boşluk ve tire karakterlerini kaldır - Remove all spaces and dashes
+                    cardNumber = cardNumber.replace(/\s+/g, '').replace(/-/g, '');
+                    $('#CardNumber').val(cardNumber);
+                }
+
+                // Amount'u kontrol et ve güncelle - Check and update Amount
+                var amountValue = $('#Amount').val();
+                if (!amountValue || amountValue === '0' || amountValue === '0.00') {
+                    // Session'dan veya baseAmount'dan al - Get from Session or baseAmount
+                    var baseAmount = parseFloat('@Model.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)');
+                    if (baseAmount && baseAmount > 0) {
+                        // InvariantCulture formatında gönder - Send in InvariantCulture format
+                        $('#Amount').val(baseAmount.toFixed(2).replace(',', '.'));
+                    }
+                } else {
+                    // Virgülü noktaya çevir - Convert comma to dot
+                    amountValue = amountValue.toString().replace(',', '.');
+                    $('#Amount').val(amountValue);
+                }
+            });
+        });
+    </script>
+}
