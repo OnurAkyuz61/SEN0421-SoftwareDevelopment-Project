@@ -1,28 +1,71 @@
+@* Model tanımı - Uçuş listesi modeli *@
+@* Model definition - Flight list model *@
 @model List<Trabzon_Airlines.Models.Flight>
 
-<h2>U�u� Listesi</h2>
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
+    ViewBag.Title = "Uçuş Listesi";
+    ViewBag.TitleEn = "Flight List";
+}
+
+@* Ana başlık - Çeviri desteği ile *@
+@* Main header - With translation support *@
+<h2 data-tr="Uçuş Listesi" data-en="Flight List">Uçuş Listesi</h2>
+@* Yatay çizgi ayırıcı *@
+@* Horizontal line separator *@
 <hr />
 
+@* Uçuş listesi tablosu *@
+@* Flight list table *@
 <table class="table table-bordered">
+    @* Tablo başlıkları *@
+    @* Table headers *@
     <tr>
-        <th>Sefer No</th>
-        <th>Kalk��</th>
-        <th>Var��</th>
-        <th>Kalk�� Zaman�</th>
-        <th>Var�� Zaman�</th>
+        @* Sefer numarası sütunu *@
+        @* Flight number column *@
+        <th data-tr="Sefer No" data-en="Flight No">Sefer No</th>
+        @* Kalkış havalimanı sütunu *@
+        @* Departure airport column *@
+        <th data-tr="Kalkış" data-en="Departure">Kalkış</th>
+        @* Varış havalimanı sütunu *@
+        @* Arrival airport column *@
+        <th data-tr="Varış" data-en="Arrival">Varış</th>
+        @* Kalkış zamanı sütunu *@
+        @* Departure time column *@
+        <th data-tr="Kalkış Zamanı" data-en="Departure Time">Kalkış Zamanı</th>
+        @* Varış zamanı sütunu *@
+        @* Arrival time column *@
+        <th data-tr="Varış Zamanı" data-en="Arrival Time">Varış Zamanı</th>
+        @* İşlemler sütunu *@
+        @* Actions column *@
         <th></th>
     </tr>
 
+    @* Her uçuş için tablo satırı oluştur *@
+    @* Create table row for each flight *@
     @foreach (var f in Model)
     {
         <tr>
+            @* Uçuş numarası gösterimi *@
+            @* Flight number display *@
             <td>@f.FlightNumber</td>
+            @* Kalkış havalimanı kodu gösterimi *@
+            @* Departure airport code display *@
             <td>@f.FromCode</td>
+            @* Varış havalimanı kodu gösterimi *@
+            @* Arrival airport code display *@
             <td>@f.ToCode</td>
+            @* Kalkış zamanı gösterimi *@
+            @* Departure time display *@
             <td>@f.DepartureTime</td>
+            @* Varış zamanı gösterimi *@
+            @* Arrival time display *@
             <td>@f.ArrivalTime</td>
+            @* Koltuk seçim butonu *@
+            @* Seat selection button *@
             <td>
-                @Html.ActionLink("Koltuk Se�", "SelectSeat", "Booking", new { flightId = f.FlightId }, new { @class = "btn btn-primary" })
+                @Html.ActionLink("Koltuk Seç", "SelectSeat", "Booking", new { flightId = f.FlightId }, new { @class = "btn btn-primary", data_tr = "Koltuk Seç", data_en = "Select Seat" })
             </td>
         </tr>
     }

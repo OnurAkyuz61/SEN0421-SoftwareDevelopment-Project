@@ -1,7 +1,10 @@
-﻿@{
+﻿@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
     // Admin giriş sayfası - Layout olmadan sade tasarım
     // Admin login page - Simple design without layout
     ViewBag.Title = "Admin Giriş";
+    ViewBag.TitleEn = "Admin Login";
     Layout = null; // Layout kullanma - header/navbar/sidebar yok
 }
 
@@ -11,7 +14,9 @@
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Trabzon Airlines</title>
+    @* Sayfa başlığı - Dinamik dil desteği ile *@
+    @* Page title - With dynamic language support *@
+    <title data-tr="Admin Giriş - Trabzon Airlines" data-en="Admin Login - Trabzon Airlines">@ViewBag.Title - Trabzon Airlines</title>
     
     <!-- Font Awesome ikonları -->
     <!-- Font Awesome icons -->
@@ -268,8 +273,8 @@
             <div class="login-logo">
                 <img src="~/assets/logo/logo.png" alt="Trabzon Airlines Logo" />
             </div>
-            <h1 class="login-title">Admin Panel</h1>
-            <p class="login-subtitle">Yönetim paneline erişmek için giriş yapınız</p>
+            <h1 class="login-title" data-tr="Admin Panel" data-en="Admin Panel">Admin Panel</h1>
+            <p class="login-subtitle" data-tr="Yönetim paneline erişmek için giriş yapınız" data-en="Sign in to access the admin panel">Yönetim paneline erişmek için giriş yapınız</p>
         </div>
 
         <!-- Form bölümü -->
@@ -322,25 +327,27 @@
             <form method="post" action="@Url.Action("Login", "Admin")">
                 @Html.AntiForgeryToken() <!-- CSRF koruması -->
                 
-                <!-- E-posta alanı -->
-                <!-- Email field -->
+                @* E-posta alanı - Çeviri desteği ile *@
+                @* Email field - With translation support *@
                 <div class="form-group">
                     <label for="email">
-                        <i class="fa-solid fa-envelope"></i> E-posta *
+                        <i class="fa-solid fa-envelope"></i> <span data-tr="E-posta *" data-en="Email *">E-posta *</span>
                     </label>
                     <input type="email" 
                            id="email" 
                            name="email" 
                            required 
                            placeholder="admin@trabzonairlines.com"
+                           data-placeholder-tr="admin@trabzonairlines.com"
+                           data-placeholder-en="admin@trabzonairlines.com"
                            autocomplete="email">
                 </div>
 
-                <!-- Şifre alanı -->
-                <!-- Password field -->
+                @* Şifre alanı - Çeviri desteği ile *@
+                @* Password field - With translation support *@
                 <div class="form-group">
                     <label for="password">
-                        <i class="fa-solid fa-lock"></i> Şifre *
+                        <i class="fa-solid fa-lock"></i> <span data-tr="Şifre *" data-en="Password *">Şifre *</span>
                     </label>
                     <div class="password-input">
                         <input type="password" 
@@ -348,31 +355,38 @@
                                name="password" 
                                required 
                                placeholder="Şifrenizi giriniz"
+                               data-placeholder-tr="Şifrenizi giriniz"
+                               data-placeholder-en="Enter your password"
                                autocomplete="current-password">
                         <button type="button" 
                                 class="password-toggle" 
                                 onclick="togglePassword('password')"
-                                aria-label="Şifreyi göster/gizle">
+                                aria-label="Şifreyi göster/gizle"
+                                data-aria-label-tr="Şifreyi göster/gizle"
+                                data-aria-label-en="Show/hide password">
                             <i class="fa-solid fa-eye" id="password-icon"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Giriş butonu -->
-                <!-- Login button -->
+                @* Giriş butonu - Çeviri desteği ile *@
+                @* Login button - With translation support *@
                 <button type="submit" class="login-submit-btn">
                     <i class="fa-solid fa-sign-in-alt"></i>
-                    <span>Giriş Yap</span>
+                    <span data-tr="Giriş Yap" data-en="Sign In">Giriş Yap</span>
                 </button>
             </form>
         </div>
 
-        <!-- Footer -->
+        @* Footer - Çeviri desteği ile *@
+        @* Footer - With translation support *@
         <div class="login-footer">
-            <p>&copy; @DateTime.Now.Year Trabzon Airlines. Tüm hakları saklıdır.</p>
+            <p data-tr="© @DateTime.Now.Year Trabzon Airlines. Tüm hakları saklıdır." data-en="© @DateTime.Now.Year Trabzon Airlines. All rights reserved.">
+                &copy; @DateTime.Now.Year Trabzon Airlines. Tüm hakları saklıdır.
+            </p>
             <p>
                 <a href="@Url.Action("Index", "Home")">
-                    <i class="fa-solid fa-arrow-left"></i> Ana Sayfaya Dön
+                    <i class="fa-solid fa-arrow-left"></i> <span data-tr="Ana Sayfaya Dön" data-en="Return to Homepage">Ana Sayfaya Dön</span>
                 </a>
             </p>
         </div>
@@ -409,7 +423,54 @@
         document.querySelector('form').addEventListener('submit', function(e) {
             var submitBtn = this.querySelector('.login-submit-btn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Giriş yapılıyor...';
+            const currentLang = localStorage.getItem('language') || 'tr';
+            const loadingText = currentLang === 'tr' ? 'Giriş yapılıyor...' : 'Signing in...';
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + loadingText;
+        });
+        
+        // Dil değişikliği için otomatik güncelleme
+        // Automatic update for language change
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentLang = localStorage.getItem('language') || 'tr';
+            const elements = document.querySelectorAll('[data-tr][data-en]');
+            elements.forEach(element => {
+                const trText = element.getAttribute('data-tr');
+                const enText = element.getAttribute('data-en');
+                
+                if (currentLang === 'tr' && trText) {
+                    element.textContent = trText;
+                } else if (currentLang === 'en' && enText) {
+                    element.textContent = enText;
+                }
+            });
+            
+            // Placeholder'ları güncelle
+            // Update placeholders
+            const inputElements = document.querySelectorAll('[data-placeholder-tr][data-placeholder-en]');
+            inputElements.forEach(element => {
+                const trPlaceholder = element.getAttribute('data-placeholder-tr');
+                const enPlaceholder = element.getAttribute('data-placeholder-en');
+                
+                if (currentLang === 'tr' && trPlaceholder) {
+                    element.placeholder = trPlaceholder;
+                } else if (currentLang === 'en' && enPlaceholder) {
+                    element.placeholder = enPlaceholder;
+                }
+            });
+            
+            // Title'ı güncelle
+            // Update title
+            const titleElement = document.querySelector('title[data-tr][data-en]');
+            if (titleElement) {
+                const trTitle = titleElement.getAttribute('data-tr');
+                const enTitle = titleElement.getAttribute('data-en');
+                
+                if (currentLang === 'tr' && trTitle) {
+                    titleElement.textContent = trTitle;
+                } else if (currentLang === 'en' && enTitle) {
+                    titleElement.textContent = enTitle;
+                }
+            }
         });
     </script>
 </body>

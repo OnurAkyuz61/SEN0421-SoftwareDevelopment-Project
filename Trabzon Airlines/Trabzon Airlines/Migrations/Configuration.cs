@@ -9,7 +9,8 @@
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = false;
+            AutomaticMigrationsEnabled = true;
+            AutomaticMigrationDataLossAllowed = true; // Development ortamı için
         }
 
         protected override void Seed(Trabzon_Airlines.Data.TAContext context)

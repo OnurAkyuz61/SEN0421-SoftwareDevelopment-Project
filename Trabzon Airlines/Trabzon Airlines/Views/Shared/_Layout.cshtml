@@ -3,7 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Trabzon Airlines</title>
+    @* Sayfa başlığı - Dinamik dil desteği ile *@
+    @* Page title - With dynamic language support *@
+    <title data-tr="@(ViewBag.Title ?? "Ana Sayfa") - Trabzon Airlines" data-en="@(ViewBag.TitleEn ?? ViewBag.Title ?? "Home") - Trabzon Airlines">@ViewBag.Title - Trabzon Airlines</title>
     <!-- SEO Meta Bilgileri -->
     <meta name="description" content="Trabzon Airlines ile Karadeniz'den dünyaya uçun. Uygun fiyatlı uçak biletleri, güvenli uçuşlar ve kaliteli hizmet.">
     <meta name="keywords" content="trabzon airlines, uçak bileti, trabzon uçak, karadeniz havayolu, uygun uçak bileti">
@@ -365,6 +367,36 @@
                     <span data-tr="Onayla" data-en="Confirm">Onayla</span>
                 </button>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- UÇUŞ BULUNAMADI POPUP MODAL -->
+    <div class="airport-modal" id="noFlightModal" onclick="if(event.target === this) closeNoFlightModal();">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="noFlightModalTitle" data-tr="Uçuş Bulunamadı" data-en="No Flights Found">
+                    Uçuş Bulunamadı
+                </h3>
+                <button class="modal-close" onclick="closeNoFlightModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 2rem;">
+                    <i class="fa-solid fa-plane-slash" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                    <p id="noFlightMessage" style="font-size: 1.1rem; color: #333; margin-bottom: 1rem;">
+                        Seçtiğiniz kriterlere uygun uçuş bulunamadı.
+                    </p>
+                    <p id="noFlightSubMessage" style="font-size: 0.9rem; color: #666;">
+                        Lütfen farklı tarih veya havalimanı seçerek tekrar deneyin.
+                    </p>
+                </div>
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <button class="modal-confirm-btn" onclick="closeNoFlightModal()" style="max-width: 200px;">
+                        <span data-tr="Tamam" data-en="OK">Tamam</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

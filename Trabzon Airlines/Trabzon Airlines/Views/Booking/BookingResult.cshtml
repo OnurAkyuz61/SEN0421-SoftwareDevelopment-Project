@@ -1,10 +1,44 @@
+@* Model tanımı - Rezervasyon modeli *@
+@* Model definition - Booking model *@
 @model Trabzon_Airlines.Models.Booking
 
-<h2>Rezervasyon Tamamland�</h2>
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
+    ViewBag.Title = "Rezervasyon Tamamlandı";
+    ViewBag.TitleEn = "Booking Completed";
+}
+
+@* Ana başlık - Çeviri desteği ile *@
+@* Main header - With translation support *@
+<h2 data-tr="Rezervasyon Tamamlandı" data-en="Booking Completed">Rezervasyon Tamamlandı</h2>
+@* Yatay çizgi ayırıcı *@
+@* Horizontal line separator *@
 <hr />
 
-<p><b>U�u�:</b> @Model.Flight.FlightNumber (@Model.Flight.FromCode - @Model.Flight.ToCode)</p>
-<p><b>Koltuk:</b> @Model.Seat.SeatNumber (@Model.Seat.CabinClass)</p>
-<p><b>PNR Kodunuz:</b> @Model.PNR</p>
+@* Rezervasyon bilgileri *@
+@* Booking information *@
+@* Uçuş bilgisi *@
+@* Flight information *@
+<p>
+    <b data-tr="Uçuş:" data-en="Flight:">Uçuş:</b> 
+    @Model.Flight.FlightNumber (@Model.Flight.FromCode - @Model.Flight.ToCode)
+</p>
+@* Koltuk bilgisi *@
+@* Seat information *@
+<p>
+    <b data-tr="Koltuk:" data-en="Seat:">Koltuk:</b> 
+    @Model.Seat.SeatNumber (@Model.Seat.CabinClass)
+</p>
+@* PNR kodu bilgisi *@
+@* PNR code information *@
+<p>
+    <b data-tr="PNR Kodunuz:" data-en="Your PNR Code:">PNR Kodunuz:</b> 
+    @Model.PNR
+</p>
 
-<p style="color:green;">Bu kodu saklay�n. Sonraki i�lemler i�in gereklidir.</p>
+@* Önemli bilgilendirme mesajı - Yeşil renkte *@
+@* Important information message - In green color *@
+<p style="color:green;" data-tr="Bu kodu saklayın. Sonraki işlemler için gereklidir." data-en="Please save this code. It is required for future operations.">
+    Bu kodu saklayın. Sonraki işlemler için gereklidir.
+</p>

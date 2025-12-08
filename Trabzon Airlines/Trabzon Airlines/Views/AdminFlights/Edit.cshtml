@@ -1,110 +1,146 @@
+@* Model tanımı - Uçuş modeli *@
+@* Model definition - Flight model *@
 @model Trabzon_Airlines.Models.Flight
 
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
 @{
-    ViewBag.Title = "Sefer D�zenle";
+    ViewBag.Title = "Sefer Düzenle";
+    ViewBag.TitleEn = "Edit Flight";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Sefer D�zenle</h2>
+@* Ana başlık - Çeviri desteği ile *@
+@* Main header - With translation support *@
+<h2 data-tr="Sefer Düzenle" data-en="Edit Flight">Sefer Düzenle</h2>
 
+@* Uçuş düzenleme formu - POST metodu ile *@
+@* Flight editing form - With POST method *@
 @using (Html.BeginForm())
 {
+    @* CSRF koruması için anti-forgery token *@
+    @* Anti-forgery token for CSRF protection *@
     @Html.AntiForgeryToken()
 
+    @* Gizli uçuş ID alanı - Form gönderiminde kullanılacak *@
+    @* Hidden flight ID field - Will be used in form submission *@
     @Html.HiddenFor(m => m.FlightId)
 
-<div class="form-horizontal">
-    <hr />
+    @* Form container - Horizontal form layout *@
+    @* Form container - Horizontal form layout *@
+    <div class="form-horizontal">
+        @* Yatay çizgi ayırıcı *@
+        @* Horizontal line separator *@
+        <hr />
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.FlightNumber, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.TextBoxFor(m => m.FlightNumber, new { @class = "form-control" })
-            @Html.ValidationMessageFor(m => m.FlightNumber, "", new { @class = "text-danger" })
+        @* Sefer numarası form grubu *@
+        @* Flight number form group *@
+        <div class="form-group">
+            @Html.LabelFor(m => m.FlightNumber, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.FlightNumber, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.FlightNumber, "", new { @class = "text-danger" })
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.FromCode, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.TextBoxFor(m => m.FromCode, new { @class = "form-control" })
-            @Html.ValidationMessageFor(m => m.FromCode, "", new { @class = "text-danger" })
+        @* Kalkış havalimanı kodu form grubu *@
+        @* Departure airport code form group *@
+        <div class="form-group">
+            @Html.LabelFor(m => m.FromCode, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.FromCode, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.FromCode, "", new { @class = "text-danger" })
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.ToCode, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.TextBoxFor(m => m.ToCode, new { @class = "form-control" })
-            @Html.ValidationMessageFor(m => m.ToCode, "", new { @class = "text-danger" })
+        @* Varış havalimanı kodu form grubu *@
+        @* Arrival airport code form group *@
+        <div class="form-group">
+            @Html.LabelFor(m => m.ToCode, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.ToCode, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.ToCode, "", new { @class = "text-danger" })
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.DepartureTime, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.TextBoxFor(
-                m => m.DepartureTime,
-                "{0:yyyy-MM-ddTHH:mm}",
-                new { @class = "form-control", type = "datetime-local" }
+        @* Kalkış zamanı form grubu *@
+        @* Departure time form group *@
+        <div class="form-group">
+            @Html.LabelFor(m => m.DepartureTime, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(
+                    m => m.DepartureTime,
+                    "{0:yyyy-MM-ddTHH:mm}",
+                    new { @class = "form-control", type = "datetime-local" }
+                )
+                @Html.ValidationMessageFor(m => m.DepartureTime, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        @* Varış zamanı form grubu *@
+        @* Arrival time form group *@
+        <div class="form-group">
+            @Html.LabelFor(m => m.ArrivalTime, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(
+                    m => m.ArrivalTime,
+                    "{0:yyyy-MM-ddTHH:mm}",
+                    new { @class = "form-control", type = "datetime-local" }
+                )
+                @Html.ValidationMessageFor(m => m.ArrivalTime, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        @* Fiyat form grubu *@
+        @* Price form group *@
+        <div class="form-group">
+            @Html.LabelFor(m => m.Price, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.Price, new { @class = "form-control", type = "number", step = "0.01" })
+                @Html.ValidationMessageFor(m => m.Price, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        @* Aktif durumu form grubu - Checkbox ile *@
+        @* Active status form group - With checkbox *@
+        <div class="form-group">
+            @Html.LabelFor(m => m.IsActive, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <label>
+                    @Html.CheckBoxFor(m => m.IsActive) <span data-tr="Aktif" data-en="Active">Aktif</span>
+                </label>
+            </div>
+        </div>
+
+        @* Hava durumu form grubu - Dropdown ile *@
+        @* Weather condition form group - With dropdown *@
+        <div class="form-group">
+            @Html.LabelFor(m => m.WeatherCondition, "Hava Durumu", htmlAttributes: new { @class = "control-label" })
+            @Html.DropDownListFor(
+                m => m.WeatherCondition,
+                (IEnumerable<SelectListItem>)ViewBag.WeatherOptions,
+                new { @class = "form-control" }
             )
-            @Html.ValidationMessageFor(m => m.DepartureTime, "", new { @class = "text-danger" })
         </div>
-    </div>
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.ArrivalTime, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.TextBoxFor(
-                m => m.ArrivalTime,
-                "{0:yyyy-MM-ddTHH:mm}",
-                new { @class = "form-control", type = "datetime-local" }
+        @* Rötar riski form grubu - Dropdown ile *@
+        @* Delay risk form group - With dropdown *@
+        <div class="form-group">
+            @Html.LabelFor(m => m.DelayRisk, "Rötar Riski", htmlAttributes: new { @class = "control-label" })
+            @Html.DropDownListFor(
+                m => m.DelayRisk,
+                (IEnumerable<SelectListItem>)ViewBag.DelayRiskOptions,
+                new { @class = "form-control" }
             )
-            @Html.ValidationMessageFor(m => m.ArrivalTime, "", new { @class = "text-danger" })
+        </div>
+
+        @* Form aksiyon butonları *@
+        @* Form action buttons *@
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Kaydet" class="btn btn-primary" data-value-tr="Kaydet" data-value-en="Save" />
+                @Html.ActionLink("Listeye Dön", "Index", null, new { @class = "btn btn-default", data_tr = "Listeye Dön", data_en = "Back to List" })
+            </div>
         </div>
     </div>
-
-    <div class="form-group">
-        @Html.LabelFor(m => m.Price, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.TextBoxFor(m => m.Price, new { @class = "form-control", type = "number", step = "0.01" })
-            @Html.ValidationMessageFor(m => m.Price, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(m => m.IsActive, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            <label>
-                @Html.CheckBoxFor(m => m.IsActive) Aktif
-            </label>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-10">
-            <input type="submit" value="Kaydet" class="btn btn-primary" />
-            @Html.ActionLink("Listeye D�n", "Index", null, new { @class = "btn btn-default" })
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        @Html.LabelFor(m => m.WeatherCondition, "Hava Durumu", htmlAttributes: new { @class = "control-label" })
-        @Html.DropDownListFor(
-            m => m.WeatherCondition,
-            (IEnumerable<SelectListItem>)ViewBag.WeatherOptions,
-            new { @class = "form-control" }
-        )
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(m => m.DelayRisk, "R�tar Riski", htmlAttributes: new { @class = "control-label" })
-        @Html.DropDownListFor(
-            m => m.DelayRisk,
-            (IEnumerable<SelectListItem>)ViewBag.DelayRiskOptions,
-            new { @class = "form-control" }
-        )
-    </div>
-</div>
 }

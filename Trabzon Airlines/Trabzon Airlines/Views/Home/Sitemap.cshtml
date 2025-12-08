@@ -1,7 +1,10 @@
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
 @{
     // Sitemap sayfası - Tüm sayfaların listesi
     // Sitemap page - List of all pages
-    ViewBag.Title = "Sitemap";
+    ViewBag.Title = "Site Haritası";
+    ViewBag.TitleEn = "Sitemap";
     Layout = null; // Navbar ve footer olmadan
 }
 
@@ -10,7 +13,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sitemap - Trabzon Airlines</title>
+    @* Sayfa başlığı - Dinamik dil desteği ile *@
+    @* Page title - With dynamic language support *@
+    <title data-tr="Site Haritası - Trabzon Airlines" data-en="Sitemap - Trabzon Airlines">Site Haritası - Trabzon Airlines</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="~/Content/css/sitemap.css">
 </head>

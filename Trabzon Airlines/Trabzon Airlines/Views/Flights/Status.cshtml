@@ -1,56 +1,104 @@
+@* Model tanımı - Uçuş durumu listesi modeli *@
+@* Model definition - Flight status list model *@
 @model IEnumerable<Trabzon_Airlines.Models.Flight>
+
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
 @{
-    ViewBag.Title = "U�u� Durumu";
+    ViewBag.Title = "Uçuş Durumu";
+    ViewBag.TitleEn = "Flight Status";
 }
 
+@* Sayfa içeriği container'ı *@
+@* Page content container *@
 <div class="page-content">
     <div class="container">
-        <h2 class="page-title">U�u� Durumu</h2>
+        @* Sayfa başlığı - Çeviri desteği ile *@
+        @* Page title - With translation support *@
+        <h2 class="page-title" data-tr="Uçuş Durumu" data-en="Flight Status">Uçuş Durumu</h2>
 
+        @* Eğer uçuş yoksa bilgi mesajı göster *@
+        @* If no flights, show info message *@
         @if (!Model.Any())
         {
-            <p>Hen�z u�u� eklenmemi�.</p>
+            <p data-tr="Henüz uçuş eklenmemiş." data-en="No flights have been added yet.">Henüz uçuş eklenmemiş.</p>
         }
         else
         {
+            @* Uçuş durumu tablosu *@
+            @* Flight status table *@
             <table class="table table-bordered table-striped fly-table">
+                @* Tablo başlıkları *@
+                @* Table headers *@
                 <thead>
                     <tr>
-                        <th>Sefer No</th>
-                        <th>G�zergah</th>
-                        <th>Kalk�� Saati</th>
-                        <th>Hava Durumu</th>
-                        <th>R�tar Riski</th>
+                        @* Sefer numarası sütunu *@
+                        @* Flight number column *@
+                        <th data-tr="Sefer No" data-en="Flight No">Sefer No</th>
+                        @* Güzergah sütunu *@
+                        @* Route column *@
+                        <th data-tr="Güzergah" data-en="Route">Güzergah</th>
+                        @* Kalkış saati sütunu *@
+                        @* Departure time column *@
+                        <th data-tr="Kalkış Saati" data-en="Departure Time">Kalkış Saati</th>
+                        @* Hava durumu sütunu *@
+                        @* Weather condition column *@
+                        <th data-tr="Hava Durumu" data-en="Weather Condition">Hava Durumu</th>
+                        @* Rötar riski sütunu *@
+                        @* Delay risk column *@
+                        <th data-tr="Rötar Riski" data-en="Delay Risk">Rötar Riski</th>
                     </tr>
                 </thead>
+                @* Tablo gövdesi *@
+                @* Table body *@
                 <tbody>
+                    @* Her uçuş için tablo satırı oluştur *@
+                    @* Create table row for each flight *@
                     @foreach (var item in Model)
                     {
                         <tr>
+                            @* Uçuş numarası gösterimi *@
+                            @* Flight number display *@
                             <td>@item.FlightNumber</td>
 
-                            <td>@item.FromCode ? @item.ToCode</td>
+                            @* Güzergah gösterimi - Kalkış ve varış havalimanları *@
+                            @* Route display - Departure and arrival airports *@
+                            <td>@item.FromCode → @item.ToCode</td>
 
+                            @* Kalkış zamanı gösterimi - Tarih ve saat formatı *@
+                            @* Departure time display - Date and time format *@
                             <td>@item.DepartureTime.ToString("dd.MM.yyyy HH:mm")</td>
 
+                            @* Hava durumu gösterimi *@
+                            @* Weather condition display *@
                             <td>@item.WeatherCondition</td>
 
+                            @* Rötar riski gösterimi - Renkli badge ile *@
+                            @* Delay risk display - With colored badge *@
                             <td>
-                                @if (item.DelayRisk == "Y�ksek")
+                                @* Yüksek risk durumu *@
+                                @* High risk status *@
+                                @if (item.DelayRisk == "Yüksek" || item.DelayRisk == "High")
                                 {
-                                    <span class="badge bg-danger">Y�ksek</span>
+                                    <span class="badge bg-danger" data-tr="Yüksek" data-en="High">Yüksek</span>
                                 }
-                                else if (item.DelayRisk == "Orta")
+                                @* Orta risk durumu *@
+                                @* Medium risk status *@
+                                else if (item.DelayRisk == "Orta" || item.DelayRisk == "Medium")
                                 {
-                                    <span class="badge bg-warning text-dark">Orta</span>
+                                    <span class="badge bg-warning text-dark" data-tr="Orta" data-en="Medium">Orta</span>
                                 }
-                                else if (item.DelayRisk == "D���k")
+                                @* Düşük risk durumu *@
+                                @* Low risk status *@
+                                else if (item.DelayRisk == "Düşük" || item.DelayRisk == "Low")
                                 {
-                                    <span class="badge bg-success">D���k</span>
+                                    <span class="badge bg-success" data-tr="Düşük" data-en="Low">Düşük</span>
                                 }
+                                @* Belirtilmemiş durum *@
+                                @* Not specified status *@
                                 else
                                 {
-                                    <span class="badge bg-secondary">Belirtilmedi</span>
+                                    <span class="badge bg-secondary" data-tr="Belirtilmedi" data-en="Not Specified">Belirtilmedi</span>
                                 }
                             </td>
                         </tr>

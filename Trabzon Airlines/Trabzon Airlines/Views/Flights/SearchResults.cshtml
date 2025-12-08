@@ -1,0 +1,365 @@
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
+    ViewBag.Title = "Uçuş Sonuçları";
+    ViewBag.TitleEn = "Flight Results";
+}
+
+<div class="container" style="margin-top: 2rem; margin-left: calc(var(--sidebar-width) + 2rem); padding: 2rem;">
+    <h2 data-tr="Uçuş Sonuçları" data-en="Flight Results">Uçuş Sonuçları</h2>
+    <hr />
+
+    <div id="searchResultsContainer">
+        <!-- Sonuçlar JavaScript ile buraya yüklenecek -->
+        <div style="text-align: center; padding: 3rem;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+            <p data-tr="Sonuçlar yükleniyor..." data-en="Loading results...">Sonuçlar yükleniyor...</p>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+    $(document).ready(function() {
+        try {
+            // SessionStorage'dan sonuçları al
+            const searchResultsStr = sessionStorage.getItem('searchResults');
+            const searchParamsStr = sessionStorage.getItem('searchParams');
+            
+            console.log('SearchResults from sessionStorage:', searchResultsStr);
+            console.log('SearchParams from sessionStorage:', searchParamsStr);
+            
+            let searchResults = {};
+            let searchParams = {};
+            
+            if (searchResultsStr) {
+                try {
+                    searchResults = JSON.parse(searchResultsStr);
+                } catch (e) {
+                    console.error('Error parsing searchResults:', e);
+                }
+            }
+            
+            if (searchParamsStr) {
+                try {
+                    searchParams = JSON.parse(searchParamsStr);
+                } catch (e) {
+                    console.error('Error parsing searchParams:', e);
+                }
+            }
+            
+            const container = $('#searchResultsContainer');
+            const currentLang = typeof currentLanguage !== 'undefined' ? currentLanguage : (localStorage.getItem('language') || 'tr');
+            
+            // Para birimi bilgileri - localStorage'dan al
+            // Currency information - Get from localStorage
+            let selectedCurrency = localStorage.getItem('currency') || '₺';
+            // US$ için $ kullan
+            // Use $ for US$
+            if (selectedCurrency === 'US$') {
+                selectedCurrency = '$';
+            }
+            
+            // Sabit döviz kurları - Veritabanından bağımsız
+            // Fixed exchange rates - Independent from database
+            const exchangeRates = {
+                '₺': { rate: 1, symbol: '₺' },           // Türk Lirası - 1 TL = 1 TL
+                '$': { rate: 42, symbol: '$' },          // Dolar - 1 $ = 42 TL (US$ için de kullanılır)
+                'US$': { rate: 42, symbol: '$' },       // US Dolar - 1 $ = 42 TL
+                '€': { rate: 49, symbol: '€' },          // Euro - 1 € = 49 TL
+                '£': { rate: 56, symbol: '£' }           // İngiliz Sterlini - 1 £ = 56 TL
+            };
+            
+            // Para birimi dönüşüm fonksiyonu
+            // Currency conversion function
+            function convertPrice(priceInTL, currencySymbol) {
+                // TL ise direkt döndür
+                // If TL, return directly
+                if (currencySymbol === '₺') {
+                    return { price: priceInTL, symbol: '₺' };
+                }
+                
+                // Para birimi kurunu bul
+                // Find currency exchange rate
+                const currency = exchangeRates[currencySymbol];
+                if (currency && currency.rate > 0) {
+                    // TL'den seçili para birimine dönüştür (TL / Kur)
+                    // Convert from TL to selected currency (TL / Rate)
+                    const convertedPrice = priceInTL / currency.rate;
+                    return { price: convertedPrice, symbol: currency.symbol };
+                }
+                
+                // Kur bulunamazsa TL göster
+                // If rate not found, show TL
+                return { price: priceInTL, symbol: '₺' };
+            }
+            
+            // Sonuçları göster fonksiyonu
+            // Display results function
+            function displayResults() {
+                console.log('Parsed searchResults:', searchResults);
+                console.log('hasResults:', searchResults.hasResults);
+                console.log('departureFlights:', searchResults.departureFlights);
+            
+            // Veri kontrolü
+            if (!searchResults || !searchResults.hasResults || !searchResults.departureFlights || !Array.isArray(searchResults.departureFlights) || searchResults.departureFlights.length === 0) {
+                // Sonuç yoksa
+                container.html(`
+                    <div style="text-align: center; padding: 3rem;">
+                        <i class="fa-solid fa-plane-slash" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                        <h3>${currentLang === 'tr' ? 'Uçuş Bulunamadı' : 'No Flights Found'}</h3>
+                        <p>${currentLang === 'tr' ? 'Seçtiğiniz kriterlere uygun uçuş bulunamadı.' : 'No flights found matching your search criteria.'}</p>
+                        <a href="/" class="btn btn-primary" style="margin-top: 1rem;">
+                            ${currentLang === 'tr' ? 'Yeni Arama Yap' : 'New Search'}
+                        </a>
+                    </div>
+                `);
+                return;
+            }
+            
+            // Sonuçları göster
+            let html = '<div class="flight-results">';
+            
+            // Arama kriterleri
+            html += `
+                <div class="search-criteria" style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem;">
+                    <h4 style="margin-bottom: 1rem;">${currentLang === 'tr' ? 'Arama Kriterleri' : 'Search Criteria'}</h4>
+                    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                        <div>
+                            <strong>${currentLang === 'tr' ? 'Kalkış:' : 'Departure:'}</strong> ${searchParams.fromCode || 'N/A'}
+                        </div>
+                        <div>
+                            <strong>${currentLang === 'tr' ? 'Varış:' : 'Arrival:'}</strong> ${searchParams.toCode || 'N/A'}
+                        </div>
+                        <div>
+                            <strong>${currentLang === 'tr' ? 'Gidiş Tarihi:' : 'Departure Date:'}</strong> ${searchParams.departureDate ? new Date(searchParams.departureDate).toLocaleDateString(currentLang === 'tr' ? 'tr-TR' : 'en-US') : 'N/A'}
+                        </div>
+                        ${searchParams.returnDate ? `
+                            <div>
+                                <strong>${currentLang === 'tr' ? 'Dönüş Tarihi:' : 'Return Date:'}</strong> ${new Date(searchParams.returnDate).toLocaleDateString(currentLang === 'tr' ? 'tr-TR' : 'en-US')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Gidiş uçuşları
+            html += `<h3 style="margin-bottom: 1rem;">${currentLang === 'tr' ? 'Gidiş Uçuşları' : 'Departure Flights'}</h3>`;
+            html += '<div class="flight-list">';
+            
+            searchResults.departureFlights.forEach(function(flight) {
+                try {
+                    const depTime = new Date(flight.departureTime);
+                    const arrTime = new Date(flight.arrivalTime);
+                    
+                    html += `
+                        <div class="flight-card-result" style="background: white; border: 1px solid #e1e5e9; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                                <div style="flex: 1; min-width: 300px;">
+                                    <div style="display: flex; gap: 2rem; align-items: center; margin-bottom: 1rem;">
+                                        <div>
+                                            <div style="font-size: 1.5rem; font-weight: bold;">${depTime.toLocaleTimeString(currentLang === 'tr' ? 'tr-TR' : 'en-US', {hour: '2-digit', minute: '2-digit'})}</div>
+                                            <div style="color: #666; font-size: 0.9rem;">${searchParams.fromCode || flight.fromCode || 'N/A'}</div>
+                                        </div>
+                                        <div style="flex: 1; text-align: center;">
+                                            <div style="color: #666; font-size: 0.9rem;">${Math.round((arrTime - depTime) / 60000)} ${currentLang === 'tr' ? 'dakika' : 'minutes'}</div>
+                                            <div style="border-top: 2px solid #e1e5e9; margin: 0.5rem 0;"></div>
+                                            <div style="color: #666; font-size: 0.9rem;">${flight.flightNumber || 'N/A'}</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 1.5rem; font-weight: bold;">${arrTime.toLocaleTimeString(currentLang === 'tr' ? 'tr-TR' : 'en-US', {hour: '2-digit', minute: '2-digit'})}</div>
+                                            <div style="color: #666; font-size: 0.9rem;">${searchParams.toCode || flight.toCode || 'N/A'}</div>
+                                        </div>
+                                    </div>
+                                    ${flight.weatherCondition ? `<div style="color: #666; font-size: 0.9rem;"><i class="fa-solid fa-cloud"></i> ${flight.weatherCondition}</div>` : ''}
+                                    ${flight.delayRisk ? `<div style="color: ${flight.delayRisk === 'Yüksek' || flight.delayRisk === 'High' ? '#dc3545' : flight.delayRisk === 'Orta' || flight.delayRisk === 'Medium' ? '#ffc107' : '#28a745'}; font-size: 0.9rem; margin-top: 0.5rem;">
+                                        <i class="fa-solid fa-exclamation-triangle"></i> ${currentLang === 'tr' ? 'Rötar Riski:' : 'Delay Risk:'} ${flight.delayRisk}
+                                    </div>` : ''}
+                                </div>
+                                <div style="text-align: right; margin-left: 2rem;">
+                                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">
+                                        ${(() => {
+                                            const priceInfo = convertPrice(parseFloat(flight.price || 0), selectedCurrency);
+                                            return priceInfo.symbol + priceInfo.price.toFixed(2);
+                                        })()}
+                                    </div>
+                                    <a href="/Booking/SelectSeat?flightId=${flight.flightId}" class="btn btn-primary" style="background: var(--primary-color); color: white; padding: 0.75rem 1.5rem; border-radius: 5px; text-decoration: none; display: inline-block;">
+                                        ${currentLang === 'tr' ? 'Seç' : 'Select'}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } catch (e) {
+                    console.error('Error processing flight:', e, flight);
+                }
+            });
+            
+            html += '</div>';
+            
+            // Dönüş uçuşları (varsa)
+            if (searchResults.returnFlights && Array.isArray(searchResults.returnFlights) && searchResults.returnFlights.length > 0) {
+                html += `<h3 style="margin-top: 2rem; margin-bottom: 1rem;">${currentLang === 'tr' ? 'Dönüş Uçuşları' : 'Return Flights'}</h3>`;
+                html += '<div class="flight-list">';
+                
+                searchResults.returnFlights.forEach(function(flight) {
+                    try {
+                        const depTime = new Date(flight.departureTime);
+                        const arrTime = new Date(flight.arrivalTime);
+                        
+                        html += `
+                            <div class="flight-card-result" style="background: white; border: 1px solid #e1e5e9; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                                    <div style="flex: 1; min-width: 300px;">
+                                        <div style="display: flex; gap: 2rem; align-items: center; margin-bottom: 1rem;">
+                                            <div>
+                                                <div style="font-size: 1.5rem; font-weight: bold;">${depTime.toLocaleTimeString(currentLang === 'tr' ? 'tr-TR' : 'en-US', {hour: '2-digit', minute: '2-digit'})}</div>
+                                                <div style="color: #666; font-size: 0.9rem;">${searchParams.toCode || flight.fromCode || 'N/A'}</div>
+                                            </div>
+                                            <div style="flex: 1; text-align: center;">
+                                                <div style="color: #666; font-size: 0.9rem;">${Math.round((arrTime - depTime) / 60000)} ${currentLang === 'tr' ? 'dakika' : 'minutes'}</div>
+                                                <div style="border-top: 2px solid #e1e5e9; margin: 0.5rem 0;"></div>
+                                                <div style="color: #666; font-size: 0.9rem;">${flight.flightNumber || 'N/A'}</div>
+                                            </div>
+                                            <div>
+                                                <div style="font-size: 1.5rem; font-weight: bold;">${arrTime.toLocaleTimeString(currentLang === 'tr' ? 'tr-TR' : 'en-US', {hour: '2-digit', minute: '2-digit'})}</div>
+                                                <div style="color: #666; font-size: 0.9rem;">${searchParams.fromCode || flight.toCode || 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                        ${flight.weatherCondition ? `<div style="color: #666; font-size: 0.9rem;"><i class="fa-solid fa-cloud"></i> ${flight.weatherCondition}</div>` : ''}
+                                        ${flight.delayRisk ? `<div style="color: ${flight.delayRisk === 'Yüksek' || flight.delayRisk === 'High' ? '#dc3545' : flight.delayRisk === 'Medium' || flight.delayRisk === 'Orta' ? '#ffc107' : '#28a745'}; font-size: 0.9rem; margin-top: 0.5rem;">
+                                            <i class="fa-solid fa-exclamation-triangle"></i> ${currentLang === 'tr' ? 'Rötar Riski:' : 'Delay Risk:'} ${flight.delayRisk}
+                                        </div>` : ''}
+                                    </div>
+                                    <div style="text-align: right; margin-left: 2rem;">
+                                        <div style="font-size: 1.8rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">
+                                            ${(() => {
+                                                const priceInfo = convertPrice(parseFloat(flight.price || 0), selectedCurrency);
+                                                return priceInfo.symbol + priceInfo.price.toFixed(2);
+                                            })()}
+                                        </div>
+                                        <a href="/Booking/SelectSeat?flightId=${flight.flightId}" class="btn btn-primary" style="background: var(--primary-color); color: white; padding: 0.75rem 1.5rem; border-radius: 5px; text-decoration: none; display: inline-block;">
+                                            ${currentLang === 'tr' ? 'Seç' : 'Select'}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } catch (e) {
+                        console.error('Error processing return flight:', e, flight);
+                    }
+                });
+                
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            container.html(html);
+            console.log('Results displayed successfully');
+            }
+            
+            // Sonuçları göster - Fonksiyonu çağır
+            // Display results - Call the function
+            displayResults();
+            
+            // Para birimi değişikliği event listener'ı - Fiyatları güncellemek için
+            // Currency change event listener - To update prices
+            window.addEventListener('currencyChanged', function(event) {
+                const newCurrency = event.detail.currency;
+                console.log('Para birimi değişti, fiyatlar güncelleniyor:', newCurrency);
+                
+                // US$ için $ kullan
+                // Use $ for US$
+                const currencySymbol = newCurrency === 'US$' ? '$' : newCurrency;
+                selectedCurrency = currencySymbol;
+                
+                // Tüm fiyat elementlerini bul ve güncelle
+                // Find and update all price elements
+                $('.flight-card-result').each(function() {
+                    const priceElement = $(this).find('div[style*="font-size: 1.8rem"]');
+                    if (priceElement.length > 0) {
+                        // Mevcut fiyatı al
+                        // Get current price
+                        const priceText = priceElement.text().trim();
+                        // Sadece sayıyı al (simge ve boşlukları temizle)
+                        // Get only the number (remove symbol and spaces)
+                        const priceMatch = priceText.match(/[\d.,]+/);
+                        if (priceMatch) {
+                            // Sayıyı parse et (virgül yerine nokta kullan)
+                            // Parse number (use dot instead of comma)
+                            let currentPrice = parseFloat(priceMatch[0].replace(',', '.'));
+                            
+                            // Mevcut para birimi simgesini bul
+                            // Find current currency symbol
+                            const oldSymbol = priceText.replace(/[\d.,\s]/g, '').trim();
+                            
+                            // Önce TL'ye çevir (eğer başka para birimindeyse)
+                            // First convert to TL (if in another currency)
+                            let priceInTL = currentPrice;
+                            if (oldSymbol && oldSymbol !== '₺') {
+                                const oldCurrency = oldSymbol === '$' ? '$' : oldSymbol;
+                                const oldRate = exchangeRates[oldCurrency];
+                                if (oldRate && oldRate.rate > 0) {
+                                    // Başka para biriminden TL'ye çevir (Fiyat * Kur)
+                                    // Convert from other currency to TL (Price * Rate)
+                                    priceInTL = currentPrice * oldRate.rate;
+                                }
+                            }
+                            
+                            // Yeni para birimine çevir
+                            // Convert to new currency
+                            const priceInfo = convertPrice(priceInTL, currencySymbol);
+                            priceElement.text(priceInfo.symbol + priceInfo.price.toFixed(2));
+                        }
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('Error loading search results:', error);
+            const container = $('#searchResultsContainer');
+            const currentLang = typeof currentLanguage !== 'undefined' ? currentLanguage : (localStorage.getItem('language') || 'tr');
+            container.html(`
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fa-solid fa-exclamation-triangle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                    <h3>${currentLang === 'tr' ? 'Hata Oluştu' : 'An Error Occurred'}</h3>
+                    <p>${currentLang === 'tr' ? 'Sonuçlar yüklenirken bir hata oluştu. Lütfen tekrar deneyin.' : 'An error occurred while loading results. Please try again.'}</p>
+                    <a href="/" class="btn btn-primary" style="margin-top: 1rem;">
+                        ${currentLang === 'tr' ? 'Ana Sayfaya Dön' : 'Return to Home'}
+                    </a>
+                </div>
+            `);
+        }
+    });
+</script>
+}
+
+<style>
+    .flight-results {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .flight-card-result:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        transition: box-shadow 0.3s ease;
+    }
+    
+    @@media (max-width: 768px) {
+        .container {
+            margin-left: var(--sidebar-collapsed-width) !important;
+            padding: 1rem !important;
+        }
+        
+        .flight-card-result > div {
+            flex-direction: column !important;
+        }
+        
+        .flight-card-result > div > div:last-child {
+            margin-left: 0 !important;
+            margin-top: 1rem !important;
+            text-align: left !important;
+        }
+    }
+</style>
+

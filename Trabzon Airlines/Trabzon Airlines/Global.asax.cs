@@ -1,11 +1,14 @@
 ﻿using System; // Temel sistem sınıfları için
 using System.Collections.Generic; // Koleksiyonlar için
+using System.Data.Entity; // Entity Framework için
 using System.Linq; // LINQ sorguları için
 using System.Text; // Encoding için
 using System.Web; // HTTP context için
 using System.Web.Mvc; // MVC framework için
 using System.Web.Optimization; // Bundle için
 using System.Web.Routing; // Routing için
+using Trabzon_Airlines.Data; // Veritabanı bağlamı için
+using Trabzon_Airlines.Migrations; // Migration'lar için
 
 namespace Trabzon_Airlines
 {
@@ -17,6 +20,10 @@ namespace Trabzon_Airlines
         // Application start - Runs when application is first loaded
         protected void Application_Start()
         {
+            // Veritabanı migration'larını otomatik uygula
+            // Automatically apply database migrations
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<TAContext, Configuration>());
+
             // Tüm area'ları kaydet
             // Register all areas
             AreaRegistration.RegisterAllAreas();

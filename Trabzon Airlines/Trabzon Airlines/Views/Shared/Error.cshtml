@@ -1,13 +1,167 @@
-﻿<!DOCTYPE html>
-<html>
+﻿@* Hata sayfası - Genel hata sayfası *@
+@* Error page - General error page *@
+<!DOCTYPE html>
+<html lang="tr">
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Error</title>
+    @* Meta etiketleri *@
+    @* Meta tags *@
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @* Sayfa başlığı - Dinamik dil desteği ile *@
+    @* Page title - With dynamic language support *@
+    <title data-tr="Hata - Trabzon Airlines" data-en="Error - Trabzon Airlines">Hata - Trabzon Airlines</title>
+    @* Font Awesome ikonları *@
+    @* Font Awesome icons *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @* Hata sayfası stilleri *@
+        @* Error page styles *@
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .error-container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 600px;
+            margin: 2rem;
+        }
+        .error-icon {
+            font-size: 5rem;
+            color: #e4002b;
+            margin-bottom: 1rem;
+        }
+        .error-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+        }
+        .error-message {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary {
+            background: #e4002b;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #c40024;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(228, 0, 43, 0.3);
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+    </style>
 </head>
 <body>
-    <hgroup>
-        <h1>Error.</h1>
-        <h2>An error occurred while processing your request.</h2>
-    </hgroup>
+    @* Hata içeriği container'ı *@
+    @* Error content container *@
+    <div class="error-container">
+        @* Hata ikonu *@
+        @* Error icon *@
+        <div class="error-icon">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        
+        @* Hata başlığı - Çeviri desteği ile *@
+        @* Error title - With translation support *@
+        <h1 class="error-title" data-tr="Hata Oluştu" data-en="An Error Occurred">Hata Oluştu</h1>
+        
+        @* Hata mesajı - Çeviri desteği ile *@
+        @* Error message - With translation support *@
+        <p class="error-message" data-tr="Üzgünüz, isteğiniz işlenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin veya ana sayfaya dönün." 
+           data-en="Sorry, an error occurred while processing your request. Please try again later or return to the homepage.">
+            Üzgünüz, isteğiniz işlenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin veya ana sayfaya dönün.
+        </p>
+        
+        @* Hata aksiyon butonları *@
+        @* Error action buttons *@
+        <div class="error-actions">
+            @* Ana sayfaya dön butonu *@
+            @* Return to homepage button *@
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary" data-tr="Ana Sayfaya Dön" data-en="Return to Homepage">
+                <i class="fa-solid fa-home"></i>
+                <span data-tr="Ana Sayfaya Dön" data-en="Return to Homepage">Ana Sayfaya Dön</span>
+            </a>
+            
+            @* Geri git butonu - JavaScript ile *@
+            @* Go back button - With JavaScript *@
+            <a href="javascript:history.back()" class="btn btn-secondary" data-tr="Geri Git" data-en="Go Back">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span data-tr="Geri Git" data-en="Go Back">Geri Git</span>
+            </a>
+        </div>
+    </div>
+
+    @* Dil sistemi script'i - Çevirileri uygulamak için *@
+    @* Language system script - To apply translations *@
+    <script>
+        // Dil ayarlarını yükle ve çevirileri uygula
+        // Load language settings and apply translations
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentLang = localStorage.getItem('language') || 'tr';
+            
+            // Tüm çeviri elementlerini güncelle
+            // Update all translation elements
+            const elements = document.querySelectorAll('[data-tr][data-en]');
+            elements.forEach(element => {
+                const trText = element.getAttribute('data-tr');
+                const enText = element.getAttribute('data-en');
+                
+                if (currentLang === 'tr' && trText) {
+                    element.textContent = trText;
+                } else if (currentLang === 'en' && enText) {
+                    element.textContent = enText;
+                }
+            });
+            
+            // Title'ı güncelle
+            // Update title
+            const titleElement = document.querySelector('title[data-tr][data-en]');
+            if (titleElement) {
+                const trTitle = titleElement.getAttribute('data-tr');
+                const enTitle = titleElement.getAttribute('data-en');
+                
+                if (currentLang === 'tr' && trTitle) {
+                    titleElement.textContent = trTitle;
+                } else if (currentLang === 'en' && enTitle) {
+                    titleElement.textContent = enTitle;
+                }
+            }
+        });
+    </script>
 </body>
 </html>

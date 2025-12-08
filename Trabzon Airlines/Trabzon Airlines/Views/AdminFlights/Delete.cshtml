@@ -1,40 +1,72 @@
+@* Model tanımı - Uçuş modeli *@
+@* Model definition - Flight model *@
 @model Trabzon_Airlines.Models.Flight
 
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
 @{
     ViewBag.Title = "Sefer Sil";
+    ViewBag.TitleEn = "Delete Flight";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Sefer Sil</h2>
+@* Ana başlık - Çeviri desteği ile *@
+@* Main header - With translation support *@
+<h2 data-tr="Sefer Sil" data-en="Delete Flight">Sefer Sil</h2>
 
-<h3>Bu seferi silmek istedi�inize emin misiniz?</h3>
+@* Onay mesajı - Çeviri desteği ile *@
+@* Confirmation message - With translation support *@
+<h3 data-tr="Bu seferi silmek istediğinize emin misiniz?" data-en="Are you sure you want to delete this flight?">Bu seferi silmek istediğinize emin misiniz?</h3>
+@* Yatay çizgi ayırıcı *@
+@* Horizontal line separator *@
 <hr />
 
+@* Uçuş detayları listesi - Tanımlama listesi *@
+@* Flight details list - Definition list *@
 <dl class="dl-horizontal">
-    <dt>Sefer No</dt>
+    @* Sefer numarası *@
+    @* Flight number *@
+    <dt data-tr="Sefer No" data-en="Flight No">Sefer No</dt>
     <dd>@Model.FlightNumber</dd>
 
-    <dt>Kalk��</dt>
+    @* Kalkış havalimanı *@
+    @* Departure airport *@
+    <dt data-tr="Kalkış" data-en="Departure">Kalkış</dt>
     <dd>@Model.FromCode</dd>
 
-    <dt>Var��</dt>
+    @* Varış havalimanı *@
+    @* Arrival airport *@
+    <dt data-tr="Varış" data-en="Arrival">Varış</dt>
     <dd>@Model.ToCode</dd>
 
-    <dt>Kalk�� Zaman�</dt>
+    @* Kalkış zamanı *@
+    @* Departure time *@
+    <dt data-tr="Kalkış Zamanı" data-en="Departure Time">Kalkış Zamanı</dt>
     <dd>@Model.DepartureTime.ToString("dd.MM.yyyy HH:mm")</dd>
 
-    <dt>Var�� Zaman�</dt>
+    @* Varış zamanı *@
+    @* Arrival time *@
+    <dt data-tr="Varış Zamanı" data-en="Arrival Time">Varış Zamanı</dt>
     <dd>@Model.ArrivalTime.ToString("dd.MM.yyyy HH:mm")</dd>
 
-    <dt>Fiyat</dt>
+    @* Fiyat *@
+    @* Price *@
+    <dt data-tr="Fiyat" data-en="Price">Fiyat</dt>
     <dd>@Model.Price.ToString("C")</dd>
 </dl>
 
+@* Silme formu - POST metodu ile *@
+@* Delete form - With POST method *@
 @using (Html.BeginForm())
 {
+    @* CSRF koruması için anti-forgery token *@
+    @* Anti-forgery token for CSRF protection *@
     @Html.AntiForgeryToken()
+    
+    @* Form aksiyon butonları *@
+    @* Form action buttons *@
     <div class="form-actions">
-        <input type="submit" value="Sil" class="btn btn-danger" />
-        @Html.ActionLink("�ptal", "Index", null, new { @class = "btn btn-default" })
+        <input type="submit" value="Sil" class="btn btn-danger" data-value-tr="Sil" data-value-en="Delete" />
+        @Html.ActionLink("İptal", "Index", null, new { @class = "btn btn-default", data_tr = "İptal", data-en = "Cancel" })
     </div>
 }

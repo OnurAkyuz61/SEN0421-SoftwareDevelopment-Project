@@ -1,5 +1,8 @@
-﻿@{
+﻿@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
     ViewBag.Title = "Ana Sayfa";
+    ViewBag.TitleEn = "Home";
 }
 
 <!-- HERO SEARCH SECTION - Ana arama bölümü -->
@@ -79,7 +82,7 @@
         <input type="text" id="promoCode" placeholder="Promosyon kodunuz" data-placeholder-tr="Promosyon kodunuz" data-placeholder-en="Your promo code">
       </div>
 
-      <button class="search-btn" onclick="showComingSoonAlert('search')">
+      <button class="search-btn" onclick="searchFlights()">
         <span data-tr="Uçuş ara" data-en="Search flights">Uçuş ara</span> <i class="fa-solid fa-arrow-right"></i>
       </button>
     </div>

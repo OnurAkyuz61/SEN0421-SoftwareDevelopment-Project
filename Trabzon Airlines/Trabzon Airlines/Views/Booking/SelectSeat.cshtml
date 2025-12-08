@@ -1,68 +1,159 @@
+@* Model tanımı - Koltuk listesi modeli *@
+@* Model definition - Seat list model *@
 @model List<Trabzon_Airlines.Models.FlightSeat>
 
-<h2>@ViewBag.Flight.FlightNumber Koltuk Se�imi</h2>
-<h4>@ViewBag.Flight.FromCode ==> @ViewBag.Flight.ToCode</h4>
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
+    ViewBag.Title = "Koltuk Seçimi - Seat Selection";
+}
+
+@* Ana başlık ve buton bölümü - Flexbox ile düzenlenmiş *@
+@* Main header and button section - Arranged with flexbox *@
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    @* Ortalanmış başlık bölümü *@
+    @* Centered header section *@
+    <div style="flex: 1; text-align: center;">
+        <div>
+            @* Uçuş numarası ve koltuk seçimi başlığı - Çeviri desteği ile *@
+            @* Flight number and seat selection title - With translation support *@
+            <h2 style="margin: 0;" data-tr="@ViewBag.Flight.FlightNumber Koltuk Seçimi" data-en="@ViewBag.Flight.FlightNumber Seat Selection">@ViewBag.Flight.FlightNumber Koltuk Seçimi</h2>
+            @* Uçuş rotası - Kalkış ve varış havalimanları arasında uçak ikonu *@
+            @* Flight route - Plane icon between departure and arrival airports *@
+            <h4 style="margin: 0.5rem 0 0 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                @ViewBag.Flight.FromCode 
+                @* Uçak ikonu - FontAwesome'dan *@
+                @* Plane icon - From FontAwesome *@
+                <i class="fa-solid fa-plane" style="font-size: 1.2rem; color: var(--primary-color, #007bff);"></i>
+                @ViewBag.Flight.ToCode
+            </h4>
+        </div>
+    </div>
+    @* Sağ üstteki devam et butonu *@
+    @* Continue button at top right *@
+    <div style="margin-left: auto;">
+        @* Form submit butonu - Form dışında ama form'a bağlı *@
+        @* Form submit button - Outside form but connected to form *@
+        <button type="submit" form="seatSelectionForm" class="btn btn-success" data-tr="Devam Et" data-en="Continue">
+            Devam Et
+        </button>
+    </div>
+</div>
+@* Yatay çizgi ayırıcı *@
+@* Horizontal line separator *@
 <hr />
 
-@using (Html.BeginForm("SelectSeat", "Booking", FormMethod.Post))
+@* Koltuk seçim formu - POST metodu ile *@
+@* Seat selection form - With POST method *@
+@using (Html.BeginForm("SelectSeat", "Booking", FormMethod.Post, new { id = "seatSelectionForm" }))
 {
+    @* CSRF koruması için anti-forgery token *@
+    @* Anti-forgery token for CSRF protection *@
     @Html.AntiForgeryToken()
+    @* Gizli uçuş ID alanı - Form gönderiminde kullanılacak *@
+    @* Hidden flight ID field - Will be used in form submission *@
     <input type="hidden" name="FlightId" value="@ViewBag.Flight.FlightId" />
 
+    @* Uçak gövdesi - Koltuk haritası için container *@
+    @* Plane body - Container for seat map *@
     <div class="plane-body">
-        <div class="cockpit"> CockPit</div>
+        @* Kokpit bölümü - Uçağın ön kısmı *@
+        @* Cockpit section - Front part of the plane *@
+        <div class="cockpit" data-tr="Kokpit" data-en="Cockpit">Kokpit</div>
 
+        @* Koltuk satırları - 1'den 14'e kadar *@
+        @* Seat rows - From 1 to 14 *@
         @for (int row = 1; row <= 14; row++)
         {
+            @* Her satır için div *@
+            @* Div for each row *@
             <div class="seat-row">
+                @* Her satırdaki koltuk sütunları - A, B, C, D *@
+                @* Seat columns in each row - A, B, C, D *@
                 @foreach (var col in new[] { "A", "B", "C", "D" })
                 {
+                    @* Koltuk numarası oluştur - Satır + Sütun (örn: 1A, 2B) *@
+                    @* Create seat number - Row + Column (e.g., 1A, 2B) *@
                     var seatNumber = row + col;
 
+                    @* Model'den bu koltuk numarasına sahip koltuğu bul *@
+                    @* Find seat with this seat number from model *@
                     var seat = Model.FirstOrDefault(s => s.Seat.SeatNumber == seatNumber);
 
+                    @* Eğer koltuk bulunduysa *@
+                    @* If seat is found *@
                     if (seat != null)
                     {
+                        @* Koltuk rezerve edilmiş mi kontrol et *@
+                        @* Check if seat is reserved *@
                         bool isReserved = seat.IsReserved;
+                        @* Koltuk durumu - Rezerve ise "reserved", değilse "free" *@
+                        @* Seat state - "reserved" if reserved, "free" if not *@
                         string seatState = isReserved ? "reserved" : "free";
+                        @* Kabin sınıfı - İlk 4 satır business, diğerleri economy *@
+                        @* Cabin class - First 4 rows business, others economy *@
                         string cabinClass = row <= 4 ? "business" : "economy";
 
+                        @* Koltuk etiketi - Radio button ile seçilebilir *@
+                        @* Seat label - Selectable with radio button *@
                         <label class="seat-item @seatState @cabinClass" data-seat="@seatNumber">
+                            @* Radio button - Koltuk seçimi için *@
+                            @* Radio button - For seat selection *@
                             <input type="radio"
                                    name="SelectedSeatId"
                                    value="@seat.SeatId"
                                    @(isReserved ? "disabled" : "") />
+                            @* Koltuk numarası gösterimi *@
+                            @* Seat number display *@
                             @seatNumber
                         </label>
                     }
                     else
                     {
+                        @* Koltuk bulunamadıysa boş div göster *@
+                        @* If seat not found, show empty div *@
                         <div class="seat-item empty"></div>
                     }
 
+                    @* B sütunundan sonra koridor ekle *@
+                    @* Add aisle after column B *@
                     if (col == "B")
-                    { <div class="aisle"></div>;
+                    { 
+                        <div class="aisle"></div>;
                     }
                 }
             </div>
         }
-        <div class="tail">Kuyruk</div>
+        @* Kuyruk bölümü - Uçağın arka kısmı *@
+        @* Tail section - Back part of the plane *@
+        <div class="tail" data-tr="Kuyruk" data-en="Tail">Kuyruk</div>
     </div>
 
-
-
-
+    @* Koltuk durumu gösterge kutusu - Renk açıklamaları *@
+    @* Seat status indicator box - Color descriptions *@
     <div class="seat-info-box">
-        <span class="seat-indicator free"></span> Bo�
-        <span class="seat-indicator reserved"></span> Dolu
-        <span class="seat-indicator business"></span> Business
-        <span class="seat-indicator economy"></span> Economy
-        <span class="seat-indicator selected"></span> Se�ili
+        @* Boş koltuk göstergesi *@
+        @* Empty seat indicator *@
+        <span class="seat-indicator free"></span> <span data-tr="Boş" data-en="Empty">Boş</span>
+        @* Dolu koltuk göstergesi *@
+        @* Occupied seat indicator *@
+        <span class="seat-indicator reserved"></span> <span data-tr="Dolu" data-en="Occupied">Dolu</span>
+        @* Business sınıfı göstergesi *@
+        @* Business class indicator *@
+        <span class="seat-indicator business"></span> <span data-tr="Business" data-en="Business">Business</span>
+        @* Economy sınıfı göstergesi *@
+        @* Economy class indicator *@
+        <span class="seat-indicator economy"></span> <span data-tr="Economy" data-en="Economy">Economy</span>
+        @* Seçili koltuk göstergesi *@
+        @* Selected seat indicator *@
+        <span class="seat-indicator selected"></span> <span data-tr="Seçili" data-en="Selected">Seçili</span>
     </div>
-
-    <button type="submit" class="btn btn-success" style="margin-top:20px;">Devam Et</button>
 }
 
+@* CSS stilleri bölümü - Koltuk haritası CSS'i *@
+@* CSS styles section - Seat map CSS *@
 @section Styles {
-    <link href="~/Content/SeatMap.css" rel="stylesheet" />
+    @* Koltuk haritası CSS dosyası *@
+    @* Seat map CSS file *@
+    <link href="~/Content/css/seatmap.css" rel="stylesheet" />
 }

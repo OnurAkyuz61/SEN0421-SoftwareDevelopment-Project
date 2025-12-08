@@ -24,7 +24,7 @@ namespace Trabzon_Airlines
 
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
-                      "~/Content/site.css",
+                      "~/Content/css/site.css",
                       "~/Content/css/style.css"));
 
             bundles.Add(new StyleBundle("~/Content/auth").Include(
@@ -39,15 +39,29 @@ namespace Trabzon_Airlines
             // Trabzon Airlines JavaScript bundles
             // ScriptBundle yerine Bundle kullanarak minification'ı devre dışı bırakıyoruz
             bundles.Add(new Bundle("~/bundles/trabzonairlines").Include(
-                      "~/Scripts/airports.js",
-                      "~/Scripts/language.js",
-                      "~/Scripts/sidebar.js",
-                      "~/Scripts/flight-search.js",
-                      "~/Scripts/forms.js",
-                      "~/Scripts/alerts.js",
-                      "~/Scripts/multi-city.js",
-                      "~/Scripts/trip-type.js",
-                      "~/Scripts/main.js"));
+                      "~/js/airports.js",
+                      "~/js/language.js",
+                      "~/js/sidebar.js",
+                      "~/js/flight-search.js",
+                      "~/js/forms.js",
+                      "~/js/alerts.js",
+                      "~/js/multi-city.js",
+                      "~/js/trip-type.js",
+                      "~/js/main.js"));
+            
+            // Sayfa özel CSS bundle'ları
+            bundles.Add(new StyleBundle("~/Content/seatmap").Include(
+                      "~/Content/css/seatmap.css"));
+            
+            bundles.Add(new StyleBundle("~/Content/trip").Include(
+                      "~/Content/css/trip.css"));
+            
+            // Sayfa özel JS bundle'ları
+            bundles.Add(new Bundle("~/bundles/tripai").Include(
+                      "~/js/tripai.js"));
+            
+            bundles.Add(new Bundle("~/bundles/auth").Include(
+                      "~/js/auth.js"));
         }
     }
 }
