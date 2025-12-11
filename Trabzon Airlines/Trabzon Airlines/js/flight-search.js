@@ -268,6 +268,13 @@ function openPassengerModal() {
   updatePassengerCountsInModal();
   modal.classList.add('show');
   modal.style.display = 'flex';
+  
+  // Passenger butonundan active class'ını kaldır (mavi olmamalı)
+  // Remove active class from passenger button (should not be blue)
+  const passengerButton = document.querySelector('button[onclick="openPassengerModal()"]');
+  if (passengerButton) {
+    passengerButton.classList.remove('active');
+  }
 }
 
 // Yolcu modal'ını kapat
@@ -358,6 +365,17 @@ function confirmPassengerSelection() {
   const cabinClass = cabinClassInput ? cabinClassInput.value : null;
   if (cabinClass) {
     selectedCabinClass = cabinClass;
+    // Kabin sınıfını localStorage'a kaydet
+    // Save cabin class to localStorage
+    localStorage.setItem('selectedCabinClass', selectedCabinClass);
+    
+    // Custom event trigger et (aynı sekmede değişiklik için)
+    // Trigger custom event (for same tab changes)
+    const event = new CustomEvent('cabinClassChanged', {
+      detail: { cabinClass: selectedCabinClass }
+    });
+    window.dispatchEvent(event);
+    console.log('✅ Kabin sınıfı değişti ve event tetiklendi:', selectedCabinClass);
   }
   
   // Yolcu sayılarını kaydet

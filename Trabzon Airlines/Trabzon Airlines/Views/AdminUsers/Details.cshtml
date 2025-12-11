@@ -1,0 +1,162 @@
+@* Model tanımı - Kullanıcı modeli *@
+@* Model definition - User model *@
+@model Trabzon_Airlines.Models.User
+
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
+    ViewBag.Title = "Kullanıcı Detayı";
+    ViewBag.TitleEn = "User Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@* Kullanıcı Detay CSS *@
+@* User Detail CSS *@
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/admin-user-detail.css">
+}
+
+@* Sayfa Başlığı *@
+@* Page Header *@
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="fa-solid fa-user"></i>
+            <span data-tr="Kullanıcı Detayı" data-en="User Details">Kullanıcı Detayı</span>
+        </h1>
+        <a href="@Url.Action("Index", "AdminUsers")" class="btn-secondary-action">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span data-tr="Listeye Dön" data-en="Back to List">Listeye Dön</span>
+        </a>
+    </div>
+</div>
+
+@* Kullanıcı Detay Kartları *@
+@* User Detail Cards *@
+<div class="detail-grid">
+    @* Kullanıcı Bilgileri *@
+    @* User Information *@
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2 class="admin-card-title">
+                <i class="fa-solid fa-info-circle"></i>
+                <span data-tr="Kullanıcı Bilgileri" data-en="User Information">Kullanıcı Bilgileri</span>
+            </h2>
+        </div>
+        <div class="admin-card-body">
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Ad:" data-en="First Name:">Ad:</span>
+                <span class="detail-value">@Model.FirstName</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Soyad:" data-en="Last Name:">Soyad:</span>
+                <span class="detail-value">@Model.LastName</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="E-posta:" data-en="Email:">E-posta:</span>
+                <span class="detail-value">@Model.Email</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Telefon:" data-en="Phone:">Telefon:</span>
+                <span class="detail-value">@(string.IsNullOrEmpty(Model.Phone) ? "-" : Model.Phone)</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="TC Kimlik No:" data-en="ID Number:">TC Kimlik No:</span>
+                <span class="detail-value">@(string.IsNullOrEmpty(Model.TcNumber) ? "-" : Model.TcNumber)</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Doğum Tarihi:" data-en="Birth Date:">Doğum Tarihi:</span>
+                <span class="detail-value">@Model.BirthDate.ToString("dd.MM.yyyy")</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Cinsiyet:" data-en="Gender:">Cinsiyet:</span>
+                <span class="detail-value">
+                    @if (!string.IsNullOrEmpty(Model.Gender))
+                    {
+                        <span class="badge badge-info">@Model.Gender</span>
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @* Rezervasyonlar *@
+    @* Bookings *@
+    @if (ViewBag.Bookings != null && ((List<Trabzon_Airlines.Models.Booking>)ViewBag.Bookings).Any())
+    {
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h2 class="admin-card-title">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span data-tr="Rezervasyonlar" data-en="Bookings">Rezervasyonlar</span>
+                </h2>
+            </div>
+            <div class="admin-card-body">
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th data-tr="PNR" data-en="PNR">PNR</th>
+                                <th data-tr="Uçuş" data-en="Flight">Uçuş</th>
+                                <th data-tr="Koltuk" data-en="Seat">Koltuk</th>
+                                <th data-tr="Tarih" data-en="Date">Tarih</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var booking in (List<Trabzon_Airlines.Models.Booking>)ViewBag.Bookings)
+                            {
+                                <tr>
+                                    <td><strong class="pnr-code">@booking.PNR</strong></td>
+                                    <td>@booking.Flight.FlightNumber</td>
+                                    <td>@booking.Seat.SeatNumber</td>
+                                    <td>@booking.BookingDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h2 class="admin-card-title">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span data-tr="Rezervasyonlar" data-en="Bookings">Rezervasyonlar</span>
+                </h2>
+            </div>
+            <div class="admin-card-body">
+                <div class="admin-empty-state">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p data-tr="Bu kullanıcının henüz rezervasyonu bulunmuyor" data-en="This user has no bookings yet">Bu kullanıcının henüz rezervasyonu bulunmuyor</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* Aksiyon Butonları *@
+@* Action Buttons *@
+<div class="detail-actions">
+    <a href="@Url.Action("Delete", "AdminUsers", new { id = Model.UserId })" class="btn-action btn-delete" onclick="return confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?');">
+        <i class="fa-solid fa-trash"></i>
+        <span data-tr="Kullanıcıyı Sil" data-en="Delete User">Kullanıcıyı Sil</span>
+    </a>
+    <a href="@Url.Action("Index", "AdminUsers")" class="btn-secondary-action">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span data-tr="Listeye Dön" data-en="Back to List">Listeye Dön</span>
+    </a>
+</div>
+
+@* Kullanıcı Detay JavaScript *@
+@* User Detail JavaScript *@
+@section scripts {
+    <script src="~/js/admin-user-detail.js"></script>
+}
+

@@ -1,0 +1,482 @@
+/* ============================================
+   ADMIN DASHBOARD CSS - Dashboard Sayfası Stilleri
+   ADMIN DASHBOARD CSS - Dashboard Page Styles
+   ============================================ */
+
+/* Sayfa Başlığı */
+/* Page Header */
+.admin-page-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); /* Gradient arka plan */
+    padding: 30px 35px; /* Padding */
+    border-radius: 12px; /* Yuvarlatılmış köşeler */
+    margin-bottom: 30px; /* Alt margin */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Gölge efekti */
+    border: 1px solid #e2e8f0; /* Kenarlık */
+}
+
+/* Sayfa Başlık İçeriği */
+/* Page Header Content */
+.page-header-content {
+    display: flex; /* Flexbox düzeni */
+    justify-content: space-between; /* Elemanlar arası boşluk */
+    align-items: center; /* Dikey hizalama */
+    flex-wrap: wrap; /* Sarmalama */
+    gap: 15px; /* Elemanlar arası boşluk */
+}
+
+/* Sayfa Başlık Metni */
+/* Page Title */
+.page-title {
+    font-size: 32px; /* Font boyutu */
+    font-weight: 700; /* Font kalınlığı */
+    color: #1a202c; /* Metin rengi */
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 15px; /* Elemanlar arası boşluk */
+    margin: 0; /* Margin yok */
+    letter-spacing: -0.5px; /* Harf aralığı */
+}
+
+/* Sayfa Başlık İkon */
+/* Page Title Icon */
+.page-title i {
+    color: #e4002b; /* Kırmızı renk */
+}
+
+/* Sayfa Alt Başlık */
+/* Page Subtitle */
+.page-subtitle {
+    font-size: 16px; /* Font boyutu */
+    color: #666; /* Açık gri renk */
+    margin: 0; /* Margin yok */
+}
+
+/* Sayfa Alt Başlık Kalın Metin */
+/* Page Subtitle Bold Text */
+.page-subtitle strong {
+    color: #e4002b; /* Kırmızı renk */
+    font-weight: 600; /* Font kalınlığı */
+}
+
+/* ============================================
+   İSTATİSTİK KARTLARI - Statistics Cards
+   ============================================ */
+
+/* İstatistik Grid */
+/* Statistics Grid */
+.stats-grid {
+    display: grid; /* Grid düzeni */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Otomatik sütunlar */
+    gap: 20px; /* Elemanlar arası boşluk */
+    margin-bottom: 30px; /* Alt margin */
+}
+
+/* İstatistik Kartı */
+/* Statistics Card */
+.stat-card {
+    background: white; /* Beyaz arka plan */
+    border-radius: 12px; /* Yuvarlatılmış köşeler */
+    padding: 28px; /* Padding */
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 20px; /* Elemanlar arası boşluk */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Gölge efekti */
+    transition: all 0.3s ease; /* Geçiş efekti */
+    border-left: 4px solid; /* Sol kenarlık */
+    border: 1px solid #e2e8f0; /* Kenarlık */
+}
+
+/* İstatistik Kartı Hover */
+/* Statistics Card Hover */
+.stat-card:hover {
+    transform: translateY(-6px) scale(1.02); /* Yukarı kaydırma ve büyütme */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); /* Hover gölge efekti */
+}
+
+/* İstatistik Kartı Birincil (Mavi) */
+/* Statistics Card Primary (Blue) */
+.stat-card-primary {
+    border-left-color: #007bff; /* Mavi sol kenarlık */
+}
+
+/* İstatistik Kartı Başarı (Yeşil) */
+/* Statistics Card Success (Green) */
+.stat-card-success {
+    border-left-color: #28a745; /* Yeşil sol kenarlık */
+}
+
+/* İstatistik Kartı Bilgi (Açık Mavi) */
+/* Statistics Card Info (Light Blue) */
+.stat-card-info {
+    border-left-color: #17a2b8; /* Açık mavi sol kenarlık */
+}
+
+/* İstatistik Kartı Uyarı (Sarı) */
+/* Statistics Card Warning (Yellow) */
+.stat-card-warning {
+    border-left-color: #ffc107; /* Sarı sol kenarlık */
+}
+
+/* İstatistik Kartı Tehlike (Kırmızı) */
+/* Statistics Card Danger (Red) */
+.stat-card-danger {
+    border-left-color: #e4002b; /* Kırmızı sol kenarlık */
+}
+
+/* İstatistik Kartı İkincil (Gri) */
+/* Statistics Card Secondary (Gray) */
+.stat-card-secondary {
+    border-left-color: #6c757d; /* Gri sol kenarlık */
+}
+
+/* İstatistik Kartı İkon */
+/* Statistics Card Icon */
+.stat-card-icon {
+    width: 60px; /* Genişlik */
+    height: 60px; /* Yükseklik */
+    border-radius: 10px; /* Yuvarlatılmış köşeler */
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    justify-content: center; /* Yatay hizalama */
+    font-size: 28px; /* İkon boyutu */
+    color: white; /* Beyaz renk */
+    flex-shrink: 0; /* Küçülme yok */
+}
+
+/* İstatistik Kartı Birincil İkon */
+/* Statistics Card Primary Icon */
+.stat-card-primary .stat-card-icon {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); /* Mavi gradient */
+}
+
+/* İstatistik Kartı Başarı İkon */
+/* Statistics Card Success Icon */
+.stat-card-success .stat-card-icon {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); /* Yeşil gradient */
+}
+
+/* İstatistik Kartı Bilgi İkon */
+/* Statistics Card Info Icon */
+.stat-card-info .stat-card-icon {
+    background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%); /* Açık mavi gradient */
+}
+
+/* İstatistik Kartı Uyarı İkon */
+/* Statistics Card Warning Icon */
+.stat-card-warning .stat-card-icon {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); /* Sarı gradient */
+}
+
+/* İstatistik Kartı Tehlike İkon */
+/* Statistics Card Danger Icon */
+.stat-card-danger .stat-card-icon {
+    background: linear-gradient(135deg, #e4002b 0%, #c41e3a 100%); /* Kırmızı gradient */
+}
+
+/* İstatistik Kartı İkincil İkon */
+/* Statistics Card Secondary Icon */
+.stat-card-secondary .stat-card-icon {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%); /* Gri gradient */
+}
+
+/* İstatistik Kartı İçerik */
+/* Statistics Card Content */
+.stat-card-content {
+    flex: 1; /* Esnek genişlik */
+}
+
+/* İstatistik Kartı Değer */
+/* Statistics Card Value */
+.stat-card-value {
+    font-size: 32px; /* Font boyutu */
+    font-weight: 700; /* Font kalınlığı */
+    color: #333; /* Metin rengi */
+    margin: 0 0 5px 0; /* Margin */
+    line-height: 1; /* Satır yüksekliği */
+}
+
+/* İstatistik Kartı Etiket */
+/* Statistics Card Label */
+.stat-card-label {
+    font-size: 14px; /* Font boyutu */
+    color: #666; /* Açık gri renk */
+    margin: 0; /* Margin yok */
+    text-transform: uppercase; /* Büyük harf */
+    letter-spacing: 0.5px; /* Harf aralığı */
+}
+
+/* ============================================
+   DASHBOARD GRID - Dashboard Grid
+   ============================================ */
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid; /* Grid düzeni */
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); /* Otomatik sütunlar */
+    gap: 30px; /* Elemanlar arası boşluk */
+    margin-bottom: 30px; /* Alt margin */
+}
+
+/* Dashboard Kartı */
+/* Dashboard Card */
+.dashboard-card {
+    background: white; /* Beyaz arka plan */
+    border-radius: 12px; /* Yuvarlatılmış köşeler */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Gölge efekti */
+    overflow: hidden; /* Taşan içerik gizle */
+    border: 1px solid #e2e8f0; /* Kenarlık */
+    transition: box-shadow 0.3s ease; /* Geçiş efekti */
+}
+
+/* Dashboard Kartı Hover */
+/* Dashboard Card Hover */
+.dashboard-card:hover {
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12); /* Hover gölge efekti */
+}
+
+/* Dashboard Kartı Başlık */
+/* Dashboard Card Header */
+.dashboard-card-header {
+    padding: 24px 30px; /* Padding */
+    border-bottom: 1px solid #e2e8f0; /* Alt kenarlık */
+    display: flex; /* Flexbox düzeni */
+    justify-content: space-between; /* Elemanlar arası boşluk */
+    align-items: center; /* Dikey hizalama */
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); /* Gradient arka plan */
+}
+
+/* Dashboard Kartı Başlık Metni */
+/* Dashboard Card Title */
+.dashboard-card-title {
+    font-size: 18px; /* Font boyutu */
+    font-weight: 600; /* Font kalınlığı */
+    color: #333; /* Metin rengi */
+    margin: 0; /* Margin yok */
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 10px; /* Elemanlar arası boşluk */
+}
+
+/* Dashboard Kartı Başlık İkon */
+/* Dashboard Card Title Icon */
+.dashboard-card-title i {
+    color: #e4002b; /* Kırmızı renk */
+}
+
+/* Dashboard Kartı Link */
+/* Dashboard Card Link */
+.dashboard-card-link {
+    color: #e4002b; /* Kırmızı renk */
+    text-decoration: none; /* Alt çizgi yok */
+    font-size: 14px; /* Font boyutu */
+    font-weight: 500; /* Font kalınlığı */
+    transition: color 0.3s; /* Geçiş efekti */
+}
+
+/* Dashboard Kartı Link Hover */
+/* Dashboard Card Link Hover */
+.dashboard-card-link:hover {
+    color: #c41e3a; /* Hover rengi */
+}
+
+/* Dashboard Kartı İçerik */
+/* Dashboard Card Body */
+.dashboard-card-body {
+    padding: 25px; /* Padding */
+}
+
+/* ============================================
+   DASHBOARD TABLO - Dashboard Table
+   ============================================ */
+
+/* Dashboard Tablosu */
+/* Dashboard Table */
+.dashboard-table {
+    width: 100%; /* Genişlik */
+    border-collapse: collapse; /* Kenarlık birleştirme */
+}
+
+/* Dashboard Tablo Başlık */
+/* Dashboard Table Header */
+.dashboard-table thead {
+    background: #f8f9fa; /* Açık gri arka plan */
+}
+
+/* Dashboard Tablo Başlık Hücresi */
+/* Dashboard Table Header Cell */
+.dashboard-table th {
+    padding: 12px 15px; /* Padding */
+    text-align: left; /* Sol hizalama */
+    font-weight: 600; /* Font kalınlığı */
+    color: #333; /* Metin rengi */
+    font-size: 14px; /* Font boyutu */
+    border-bottom: 2px solid #e0e0e0; /* Alt kenarlık */
+}
+
+/* Dashboard Tablo Gövde Hücresi */
+/* Dashboard Table Body Cell */
+.dashboard-table td {
+    padding: 12px 15px; /* Padding */
+    border-bottom: 1px solid #f0f0f0; /* Alt kenarlık */
+    color: #555; /* Metin rengi */
+    font-size: 14px; /* Font boyutu */
+}
+
+/* Dashboard Tablo Satır Hover */
+/* Dashboard Table Row Hover */
+.dashboard-table tbody tr:hover {
+    background: #f8f9fa; /* Hover arka plan rengi */
+}
+
+/* Dashboard Tablo Son Satır */
+/* Dashboard Table Last Row */
+.dashboard-table tbody tr:last-child td {
+    border-bottom: none; /* Alt kenarlık yok */
+}
+
+/* ============================================
+   BUTONLAR - Buttons
+   ============================================ */
+
+/* Aksiyon Butonu */
+/* Action Button */
+.btn-action {
+    display: inline-block; /* Satır içi blok */
+    padding: 6px 12px; /* Padding */
+    border-radius: 5px; /* Yuvarlatılmış köşeler */
+    text-decoration: none; /* Alt çizgi yok */
+    font-size: 12px; /* Font boyutu */
+    font-weight: 500; /* Font kalınlığı */
+    transition: all 0.3s; /* Geçiş efekti */
+    border: none; /* Kenarlık yok */
+    cursor: pointer; /* İmleç tipi */
+}
+
+/* Görüntüle Butonu */
+/* View Button */
+.btn-view {
+    background: #17a2b8; /* Açık mavi arka plan */
+    color: white; /* Beyaz renk */
+}
+
+/* Görüntüle Butonu Hover */
+/* View Button Hover */
+.btn-view:hover {
+    background: #117a8b; /* Hover arka plan rengi */
+    color: white; /* Beyaz renk */
+}
+
+/* Düzenle Butonu */
+/* Edit Button */
+.btn-edit {
+    background: #ffc107; /* Sarı arka plan */
+    color: #333; /* Koyu renk */
+}
+
+/* Düzenle Butonu Hover */
+/* Edit Button Hover */
+.btn-edit:hover {
+    background: #e0a800; /* Hover arka plan rengi */
+    color: #333; /* Koyu renk */
+}
+
+/* ============================================
+   BOŞ DURUM - Empty State
+   ============================================ */
+
+/* Dashboard Boş Durum */
+/* Dashboard Empty State */
+.dashboard-empty {
+    text-align: center; /* Metin hizalama */
+    padding: 40px 20px; /* Padding */
+    color: #999; /* Açık gri renk */
+}
+
+/* Dashboard Boş Durum İkon */
+/* Dashboard Empty State Icon */
+.dashboard-empty i {
+    font-size: 48px; /* İkon boyutu */
+    margin-bottom: 15px; /* Alt margin */
+    opacity: 0.5; /* Şeffaflık */
+}
+
+/* Dashboard Boş Durum Metin */
+/* Dashboard Empty State Text */
+.dashboard-empty p {
+    font-size: 16px; /* Font boyutu */
+    margin: 0; /* Margin yok */
+}
+
+/* ============================================
+   RESPONSIVE DESIGN - Mobil Uyumluluk
+   RESPONSIVE DESIGN - Mobile Compatibility
+   ============================================ */
+
+/* Tablet ve Küçük Ekranlar (768px ve altı) */
+/* Tablets and Small Screens (768px and below) */
+@media (max-width: 768px) {
+    /* İstatistik Grid */
+    .stats-grid {
+        grid-template-columns: 1fr; /* Tek sütun */
+    }
+    
+    /* Dashboard Grid */
+    .dashboard-grid {
+        grid-template-columns: 1fr; /* Tek sütun */
+    }
+    
+    /* Dashboard Tablosu */
+    .dashboard-table {
+        font-size: 12px; /* Font boyutu küçült */
+    }
+    
+    /* Dashboard Tablo Hücreleri */
+    .dashboard-table th,
+    .dashboard-table td {
+        padding: 8px 10px; /* Padding azalt */
+    }
+    
+    /* Sayfa Başlık İçeriği */
+    .page-header-content {
+        flex-direction: column; /* Dikey düzen */
+        align-items: flex-start; /* Sol hizalama */
+    }
+}
+
+/* Mobil Cihazlar (480px ve altı) */
+/* Mobile Devices (480px and below) */
+@media (max-width: 480px) {
+    /* Sayfa Başlığı */
+    .admin-page-header {
+        padding: 20px; /* Padding azalt */
+    }
+    
+    /* İstatistik Kartı */
+    .stat-card {
+        padding: 20px; /* Padding azalt */
+    }
+    
+    /* İstatistik Kartı İkon */
+    .stat-card-icon {
+        width: 50px; /* Genişlik azalt */
+        height: 50px; /* Yükseklik azalt */
+        font-size: 24px; /* İkon boyutu azalt */
+    }
+    
+    /* İstatistik Kartı Değer */
+    .stat-card-value {
+        font-size: 24px; /* Font boyutu azalt */
+    }
+    
+    /* Dashboard Kartı İçerik */
+    .dashboard-card-body {
+        padding: 15px; /* Padding azalt */
+    }
+    
+    /* Dashboard Tablosu - Scroll */
+    .dashboard-table {
+        display: block; /* Blok göster */
+        overflow-x: auto; /* Yatay scroll */
+    }
+}
+

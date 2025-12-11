@@ -85,12 +85,20 @@
             <section class="sitemap-section">
                 <h2 class="section-category" data-tr="Rezervasyon ve Ödeme" data-en="Booking & Payment">Rezervasyon ve Ödeme</h2>
                 <div class="sitemap-list">
-                    <a href="@Url.Action("Index", "Payment")" class="sitemap-item">
-                        <span class="item-name" data-tr="Güvenli Ödeme" data-en="Secure Payment">Güvenli Ödeme</span>
+                    <a href="@Url.Action("SearchResults", "Flights")" class="sitemap-item">
+                        <span class="item-name" data-tr="Uçuş Sonuçları" data-en="Flight Results">Uçuş Sonuçları</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
                     <a href="@Url.Action("SelectSeat", "Booking")" class="sitemap-item">
                         <span class="item-name" data-tr="Koltuk Seçimi" data-en="Seat Selection">Koltuk Seçimi</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Index", "Payment")" class="sitemap-item">
+                        <span class="item-name" data-tr="Güvenli Ödeme" data-en="Secure Payment">Güvenli Ödeme</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("BookingResult", "Booking", new { bookingId = 1 })" class="sitemap-item">
+                        <span class="item-name" data-tr="Rezervasyon Sonucu" data-en="Booking Result">Rezervasyon Sonucu</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
                 </div>
@@ -131,6 +139,18 @@
                     </a>
                     <a href="@Url.Action("Create", "AdminFlights")" class="sitemap-item">
                         <span class="item-name" data-tr="Yeni Uçuş Ekle" data-en="Add New Flight">Yeni Uçuş Ekle</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Index", "AdminBookings")" class="sitemap-item">
+                        <span class="item-name" data-tr="Rezervasyon Yönetimi" data-en="Booking Management">Rezervasyon Yönetimi</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Index", "AdminUsers")" class="sitemap-item">
+                        <span class="item-name" data-tr="Kullanıcı Yönetimi" data-en="User Management">Kullanıcı Yönetimi</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="@Url.Action("Settings", "Admin")" class="sitemap-item">
+                        <span class="item-name" data-tr="Ayarlar" data-en="Settings">Ayarlar</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
                 </div>

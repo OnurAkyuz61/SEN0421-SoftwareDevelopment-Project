@@ -186,16 +186,21 @@ function togglePassword(inputId) {
       return;
     }
     
-    console.log('Kayıt formu gönderildi:', data);
+    // Anti-forgery token'ı al
+    const token = formData.get('__RequestVerificationToken');
+    if (!token) {
+      console.error('Anti-forgery token bulunamadı!');
+      showAuthMessage('error', 
+        currentLanguage === 'tr' ? 'Form güvenlik hatası! Lütfen sayfayı yenileyin.' : 'Form security error! Please refresh the page.'
+      );
+      return;
+    }
     
-    showAuthMessage('success', 
-      currentLanguage === 'tr' ? 'Kayıt işlemi başarıyla tamamlandı! Giriş yapabilirsiniz.' : 'Registration completed successfully! You can now sign in.'
-    );
+    console.log('Kayıt formu gönderiliyor...');
     
-    // 2 saniye sonra login sayfasına yönlendir
-    setTimeout(() => {
-      window.location.href = '/Home/Login';
-    }, 2000);
+    // Form'u normal şekilde submit et (token otomatik gönderilecek)
+    // Submit form normally (token will be sent automatically)
+    form.submit();
   }
   
   // Giriş formu işlemi
@@ -204,13 +209,15 @@ function togglePassword(inputId) {
     
     const form = event.target;
     const formData = new FormData(form);
-    const data = Object.fromEntries(formData);
     
     // Mevcut dil ayarını al
     const currentLanguage = localStorage.getItem('language') || 'tr';
     
     // Gerekli alanları kontrol et
-    if (!data.email || !data.password) {
+    const email = formData.get('email');
+    const password = formData.get('password');
+    
+    if (!email || !password) {
       showAuthMessage('error', 
         currentLanguage === 'tr' ? 'E-posta ve şifre alanları zorunludur!' : 'Email and password fields are required!'
       );
@@ -219,23 +226,28 @@ function togglePassword(inputId) {
     
     // E-posta formatını kontrol et
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
+    if (!emailRegex.test(email)) {
       showAuthMessage('error', 
         currentLanguage === 'tr' ? 'Geçerli bir e-posta adresi girin!' : 'Please enter a valid email address!'
       );
       return;
     }
     
-    console.log('Giriş formu gönderildi:', data);
+    // Anti-forgery token'ı al
+    const token = formData.get('__RequestVerificationToken');
+    if (!token) {
+      console.error('Anti-forgery token bulunamadı!');
+      showAuthMessage('error', 
+        currentLanguage === 'tr' ? 'Form güvenlik hatası! Lütfen sayfayı yenileyin.' : 'Form security error! Please refresh the page.'
+      );
+      return;
+    }
     
-    showAuthMessage('success', 
-      currentLanguage === 'tr' ? 'Giriş yapılıyor... Ana sayfaya yönlendiriliyorsunuz.' : 'Signing in... Redirecting to homepage.'
-    );
+    console.log('Giriş formu gönderiliyor...');
     
-    // 2 saniye sonra ana sayfaya yönlendir
-    setTimeout(() => {
-      window.location.href = '/Home/Index';
-    }, 2000);
+    // Form'u normal şekilde submit et (token otomatik gönderilecek)
+    // Submit form normally (token will be sent automatically)
+    form.submit();
   }
   
   // Auth mesajı gösterme fonksiyonu

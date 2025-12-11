@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @* Sayfa başlığı - Admin paneli için *@
+    @* Page title - For admin panel *@
+    <title data-tr="@(ViewBag.Title ?? "Admin Paneli") - Trabzon Airlines" data-en="@(ViewBag.TitleEn ?? ViewBag.Title ?? "Admin Panel") - Trabzon Airlines">@ViewBag.Title - Trabzon Airlines Admin</title>
+    
+    @* Font Awesome ikonları *@
+    @* Font Awesome icons *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    @* Admin paneli için genel CSS *@
+    @* General CSS for admin panel *@
+    <link rel="stylesheet" href="~/Content/css/admin-layout.css?v=@DateTime.Now.Ticks">
+    
+    @* Sayfa özel CSS dosyası *@
+    @* Page specific CSS file *@
+    @RenderSection("styles", required: false)
+</head>
+<body class="admin-body">
+    
+    @* Admin Navbar - Üst navigasyon çubuğu *@
+    @* Admin Navbar - Top navigation bar *@
+    <nav class="admin-navbar">
+        <div class="admin-navbar-container">
+            @* Sol taraf - Logo ve menü butonu *@
+            @* Left side - Logo and menu button *@
+            <div class="admin-navbar-left">
+                <button class="admin-sidebar-toggle" id="sidebarToggle" onclick="toggleAdminSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <a href="@Url.Action("Dashboard", "Admin")" class="admin-logo">
+                    <i class="fa-solid fa-plane"></i>
+                    <span>Trabzon Airlines</span>
+                    <span class="admin-badge">Admin</span>
+                </a>
+            </div>
+            
+            @* Sağ taraf - Admin bilgileri ve menü *@
+            @* Right side - Admin information and menu *@
+            <div class="admin-navbar-right">
+                @* Admin adı ve dropdown menü *@
+                @* Admin name and dropdown menu *@
+                <div class="admin-user-menu">
+                    <button class="admin-user-btn" id="adminUserBtn" onclick="toggleAdminUserMenu()">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span class="admin-name">@(Session["AdminName"] ?? "Admin")</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    @* Dropdown menü *@
+                    @* Dropdown menu *@
+                    <div class="admin-user-dropdown" id="adminUserDropdown">
+                        <a href="@Url.Action("Settings", "Admin")" class="dropdown-item">
+                            <i class="fa-solid fa-gear"></i>
+                            <span data-tr="Ayarlar" data-en="Settings">Ayarlar</span>
+                        </a>
+                        <a href="@Url.Action("Logout", "Admin")" class="dropdown-item">
+                            <i class="fa-solid fa-sign-out-alt"></i>
+                            <span data-tr="Çıkış Yap" data-en="Logout">Çıkış Yap</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    @* Admin Sidebar - Sol menü *@
+    @* Admin Sidebar - Left menu *@
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="admin-sidebar-content">
+            @* Menü öğeleri *@
+            @* Menu items *@
+            <ul class="admin-menu">
+                @* Dashboard *@
+                <li class="admin-menu-item">
+                    <a href="@Url.Action("Dashboard", "Admin")" class="admin-menu-link @((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "Dashboard" && (ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "Admin" ? "active" : "")">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span data-tr="Dashboard" data-en="Dashboard">Dashboard</span>
+                    </a>
+                </li>
+                
+                @* Uçuş Yönetimi *@
+                @* Flight Management *@
+                <li class="admin-menu-item">
+                    <a href="@Url.Action("Index", "AdminFlights")" class="admin-menu-link @((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "AdminFlights" ? "active" : "")">
+                        <i class="fa-solid fa-plane"></i>
+                        <span data-tr="Uçuş Yönetimi" data-en="Flight Management">Uçuş Yönetimi</span>
+                    </a>
+                </li>
+                
+                @* Yeni Uçuş Ekle *@
+                @* Add New Flight *@
+                <li class="admin-menu-item">
+                    <a href="@Url.Action("Create", "AdminFlights")" class="admin-menu-link @((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "Create" && (ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "AdminFlights" ? "active" : "")">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span data-tr="Yeni Uçuş Ekle" data-en="Add New Flight">Yeni Uçuş Ekle</span>
+                    </a>
+                </li>
+                
+                @* Rezervasyon Yönetimi *@
+                @* Booking Management *@
+                <li class="admin-menu-item">
+                    <a href="@Url.Action("Index", "AdminBookings")" class="admin-menu-link @((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "AdminBookings" ? "active" : "")">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <span data-tr="Rezervasyon Yönetimi" data-en="Booking Management">Rezervasyon Yönetimi</span>
+                    </a>
+                </li>
+                
+                @* Kullanıcı Yönetimi *@
+                @* User Management *@
+                <li class="admin-menu-item">
+                    <a href="@Url.Action("Index", "AdminUsers")" class="admin-menu-link @((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "AdminUsers" ? "active" : "")">
+                        <i class="fa-solid fa-users"></i>
+                        <span data-tr="Kullanıcı Yönetimi" data-en="User Management">Kullanıcı Yönetimi</span>
+                    </a>
+                </li>
+                
+                @* Admin Yönetimi *@
+                @* Admin Management *@
+                <li class="admin-menu-item">
+                    <a href="@Url.Action("Index", "AdminAdmins")" class="admin-menu-link @((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "AdminAdmins" ? "active" : "")">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span data-tr="Admin Yönetimi" data-en="Admin Management">Admin Yönetimi</span>
+                    </a>
+                </li>
+                
+                @* Ayarlar *@
+                @* Settings *@
+                <li class="admin-menu-item">
+                    <a href="@Url.Action("Settings", "Admin")" class="admin-menu-link @((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "Settings" && (ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "Admin" ? "active" : "")">
+                        <i class="fa-solid fa-gear"></i>
+                        <span data-tr="Ayarlar" data-en="Settings">Ayarlar</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    @* Ana içerik alanı *@
+    @* Main content area *@
+    <main class="admin-main-content" id="adminMainContent">
+        @* Sayfa içeriği *@
+        @* Page content *@
+        @RenderBody()
+    </main>
+
+    @* Admin Footer - Alt bilgi çubuğu *@
+    @* Admin Footer - Bottom information bar *@
+    <footer class="admin-footer">
+        <div class="admin-footer-content">
+            <p>&copy; @DateTime.Now.Year Trabzon Airlines - <span data-tr="Tüm hakları saklıdır" data-en="All rights reserved">Tüm hakları saklıdır</span></p>
+            <p class="admin-footer-version">v1.0.0</p>
+        </div>
+    </footer>
+
+    @* jQuery ve Bootstrap (gerekirse) *@
+    @* jQuery and Bootstrap (if needed) *@
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    @* Admin paneli için genel JavaScript *@
+    @* General JavaScript for admin panel *@
+    <script src="~/js/admin-layout.js"></script>
+    
+    @* Dil sistemi (eğer varsa) *@
+    @* Language system (if exists) *@
+    @if (File.Exists(Server.MapPath("~/js/main.js")))
+    {
+        <script src="~/js/main.js"></script>
+    }
+    
+    @* Sayfa özel JavaScript dosyası *@
+    @* Page specific JavaScript file *@
+    @RenderSection("scripts", required: false)
+</body>
+</html>
+

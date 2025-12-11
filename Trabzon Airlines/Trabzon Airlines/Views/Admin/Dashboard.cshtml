@@ -1,23 +1,239 @@
-﻿
-@* Sayfa başlığı - ViewBag.Title ayarı *@
+﻿@* Sayfa başlığı - ViewBag.Title ayarı *@
 @* Page title - ViewBag.Title setting *@
+@using System.Linq; @* LINQ için - For LINQ *@
+@using System.Collections.Generic; @* List için - For List *@
+@using Trabzon_Airlines.Models; @* ViewModel sınıfları için - For ViewModel classes *@
 @{
-    ViewBag.Title = "Admin Dashboard";
-    ViewBag.TitleEn = "Admin Dashboard";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Dashboard";
+    ViewBag.TitleEn = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h2 data-tr="Admin Paneli" data-en="Admin Panel">Admin Paneli</h2>
+@* Dashboard CSS *@
+@* Dashboard CSS *@
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/admin-dashboard.css?v=@DateTime.Now.Ticks">
+}
 
-<p data-tr="Hoş geldin" data-en="Welcome">Hoş geldin</p>
-<b>@Session["AdminName"]!</b>
-
-<div style="padding:20px; background:#eee; border-radius:6px; margin-top:15px;">
-    <h3 data-tr="Yönetim Paneli" data-en="Management Panel">Yönetim Paneli</h3>
-    <p data-tr="Buradan uçuş, koltuk ve rezervasyon işlemlerini yönetebilirsiniz."
-       data-en="From here you can manage flights, seats and reservations.">
-        Buradan uçuş, koltuk ve rezervasyon işlemlerini yönetebilirsiniz.
-    </p>
+@* Hoş Geldin Mesajı *@
+@* Welcome Message *@
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="fa-solid fa-chart-line"></i>
+            <span data-tr="Dashboard" data-en="Dashboard">Dashboard</span>
+        </h1>
+        <p class="page-subtitle">
+            <span data-tr="Hoş geldiniz," data-en="Welcome,">Hoş geldiniz,</span>
+            <strong>@(Session["AdminName"] ?? "Admin")</strong>
+        </p>
+    </div>
 </div>
 
+@* İstatistik Kartları *@
+@* Statistics Cards *@
+<div class="stats-grid">
+    @* Toplam Uçuş Kartı *@
+    @* Total Flights Card *@
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-plane"></i>
+        </div>
+        <div class="stat-card-content">
+            <h3 class="stat-card-value">@ViewBag.TotalFlights</h3>
+            <p class="stat-card-label" data-tr="Toplam Uçuş" data-en="Total Flights">Toplam Uçuş</p>
+        </div>
+    </div>
 
+    @* Toplam Rezervasyon Kartı *@
+    @* Total Bookings Card *@
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <div class="stat-card-content">
+            <h3 class="stat-card-value">@ViewBag.TotalBookings</h3>
+            <p class="stat-card-label" data-tr="Toplam Rezervasyon" data-en="Total Bookings">Toplam Rezervasyon</p>
+        </div>
+    </div>
+
+    @* Toplam Kullanıcı Kartı *@
+    @* Total Users Card *@
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="stat-card-content">
+            <h3 class="stat-card-value">@ViewBag.TotalUsers</h3>
+            <p class="stat-card-label" data-tr="Toplam Kullanıcı" data-en="Total Users">Toplam Kullanıcı</p>
+        </div>
+    </div>
+
+    @* Bugünkü Rezervasyonlar Kartı *@
+    @* Today's Bookings Card *@
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-calendar-day"></i>
+        </div>
+        <div class="stat-card-content">
+            <h3 class="stat-card-value">@ViewBag.TodayBookings</h3>
+            <p class="stat-card-label" data-tr="Bugünkü Rezervasyonlar" data-en="Today's Bookings">Bugünkü Rezervasyonlar</p>
+        </div>
+    </div>
+
+    @* Bu Ayki Rezervasyonlar Kartı *@
+    @* This Month's Bookings Card *@
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-calendar-alt"></i>
+        </div>
+        <div class="stat-card-content">
+            <h3 class="stat-card-value">@ViewBag.ThisMonthBookings</h3>
+            <p class="stat-card-label" data-tr="Bu Ayki Rezervasyonlar" data-en="This Month's Bookings">Bu Ayki Rezervasyonlar</p>
+        </div>
+    </div>
+
+    @* Toplam Admin Kartı *@
+    @* Total Admins Card *@
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <div class="stat-card-content">
+            <h3 class="stat-card-value">@ViewBag.TotalAdmins</h3>
+            <p class="stat-card-label" data-tr="Toplam Admin" data-en="Total Admins">Toplam Admin</p>
+        </div>
+    </div>
+</div>
+
+@* Son Rezervasyonlar ve Son Uçuşlar Grid *@
+@* Recent Bookings and Recent Flights Grid *@
+<div class="dashboard-grid">
+    @* Son Rezervasyonlar Tablosu *@
+    @* Recent Bookings Table *@
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <h2 class="dashboard-card-title">
+                <i class="fa-solid fa-list"></i>
+                <span data-tr="Son Rezervasyonlar" data-en="Recent Bookings">Son Rezervasyonlar</span>
+            </h2>
+            <a href="@Url.Action("Index", "AdminBookings")" class="dashboard-card-link" data-tr="Tümünü Gör" data-en="View All">Tümünü Gör</a>
+        </div>
+        <div class="dashboard-card-body">
+            @if (ViewBag.RecentBookings != null)
+            {
+                var recentBookingsList = ViewBag.RecentBookings as System.Collections.IEnumerable;
+                if (recentBookingsList != null && recentBookingsList.Cast<object>().Any())
+                {
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th data-tr="PNR" data-en="PNR">PNR</th>
+                                <th data-tr="Yolcu" data-en="Passenger">Yolcu</th>
+                                <th data-tr="Uçuş" data-en="Flight">Uçuş</th>
+                                <th data-tr="Tarih" data-en="Date">Tarih</th>
+                                <th data-tr="İşlemler" data-en="Actions">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (dynamic booking in recentBookingsList)
+                            {
+                                <tr>
+                                    <td><strong>@(booking.PNR ?? "")</strong></td>
+                                    <td>@(booking.PassengerName ?? "") @(booking.PassengerSurname ?? "")</td>
+                                    <td>@(booking.FromCode ?? "") → @(booking.ToCode ?? "")</td>
+                                    <td>@(((DateTime)booking.BookingDate).ToString("dd.MM.yyyy HH:mm"))</td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "AdminBookings", new { id = booking.BookingId })" class="btn-action btn-view" data-tr="Detay" data-en="Details">Detay</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="dashboard-empty">
+                        <i class="fa-solid fa-inbox"></i>
+                        <p data-tr="Henüz rezervasyon bulunmuyor" data-en="No bookings yet">Henüz rezervasyon bulunmuyor</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="dashboard-empty">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p data-tr="Henüz rezervasyon bulunmuyor" data-en="No bookings yet">Henüz rezervasyon bulunmuyor</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Son Uçuşlar Tablosu *@
+    @* Recent Flights Table *@
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <h2 class="dashboard-card-title">
+                <i class="fa-solid fa-plane-departure"></i>
+                <span data-tr="Son Uçuşlar" data-en="Recent Flights">Son Uçuşlar</span>
+            </h2>
+            <a href="@Url.Action("Index", "AdminFlights")" class="dashboard-card-link" data-tr="Tümünü Gör" data-en="View All">Tümünü Gör</a>
+        </div>
+        <div class="dashboard-card-body">
+            @if (ViewBag.RecentFlights != null)
+            {
+                var recentFlightsList = ViewBag.RecentFlights as System.Collections.IEnumerable;
+                if (recentFlightsList != null && recentFlightsList.Cast<object>().Any())
+                {
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th data-tr="Uçuş No" data-en="Flight No">Uçuş No</th>
+                                <th data-tr="Rota" data-en="Route">Rota</th>
+                                <th data-tr="Kalkış" data-en="Departure">Kalkış</th>
+                                <th data-tr="Varış" data-en="Arrival">Varış</th>
+                                <th data-tr="Fiyat" data-en="Price">Fiyat</th>
+                                <th data-tr="İşlemler" data-en="Actions">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (dynamic flight in recentFlightsList)
+                            {
+                                <tr>
+                                    <td><strong>@(flight.FlightNumber ?? "")</strong></td>
+                                    <td>@(flight.FromCode ?? "") → @(flight.ToCode ?? "")</td>
+                                    <td>@(((DateTime)flight.DepartureTime).ToString("dd.MM.yyyy HH:mm"))</td>
+                                    <td>@(((DateTime)flight.ArrivalTime).ToString("dd.MM.yyyy HH:mm"))</td>
+                                    <td>@(((decimal)flight.Price).ToString("C", new System.Globalization.CultureInfo("tr-TR")))</td>
+                                    <td>
+                                        <a href="@Url.Action("Edit", "AdminFlights", new { id = flight.FlightId })" class="btn-action btn-edit" data-tr="Düzenle" data-en="Edit">Düzenle</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="dashboard-empty">
+                        <i class="fa-solid fa-inbox"></i>
+                        <p data-tr="Henüz uçuş bulunmuyor" data-en="No flights yet">Henüz uçuş bulunmuyor</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="dashboard-empty">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p data-tr="Henüz uçuş bulunmuyor" data-en="No flights yet">Henüz uçuş bulunmuyor</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* Dashboard JavaScript *@
+@* Dashboard JavaScript *@
+@section scripts {
+    <script src="~/js/admin-dashboard.js"></script>
+}

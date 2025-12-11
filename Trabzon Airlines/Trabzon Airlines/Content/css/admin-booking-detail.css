@@ -1,0 +1,65 @@
+/* ============================================
+   ADMIN BOOKING DETAIL CSS - Rezervasyon Detay Stilleri
+   ADMIN BOOKING DETAIL CSS - Booking Detail Styles
+   ============================================ */
+
+/* Detay Grid */
+.detail-grid {
+    display: grid; /* Grid düzeni */
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Otomatik sütunlar */
+    gap: 20px; /* Elemanlar arası boşluk */
+    margin-bottom: 30px; /* Alt margin */
+}
+
+/* Detay Öğesi */
+.detail-item {
+    display: flex; /* Flexbox düzeni */
+    justify-content: space-between; /* Elemanlar arası boşluk */
+    align-items: center; /* Dikey hizalama */
+    padding: 12px 0; /* Padding */
+    border-bottom: 1px solid #f0f0f0; /* Alt kenarlık */
+}
+
+/* Detay Öğesi Son Eleman */
+.detail-item:last-child {
+    border-bottom: none; /* Alt kenarlık yok */
+}
+
+/* Detay Etiket */
+.detail-label {
+    font-weight: 600; /* Font kalınlığı */
+    color: #666; /* Açık gri renk */
+    font-size: 14px; /* Font boyutu */
+}
+
+/* Detay Değer */
+.detail-value {
+    font-weight: 500; /* Font kalınlığı */
+    color: #333; /* Metin rengi */
+    font-size: 14px; /* Font boyutu */
+    text-align: right; /* Sağ hizalama */
+}
+
+/* Detay Aksiyonlar */
+.detail-actions {
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 15px; /* Elemanlar arası boşluk */
+    margin-top: 20px; /* Üst margin */
+}
+
+/* Aksiyon Butonu (Geniş) */
+.btn-action {
+    display: inline-flex; /* Satır içi flex */
+    align-items: center; /* Dikey hizalama */
+    gap: 8px; /* Elemanlar arası boşluk */
+    padding: 12px 20px; /* Padding */
+    border-radius: 8px; /* Yuvarlatılmış köşeler */
+    text-decoration: none; /* Alt çizgi yok */
+    font-weight: 600; /* Font kalınlığı */
+    transition: all 0.3s; /* Geçiş efekti */
+    border: none; /* Kenarlık yok */
+    cursor: pointer; /* İmleç tipi */
+    font-size: 14px; /* Font boyutu */
+}
+

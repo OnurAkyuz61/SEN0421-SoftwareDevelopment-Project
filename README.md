@@ -37,7 +37,8 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - **AJAX ile asenkron arama işlemi**
   - **Loading durumu göstergesi**
   - **Koltuk seçimi (SelectSeat)** - Uçuş sonrası koltuk seçimi
-  - **Ödeme sistemi (Payment)** - Iyzico entegrasyonu ile güvenli ödeme
+  - **Ödeme sistemi (Payment)** - Simüle edilmiş ödeme sistemi (gerçek ödeme yapılmaz)
+  - **Kullanıcı giriş kontrolü** - Koltuk seçiminden sonra ödeme için giriş zorunluluğu
 
 - 🌍 **Çok Dilli Destek** ✅
   - Türkçe ve İngilizce dil seçenekleri
@@ -58,6 +59,8 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - Şifre sıfırlama
   - TC Kimlik validasyonu
   - Şifre gücü göstergesi
+  - **Zorunlu giriş kontrolü** - Rezervasyon işlemleri için giriş zorunluluğu
+  - **ReturnUrl desteği** - Giriş sonrası önceki sayfaya geri dönüş
 
 - 📦 **Paket ve Fırsat Yönetimi**
   - Paket listeleme ve detay sayfaları
@@ -68,23 +71,26 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - Öne çıkan paket/fırsat işaretleme
 
 - 👨‍💼 **Admin Paneli** ✅
-  - Admin giriş sistemi (yetkilendirme ile)
-  - Dashboard (istatistikler ve özet bilgiler)
-  - Paket yönetimi (Ekleme, Düzenleme, Silme, Listeleme)
-  - Fırsat yönetimi (Ekleme, Düzenleme, Silme, Listeleme)
-  - Kullanıcı yönetimi
-  - Rezervasyon takibi
-  - Super Admin yetkilendirme sistemi
+  - **Admin Giriş Sistemi** - Veritabanına bağlı güvenli giriş
+  - **Admin Layout** - Özel navbar, sidebar ve footer tasarımı
+  - **Dashboard** - Gerçek zamanlı istatistikler (Toplam Uçuş, Rezervasyon, Kullanıcı, vb.)
+  - **Uçuş Yönetimi** - Uçuş listeleme, ekleme, düzenleme, silme
+  - **Rezervasyon Yönetimi** - Rezervasyon listeleme, detay görüntüleme, silme
+  - **Kullanıcı Yönetimi** - Kullanıcı listeleme, detay görüntüleme, silme
+  - **Ayarlar** - Profil düzenleme, şifre değiştirme
+  - **Session Kontrolü** - Tüm admin sayfalarında oturum kontrolü
+  - **Responsive Tasarım** - Mobil uyumlu admin paneli
+  - **Ayrı CSS/JS Dosyaları** - Her sayfa için özel stil ve script dosyaları
 
 - 💳 **Ödeme Sistemi** ✅
-  - **Iyzico entegrasyonu** - Sandbox ortamında test ödemeleri
-  - **3D Secure desteği** - Güvenli ödeme akışı
+  - **Simüle edilmiş ödeme** - Gerçek ödeme yapılmaz, sadece simüle edilir
   - **Kredi kartı ödeme formu** - İnteraktif kart gösterimi
   - **Dinamik kart UI** - Gerçek zamanlı kart bilgisi gösterimi
   - **Para birimi dönüşümü** - TL, USD, EUR, GBP desteği
   - **Uçuş bilgisi entegrasyonu** - Ödeme sayfasında uçuş detayları
   - **Session yönetimi** - Rezervasyon bilgilerinin güvenli aktarımı
-  - **Ödeme başarı/hata sayfaları** - Kullanıcı geri bildirimi
+  - **Ödeme başarı sayfası** - Başarılı ödeme sonrası rezervasyon oluşturma
+  - **Kullanıcı giriş kontrolü** - Ödeme sayfasına erişim için giriş zorunluluğu
 
 - 📄 **Sayfalar**
   - Ana Sayfa (Index) - Uçuş arama ve öne çıkan teklifler
@@ -99,10 +105,22 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - Ayarlar (Settings) - Kullanıcı profil ve ayar yönetimi
   - Site Haritası (Sitemap) - Site yapısı
   - Gizlilik Politikası (Privacy) - KVKK ve gizlilik bilgileri
-  - **Koltuk Seçimi (Booking/SelectSeat)** - Uçuş sonrası koltuk seçimi
-  - **Güvenli Ödeme (Payment/Index)** - Iyzico entegrasyonu ile ödeme sayfası
-  - **Ödeme Başarı (Payment/success)** - Başarılı ödeme sonrası sayfa
-  - **Ödeme Hata (Payment/error)** - Ödeme hatası durumunda sayfa
+  - **Koltuk Seçimi (Booking/SelectSeat)** - Uçuş sonrası koltuk seçimi (giriş zorunlu)
+  - **Güvenli Ödeme (Payment/Index)** - Simüle edilmiş ödeme sayfası (giriş zorunlu)
+  - **Ödeme Başarı (Payment/success)** - Başarılı ödeme sonrası rezervasyon oluşturma
+  - **Rezervasyon Sonucu (Booking/BookingResult)** - Rezervasyon onay sayfası
+
+- 🔐 **Admin Sayfaları** ✅
+  - **Admin Giriş (Admin/Login)** - Admin paneli giriş sayfası
+  - **Admin Dashboard (Admin/Dashboard)** - İstatistikler ve özet bilgiler
+  - **Uçuş Yönetimi (AdminFlights/Index)** - Tüm uçuşları listeleme
+  - **Yeni Uçuş Ekle (AdminFlights/Create)** - Yeni uçuş ekleme formu
+  - **Uçuş Düzenle (AdminFlights/Edit)** - Uçuş bilgilerini düzenleme
+  - **Rezervasyon Yönetimi (AdminBookings/Index)** - Tüm rezervasyonları listeleme
+  - **Rezervasyon Detayı (AdminBookings/Details)** - Rezervasyon detay görüntüleme
+  - **Kullanıcı Yönetimi (AdminUsers/Index)** - Tüm kullanıcıları listeleme
+  - **Kullanıcı Detayı (AdminUsers/Details)** - Kullanıcı detay görüntüleme
+  - **Ayarlar (Admin/Settings)** - Admin profil ve şifre yönetimi
 
 ## 🛠️ Kullanılan Teknolojiler
 
@@ -116,7 +134,7 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
 - **SQL Server LocalDB** - Veritabanı (MSSQLLocalDB)
 - **SHA256** - Şifre hash'leme algoritması
 - **Session Management** - Kullanıcı oturum yönetimi
-- **Iyzico Payment SDK** - Ödeme işlemleri için entegrasyon (Sandbox ortamı)
+- **Ödeme Simülasyonu** - Gerçek ödeme yapılmadan rezervasyon oluşturma
 
 ### Frontend
 - **HTML5** - Semantik yapı ve erişilebilirlik
@@ -209,14 +227,21 @@ web-prog-proj/
 │       │   │   ├── success.cshtml    # Ödeme başarı sayfası
 │       │   │   └── error.cshtml     # Ödeme hata sayfası
 │       │   ├── Admin/
-│       │   │   ├── Login.cshtml      # Admin giriş
-│       │   │   ├── Dashboard.cshtml  # Admin dashboard
-│       │   │   ├── Packages.cshtml   # Paket yönetimi listesi
-│       │   │   ├── AddPackage.cshtml  # Paket ekleme
-│       │   │   ├── EditPackage.cshtml # Paket düzenleme
-│       │   │   ├── Deals.cshtml      # Fırsat yönetimi listesi
-│       │   │   ├── AddDeal.cshtml    # Fırsat ekleme
-│       │   │   └── EditDeal.cshtml   # Fırsat düzenleme
+│       │   │   ├── AdminLogin.cshtml  # Admin giriş
+│       │   │   ├── Dashboard.cshtml   # Admin dashboard (istatistikler)
+│       │   │   └── Settings.cshtml    # Admin ayarlar
+│       │   ├── AdminFlights/
+│       │   │   ├── Index.cshtml       # Uçuş listesi
+│       │   │   ├── Create.cshtml      # Yeni uçuş ekleme
+│       │   │   ├── Edit.cshtml        # Uçuş düzenleme
+│       │   │   ├── Seats.cshtml       # Koltuk yönetimi
+│       │   │   └── SeatDetail.cshtml  # Koltuk detayı
+│       │   ├── AdminBookings/
+│       │   │   ├── Index.cshtml       # Rezervasyon listesi
+│       │   │   └── Details.cshtml     # Rezervasyon detayı
+│       │   ├── AdminUsers/
+│       │   │   ├── Index.cshtml       # Kullanıcı listesi
+│       │   │   └── Details.cshtml     # Kullanıcı detayı
 │       │   └── Shared/
 │       │       └── _Layout.cshtml # Master layout
 │       ├── Content/
@@ -460,12 +485,10 @@ web-prog-proj/
 - `/Flights/Status` - Uçuş durum sayfası
 - `/Flights/Search` - Uçuş arama (POST - JSON API)
 - `/Flights/SearchResults` - Uçuş arama sonuçları
-- `/Booking/SelectSeat` - Koltuk seçimi
-- `/Payment/Index` - Güvenli ödeme sayfası (Iyzico entegrasyonu)
-- `/Payment/Pay` - Ödeme işlemi (POST)
-- `/Payment/Callback` - Iyzico 3D Secure callback
-- `/Payment/success` - Ödeme başarı sayfası
-- `/Payment/error` - Ödeme hata sayfası
+- `/Booking/SelectSeat` - Koltuk seçimi (giriş zorunlu)
+- `/Payment/Index` - Güvenli ödeme sayfası (simüle edilmiş ödeme, giriş zorunlu)
+- `/Payment/Pay` - Ödeme işlemi (POST - simüle edilmiş)
+- `/Payment/success` - Ödeme başarı sayfası (rezervasyon oluşturma)
 - `/Admin/Login` - Admin giriş
 - `/Admin/Dashboard` - Admin dashboard
 - `/Admin/Packages` - Admin paket yönetimi
@@ -487,15 +510,16 @@ web-prog-proj/
 - **Yetkilendirme:** Admin paneli için özel yetkilendirme attribute'u
 - **CRUD İşlemleri:** Paket, fırsat ve uçuş yönetimi için tam CRUD desteği
 - **Rezervasyon Sistemi:** Paket, fırsat ve uçuş rezervasyonları için model yapısı
-- **Ödeme Sistemi:** Iyzico entegrasyonu ile güvenli ödeme işlemleri
+- **Ödeme Sistemi:** Simüle edilmiş ödeme sistemi (gerçek ödeme yapılmaz)
 - **Koltuk Rezervasyonu:** Uçuş sonrası koltuk seçimi ve rezervasyon sistemi
+- **Kullanıcı Giriş Kontrolü:** Rezervasyon işlemleri için zorunlu giriş kontrolü
+- **ReturnUrl Desteği:** Giriş sonrası önceki sayfaya geri dönüş
 - **AJAX Entegrasyonu:** Asenkron uçuş arama işlemi
 - **JSON API:** RESTful uçuş arama endpoint'i
 - **Uçuş Arama:** Gerçek zamanlı veritabanı sorgulama ile uçuş arama
-- **Ödeme Entegrasyonu:** Iyzico Sandbox API ile test ödemeleri
-- **3D Secure:** Güvenli ödeme akışı desteği
 - **Session Yönetimi:** Rezervasyon bilgilerinin ödeme sayfasına aktarımı
 - **Dinamik UI:** Gerçek zamanlı kart bilgisi gösterimi ve para birimi dönüşümü
+- **Otomatik Rezervasyon:** Ödeme simülasyonu sonrası otomatik bilet oluşturma
 
 ## 🎯 Gerçekleştirilen Özellikler
 
@@ -519,8 +543,10 @@ web-prog-proj/
 - **Fırsat Yönetimi:** CRUD işlemleri ile fırsat yönetimi
 - **Güvenlik:** SHA256 şifre hash'leme, Session yönetimi
 - **Yetkilendirme:** Admin paneli için özel yetkilendirme sistemi
-- **Ödeme Sistemi:** Iyzico Sandbox entegrasyonu ile test ödemeleri
+- **Ödeme Sistemi:** Simüle edilmiş ödeme sistemi (gerçek ödeme yapılmaz)
 - **Koltuk Seçimi:** Uçuş sonrası koltuk seçimi ve rezervasyon sistemi
+- **Kullanıcı Giriş Kontrolü:** Rezervasyon işlemleri için zorunlu giriş kontrolü
+- **ReturnUrl Desteği:** Giriş sonrası önceki sayfaya geri dönüş
 
 ### 🔧 Teknik Özellikler
 - ASP.NET MVC 5 (.NET Framework 4.7.2)
@@ -548,8 +574,9 @@ web-prog-proj/
 - `AdminController.cs` - Admin paneli controller'ı
 - `FlightsController.cs` - Uçuş controller (Index, Status, Search API, SearchResults)
 - `AdminFlightsController.cs` - Admin uçuş yönetimi controller'ı
-- `BookingController.cs` - Rezervasyon controller'ı (SelectSeat - koltuk seçimi)
-- `PaymentController.cs` - Ödeme controller'ı (Index, Pay, Callback - Iyzico entegrasyonu)
+- `BookingController.cs` - Rezervasyon controller'ı (SelectSeat - koltuk seçimi, giriş kontrolü)
+- `PaymentController.cs` - Ödeme controller'ı (Index, Pay - simüle edilmiş ödeme)
+- `AccountController.cs` - Hesap yönetimi controller'ı (Login, Signup - ReturnUrl desteği)
 - `TAContext.cs` - Entity Framework veritabanı bağlamı (Flights, Seats, FlightSeats, Bookings, Users, Admins)
 - `AuthorizeAdminAttribute.cs` - Admin yetkilendirme attribute'u
 - `Web.config` - Web uygulaması yapılandırması (Connection String: TAConn)
@@ -564,7 +591,7 @@ web-prog-proj/
 - **Flight:** Uçuş bilgileri (Sefer No, Kalkış/Varış havalimanı kodları, Kalkış/Varış zamanları, Fiyat, Aktif durumu, Hava durumu, Rötar riski)
 - **Seat:** Koltuk bilgileri (Koltuk numarası, Kabin sınıfı)
 - **FlightSeat:** Uçuş-Koltuk ilişki tablosu (Uçuş ID, Koltuk ID, Rezerve durumu)
-- **Booking:** Rezervasyon bilgileri (Uçuş ID, Koltuk ID, Yolcu bilgileri, PNR, Rezervasyon tarihi)
+- **Booking:** Rezervasyon bilgileri (Uçuş ID, Koltuk ID, Yolcu bilgileri, PNR, Rezervasyon tarihi) - Ödeme simülasyonu sonrası otomatik oluşturulur
 - **Package:** Paket bilgileri (Başlık, Açıklama, Fiyat, İndirim, Kategori, vb.)
 - **Deal:** Fırsat bilgileri (Başlık, Açıklama, İndirim, Tarih aralığı, Kampanya kodu, vb.)
 - **PackageReservation:** Paket rezervasyonları

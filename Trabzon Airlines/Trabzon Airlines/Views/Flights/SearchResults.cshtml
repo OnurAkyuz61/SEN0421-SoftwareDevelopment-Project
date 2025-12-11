@@ -60,6 +60,29 @@
                 selectedCurrency = '$';
             }
             
+            // Yolcu sayılarını localStorage'dan al
+            // Get passenger counts from localStorage
+            let passengerCounts = {
+                adult: 1,
+                child: 0,
+                infant: 0
+            };
+            try {
+                const savedCounts = localStorage.getItem('passengerCounts');
+                if (savedCounts) {
+                    const parsed = JSON.parse(savedCounts);
+                    passengerCounts.adult = parsed.adult || 1;
+                    passengerCounts.child = parsed.child || 0;
+                    passengerCounts.infant = parsed.infant || 0;
+                }
+            } catch (e) {
+                console.error('Error loading passenger counts:', e);
+            }
+            
+            // Toplam ödeme yapacak yolcu sayısı (infant genelde ücretsiz)
+            // Total paying passenger count (infants are usually free)
+            const totalPayingPassengers = passengerCounts.adult + passengerCounts.child;
+            
             // Sabit döviz kurları - Veritabanından bağımsız
             // Fixed exchange rates - Independent from database
             const exchangeRates = {
@@ -179,7 +202,11 @@
                                 <div style="text-align: right; margin-left: 2rem;">
                                     <div style="font-size: 1.8rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">
                                         ${(() => {
-                                            const priceInfo = convertPrice(parseFloat(flight.price || 0), selectedCurrency);
+                                            // Tek kişi fiyatını al ve toplam yolcu sayısıyla çarp
+                                            // Get single passenger price and multiply by total passenger count
+                                            const singlePrice = parseFloat(flight.price || 0);
+                                            const totalPrice = singlePrice * totalPayingPassengers;
+                                            const priceInfo = convertPrice(totalPrice, selectedCurrency);
                                             return priceInfo.symbol + priceInfo.price.toFixed(2);
                                         })()}
                                     </div>
@@ -234,7 +261,11 @@
                                     <div style="text-align: right; margin-left: 2rem;">
                                         <div style="font-size: 1.8rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">
                                             ${(() => {
-                                                const priceInfo = convertPrice(parseFloat(flight.price || 0), selectedCurrency);
+                                                // Tek kişi fiyatını al ve toplam yolcu sayısıyla çarp
+                                                // Get single passenger price and multiply by total passenger count
+                                                const singlePrice = parseFloat(flight.price || 0);
+                                                const totalPrice = singlePrice * totalPayingPassengers;
+                                                const priceInfo = convertPrice(totalPrice, selectedCurrency);
                                                 return priceInfo.symbol + priceInfo.price.toFixed(2);
                                             })()}
                                         </div>
@@ -307,9 +338,13 @@
                                 }
                             }
                             
-                            // Yeni para birimine çevir
-                            // Convert to new currency
-                            const priceInfo = convertPrice(priceInTL, currencySymbol);
+                            // Tek kişi fiyatını hesapla (toplam fiyat / yolcu sayısı)
+                            // Calculate single passenger price (total price / passenger count)
+                            const singlePriceInTL = priceInTL / totalPayingPassengers;
+                            
+                            // Yeni para birimine çevir ve yolcu sayısıyla çarp
+                            // Convert to new currency and multiply by passenger count
+                            const priceInfo = convertPrice(singlePriceInTL * totalPayingPassengers, currencySymbol);
                             priceElement.text(priceInfo.symbol + priceInfo.price.toFixed(2));
                         }
                     }

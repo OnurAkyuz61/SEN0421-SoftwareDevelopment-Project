@@ -9,36 +9,147 @@
     ViewBag.TitleEn = "Booking Completed";
 }
 
-@* Ana başlık - Çeviri desteği ile *@
-@* Main header - With translation support *@
-<h2 data-tr="Rezervasyon Tamamlandı" data-en="Booking Completed">Rezervasyon Tamamlandı</h2>
-@* Yatay çizgi ayırıcı *@
-@* Horizontal line separator *@
-<hr />
+@* CSS Stilleri - Ayrı dosyadan yükleniyor *@
+@* CSS Styles - Loaded from separate file *@
+@section Styles {
+    <link href="~/Content/css/booking-result.css" rel="stylesheet" />
+}
 
-@* Rezervasyon bilgileri *@
-@* Booking information *@
-@* Uçuş bilgisi *@
-@* Flight information *@
-<p>
-    <b data-tr="Uçuş:" data-en="Flight:">Uçuş:</b> 
-    @Model.Flight.FlightNumber (@Model.Flight.FromCode - @Model.Flight.ToCode)
-</p>
-@* Koltuk bilgisi *@
-@* Seat information *@
-<p>
-    <b data-tr="Koltuk:" data-en="Seat:">Koltuk:</b> 
-    @Model.Seat.SeatNumber (@Model.Seat.CabinClass)
-</p>
-@* PNR kodu bilgisi *@
-@* PNR code information *@
-<p>
-    <b data-tr="PNR Kodunuz:" data-en="Your PNR Code:">PNR Kodunuz:</b> 
-    @Model.PNR
-</p>
+@* Ana İçerik *@
+@* Main Content *@
+<div class="booking-result-container">
+    @* Başarı Kartı *@
+    @* Success Card *@
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h1 class="success-title" data-tr="Rezervasyon Tamamlandı!" data-en="Booking Completed!">Rezervasyon Tamamlandı!</h1>
+        <p class="success-subtitle" data-tr="Rezervasyonunuz başarıyla oluşturuldu. Detaylar aşağıda yer almaktadır." data-en="Your booking has been successfully created. Details are below.">
+            Rezervasyonunuz başarıyla oluşturuldu. Detaylar aşağıda yer almaktadır.
+        </p>
+    </div>
 
-@* Önemli bilgilendirme mesajı - Yeşil renkte *@
-@* Important information message - In green color *@
-<p style="color:green;" data-tr="Bu kodu saklayın. Sonraki işlemler için gereklidir." data-en="Please save this code. It is required for future operations.">
-    Bu kodu saklayın. Sonraki işlemler için gereklidir.
-</p>
+    @* Rezervasyon Detayları - Yan yana kartlar *@
+    @* Booking Details - Side by side cards *@
+    <div class="booking-details-wrapper">
+        @* Uçuş Bilgisi Kartı *@
+        @* Flight Information Card *@
+        <div class="booking-details-card">
+            <div class="detail-section">
+                <div class="detail-label" data-tr="Uçuş Bilgisi" data-en="Flight Information">Uçuş Bilgisi</div>
+                <div class="detail-value">@Model.Flight.FlightNumber</div>
+                <div class="flight-route">
+                    <span class="route-code">@Model.Flight.FromCode</span>
+                    <i class="fa-solid fa-plane route-arrow"></i>
+                    <span class="route-code">@Model.Flight.ToCode</span>
+                </div>
+                <div class="flight-times">
+                    <div class="time-item">
+                        <i class="fa-solid fa-plane-departure" style="color: #e4002b; margin-right: 0.5rem;"></i>
+                        <span class="time-label" data-tr="Kalkış:" data-en="Departure:">Kalkış:</span>
+                        <span class="time-value">@Model.Flight.DepartureTime.ToString("dd MMMM yyyy HH:mm", new System.Globalization.CultureInfo("tr-TR"))</span>
+                    </div>
+                    <div class="time-item">
+                        <i class="fa-solid fa-plane-arrival" style="color: #e4002b; margin-right: 0.5rem;"></i>
+                        <span class="time-label" data-tr="Varış:" data-en="Arrival:">Varış:</span>
+                        <span class="time-value">@Model.Flight.ArrivalTime.ToString("dd MMMM yyyy HH:mm", new System.Globalization.CultureInfo("tr-TR"))</span>
+                    </div>
+                    @{
+                        var duration = Model.Flight.ArrivalTime - Model.Flight.DepartureTime;
+                        var hours = (int)duration.TotalHours;
+                        var minutes = duration.Minutes;
+                    }
+                    <div class="time-item">
+                        <i class="fa-solid fa-clock" style="color: #e4002b; margin-right: 0.5rem;"></i>
+                        <span class="time-label" data-tr="Süre:" data-en="Duration:">Süre:</span>
+                        <span class="time-value">@hours @(hours == 1 ? "saat" : "saat") @minutes @(minutes == 1 ? "dakika" : "dakika")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Koltuk ve Yolcu Bilgisi Kartı *@
+        @* Seat and Passenger Information Card *@
+        <div class="booking-details-card">
+            @* Koltuk Bilgisi *@
+            @* Seat Information *@
+            <div class="detail-section">
+                <div class="detail-label" data-tr="Koltuk Bilgisi" data-en="Seat Information">Koltuk Bilgisi</div>
+                <div class="detail-value">@Model.Seat.SeatNumber</div>
+                <div class="detail-subvalue">
+                    @{
+                        string cabinClassDisplay = Model.Seat.CabinClass == "business" ? "Business" : "Ekonomi";
+                        string cabinClassDisplayEn = Model.Seat.CabinClass == "business" ? "Business" : "Economy";
+                    }
+                    <span data-tr="@cabinClassDisplay" data-en="@cabinClassDisplayEn">@cabinClassDisplay</span>
+                </div>
+            </div>
+
+            @* Yolcu Bilgisi *@
+            @* Passenger Information *@
+            <div class="detail-section">
+                <div class="detail-label" data-tr="Yolcu Bilgisi" data-en="Passenger Information">Yolcu Bilgisi</div>
+                <div class="detail-value">@Model.PassengerName @Model.PassengerSurname</div>
+                <div class="detail-subvalue">
+                    @Model.BookingDate.ToString("dd MMMM yyyy HH:mm", new System.Globalization.CultureInfo("tr-TR"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* PNR ve Bilgi Kutusu - Yan yana *@
+    @* PNR and Info Box - Side by side *@
+    <div class="pnr-info-wrapper">
+        @* PNR Kodu Kartı *@
+        @* PNR Code Card *@
+        <div class="pnr-code">
+            <div class="pnr-label" data-tr="PNR Kodunuz" data-en="Your PNR Code">PNR Kodunuz</div>
+            <div class="pnr-value">@Model.PNR</div>
+        </div>
+
+        @* Bilgilendirme Kutusu *@
+        @* Information Box *@
+        <div class="info-box">
+            <i class="fa-solid fa-info-circle"></i>
+            <p>
+                <span data-tr="Bu PNR kodunu saklayın. Check-in, uçuş sorgulama ve diğer işlemler için gereklidir." data-en="Please save this PNR code. It is required for check-in, flight inquiry and other operations.">
+                    Bu PNR kodunu saklayın. Check-in, uçuş sorgulama ve diğer işlemler için gereklidir.
+                </span>
+            </p>
+        </div>
+    </div>
+
+    @* Aksiyon Butonları *@
+    @* Action Buttons *@
+    <div class="action-buttons">
+        <a href="@Url.Action("Index", "Home")" class="btn-action btn-primary-action">
+            <i class="fa-solid fa-home"></i>
+            <span data-tr="Ana Sayfaya Dön" data-en="Return to Home">Ana Sayfaya Dön</span>
+        </a>
+        <a href="@Url.Action("Search", "Flights")" class="btn-action btn-secondary-action">
+            <i class="fa-solid fa-plane"></i>
+            <span data-tr="Yeni Uçuş Ara" data-en="Search New Flight">Yeni Uçuş Ara</span>
+        </a>
+    </div>
+</div>
+
+@* JavaScript - Scroll gizleme ve sayfa yüklenince *@
+@* JavaScript - Hide scroll and on page load *@
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Body'ye class ekle ve scroll'u gizle
+            // Add class to body and hide scroll
+            $('body').addClass('booking-result-page');
+            $('html, body').css('overflow', 'hidden');
+            
+            // Sayfa kapatılırken class'ı kaldır
+            // Remove class when page is closed
+            $(window).on('beforeunload', function() {
+                $('body').removeClass('booking-result-page');
+                $('html, body').css('overflow', '');
+            });
+        });
+    </script>
+}

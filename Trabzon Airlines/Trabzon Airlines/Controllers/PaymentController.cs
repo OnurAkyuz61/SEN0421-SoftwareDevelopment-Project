@@ -5,41 +5,18 @@ using System.Linq; // LINQ sorguları için
 using System.Text; // String işlemleri için
 using System.Text.RegularExpressions; // Regex için
 using System.Web.Mvc; // MVC controller için
-using Iyzipay; // Iyzico SDK için
-using Iyzipay.Model; // Iyzico model sınıfları için
-using Iyzipay.Request; // Iyzico request sınıfları için
 using Trabzon_Airlines.Models; // Model sınıfları için
 using Trabzon_Airlines.Data; // Veritabanı bağlamı için
 
 namespace Trabzon_Airlines.Controllers
 {
-    // Ödeme controller'ı - Iyzico ödeme işlemleri
-    // Payment controller - Iyzico payment operations
+    // Ödeme controller'ı - Simüle edilmiş ödeme işlemleri
+    // Payment controller - Simulated payment operations
     public class PaymentController : Controller
     {
         // Veritabanı bağlamı - TAContext sınıfından instance
         // Database context - Instance from TAContext class
         private TAContext db = new TAContext();
-        // --------------------------
-        // IYZICO AYARLARI
-        // Iyzico Configuration
-        // --------------------------
-        // Iyzico API ayarlarını döndüren yardımcı metod
-        // Helper method that returns Iyzico API settings
-        private Options GetIyzicoOptions()
-        {
-            Options options = new Options();
-            // Sandbox API anahtarı - Test ortamı için
-            // Sandbox API key - For test environment
-            options.ApiKey = "sandbox-8OnLjNCa7omCnhjjU008oi7BWaI6f22h";
-            // Sandbox secret anahtarı - Test ortamı için
-            // Sandbox secret key - For test environment
-            options.SecretKey = "sandbox-XDhYUaKeZTRYekq5cYosV2HGxiQGMogD";
-            // Sandbox base URL - Test ortamı adresi
-            // Sandbox base URL - Test environment address
-            options.BaseUrl = "https://sandbox-api.iyzipay.com";
-            return options;
-        }
 
         // --------------------------
         // INDEX - GET
@@ -48,21 +25,71 @@ namespace Trabzon_Airlines.Controllers
         [HttpGet] // HTTP GET isteği için
         public ActionResult Index(decimal? amount)
         {
+            // Kullanıcı giriş kontrolü - Eğer giriş yapmamışsa giriş sayfasına yönlendir
+            // User login check - If not logged in, redirect to login page
+            if (Session["UserId"] == null)
+            {
+                TempData["Error_tr"] = "Ödeme işlemi için lütfen giriş yapın veya kayıt olun.";
+                TempData["Error_en"] = "Please login or register to complete the payment.";
+                string returnUrl = Url.Action("Index", "Payment", new { amount = amount });
+                return RedirectToAction("Login", "Home", new { returnUrl = returnUrl });
+            }
             // Session'dan bekleyen rezervasyon bilgilerini al
             // Get pending booking information from Session
             dynamic pendingBooking = Session["PendingBooking"];
             decimal finalAmount = amount ?? 1500m; // Varsayılan tutar - Default amount
             
+            // Yolcu sayıları ve kabin sınıfı bilgilerini ViewBag'e ekle
+            // Add passenger counts and cabin class information to ViewBag
+            int adultCount = 1;
+            int childCount = 0;
+            int infantCount = 0;
+            string cabinClass = "economy";
+            
             if (pendingBooking != null)
             {
+                // Session'dan yolcu sayılarını al
+                // Get passenger counts from Session
+                try
+                {
+                    adultCount = pendingBooking.AdultCount ?? 1;
+                    childCount = pendingBooking.ChildCount ?? 0;
+                    infantCount = pendingBooking.InfantCount ?? 0;
+                    cabinClass = pendingBooking.CabinClass ?? "economy";
+                }
+                catch
+                {
+                    // Varsayılan değerler
+                    // Default values
+                }
+                
+                // Toplam fiyatı Session'dan al (zaten hesaplanmış)
+                // Get total price from Session (already calculated)
+                try
+                {
+                    if (pendingBooking.TotalPrice != null)
+                    {
+                        finalAmount = (decimal)pendingBooking.TotalPrice;
+                    }
+                }
+                catch
+                {
+                    // Eğer TotalPrice yoksa, uçuş fiyatından hesapla
+                    // If TotalPrice doesn't exist, calculate from flight price
+                }
+                
                 // Uçuş bilgilerini veritabanından al
                 // Get flight information from database
                 var flight = db.Flights.Find(pendingBooking.FlightId);
                 if (flight != null)
                 {
-                    // Uçuş fiyatını kullan
-                    // Use flight price
-                    finalAmount = flight.Price;
+                    // Eğer TotalPrice yoksa, uçuş fiyatından hesapla
+                    // If TotalPrice doesn't exist, calculate from flight price
+                    if (finalAmount == (amount ?? 1500m))
+                    {
+                        int totalPassengers = adultCount + childCount; // Infant genelde ücretsiz
+                        finalAmount = flight.Price * totalPassengers;
+                    }
                     
                     // Uçuş süresini hesapla (dakika cinsinden)
                     // Calculate flight duration (in minutes)
@@ -82,6 +109,14 @@ namespace Trabzon_Airlines.Controllers
                     ViewBag.FromCode = flight.FromCode;
                     ViewBag.ToCode = flight.ToCode;
                     ViewBag.SeatNumber = pendingBooking.SeatNumber;
+                    
+                    // Yolcu bilgilerini ViewBag'e ekle
+                    // Add passenger information to ViewBag
+                    ViewBag.AdultCount = adultCount;
+                    ViewBag.ChildCount = childCount;
+                    ViewBag.InfantCount = infantCount;
+                    ViewBag.CabinClass = cabinClass;
+                    ViewBag.TotalPassengers = adultCount + childCount + infantCount;
                 }
                 else
                 {
@@ -95,6 +130,14 @@ namespace Trabzon_Airlines.Controllers
                     ViewBag.FromCode = pendingBooking.FromCode;
                     ViewBag.ToCode = pendingBooking.ToCode;
                     ViewBag.SeatNumber = pendingBooking.SeatNumber;
+                    
+                    // Yolcu bilgilerini ViewBag'e ekle
+                    // Add passenger information to ViewBag
+                    ViewBag.AdultCount = adultCount;
+                    ViewBag.ChildCount = childCount;
+                    ViewBag.InfantCount = infantCount;
+                    ViewBag.CabinClass = cabinClass;
+                    ViewBag.TotalPassengers = adultCount + childCount + infantCount;
                     
                     // Varış zamanı varsa göster
                     // Show arrival time if exists
@@ -289,111 +332,85 @@ namespace Trabzon_Airlines.Controllers
 
             try
             {
-                // Fiyat Formatlama (En kritik nokta burasıdır)
-                // Price Formatting (This is the most critical point)
-                // Iyzico sadece "120.50" formatını kabul eder. Türkçe Windows'ta "120,50" olur ve hata verir.
-                // Iyzico only accepts "120.50" format. On Turkish Windows it becomes "120,50" and causes error.
-                string priceStr = model.Amount.ToString("F2", CultureInfo.InvariantCulture);
-
-                // Iyzico ödeme isteği oluştur
-                // Create Iyzico payment request
-                CreatePaymentRequest request = new CreatePaymentRequest();
-                request.Locale = Locale.TR.ToString(); // Türkçe dil desteği - Turkish language support
-                request.ConversationId = Guid.NewGuid().ToString(); // Benzersiz konuşma ID'si - Unique conversation ID
-                request.Price = priceStr; // Ödeme tutarı - Payment amount
-                request.PaidPrice = priceStr; // Ödenen tutar - Paid amount
-                request.Currency = Currency.TRY.ToString(); // Para birimi - Currency
-                request.BasketId = "Bilet-" + DateTime.Now.Ticks; // Sepet ID'si - Basket ID
-                request.PaymentGroup = PaymentGroup.PRODUCT.ToString(); // Ödeme grubu - Payment group
-
-                // Callback URL (Dinamik port numarası için Request.Url kullanıyoruz)
-                // Callback URL (Using Request.Url for dynamic port number)
-                string baseUrl = Request.Url.Scheme + "://" + Request.Url.Authority;
-                request.CallbackUrl = baseUrl + "/Payment/Callback";
-
-                // Kart Bilgileri
-                // Card Information
-                PaymentCard paymentCard = new PaymentCard();
-                paymentCard.CardHolderName = model.CardHolderName; // Kart sahibi adı - Card holder name
-                paymentCard.CardNumber = model.CardNumber?.Replace(" ", "").Trim(); // Kart numarası (boşlukları temizle) - Card number (remove spaces)
-
-                // Tarih Parçalama (Hata önleyici)
-                // Date Parsing (Error prevention)
-                if (model.ExpireDate != null && model.ExpireDate.Contains("/"))
+                // ÖDEME SİMÜLASYONU - Gerçek ödeme yapılmıyor, sadece simüle ediliyor
+                // PAYMENT SIMULATION - No real payment is made, only simulated
+                
+                // Kullanıcı giriş kontrolü - Eğer giriş yapmamışsa hata ver
+                // User login check - If not logged in, return error
+                if (Session["UserId"] == null)
                 {
-                    var dateParts = model.ExpireDate.Split('/');
-                    paymentCard.ExpireMonth = dateParts[0].Trim(); // Ay - Month
-                    paymentCard.ExpireYear = "20" + dateParts[1].Trim(); // Yıl (20XX formatı) - Year (20XX format)
-                }
-                else
-                {
-                    // Varsayılan test değeri (Formdan tarih gelmezse patlamasın diye)
-                    // Default test value (so it doesn't crash if date doesn't come from form)
-                    paymentCard.ExpireMonth = "12";
-                    paymentCard.ExpireYear = "2028";
-                }
-
-                paymentCard.Cvc = model.Cvc; // CVC kodu - CVC code
-                paymentCard.RegisterCard = 0; // Kartı kaydetme - Don't register card
-                request.PaymentCard = paymentCard;
-
-                // Müşteri Bilgileri (Sabit Test Verisi - Gerçek projede Session'dan alınmalı)
-                // Customer Information (Fixed Test Data - Should be taken from Session in real project)
-                Buyer buyer = new Buyer();
-                buyer.Id = "BY789"; // Müşteri ID'si - Customer ID
-                buyer.Name = "Test"; // Müşteri adı - Customer name
-                buyer.Surname = "User"; // Müşteri soyadı - Customer surname
-                buyer.GsmNumber = "+905350000000"; // Telefon numarası - Phone number
-                buyer.Email = "test@email.com"; // E-posta adresi - Email address
-                buyer.IdentityNumber = "11111111110"; // TC Kimlik No - Turkish ID number
-                buyer.RegistrationAddress = "Test Adresi"; // Kayıt adresi - Registration address
-                buyer.Ip = Request.UserHostAddress ?? "85.85.85.85"; // IP adresi - IP address
-                buyer.City = "Istanbul"; // Şehir - City
-                buyer.Country = "Turkey"; // Ülke - Country
-                buyer.ZipCode = "34732"; // Posta kodu - Zip code
-                request.Buyer = buyer;
-
-                // Teslimat Adresi
-                // Shipping Address
-                Address shippingAddress = new Address();
-                shippingAddress.ContactName = "Test User"; // İletişim adı - Contact name
-                shippingAddress.City = "Istanbul"; // Şehir - City
-                shippingAddress.Country = "Turkey"; // Ülke - Country
-                shippingAddress.Description = "Test Adresi"; // Adres açıklaması - Address description
-                shippingAddress.ZipCode = "34732"; // Posta kodu - Zip code
-                request.ShippingAddress = shippingAddress;
-                request.BillingAddress = shippingAddress; // Fatura adresi (teslimat adresi ile aynı) - Billing address (same as shipping address)
-
-                // Sepet Öğeleri
-                // Basket Items
-                List<BasketItem> basketItems = new List<BasketItem>();
-                BasketItem item = new BasketItem();
-                item.Id = "BI101"; // Ürün ID'si - Product ID
-                item.Name = "Ucak Bileti"; // Ürün adı - Product name
-                item.Category1 = "Seyahat"; // Kategori - Category
-                item.ItemType = BasketItemType.VIRTUAL.ToString(); // Ürün tipi (sanal) - Item type (virtual)
-                item.Price = priceStr; // Ürün fiyatı - Product price
-                basketItems.Add(item);
-                request.BasketItems = basketItems;
-
-                // Iyzico'ya İstek Gönder (3D Secure başlatma)
-                // Send Request to Iyzico (3D Secure initialization)
-                ThreedsInitialize threeDS = ThreedsInitialize.Create(request, GetIyzicoOptions()).Result;
-
-                if (threeDS.Status == "success")
-                {
-                    // Iyzico HTML içeriğini direkt basar (3D Secure sayfası)
-                    // Directly output Iyzico HTML content (3D Secure page)
-                    return Content(threeDS.HtmlContent, "text/html");
-                }
-                else
-                {
-                    // Hata Detayı
-                    // Error Details
-                    ViewBag.Hata = "Iyzico Başlatma Hatası: " + threeDS.ErrorMessage + " (Hata Kodu: " + threeDS.ErrorCode + ")";
-                    ViewBag.Error = "Iyzico Initialization Error: " + threeDS.ErrorMessage + " (Error Code: " + threeDS.ErrorCode + ")";
+                    ViewBag.Hata = "Ödeme işlemi için lütfen giriş yapın.";
+                    ViewBag.Error = "Please login to complete the payment.";
                     return View("Index", model);
                 }
+
+                // Kısa bir gecikme simüle et (gerçek ödeme gibi görünsün)
+                // Simulate a short delay (to look like a real payment)
+                System.Threading.Thread.Sleep(1500);
+
+                // Ödeme başarılı - Rezervasyon oluştur
+                // Payment successful - Create booking
+                // Not: pendingBooking zaten yukarıda tanımlı (satır 132)
+                // Note: pendingBooking is already defined above (line 132)
+                int? bookingId = null;
+                
+                if (pendingBooking != null)
+                {
+                    try
+                    {
+                        // Kullanıcı bilgilerini Session'dan al
+                        // Get user information from Session
+                        int userId = (int)Session["UserId"];
+                        var user = db.Users.Find(userId);
+                        
+                        // Benzersiz PNR kodu üret
+                        // Generate unique PNR code
+                        string pnr = GeneratePNR();
+
+                        // Yeni rezervasyon oluştur
+                        // Create new booking
+                        var booking = new Booking
+                        {
+                            FlightId = pendingBooking.FlightId, // Uçuş ID'si - Flight ID
+                            SeatId = pendingBooking.SeatId, // Koltuk ID'si - Seat ID
+                            PassengerName = user?.FirstName ?? "Bilinmeyen", // Yolcu adı - Passenger name
+                            PassengerSurname = user?.LastName ?? "Kullanıcı", // Yolcu soyadı - Passenger surname
+                            PNR = pnr, // PNR kodu - PNR code
+                            BookingDate = DateTime.Now // Rezervasyon tarihi - Booking date
+                        };
+
+                        // Rezervasyonu veritabanına ekle
+                        // Add booking to database
+                        db.Bookings.Add(booking);
+                        db.SaveChanges();
+
+                        // Booking ID'yi sakla
+                        // Save booking ID
+                        bookingId = booking.BookingId;
+
+                        // Session'dan bekleyen rezervasyon bilgisini temizle
+                        // Clear pending booking information from Session
+                        Session.Remove("PendingBooking");
+                    }
+                    catch (Exception dbEx)
+                    {
+                        // Veritabanı hatası - Loglama yapılabilir
+                        // Database error - Logging can be done
+                        System.Diagnostics.Debug.WriteLine("Rezervasyon oluşturma hatası: " + dbEx.Message);
+                        ViewBag.Hata = "Rezervasyon oluşturulurken bir hata oluştu: " + dbEx.Message;
+                        ViewBag.Error = "An error occurred while creating the booking: " + dbEx.Message;
+                        return View("Index", model);
+                    }
+                }
+
+                // Ödeme başarılı mesajı
+                // Payment success message
+                string paymentId = "SIM-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+                ViewBag.Mesaj = "Tebrikler! Ödeme Başarılı. Ref: " + paymentId;
+                ViewBag.Message = "Congratulations! Payment Successful. Ref: " + paymentId;
+                ViewBag.PaymentId = paymentId; // Ödeme referans numarası - Payment reference number
+                ViewBag.BookingId = bookingId; // Rezervasyon ID'si (varsa) - Booking ID (if exists)
+                return View("success");
             }
             catch (Exception ex)
             {
@@ -405,123 +422,6 @@ namespace Trabzon_Airlines.Controllers
             }
         }
 
-        // --------------------------
-        // CALLBACK - POST
-        // 3D Secure callback işlemi - POST metodu
-        // --------------------------
-        [HttpPost] // HTTP POST isteği için
-        public ActionResult Callback()
-        {
-            try
-            {
-                // FormCollection yerine Request.Form kullanıyoruz (Daha güvenli)
-                // Using Request.Form instead of FormCollection (More secure)
-                string status = Request.Form["status"]; // İşlem durumu - Transaction status
-                string paymentId = Request.Form["paymentId"]; // Ödeme ID'si - Payment ID
-                string conversationId = Request.Form["conversationId"]; // Konuşma ID'si - Conversation ID
-                string mdStatus = Request.Form["mdStatus"]; // 3D Secure durumu (1 ise doğrulama başarılı) - 3D Secure status (1 means verification successful)
-
-                if (status != "success")
-                {
-                    // 3D Secure doğrulaması başarısız
-                    // 3D Secure verification failed
-                    ViewBag.Hata = "3D Secure Doğrulaması Yapılamadı.";
-                    ViewBag.Error = "3D Secure Verification Failed.";
-                    return View("Index", new PaymentViewModel());
-                }
-
-                // 2. Adım: Ödemeyi Tamamla (Provizyon Al)
-                // Step 2: Complete Payment (Get Authorization)
-                CreateThreedsPaymentRequest request = new CreateThreedsPaymentRequest();
-                request.Locale = Locale.TR.ToString(); // Türkçe dil desteği - Turkish language support
-                request.ConversationId = conversationId; // Konuşma ID'si - Conversation ID
-                request.PaymentId = paymentId; // Ödeme ID'si - Payment ID
-
-                // .Result ekleyerek "Task" yapısını kırıp direkt sonuca ulaşıyoruz
-                // Breaking the "Task" structure by adding .Result to reach the result directly
-                ThreedsPayment payment = ThreedsPayment.Create(request, GetIyzicoOptions()).Result;
-
-                string gelenStatus = payment.Status?.ToLower() ?? ""; // İşlem durumu - Transaction status
-                string gelenPaymentStatus = payment.PaymentStatus?.ToString().ToUpper() ?? ""; // Ödeme durumu - Payment status
-
-                // IF bloğunu da yeni isimlere göre güncelledik
-                // Updated IF block according to new names
-                if (gelenStatus == "success" && (gelenPaymentStatus == "SUCCESS" || string.IsNullOrEmpty(gelenPaymentStatus)))
-                {
-                    // --- BAŞARILI BLOK ---
-                    // --- SUCCESS BLOCK ---
-                    // NOT: Iyzico bazen PaymentStatus'u boş gönderebiliyor ama Status success ise işlem başarılıdır.
-                    // NOTE: Iyzico sometimes sends PaymentStatus empty but if Status is success, the transaction is successful.
-
-                    // DATABASE İŞLEMİ - Rezervasyon oluşturma
-                    // DATABASE OPERATION - Create booking
-                    int? bookingId = null;
-                    dynamic pendingBooking = Session["PendingBooking"];
-                    if (pendingBooking != null)
-                    {
-                        try
-                        {
-                            // Benzersiz PNR kodu üret
-                            // Generate unique PNR code
-                            string pnr = GeneratePNR();
-
-                            // Yeni rezervasyon oluştur
-                            // Create new booking
-                            var booking = new Booking
-                            {
-                                FlightId = pendingBooking.FlightId, // Uçuş ID'si - Flight ID
-                                SeatId = pendingBooking.SeatId, // Koltuk ID'si - Seat ID
-                                PassengerName = "Test", // Yolcu adı (Session'dan alınabilir) - Passenger name (can be taken from Session)
-                                PassengerSurname = "User", // Yolcu soyadı (Session'dan alınabilir) - Passenger surname (can be taken from Session)
-                                PNR = pnr, // PNR kodu - PNR code
-                                BookingDate = DateTime.Now // Rezervasyon tarihi - Booking date
-                            };
-
-                            // Rezervasyonu veritabanına ekle
-                            // Add booking to database
-                            db.Bookings.Add(booking);
-                            db.SaveChanges();
-
-                            // Booking ID'yi sakla
-                            // Save booking ID
-                            bookingId = booking.BookingId;
-
-                            // Session'dan bekleyen rezervasyon bilgisini temizle
-                            // Clear pending booking information from Session
-                            Session.Remove("PendingBooking");
-                        }
-                        catch (Exception dbEx)
-                        {
-                            // Veritabanı hatası - Loglama yapılabilir
-                            // Database error - Logging can be done
-                            System.Diagnostics.Debug.WriteLine("Rezervasyon oluşturma hatası: " + dbEx.Message);
-                        }
-                    }
-
-                    ViewBag.Mesaj = "Tebrikler! Ödeme Başarılı. Ref: " + payment.PaymentId;
-                    ViewBag.Message = "Congratulations! Payment Successful. Ref: " + payment.PaymentId;
-                    ViewBag.PaymentId = payment.PaymentId; // Ödeme referans numarası - Payment reference number
-                    ViewBag.BookingId = bookingId; // Rezervasyon ID'si (varsa) - Booking ID (if exists)
-                    return View("success");
-                }
-                else
-                {
-                    // Bankadan onay geldi fakat ödeme alınamadı
-                    // Approval came from bank but payment could not be received
-                    ViewBag.Hata = "Bankadan onay geldi fakat ödeme alınamadı: " + payment.ErrorMessage;
-                    ViewBag.Error = "Approval came from bank but payment could not be received: " + payment.ErrorMessage;
-                    return View("error");
-                }
-            }
-            catch (Exception ex)
-            {
-                // Callback işlem hatası
-                // Callback operation error
-                ViewBag.Hata = "Callback İşlem Hatası: " + ex.Message;
-                ViewBag.Error = "Callback Operation Error: " + ex.Message;
-                return View("Index", new PaymentViewModel());
-            }
-        }
 
         // --------------------------
         // PNR ÜRETİCİ YARDIMCI FONKSİYON

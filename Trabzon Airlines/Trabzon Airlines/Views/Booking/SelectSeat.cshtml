@@ -53,6 +53,13 @@
     @* Gizli uçuş ID alanı - Form gönderiminde kullanılacak *@
     @* Hidden flight ID field - Will be used in form submission *@
     <input type="hidden" name="FlightId" value="@ViewBag.Flight.FlightId" />
+    
+    @* Gizli yolcu sayıları ve kabin sınıfı alanları - JavaScript ile doldurulacak *@
+    @* Hidden passenger counts and cabin class fields - Will be filled by JavaScript *@
+    <input type="hidden" name="AdultCount" id="hiddenAdultCount" value="1" />
+    <input type="hidden" name="ChildCount" id="hiddenChildCount" value="0" />
+    <input type="hidden" name="InfantCount" id="hiddenInfantCount" value="0" />
+    <input type="hidden" name="CabinClass" id="hiddenCabinClass" value="economy" />
 
     @* Uçak gövdesi - Koltuk haritası için container *@
     @* Plane body - Container for seat map *@
@@ -158,11 +165,70 @@
     <link href="~/Content/css/seatmap.css" rel="stylesheet" />
 }
 
-@* JavaScript bölümü - Seçili koltuk için dinamik class ekleme *@
-@* JavaScript section - Dynamic class addition for selected seat *@
+@* JavaScript bölümü - Seçili koltuk için dinamik class ekleme ve kabin sınıfı filtreleme *@
+@* JavaScript section - Dynamic class addition for selected seat and cabin class filtering *@
 @section Scripts {
     <script>
         $(document).ready(function () {
+            // Yolcu sayıları ve kabin sınıfını localStorage'dan al
+            // Get passenger counts and cabin class from localStorage
+            let passengerCounts = {
+                adult: 1,
+                child: 0,
+                infant: 0
+            };
+            let selectedCabinClass = 'economy';
+            
+            // localStorage'dan yolcu sayılarını yükle
+            // Load passenger counts from localStorage
+            try {
+                const savedCounts = localStorage.getItem('passengerCounts');
+                if (savedCounts) {
+                    const parsed = JSON.parse(savedCounts);
+                    passengerCounts.adult = parsed.adult || 1;
+                    passengerCounts.child = parsed.child || 0;
+                    passengerCounts.infant = parsed.infant || 0;
+                }
+            } catch (e) {
+                console.error('Error loading passenger counts:', e);
+            }
+            
+            // localStorage'dan kabin sınıfını yükle
+            // Load cabin class from localStorage
+            try {
+                const savedCabinClass = localStorage.getItem('selectedCabinClass');
+                if (savedCabinClass && (savedCabinClass === 'business' || savedCabinClass === 'economy')) {
+                    selectedCabinClass = savedCabinClass;
+                    console.log('✅ localStorage\'dan kabin sınıfı yüklendi:', selectedCabinClass);
+                } else {
+                    console.log('⚠️ localStorage\'da kabin sınıfı bulunamadı veya geçersiz, varsayılan kullanılıyor:', selectedCabinClass);
+                }
+            } catch (e) {
+                console.error('❌ Error loading cabin class:', e);
+            }
+            
+            // Debug için konsola yazdır
+            // Print to console for debugging
+            console.log('📋 Yüklenen kabin sınıfı:', selectedCabinClass);
+            
+            // Gizli input alanlarını güncelle
+            // Update hidden input fields
+            $('#hiddenAdultCount').val(passengerCounts.adult);
+            $('#hiddenChildCount').val(passengerCounts.child);
+            $('#hiddenInfantCount').val(passengerCounts.infant);
+            $('#hiddenCabinClass').val(selectedCabinClass);
+            
+            // Tüm koltukların görünür olduğundan emin ol (filtreleme kaldırıldı)
+            // Ensure all seats are visible (filtering removed)
+            $('.seat-item:not(.empty)').each(function() {
+                const $seat = $(this);
+                $seat.css('display', 'inline-flex')
+                     .css('visibility', 'visible')
+                     .css('opacity', '1')
+                     .removeClass('seat-hidden')
+                     .addClass('seat-visible');
+            });
+            
             // Radio button değiştiğinde seçili koltuk class'ını güncelle
             // Update selected seat class when radio button changes
             $('input[type="radio"][name="SelectedSeatId"]').on('change', function () {
@@ -180,6 +246,16 @@
             $('input[type="radio"][name="SelectedSeatId"]:checked').each(function () {
                 $(this).closest('.seat-item').addClass('selected');
             });
+            
+            // Form submit edilmeden önce gizli alanları güncelle
+            // Update hidden fields before form submit
+            $('#seatSelectionForm').on('submit', function() {
+                $('#hiddenAdultCount').val(passengerCounts.adult);
+                $('#hiddenChildCount').val(passengerCounts.child);
+                $('#hiddenInfantCount').val(passengerCounts.infant);
+                $('#hiddenCabinClass').val(selectedCabinClass);
+            });
         });
     </script>
+}
 }

@@ -49,7 +49,7 @@
           <!-- 🔥 MESAJ BLOKLARI BURADA BİTER -->
           <!-- Giriş formu -->
           <form class="auth-form" id="loginForm" method="post" action="/Account/Login">
-
+              @Html.AntiForgeryToken() <!-- CSRF koruması -->
 
               <!-- E-posta -->
               <div class="form-group">

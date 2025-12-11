@@ -39,7 +39,7 @@
 
           <!-- Kayıt formu -->
           <form class="auth-form" id="signupForm" method="post" action="/Account/Signup">
-
+              @Html.AntiForgeryToken() <!-- CSRF koruması -->
 
               <!-- Ad Soyad -->
               <div class="form-row">

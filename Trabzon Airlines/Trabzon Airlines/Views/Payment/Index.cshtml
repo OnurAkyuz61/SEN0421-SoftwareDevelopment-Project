@@ -605,6 +605,51 @@
                         </div>
                     </div>
 
+                    @* Seçilen Biletler - Selected Tickets *@
+                    @if (ViewBag.TotalPassengers != null && ViewBag.CabinClass != null)
+                    {
+                        <div class="ticket-info-box" style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                            <h5 style="margin-bottom: 0.5rem; font-size: 1rem;" data-tr="Seçilen Biletler" data-en="Selected Tickets">Selected Tickets</h5>
+                            <div style="font-size: 0.9rem; color: #666;">
+                                @{
+                                    int totalPassengers = ViewBag.TotalPassengers;
+                                    int adultCount = ViewBag.AdultCount ?? 1;
+                                    int childCount = ViewBag.ChildCount ?? 0;
+                                    int infantCount = ViewBag.InfantCount ?? 0;
+                                    string cabinClass = ViewBag.CabinClass ?? "economy";
+                                    string cabinClassDisplay = cabinClass == "business" ? "Business" : "Ekonomi";
+                                    string cabinClassDisplayEn = cabinClass == "business" ? "Business" : "Economy";
+                                    
+                                    int payingPassengers = adultCount + childCount; // Infant genelde ücretsiz
+                                }
+                                <div>
+                                    <strong data-tr="@(payingPassengers)x @cabinClassDisplay" data-en="@(payingPassengers)x @cabinClassDisplayEn">
+                                        @(payingPassengers)x @cabinClassDisplay
+                                    </strong>
+                                </div>
+                                @if (adultCount > 0)
+                                {
+                                    <div style="margin-top: 0.25rem;">
+                                        <span data-tr="@adultCount Yetişkin" data-en="@adultCount Adult">@adultCount Yetişkin</span>
+                                    </div>
+                                }
+                                @if (childCount > 0)
+                                {
+                                    <div style="margin-top: 0.25rem;">
+                                        <span data-tr="@childCount Çocuk" data-en="@childCount Child">@childCount Çocuk</span>
+                                    </div>
+                                }
+                                @if (infantCount > 0)
+                                {
+                                    <div style="margin-top: 0.25rem;">
+                                        <span data-tr="@infantCount Bebek" data-en="@infantCount Infant">@infantCount Bebek</span>
+                                        <small style="color: #999;" data-tr="(Ücretsiz)" data-en="(Free)">(Ücretsiz)</small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
                     @* Fiyat Bölümü - Price Section *@
                     <div class="price-section">
                         <div class="price-label" data-tr="Toplam Tutar:" data-en="Total Amount:">Total Amount:</div>

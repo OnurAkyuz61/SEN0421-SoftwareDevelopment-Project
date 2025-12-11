@@ -41,6 +41,8 @@
     }
 
     .seat-item.free {
+        /* Varsayılan renk - economy için */
+        /* Default color - for economy */
         background: #90caf9;
     }
 
@@ -83,14 +85,20 @@
 }
 
 
-/* Business sınıfı koltuklar */
-.seat-item.business {
+/* Business sınıfı boş koltuklar - sarı (en yüksek öncelik) */
+/* Business class empty seats - yellow (highest priority) */
+.seat-item.free.business,
+.seat-item.business.free {
     background: #ffd54f !important; /* Sarı */
+    color: #333 !important;
 }
 
-/* Economy sınıfı koltuklar */
-.seat-item.economy {
+/* Economy sınıfı boş koltuklar - mavi */
+/* Economy class empty seats - blue */
+.seat-item.free.economy,
+.seat-item.economy.free {
     background: #90caf9 !important; /* Mavi */
+    color: #333 !important;
 }
 
 /* Seçili - Belirgin yeşil renk */
@@ -131,5 +139,21 @@
 .seat-indicator.selected {
     background: #00c853; /* Koyu yeşil - Seçili koltuk rengi */
     border: 2px solid #00e676; /* Parlak yeşil border */
+}
+
+/* Gizli koltuklar - Filtreleme için */
+/* Hidden seats - For filtering */
+.seat-item.seat-hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Görünür koltuklar - Filtreleme için */
+/* Visible seats - For filtering */
+.seat-item.seat-visible {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 

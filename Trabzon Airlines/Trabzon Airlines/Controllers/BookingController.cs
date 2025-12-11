@@ -44,6 +44,11 @@ namespace Trabzon_Airlines.Controllers
             // Add flight information to ViewBag
             ViewBag.Flight = db.Flights.Find(flightId);
 
+            // Yolcu sayıları ve kabin sınıfını Session'dan veya localStorage'dan al (JavaScript ile)
+            // Get passenger counts and cabin class from Session or localStorage (via JavaScript)
+            // Bu bilgiler JavaScript tarafında işlenecek
+            // This information will be processed on the JavaScript side
+
             // Koltuk seçim view'ını döndür
             // Return seat selection view
             return View(seats);
@@ -57,6 +62,20 @@ namespace Trabzon_Airlines.Controllers
         [ValidateAntiForgeryToken] // CSRF koruması için
         public ActionResult SelectSeat(int? FlightId, int? SelectedSeatId)
         {
+            // Kullanıcı giriş kontrolü - Eğer giriş yapmamışsa giriş sayfasına yönlendir
+            // User login check - If not logged in, redirect to login page
+            if (Session["UserId"] == null)
+            {
+                // Giriş yapılmamışsa hata mesajı göster ve giriş sayfasına yönlendir
+                // If not logged in, show error message and redirect to login page
+                TempData["Error_tr"] = "Satın alma işlemi için lütfen giriş yapın veya kayıt olun.";
+                TempData["Error_en"] = "Please login or register to complete the purchase.";
+                // ReturnUrl ile koltuk seçim sayfasına geri dönmesini sağla
+                // Enable return to seat selection page with ReturnUrl
+                string returnUrl = Url.Action("SelectSeat", "Booking", new { flightId = FlightId });
+                return RedirectToAction("Login", "Home", new { returnUrl = returnUrl });
+            }
+
             // Seçilen koltuk kontrolü
             // Check selected seat
             if (SelectedSeatId == null)
@@ -102,6 +121,40 @@ namespace Trabzon_Airlines.Controllers
                 return RedirectToAction("SelectSeat", new { flightId = FlightId });
             }
 
+            // Yolcu sayıları ve kabin sınıfını form'dan al
+            // Get passenger counts and cabin class from form
+            int adultCount = 1;
+            int childCount = 0;
+            int infantCount = 0;
+            string cabinClass = "economy";
+            
+            // Form'dan yolcu sayılarını al
+            // Get passenger counts from form
+            if (!string.IsNullOrEmpty(Request.Form["AdultCount"]))
+            {
+                int.TryParse(Request.Form["AdultCount"], out adultCount);
+            }
+            if (!string.IsNullOrEmpty(Request.Form["ChildCount"]))
+            {
+                int.TryParse(Request.Form["ChildCount"], out childCount);
+            }
+            if (!string.IsNullOrEmpty(Request.Form["InfantCount"]))
+            {
+                int.TryParse(Request.Form["InfantCount"], out infantCount);
+            }
+            if (!string.IsNullOrEmpty(Request.Form["CabinClass"]))
+            {
+                cabinClass = Request.Form["CabinClass"];
+            }
+
+            // Toplam yolcu sayısı (infant genelde ücretsiz, sadece adult + child için fiyat hesaplanır)
+            // Total passenger count (infants are usually free, only adult + child are charged)
+            int totalPassengers = adultCount + childCount;
+            
+            // Fiyat hesapla - Yolcu sayısına göre
+            // Calculate price - Based on passenger count
+            decimal totalPrice = flight.Price * totalPassengers;
+
             // Rezervasyon bilgilerini Session'a kaydet (ödeme sonrası için)
             // Save booking information to Session (for after payment)
             Session["PendingBooking"] = new
@@ -113,12 +166,18 @@ namespace Trabzon_Airlines.Controllers
                 ToCode = flight.ToCode,
                 DepartureTime = flight.DepartureTime,
                 ArrivalTime = flight.ArrivalTime,
-                SeatNumber = fs.Seat.SeatNumber
+                SeatNumber = fs.Seat.SeatNumber,
+                AdultCount = adultCount,
+                ChildCount = childCount,
+                InfantCount = infantCount,
+                CabinClass = cabinClass,
+                BasePrice = flight.Price,
+                TotalPrice = totalPrice
             };
 
-            // Ödeme sayfasına yönlendir (uçuş fiyatı ile)
-            // Redirect to payment page (with flight price)
-            return RedirectToAction("Index", "Payment", new { amount = flight.Price });
+            // Ödeme sayfasına yönlendir (toplam fiyat ile)
+            // Redirect to payment page (with total price)
+            return RedirectToAction("Index", "Payment", new { amount = totalPrice });
         }
 
         // --------------------------

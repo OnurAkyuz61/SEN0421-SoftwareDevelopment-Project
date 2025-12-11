@@ -25,9 +25,21 @@ namespace Trabzon_Airlines.Controllers
         [HttpGet] // HTTP GET isteği için
         public ActionResult Index()
         {
-            // Tüm uçuşları veritabanından getir
-            // Get all flights from database
-            var flights = db.Flights.ToList();
+            // Session kontrolü - Giriş yapılmamışsa login sayfasına yönlendir
+            // Session check - If not logged in, redirect to login page
+            if (Session["AdminId"] == null)
+            {
+                TempData["AdminErrorKey"] = "NotLoggedIn";
+                TempData["AdminError_tr"] = "Lütfen önce giriş yapın!";
+                TempData["AdminError_en"] = "Please login first!";
+                return RedirectToAction("Login", "Admin");
+            }
+
+            // Tüm uçuşları veritabanından getir (tarih sırasına göre)
+            // Get all flights from database (ordered by date)
+            var flights = db.Flights
+                .OrderByDescending(f => f.DepartureTime) // Tarihe göre azalan sıralama
+                .ToList();
 
             // Uçuş listesi view'ını döndür
             // Return flight list view
@@ -41,6 +53,16 @@ namespace Trabzon_Airlines.Controllers
         [HttpGet] // HTTP GET isteği için
         public ActionResult Create()
         {
+            // Session kontrolü - Giriş yapılmamışsa login sayfasına yönlendir
+            // Session check - If not logged in, redirect to login page
+            if (Session["AdminId"] == null)
+            {
+                TempData["AdminErrorKey"] = "NotLoggedIn";
+                TempData["AdminError_tr"] = "Lütfen önce giriş yapın!";
+                TempData["AdminError_en"] = "Please login first!";
+                return RedirectToAction("Login", "Admin");
+            }
+
             // Hava durumu ve rötar riski seçeneklerini ViewBag'e ekle
             // Add weather condition and delay risk options to ViewBag
             PopulateFlightStatusViewBags();
@@ -58,6 +80,16 @@ namespace Trabzon_Airlines.Controllers
         [ValidateAntiForgeryToken] // CSRF koruması için
         public ActionResult Create(Flight model)
         {
+            // Session kontrolü - Giriş yapılmamışsa login sayfasına yönlendir
+            // Session check - If not logged in, redirect to login page
+            if (Session["AdminId"] == null)
+            {
+                TempData["AdminErrorKey"] = "NotLoggedIn";
+                TempData["AdminError_tr"] = "Lütfen önce giriş yapın!";
+                TempData["AdminError_en"] = "Please login first!";
+                return RedirectToAction("Login", "Admin");
+            }
+
             // Model validasyonu kontrolü
             // Check model validation
             if (!ModelState.IsValid)
@@ -89,6 +121,16 @@ namespace Trabzon_Airlines.Controllers
         [HttpGet] // HTTP GET isteği için
         public ActionResult Delete(int? id)
         {
+            // Session kontrolü - Giriş yapılmamışsa login sayfasına yönlendir
+            // Session check - If not logged in, redirect to login page
+            if (Session["AdminId"] == null)
+            {
+                TempData["AdminErrorKey"] = "NotLoggedIn";
+                TempData["AdminError_tr"] = "Lütfen önce giriş yapın!";
+                TempData["AdminError_en"] = "Please login first!";
+                return RedirectToAction("Login", "Admin");
+            }
+
             // Uçuş ID kontrolü
             // Check flight ID
             if (id == null)
@@ -124,6 +166,16 @@ namespace Trabzon_Airlines.Controllers
         [HttpGet] // HTTP GET isteği için
         public ActionResult Edit(int? id)
         {
+            // Session kontrolü - Giriş yapılmamışsa login sayfasına yönlendir
+            // Session check - If not logged in, redirect to login page
+            if (Session["AdminId"] == null)
+            {
+                TempData["AdminErrorKey"] = "NotLoggedIn";
+                TempData["AdminError_tr"] = "Lütfen önce giriş yapın!";
+                TempData["AdminError_en"] = "Please login first!";
+                return RedirectToAction("Login", "Admin");
+            }
+
             // Uçuş ID kontrolü
             // Check flight ID
             if (id == null)
@@ -159,6 +211,16 @@ namespace Trabzon_Airlines.Controllers
         [ValidateAntiForgeryToken] // CSRF koruması için
         public ActionResult Edit(Flight model)
         {
+            // Session kontrolü - Giriş yapılmamışsa login sayfasına yönlendir
+            // Session check - If not logged in, redirect to login page
+            if (Session["AdminId"] == null)
+            {
+                TempData["AdminErrorKey"] = "NotLoggedIn";
+                TempData["AdminError_tr"] = "Lütfen önce giriş yapın!";
+                TempData["AdminError_en"] = "Please login first!";
+                return RedirectToAction("Login", "Admin");
+            }
+
             // Model validasyonu kontrolü
             // Check model validation
             if (!ModelState.IsValid)
@@ -265,6 +327,16 @@ namespace Trabzon_Airlines.Controllers
         [HttpGet] // HTTP GET isteği için
         public ActionResult Seats(int flightId)
         {
+            // Session kontrolü - Giriş yapılmamışsa login sayfasına yönlendir
+            // Session check - If not logged in, redirect to login page
+            if (Session["AdminId"] == null)
+            {
+                TempData["AdminErrorKey"] = "NotLoggedIn";
+                TempData["AdminError_tr"] = "Lütfen önce giriş yapın!";
+                TempData["AdminError_en"] = "Please login first!";
+                return RedirectToAction("Login", "Admin");
+            }
+
             // Uçuşu veritabanından bul
             // Find flight from database
             var flight = db.Flights.Find(flightId);

@@ -1,0 +1,410 @@
+/* ================== BOOKING RESULT STYLES ================== */
+/* ================== REZERVASYON SONUÇ STİLLERİ ================== */
+
+/* Sayfa container - Scroll gizli, tek ekranda */
+/* Page container - Hidden scroll, single screen */
+.booking-result-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Body ve HTML scroll gizle - Bu sayfa için */
+/* Hide body and HTML scroll - For this page */
+body.booking-result-page,
+body.booking-result-page html {
+    overflow: hidden !important;
+    height: 100%;
+}
+
+body.booking-result-page .page-content {
+    overflow: hidden;
+    height: calc(100vh - 120px);
+}
+
+/* Başarı Kartı - Kırmızı tonları, kompakt */
+/* Success Card - Red tones, compact */
+.success-card {
+    background: linear-gradient(135deg, #e4002b 0%, #c41e3a 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    color: white;
+    box-shadow: 0 10px 40px rgba(228, 0, 43, 0.3);
+    margin-bottom: 1.5rem;
+}
+
+.success-icon {
+    font-size: 3.5rem;
+    margin-bottom: 0.75rem;
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.success-subtitle {
+    font-size: 0.95rem;
+    opacity: 0.95;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Detaylar Grid - Yan yana kartlar */
+/* Details Grid - Side by side cards */
+.booking-details-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Rezervasyon Detayları Kartı */
+/* Booking Details Card */
+.booking-details-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-section {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.detail-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.detail-value {
+    font-size: 1.2rem;
+    color: #1a1a1a;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.detail-subvalue {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 0.25rem;
+}
+
+/* PNR ve Bilgi Kutusu - Yan yana */
+/* PNR and Info Box - Side by side */
+.pnr-info-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* PNR Kodu - Kırmızı tonları */
+/* PNR Code - Red tones */
+.pnr-code {
+    background: linear-gradient(135deg, #dc3545 0%, #e4002b 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(228, 0, 43, 0.3);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.pnr-label {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.pnr-value {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+/* Bilgilendirme Kutusu - Kırmızı tonları */
+/* Information Box - Red tones */
+.info-box {
+    background: #ffeaea;
+    border-left: 4px solid #e4002b;
+    padding: 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(228, 0, 43, 0.1);
+}
+
+.info-box i {
+    color: #e4002b;
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.info-box p {
+    margin: 0;
+    color: #c41e3a;
+    font-weight: 500;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Aksiyon Butonları - Kırmızı tonları */
+/* Action Buttons - Red tones */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.btn-action {
+    padding: 0.9rem 1.8rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.btn-primary-action {
+    background: linear-gradient(135deg, #e4002b 0%, #c41e3a 100%);
+    color: white;
+    box-shadow: 0 5px 15px rgba(228, 0, 43, 0.3);
+}
+
+.btn-primary-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(228, 0, 43, 0.4);
+    background: linear-gradient(135deg, #c41e3a 0%, #a01d2e 100%);
+}
+
+.btn-secondary-action {
+    background: white;
+    color: #e4002b;
+    border: 2px solid #e4002b;
+}
+
+.btn-secondary-action:hover {
+    background: #e4002b;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(228, 0, 43, 0.3);
+}
+
+/* Uçuş Rotası */
+/* Flight Route */
+.flight-route {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 1rem 0;
+}
+
+.route-code {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #e4002b;
+}
+
+.route-arrow {
+    font-size: 1.2rem;
+    color: #888;
+}
+
+/* Uçuş Saatleri */
+/* Flight Times */
+.flight-times {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.time-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.time-label {
+    font-weight: 600;
+    color: #666;
+    margin-right: 0.5rem;
+    min-width: 60px;
+}
+
+.time-value {
+    font-weight: 600;
+    color: #1a1a1a;
+    flex: 1;
+}
+
+/* Responsive - Tablet */
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+    .booking-details-wrapper {
+        grid-template-columns: 1fr;
+    }
+
+    .pnr-info-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Responsive - Mobil */
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+    .booking-result-container {
+        padding: 1rem;
+        min-height: calc(100vh - 100px);
+    }
+
+    .success-card {
+        padding: 1.5rem;
+    }
+
+    .success-title {
+        font-size: 1.4rem;
+    }
+
+    .success-icon {
+        font-size: 2.5rem;
+    }
+
+    .booking-details-card {
+        padding: 1.2rem;
+    }
+
+    .detail-value {
+        font-size: 1rem;
+    }
+
+    .pnr-value {
+        font-size: 1.6rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .btn-action {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Küçük ekranlar için daha kompakt */
+/* More compact for smaller screens */
+@media (max-height: 700px) {
+    .booking-result-container {
+        padding: 1rem;
+    }
+
+    .success-card {
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .success-title {
+        font-size: 1.3rem;
+    }
+
+    .success-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .success-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .booking-details-wrapper {
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .booking-details-card {
+        padding: 1rem;
+    }
+
+    .detail-section {
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .detail-value {
+        font-size: 1rem;
+    }
+
+    .pnr-info-wrapper {
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .pnr-code {
+        padding: 1rem;
+    }
+
+    .pnr-value {
+        font-size: 1.5rem;
+    }
+
+    .info-box {
+        padding: 1rem;
+    }
+
+    .action-buttons {
+        margin-top: 0.75rem;
+    }
+}

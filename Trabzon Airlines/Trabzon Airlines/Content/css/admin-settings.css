@@ -1,0 +1,176 @@
+/* ============================================
+   ADMIN SETTINGS CSS - Ayarlar Sayfası Stilleri
+   ADMIN SETTINGS CSS - Settings Page Styles
+   ============================================ */
+
+/* Bu dosya admin-flights.css ile benzer stilleri kullanır */
+/* This file uses similar styles to admin-flights.css */
+/* Ortak stiller admin-layout.css ve admin-flights.css'te tanımlı */
+/* Common styles are defined in admin-layout.css and admin-flights.css */
+
+/* ============================================
+   ALERT MESAJLARI - Alert Messages
+   ============================================ */
+
+/* Alert */
+.alert {
+    padding: 15px 20px; /* Padding */
+    border-radius: 8px; /* Yuvarlatılmış köşeler */
+    margin-bottom: 20px; /* Alt margin */
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 12px; /* Elemanlar arası boşluk */
+    font-size: 14px; /* Font boyutu */
+}
+
+/* Alert Başarı */
+/* Alert Success */
+.alert-success {
+    background: #d4edda; /* Açık yeşil arka plan */
+    color: #155724; /* Koyu yeşil renk */
+    border-left: 4px solid #28a745; /* Sol kenarlık */
+}
+
+/* Alert Hata */
+/* Alert Error */
+.alert-error {
+    background: #f8d7da; /* Açık kırmızı arka plan */
+    color: #721c24; /* Koyu kırmızı renk */
+    border-left: 4px solid #dc3545; /* Sol kenarlık */
+}
+
+/* Alert İkon */
+/* Alert Icon */
+.alert i {
+    font-size: 18px; /* İkon boyutu */
+}
+
+/* ============================================
+   FORM ELEMANLARI - Form Elements
+   ============================================ */
+
+/* Form Grubu */
+/* Form Group */
+.form-group {
+    margin-bottom: 25px; /* Alt margin */
+}
+
+/* Form Etiketi */
+/* Form Label */
+.form-label {
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 8px; /* Elemanlar arası boşluk */
+    font-weight: 600; /* Font kalınlığı */
+    color: #333; /* Metin rengi */
+    margin-bottom: 8px; /* Alt margin */
+    font-size: 14px; /* Font boyutu */
+}
+
+/* Form Etiketi İkon */
+/* Form Label Icon */
+.form-label i {
+    color: #e4002b; /* Kırmızı renk */
+    font-size: 16px; /* İkon boyutu */
+}
+
+/* Form Kontrolü */
+/* Form Control */
+.form-control {
+    width: 100%; /* Tam genişlik */
+    padding: 14px 18px; /* Padding */
+    border: 2px solid #e2e8f0; /* Kenarlık */
+    border-radius: 8px; /* Yuvarlatılmış köşeler */
+    font-size: 15px; /* Font boyutu */
+    transition: all 0.3s ease; /* Geçiş efekti */
+    background: white; /* Arka plan */
+    color: #4a5568; /* Metin rengi */
+}
+
+/* Form Kontrolü Focus */
+/* Form Control Focus */
+.form-control:focus {
+    outline: none; /* Dış çizgi yok */
+    border-color: #e4002b; /* Kırmızı kenarlık */
+    box-shadow: 0 0 0 3px rgba(228, 0, 43, 0.1); /* Focus gölge */
+}
+
+/* Form Bölümü */
+/* Form Section */
+.form-section {
+    margin: 35px 0; /* Dikey margin */
+    padding: 24px 28px; /* Padding */
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%); /* Gradient arka plan */
+    border-radius: 12px; /* Yuvarlatılmış köşeler */
+    border-left: 4px solid #e4002b; /* Sol kenarlık */
+    box-shadow: 0 2px 8px rgba(228, 0, 43, 0.08); /* Gölge efekti */
+}
+
+/* Form Bölümü Başlık */
+/* Form Section Title */
+.form-section-title {
+    font-size: 20px; /* Font boyutu */
+    font-weight: 700; /* Font kalınlığı */
+    color: #1a202c; /* Metin rengi */
+    margin: 0 0 12px 0; /* Margin */
+    display: flex; /* Flexbox */
+    align-items: center; /* Dikey hizalama */
+    gap: 10px; /* Elemanlar arası boşluk */
+}
+
+/* Form Bölümü Başlık İkon */
+/* Form Section Title Icon */
+.form-section-title i {
+    color: #e4002b; /* Kırmızı renk */
+    font-size: 22px; /* İkon boyutu */
+}
+
+/* Form Bölümü Açıklama */
+/* Form Section Description */
+.form-section-description {
+    font-size: 14px; /* Font boyutu */
+    color: #718096; /* Açık gri renk */
+    margin: 0; /* Margin yok */
+    line-height: 1.6; /* Satır yüksekliği */
+    font-style: italic; /* İtalik */
+}
+
+/* Form Aksiyonları */
+/* Form Actions */
+.form-actions {
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 15px; /* Elemanlar arası boşluk */
+    margin-top: 30px; /* Üst margin */
+    padding-top: 25px; /* Üst padding */
+    border-top: 1px solid #e0e0e0; /* Üst kenarlık */
+}
+
+/* İkincil Aksiyon Butonu */
+/* Secondary Action Button */
+.btn-secondary-action {
+    display: inline-flex; /* Satır içi flex */
+    align-items: center; /* Dikey hizalama */
+    gap: 10px; /* Elemanlar arası boşluk */
+    padding: 14px 24px; /* Padding */
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); /* Gri gradient */
+    color: white; /* Beyaz renk */
+    text-decoration: none; /* Alt çizgi yok */
+    border-radius: 10px; /* Yuvarlatılmış köşeler */
+    font-weight: 600; /* Font kalınlığı */
+    font-size: 15px; /* Font boyutu */
+    transition: all 0.3s ease; /* Geçiş efekti */
+    border: none; /* Kenarlık yok */
+    cursor: pointer; /* İmleç tipi */
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.25); /* Gölge efekti */
+}
+
+/* İkincil Aksiyon Butonu Hover */
+/* Secondary Action Button Hover */
+.btn-secondary-action:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #495057 100%); /* Hover gradient */
+    transform: translateY(-3px); /* Yukarı kaydırma */
+    color: white; /* Beyaz renk */
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.35); /* Hover gölge */
+}
+

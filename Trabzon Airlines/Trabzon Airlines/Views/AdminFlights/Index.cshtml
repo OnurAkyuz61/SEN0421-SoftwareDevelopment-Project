@@ -5,120 +5,195 @@
 @* Sayfa başlığı - ViewBag.Title ayarı *@
 @* Page title - ViewBag.Title setting *@
 @{
-    ViewBag.Title = "Uçuş Listesi";
-    ViewBag.TitleEn = "Flight List";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Uçuş Yönetimi";
+    ViewBag.TitleEn = "Flight Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-@* Ana başlık - Çeviri desteği ile *@
-@* Main header - With translation support *@
-<h2 data-tr="Uçuş Listesi" data-en="Flight List">Uçuş Listesi</h2>
+@* Uçuş Yönetimi CSS *@
+@* Flight Management CSS *@
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/admin-flights.css?v=@DateTime.Now.Ticks">
+}
 
-@* Yeni sefer ekle butonu - Çeviri desteği ile *@
-@* Add new flight button - With translation support *@
-<p>
-    @Html.ActionLink("Yeni Sefer Ekle", "Create", null, new { @class = "btn btn-primary", data_tr = "Yeni Sefer Ekle", data_en = "Add New Flight" })
-</p>
+@* Sayfa Başlığı *@
+@* Page Header *@
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="fa-solid fa-plane"></i>
+            <span data-tr="Uçuş Yönetimi" data-en="Flight Management">Uçuş Yönetimi</span>
+        </h1>
+        <a href="@Url.Action("Create", "AdminFlights")" class="btn-primary-action">
+            <i class="fa-solid fa-plus"></i>
+            <span data-tr="Yeni Uçuş Ekle" data-en="Add New Flight">Yeni Uçuş Ekle</span>
+        </a>
+    </div>
+</div>
 
-@* Uçuş listesi tablosu *@
-@* Flight list table *@
-<table class="table table-striped table-bordered">
-    @* Tablo başlıkları - Çeviri desteği ile *@
-    @* Table headers - With translation support *@
-    <thead>
-        <tr>
-            <th data-tr="Sefer No" data-en="Flight No">Sefer No</th>
-            <th data-tr="Güzergah" data-en="Route">Güzergah</th>
-            <th data-tr="Kalkış Zamanı" data-en="Departure Time">Kalkış Zamanı</th>
-            <th data-tr="Varış Zamanı" data-en="Arrival Time">Varış Zamanı</th>
-            <th data-tr="Hava Durumu" data-en="Weather Condition">Hava Durumu</th>
-            <th data-tr="Rötar Riski" data-en="Delay Risk">Rötar Riski</th>
-            <th data-tr="Fiyat" data-en="Price">Fiyat</th>
-            <th data-tr="Durum" data-en="Status">Durum</th>
-            <th data-tr="İşlemler" data-en="Actions">İşlemler</th>
-        </tr>
-    </thead>
-    @* Tablo gövdesi *@
-    @* Table body *@
-    <tbody>
-        @* Her uçuş için tablo satırı oluştur *@
-        @* Create table row for each flight *@
-        @foreach (var item in Model)
+@* Uçuş Listesi Kartı *@
+@* Flight List Card *@
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h2 class="admin-card-title">
+            <i class="fa-solid fa-list"></i>
+            <span data-tr="Tüm Uçuşlar" data-en="All Flights">Tüm Uçuşlar</span>
+        </h2>
+        <div class="admin-card-actions">
+            <input type="text" id="flightSearch" class="search-input" placeholder="Ara..." data-placeholder-tr="Ara..." data-placeholder-en="Search...">
+        </div>
+    </div>
+    <div class="admin-card-body">
+        @if (Model != null && Model.Any())
         {
-            <tr>
-                @* Uçuş numarası gösterimi *@
-                @* Flight number display *@
-                <td>@item.FlightNumber</td>
+            @* Uçuş Listesi Tablosu *@
+            @* Flight List Table *@
+            <div class="table-responsive">
+                <table class="admin-table" id="flightsTable">
+                    <thead>
+                        <tr>
+                            <th data-tr="Uçuş No" data-en="Flight No">Uçuş No</th>
+                            <th data-tr="Güzergah" data-en="Route">Güzergah</th>
+                            <th data-tr="Kalkış" data-en="Departure">Kalkış</th>
+                            <th data-tr="Varış" data-en="Arrival">Varış</th>
+                            <th data-tr="Fiyat" data-en="Price">Fiyat</th>
+                            <th data-tr="Hava Durumu" data-en="Weather">Hava Durumu</th>
+                            <th data-tr="Rötar Riski" data-en="Delay Risk">Rötar Riski</th>
+                            <th data-tr="Durum" data-en="Status">Durum</th>
+                            <th data-tr="İşlemler" data-en="Actions">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var flight in Model)
+                        {
+                            <tr>
+                                @* Uçuş Numarası *@
+                                @* Flight Number *@
+                                <td>
+                                    <strong class="flight-number">@flight.FlightNumber</strong>
+                                </td>
 
-                @* Güzergah gösterimi - Kalkış ve varış havalimanları *@
-                @* Route display - Departure and arrival airports *@
-                <td>@item.FromCode → @item.ToCode</td>
+                                @* Güzergah *@
+                                @* Route *@
+                                <td>
+                                    <div class="route-info">
+                                        <span class="route-code">@flight.FromCode</span>
+                                        <i class="fa-solid fa-arrow-right route-arrow"></i>
+                                        <span class="route-code">@flight.ToCode</span>
+                                    </div>
+                                </td>
 
-                @* Kalkış zamanı gösterimi - Tarih ve saat formatı *@
-                @* Departure time display - Date and time format *@
-                <td>@item.DepartureTime.ToString("dd.MM.yyyy HH:mm")</td>
-                @* Varış zamanı gösterimi - Tarih ve saat formatı *@
-                @* Arrival time display - Date and time format *@
-                <td>@item.ArrivalTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                @* Kalkış Zamanı *@
+                                @* Departure Time *@
+                                <td>
+                                    <div class="time-info">
+                                        <div class="time-date">@flight.DepartureTime.ToString("dd.MM.yyyy")</div>
+                                        <div class="time-hour">@flight.DepartureTime.ToString("HH:mm")</div>
+                                    </div>
+                                </td>
 
-                @* Hava durumu gösterimi *@
-                @* Weather condition display *@
-                <td>@item.WeatherCondition</td>
+                                @* Varış Zamanı *@
+                                @* Arrival Time *@
+                                <td>
+                                    <div class="time-info">
+                                        <div class="time-date">@flight.ArrivalTime.ToString("dd.MM.yyyy")</div>
+                                        <div class="time-hour">@flight.ArrivalTime.ToString("HH:mm")</div>
+                                    </div>
+                                </td>
 
-                @* Rötar riski gösterimi - Renkli badge ile *@
-                @* Delay risk display - With colored badge *@
-                <td>
-                    @* Yüksek risk durumu *@
-                    @* High risk status *@
-                    @if (item.DelayRisk == "Yüksek" || item.DelayRisk == "High")
-                    {
-                        <span class="badge bg-danger" data-tr="Yüksek" data-en="High">Yüksek</span>
-                    }
-                    @* Orta risk durumu *@
-                    @* Medium risk status *@
-                    else if (item.DelayRisk == "Orta" || item.DelayRisk == "Medium")
-                    {
-                        <span class="badge bg-warning text-dark" data-tr="Orta" data-en="Medium">Orta</span>
-                    }
-                    @* Düşük risk durumu *@
-                    @* Low risk status *@
-                    else if (item.DelayRisk == "Düşük" || item.DelayRisk == "Low")
-                    {
-                        <span class="badge bg-success" data-tr="Düşük" data-en="Low">Düşük</span>
-                    }
-                    @* Belirtilmemiş durum *@
-                    @* Not specified status *@
-                    else
-                    {
-                        <span class="badge bg-secondary">-</span>
-                    }
-                </td>
+                                @* Fiyat *@
+                                @* Price *@
+                                <td>
+                                    <strong class="price-value">@flight.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</strong>
+                                </td>
 
-                @* Fiyat gösterimi - Para birimi formatı ile *@
-                @* Price display - With currency format *@
-                <td>@item.Price.ToString("C")</td>
+                                @* Hava Durumu *@
+                                @* Weather Condition *@
+                                <td>
+                                    @if (!string.IsNullOrEmpty(flight.WeatherCondition))
+                                    {
+                                        <span class="badge badge-info">@flight.WeatherCondition</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary" data-tr="Belirtilmemiş" data-en="Not Specified">Belirtilmemiş</span>
+                                    }
+                                </td>
 
-                @* Durum gösterimi - Aktif/Pasif *@
-                @* Status display - Active/Inactive *@
-                <td>
-                    @if (item.IsActive)
-                    {
-                        <span class="badge bg-success" data-tr="Aktif" data-en="Active">Aktif</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary" data-tr="Pasif" data-en="Inactive">Pasif</span>
-                    }
-                </td>
+                                @* Rötar Riski *@
+                                @* Delay Risk *@
+                                <td>
+                                    @if (flight.DelayRisk == "Yüksek" || flight.DelayRisk == "High")
+                                    {
+                                        <span class="badge badge-danger" data-tr="Yüksek" data-en="High">Yüksek</span>
+                                    }
+                                    else if (flight.DelayRisk == "Orta" || flight.DelayRisk == "Medium")
+                                    {
+                                        <span class="badge badge-warning" data-tr="Orta" data-en="Medium">Orta</span>
+                                    }
+                                    else if (flight.DelayRisk == "Düşük" || flight.DelayRisk == "Low")
+                                    {
+                                        <span class="badge badge-success" data-tr="Düşük" data-en="Low">Düşük</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">-</span>
+                                    }
+                                </td>
 
-                @* İşlem butonları - Düzenle, Sil, Koltuklar *@
-                @* Action buttons - Edit, Delete, Seats *@
-                <td>
-                    @Html.ActionLink("Düzenle", "Edit", new { id = item.FlightId }, new { data_tr = "Düzenle", data_en = "Edit" }) |
-                    @Html.ActionLink("Sil", "Delete", new { id = item.FlightId }, new { data_tr = "Sil", data_en = "Delete" }) |
-                    @Html.ActionLink("Koltukları Yönet", "Seats", new { flightId = item.FlightId }, new { data_tr = "Koltukları Yönet", data_en = "Manage Seats" })
-                </td>
-            </tr>
+                                @* Durum *@
+                                @* Status *@
+                                <td>
+                                    @if (flight.IsActive)
+                                    {
+                                        <span class="badge badge-success" data-tr="Aktif" data-en="Active">Aktif</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary" data-tr="Pasif" data-en="Inactive">Pasif</span>
+                                    }
+                                </td>
+
+                                @* İşlemler *@
+                                @* Actions *@
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="@Url.Action("Edit", "AdminFlights", new { id = flight.FlightId })" class="btn-action btn-edit" title="Düzenle" data-tr-title="Düzenle" data-en-title="Edit">
+                                            <i class="fa-solid fa-edit"></i>
+                                        </a>
+                                        <a href="@Url.Action("Seats", "AdminFlights", new { flightId = flight.FlightId })" class="btn-action btn-view" title="Koltukları Yönet" data-tr-title="Koltukları Yönet" data-en-title="Manage Seats">
+                                            <i class="fa-solid fa-chair"></i>
+                                        </a>
+                                        <a href="@Url.Action("Delete", "AdminFlights", new { id = flight.FlightId })" class="btn-action btn-delete" title="Sil" data-tr-title="Sil" data-en-title="Delete" onclick="return confirm('Bu uçuşu silmek istediğinizden emin misiniz?');">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
-    </tbody>
-</table>
+        else
+        {
+            @* Boş Durum *@
+            @* Empty State *@
+            <div class="admin-empty-state">
+                <i class="fa-solid fa-plane-slash"></i>
+                <h3 data-tr="Henüz uçuş bulunmuyor" data-en="No flights found">Henüz uçuş bulunmuyor</h3>
+                <p data-tr="Yeni bir uçuş eklemek için yukarıdaki butona tıklayın." data-en="Click the button above to add a new flight.">Yeni bir uçuş eklemek için yukarıdaki butona tıklayın.</p>
+                <a href="@Url.Action("Create", "AdminFlights")" class="btn-primary-action">
+                    <i class="fa-solid fa-plus"></i>
+                    <span data-tr="İlk Uçuşu Ekle" data-en="Add First Flight">İlk Uçuşu Ekle</span>
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@* Uçuş Yönetimi JavaScript *@
+@* Flight Management JavaScript *@
+@section scripts {
+    <script src="~/js/admin-flights.js"></script>
+}

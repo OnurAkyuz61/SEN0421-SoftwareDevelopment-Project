@@ -1,0 +1,410 @@
+/* ============================================
+   ADMIN LAYOUT CSS - Admin Paneli Genel Stilleri
+   ADMIN LAYOUT CSS - General Styles for Admin Panel
+   ============================================ */
+
+/* Genel Reset ve Temel Stiller */
+/* General Reset and Base Styles */
+* {
+    margin: 0; /* Tüm margin'leri sıfırla */
+    padding: 0; /* Tüm padding'leri sıfırla */
+    box-sizing: border-box; /* Box model ayarı */
+}
+
+/* Admin Body - Ana sayfa gövdesi */
+/* Admin Body - Main page body */
+.admin-body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Font ailesi */
+    background-color: #f5f7fa; /* Arka plan rengi */
+    color: #333; /* Metin rengi */
+    line-height: 1.6; /* Satır yüksekliği */
+    overflow-x: hidden; /* Yatay scroll'u gizle */
+}
+
+/* ============================================
+   ADMIN NAVBAR - Üst Navigasyon Çubuğu
+   ADMIN NAVBAR - Top Navigation Bar
+   ============================================ */
+
+/* Admin Navbar Container */
+.admin-navbar {
+    position: fixed; /* Sabit konum */
+    top: 0; /* Üstten 0 */
+    left: 0; /* Soldan 0 */
+    right: 0; /* Sağdan 0 */
+    height: 60px; /* Yükseklik */
+    background: linear-gradient(135deg, #e4002b 0%, #c41e3a 100%); /* Kırmızı gradient arka plan */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Gölge efekti */
+    z-index: 1000; /* Z-index değeri */
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+}
+
+/* Navbar Container */
+.admin-navbar-container {
+    width: 100%; /* Genişlik */
+    max-width: 100%; /* Maksimum genişlik */
+    padding: 0 20px; /* Yatay padding */
+    display: flex; /* Flexbox düzeni */
+    justify-content: space-between; /* Elemanlar arası boşluk */
+    align-items: center; /* Dikey hizalama */
+}
+
+/* Navbar Sol Taraf */
+/* Navbar Left Side */
+.admin-navbar-left {
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 15px; /* Elemanlar arası boşluk */
+}
+
+/* Sidebar Toggle Butonu */
+.admin-sidebar-toggle {
+    background: rgba(255, 255, 255, 0.2); /* Yarı saydam beyaz arka plan */
+    border: none; /* Kenarlık yok */
+    color: white; /* Beyaz renk */
+    font-size: 18px; /* Font boyutu */
+    padding: 8px 12px; /* Padding */
+    border-radius: 5px; /* Yuvarlatılmış köşeler */
+    cursor: pointer; /* İmleç tipi */
+    transition: background 0.3s; /* Geçiş efekti */
+}
+
+/* Sidebar Toggle Hover */
+.admin-sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 0.3); /* Hover arka plan rengi */
+}
+
+/* Admin Logo */
+.admin-logo {
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 10px; /* Elemanlar arası boşluk */
+    color: white; /* Beyaz renk */
+    text-decoration: none; /* Alt çizgi yok */
+    font-size: 18px; /* Font boyutu */
+    font-weight: 600; /* Font kalınlığı */
+}
+
+/* Admin Logo İkon */
+.admin-logo i {
+    font-size: 24px; /* İkon boyutu */
+}
+
+/* Admin Badge */
+.admin-badge {
+    background: rgba(255, 255, 255, 0.3); /* Yarı saydam beyaz arka plan */
+    padding: 2px 8px; /* Padding */
+    border-radius: 3px; /* Yuvarlatılmış köşeler */
+    font-size: 12px; /* Font boyutu */
+    font-weight: 500; /* Font kalınlığı */
+}
+
+/* Navbar Sağ Taraf */
+/* Navbar Right Side */
+.admin-navbar-right {
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 20px; /* Elemanlar arası boşluk */
+}
+
+/* Admin User Menu */
+.admin-user-menu {
+    position: relative; /* Göreceli konum */
+}
+
+/* Admin User Butonu */
+.admin-user-btn {
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 10px; /* Elemanlar arası boşluk */
+    background: rgba(255, 255, 255, 0.2); /* Yarı saydam beyaz arka plan */
+    border: none; /* Kenarlık yok */
+    color: white; /* Beyaz renk */
+    padding: 8px 15px; /* Padding */
+    border-radius: 5px; /* Yuvarlatılmış köşeler */
+    cursor: pointer; /* İmleç tipi */
+    transition: background 0.3s; /* Geçiş efekti */
+    font-size: 14px; /* Font boyutu */
+}
+
+/* Admin User Butonu Hover */
+.admin-user-btn:hover {
+    background: rgba(255, 255, 255, 0.3); /* Hover arka plan rengi */
+}
+
+/* Admin Name */
+.admin-name {
+    font-weight: 500; /* Font kalınlığı */
+}
+
+/* Admin User Dropdown */
+.admin-user-dropdown {
+    position: absolute; /* Mutlak konum */
+    top: calc(100% + 10px); /* Üstten mesafe */
+    right: 0; /* Sağdan 0 */
+    background: white; /* Beyaz arka plan */
+    border-radius: 8px; /* Yuvarlatılmış köşeler */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Gölge efekti */
+    min-width: 200px; /* Minimum genişlik */
+    opacity: 0; /* Başlangıçta görünmez */
+    visibility: hidden; /* Görünürlük kapalı */
+    transform: translateY(-10px); /* Yukarı kaydırma */
+    transition: all 0.3s; /* Geçiş efekti */
+    z-index: 1001; /* Z-index değeri */
+}
+
+/* Admin User Dropdown Açık */
+.admin-user-dropdown.show {
+    opacity: 1; /* Görünür */
+    visibility: visible; /* Görünürlük açık */
+    transform: translateY(0); /* Kaydırma yok */
+}
+
+/* Dropdown Item */
+.dropdown-item {
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 10px; /* Elemanlar arası boşluk */
+    padding: 12px 15px; /* Padding */
+    color: #333; /* Metin rengi */
+    text-decoration: none; /* Alt çizgi yok */
+    transition: background 0.2s; /* Geçiş efekti */
+    border-bottom: 1px solid #f0f0f0; /* Alt kenarlık */
+}
+
+/* Dropdown Item Son Eleman */
+.dropdown-item:last-child {
+    border-bottom: none; /* Alt kenarlık yok */
+}
+
+/* Dropdown Item Hover */
+.dropdown-item:hover {
+    background: #f5f7fa; /* Hover arka plan rengi */
+}
+
+/* Dropdown Item İkon */
+.dropdown-item i {
+    color: #e4002b; /* Kırmızı renk */
+    width: 20px; /* Genişlik */
+}
+
+/* ============================================
+   ADMIN SIDEBAR - Sol Menü
+   ADMIN SIDEBAR - Left Menu
+   ============================================ */
+
+/* Admin Sidebar */
+.admin-sidebar {
+    position: fixed; /* Sabit konum */
+    left: 0; /* Soldan 0 */
+    top: 60px; /* Üstten 60px (navbar yüksekliği) */
+    width: 280px; /* Genişlik */
+    height: calc(100vh - 60px); /* Yükseklik (ekran yüksekliği - navbar) */
+    background: #ffffff; /* Beyaz arka plan */
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.08); /* Gölge efekti */
+    overflow-y: auto; /* Dikey scroll */
+    overflow-x: hidden; /* Yatay scroll gizle */
+    transition: transform 0.3s ease; /* Geçiş efekti */
+    z-index: 999; /* Z-index değeri */
+    border-right: 1px solid #e2e8f0; /* Sağ kenarlık */
+}
+
+/* Admin Sidebar Kapalı (Mobil) */
+.admin-sidebar.closed {
+    transform: translateX(-100%); /* Sola kaydır */
+}
+
+/* Admin Sidebar Content */
+.admin-sidebar-content {
+    padding: 20px 0; /* Dikey padding */
+}
+
+/* Admin Menu */
+.admin-menu {
+    list-style: none; /* Liste işareti yok */
+    padding: 0; /* Padding yok */
+    margin: 0; /* Margin yok */
+}
+
+/* Admin Menu Item */
+.admin-menu-item {
+    margin: 0; /* Margin yok */
+}
+
+/* Admin Menu Link */
+.admin-menu-link {
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 15px; /* Elemanlar arası boşluk */
+    padding: 16px 24px; /* Padding */
+    color: #4a5568; /* Metin rengi */
+    text-decoration: none; /* Alt çizgi yok */
+    transition: all 0.3s ease; /* Geçiş efekti */
+    border-left: 3px solid transparent; /* Sol kenarlık (şeffaf) */
+    position: relative; /* Göreceli konum */
+    font-size: 15px; /* Font boyutu */
+    font-weight: 500; /* Font kalınlığı */
+}
+
+/* Admin Menu Link Hover */
+.admin-menu-link:hover {
+    background: #f7fafc; /* Hover arka plan rengi */
+    color: #e4002b; /* Hover metin rengi */
+    border-left-color: #e4002b; /* Hover sol kenarlık rengi */
+    transform: translateX(2px); /* Hafif sağa kaydırma */
+}
+
+/* Admin Menu Link Aktif */
+.admin-menu-link.active {
+    background: #fff5f5; /* Aktif arka plan rengi */
+    color: #e4002b; /* Aktif metin rengi */
+    border-left-color: #e4002b; /* Aktif sol kenarlık rengi */
+    font-weight: 600; /* Aktif font kalınlığı */
+    box-shadow: inset 0 0 0 1px rgba(228, 0, 43, 0.1); /* İç gölge */
+}
+
+/* Admin Menu Link İkon */
+.admin-menu-link i {
+    font-size: 20px; /* İkon boyutu */
+    width: 28px; /* Genişlik */
+    text-align: center; /* Metin hizalama */
+    display: flex; /* Flexbox */
+    align-items: center; /* Dikey hizalama */
+    justify-content: center; /* Yatay hizalama */
+    color: inherit; /* Renk kalıtımı */
+    transition: transform 0.3s ease; /* Geçiş efekti */
+}
+
+/* Admin Menu Link Hover İkon */
+.admin-menu-link:hover i {
+    transform: scale(1.1); /* Hover'da büyütme */
+}
+
+/* Admin Menu Link Aktif İkon */
+.admin-menu-link.active i {
+    color: #e4002b; /* Aktif ikon rengi */
+}
+
+/* ============================================
+   ADMIN MAIN CONTENT - Ana İçerik Alanı
+   ADMIN MAIN CONTENT - Main Content Area
+   ============================================ */
+
+/* Admin Main Content */
+.admin-main-content {
+    margin-left: 280px; /* Sol margin (sidebar genişliği) */
+    margin-top: 60px; /* Üst margin (navbar yüksekliği) */
+    padding: 35px; /* Padding */
+    min-height: calc(100vh - 60px); /* Minimum yükseklik */
+    transition: margin-left 0.3s ease; /* Geçiş efekti */
+    background: #f5f7fa; /* Arka plan rengi */
+}
+
+/* Admin Main Content (Sidebar Kapalı) */
+.admin-sidebar.closed ~ .admin-main-content {
+    margin-left: 0; /* Sol margin yok */
+}
+
+/* ============================================
+   ADMIN FOOTER - Alt Bilgi Çubuğu
+   ADMIN FOOTER - Bottom Information Bar
+   ============================================ */
+
+/* Admin Footer */
+.admin-footer {
+    margin-left: 280px; /* Sol margin (sidebar genişliği) */
+    background: white; /* Beyaz arka plan */
+    border-top: 1px solid #e2e8f0; /* Üst kenarlık */
+    padding: 18px 35px; /* Padding */
+    transition: margin-left 0.3s ease; /* Geçiş efekti */
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05); /* Üst gölge */
+}
+
+/* Admin Footer (Sidebar Kapalı) */
+.admin-sidebar.closed ~ .admin-footer {
+    margin-left: 0; /* Sol margin yok */
+}
+
+/* Admin Footer Content */
+.admin-footer-content {
+    display: flex; /* Flexbox düzeni */
+    justify-content: space-between; /* Elemanlar arası boşluk */
+    align-items: center; /* Dikey hizalama */
+    color: #666; /* Metin rengi */
+    font-size: 14px; /* Font boyutu */
+}
+
+/* Admin Footer Version */
+.admin-footer-version {
+    color: #999; /* Açık gri renk */
+    font-size: 12px; /* Font boyutu */
+}
+
+/* ============================================
+   RESPONSIVE DESIGN - Mobil Uyumluluk
+   RESPONSIVE DESIGN - Mobile Compatibility
+   ============================================ */
+
+/* Tablet ve Küçük Ekranlar (768px ve altı) */
+/* Tablets and Small Screens (768px and below) */
+@media (max-width: 768px) {
+    /* Admin Sidebar */
+    .admin-sidebar {
+        transform: translateX(-100%); /* Varsayılan olarak kapalı */
+    }
+    
+    /* Admin Sidebar Açık */
+    .admin-sidebar.open {
+        transform: translateX(0); /* Açık konum */
+    }
+    
+    /* Admin Main Content */
+    .admin-main-content {
+        margin-left: 0; /* Sol margin yok */
+        padding: 20px; /* Padding azaltıldı */
+    }
+    
+    /* Admin Footer */
+    .admin-footer {
+        margin-left: 0; /* Sol margin yok */
+        padding: 15px 20px; /* Padding azaltıldı */
+    }
+    
+    /* Admin Footer Content */
+    .admin-footer-content {
+        flex-direction: column; /* Dikey düzen */
+        gap: 10px; /* Elemanlar arası boşluk */
+        text-align: center; /* Metin hizalama */
+    }
+    
+    /* Admin User Dropdown */
+    .admin-user-dropdown {
+        right: -10px; /* Sağdan mesafe */
+    }
+}
+
+/* Mobil Cihazlar (480px ve altı) */
+/* Mobile Devices (480px and below) */
+@media (max-width: 480px) {
+    /* Admin Navbar Container */
+    .admin-navbar-container {
+        padding: 0 10px; /* Padding azaltıldı */
+    }
+    
+    /* Admin Logo */
+    .admin-logo span:not(.admin-badge) {
+        display: none; /* Logo metni gizle */
+    }
+    
+    /* Admin Name */
+    .admin-name {
+        display: none; /* Admin adı gizle */
+    }
+    
+    /* Admin Main Content */
+    .admin-main-content {
+        padding: 15px; /* Padding azaltıldı */
+    }
+}
+

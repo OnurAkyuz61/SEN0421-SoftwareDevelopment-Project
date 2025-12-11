@@ -1,0 +1,158 @@
+@* Model tanımı - Rezervasyon modeli *@
+@* Model definition - Booking model *@
+@model Trabzon_Airlines.Models.Booking
+
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
+    ViewBag.Title = "Rezervasyon Detayı";
+    ViewBag.TitleEn = "Booking Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@* Rezervasyon Detay CSS *@
+@* Booking Detail CSS *@
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/admin-booking-detail.css">
+}
+
+@* Sayfa Başlığı *@
+@* Page Header *@
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span data-tr="Rezervasyon Detayı" data-en="Booking Details">Rezervasyon Detayı</span>
+        </h1>
+        <a href="@Url.Action("Index", "AdminBookings")" class="btn-secondary-action">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span data-tr="Listeye Dön" data-en="Back to List">Listeye Dön</span>
+        </a>
+    </div>
+</div>
+
+@* Rezervasyon Detay Kartları *@
+@* Booking Detail Cards *@
+<div class="detail-grid">
+    @* Rezervasyon Bilgileri *@
+    @* Booking Information *@
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2 class="admin-card-title">
+                <i class="fa-solid fa-info-circle"></i>
+                <span data-tr="Rezervasyon Bilgileri" data-en="Booking Information">Rezervasyon Bilgileri</span>
+            </h2>
+        </div>
+        <div class="admin-card-body">
+            <div class="detail-item">
+                <span class="detail-label" data-tr="PNR Kodu:" data-en="PNR Code:">PNR Kodu:</span>
+                <span class="detail-value pnr-code">@Model.PNR</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Rezervasyon Tarihi:" data-en="Booking Date:">Rezervasyon Tarihi:</span>
+                <span class="detail-value">@Model.BookingDate.ToString("dd.MM.yyyy HH:mm")</span>
+            </div>
+        </div>
+    </div>
+
+    @* Yolcu Bilgileri *@
+    @* Passenger Information *@
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2 class="admin-card-title">
+                <i class="fa-solid fa-user"></i>
+                <span data-tr="Yolcu Bilgileri" data-en="Passenger Information">Yolcu Bilgileri</span>
+            </h2>
+        </div>
+        <div class="admin-card-body">
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Ad:" data-en="First Name:">Ad:</span>
+                <span class="detail-value">@Model.PassengerName</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Soyad:" data-en="Last Name:">Soyad:</span>
+                <span class="detail-value">@Model.PassengerSurname</span>
+            </div>
+        </div>
+    </div>
+
+    @* Uçuş Bilgileri *@
+    @* Flight Information *@
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2 class="admin-card-title">
+                <i class="fa-solid fa-plane"></i>
+                <span data-tr="Uçuş Bilgileri" data-en="Flight Information">Uçuş Bilgileri</span>
+            </h2>
+        </div>
+        <div class="admin-card-body">
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Uçuş No:" data-en="Flight No:">Uçuş No:</span>
+                <span class="detail-value">@Model.Flight.FlightNumber</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Güzergah:" data-en="Route:">Güzergah:</span>
+                <span class="detail-value">
+                    <span class="route-code">@Model.Flight.FromCode</span>
+                    <i class="fa-solid fa-arrow-right route-arrow"></i>
+                    <span class="route-code">@Model.Flight.ToCode</span>
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Kalkış:" data-en="Departure:">Kalkış:</span>
+                <span class="detail-value">@Model.Flight.DepartureTime.ToString("dd.MM.yyyy HH:mm")</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Varış:" data-en="Arrival:">Varış:</span>
+                <span class="detail-value">@Model.Flight.ArrivalTime.ToString("dd.MM.yyyy HH:mm")</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Fiyat:" data-en="Price:">Fiyat:</span>
+                <span class="detail-value price-value">@Model.Flight.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</span>
+            </div>
+        </div>
+    </div>
+
+    @* Koltuk Bilgileri *@
+    @* Seat Information *@
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2 class="admin-card-title">
+                <i class="fa-solid fa-chair"></i>
+                <span data-tr="Koltuk Bilgileri" data-en="Seat Information">Koltuk Bilgileri</span>
+            </h2>
+        </div>
+        <div class="admin-card-body">
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Koltuk No:" data-en="Seat No:">Koltuk No:</span>
+                <span class="detail-value seat-number">@Model.Seat.SeatNumber</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label" data-tr="Kabin Sınıfı:" data-en="Cabin Class:">Kabin Sınıfı:</span>
+                <span class="detail-value">
+                    <span class="badge badge-info">@Model.Seat.CabinClass</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Aksiyon Butonları *@
+@* Action Buttons *@
+<div class="detail-actions">
+    <a href="@Url.Action("Delete", "AdminBookings", new { id = Model.BookingId })" class="btn-action btn-delete" onclick="return confirm('Bu rezervasyonu silmek istediğinizden emin misiniz?');">
+        <i class="fa-solid fa-trash"></i>
+        <span data-tr="Rezervasyonu Sil" data-en="Delete Booking">Rezervasyonu Sil</span>
+    </a>
+    <a href="@Url.Action("Index", "AdminBookings")" class="btn-secondary-action">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span data-tr="Listeye Dön" data-en="Back to List">Listeye Dön</span>
+    </a>
+</div>
+
+@* Rezervasyon Detay JavaScript *@
+@* Booking Detail JavaScript *@
+@section scripts {
+    <script src="~/js/admin-booking-detail.js"></script>
+}
+

@@ -72,10 +72,23 @@ namespace Trabzon_Airlines.Controllers
         [ValidateInput(false)] // HTML input validasyonunu kapat
         public ActionResult Login(string email, string password)
         {
+            // E-posta ve şifre boş kontrolü
+            // Check if email and password are empty
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            {
+                TempData["Error_tr"] = "E-posta ve şifre gereklidir!";
+                TempData["Error_en"] = "Email and password are required!";
+                return RedirectToAction("Login", "Home");
+            }
+
             // Şifreyi hash'le - SHA256 algoritması ile
             // Hash the password - Using SHA256 algorithm
             string hashedPassword = HashPassword(password);
 
+            // Debug: Veritabanında bu e-postaya sahip kullanıcı var mı kontrol et
+            // Debug: Check if user with this email exists in database
+            var userByEmail = db.Users.FirstOrDefault(x => x.Email == email);
+            
             // Veritabanından kullanıcıyı bul
             // Find user from database
             var user = db.Users.FirstOrDefault(x => x.Email == email && x.Password == hashedPassword);
@@ -84,8 +97,20 @@ namespace Trabzon_Airlines.Controllers
             // If user not found, show error message
             if (user == null)
             {
-                TempData["Error_tr"] = "E-posta veya şifre hatalı!";
-                TempData["Error_en"] = "Incorrect email or password!";
+                // Eğer e-posta varsa ama şifre yanlışsa
+                // If email exists but password is wrong
+                if (userByEmail != null)
+                {
+                    TempData["Error_tr"] = "Şifre hatalı!";
+                    TempData["Error_en"] = "Incorrect password!";
+                }
+                else
+                {
+                    // E-posta veritabanında yoksa
+                    // If email doesn't exist in database
+                    TempData["Error_tr"] = "Bu e-posta adresi kayıtlı değil! Lütfen önce kayıt olun.";
+                    TempData["Error_en"] = "This email address is not registered! Please sign up first.";
+                }
                 return RedirectToAction("Login", "Home");
             }
 
@@ -94,6 +119,14 @@ namespace Trabzon_Airlines.Controllers
             Session["UserId"] = user.UserId;
             Session["UserName"] = user.FirstName;
             Session["UserEmail"] = user.Email;
+
+            // ReturnUrl varsa oraya yönlendir, yoksa ana sayfaya yönlendir
+            // If ReturnUrl exists, redirect there, otherwise redirect to homepage
+            string returnUrl = Request.QueryString["returnUrl"];
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
 
             // Ana sayfaya yönlendir
             // Redirect to homepage
