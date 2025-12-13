@@ -1,0 +1,155 @@
+/* ================== KVKK PAGE STYLES ================== */
+/* KVKK Sayfası Stilleri - KVKK Page Styles */
+
+/* Page Header - Sayfa Başlığı */
+.kvkk-page-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); /* Arka plan gradient: beyaz-açık gri - Background gradient: white-light gray */
+    padding: 2.5rem 2rem; /* İç boşluk: 2.5rem üst-alt, 2rem yanlar - Padding: 2.5rem top-bottom, 2rem sides */
+    border-radius: 16px; /* Kenar yuvarlaklığı: 16px - Border radius: 16px */
+    margin-bottom: 2rem; /* Alt margin: 2rem - Bottom margin: 2rem */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Gölge efekti - Box shadow effect */
+    border: 1px solid #e2e8f0; /* Kenarlık: 1px solid açık gri - Border: 1px solid light gray */
+    text-align: center; /* Metin hizalama: ortala - Text alignment: center */
+}
+
+.kvkk-page-header .page-header-content {
+    display: flex; /* Görünüm: flex - Display: flex */
+    flex-direction: column; /* Dikey düzen - Vertical layout */
+    gap: 0.75rem; /* Elemanlar arası boşluk: 0.75rem - Gap: 0.75rem */
+}
+
+.kvkk-page-header .page-title {
+    font-size: 2rem; /* Font boyutu: 2rem - Font size: 2rem */
+    font-weight: 700; /* Font kalınlığı: 700 - Font weight: 700 */
+    color: #1a202c; /* Metin rengi: koyu gri - Text color: dark gray */
+    display: flex; /* Görünüm: flex - Display: flex */
+    align-items: center; /* Dikey hizalama: orta - Vertical alignment: center */
+    justify-content: center; /* Yatay hizalama: ortala - Horizontal alignment: center */
+    gap: 1rem; /* Elemanlar arası boşluk: 1rem - Gap: 1rem */
+    margin: 0; /* Margin: 0 - Margin: 0 */
+    letter-spacing: -0.5px; /* Harf aralığı: -0.5px - Letter spacing: -0.5px */
+}
+
+.kvkk-page-header .page-title i {
+    color: #e4002b; /* İkon rengi: kırmızı - Icon color: red */
+    font-size: 2rem; /* İkon boyutu: 2rem - Icon size: 2rem */
+}
+
+.kvkk-page-header .page-subtitle {
+    font-size: 1rem; /* Font boyutu: 1rem - Font size: 1rem */
+    color: #666; /* Metin rengi: gri - Text color: gray */
+    margin: 0; /* Margin: 0 - Margin: 0 */
+    line-height: 1.6; /* Satır yüksekliği: 1.6 - Line height: 1.6 */
+}
+
+.kvkk-page-header .page-last-updated {
+    font-size: 0.9rem; /* Font boyutu: 0.9rem - Font size: 0.9rem */
+    color: #999; /* Metin rengi: açık gri - Text color: light gray */
+    font-style: italic; /* Font stili: italik - Font style: italic */
+    margin: 0; /* Margin: 0 - Margin: 0 */
+}
+
+/* KVKK Content - KVKK İçerik */
+.kvkk-content {
+    background: #fff; /* Arka plan: beyaz - Background: white */
+    border-radius: 16px; /* Kenar yuvarlaklığı: 16px - Border radius: 16px */
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); /* Gölge efekti - Box shadow effect */
+    border: 1px solid #e2e8f0; /* Kenarlık: 1px solid açık gri - Border: 1px solid light gray */
+    padding: 2.5rem; /* İç boşluk: 2.5rem - Padding: 2.5rem */
+    margin-bottom: 2rem; /* Alt margin: 2rem - Bottom margin: 2rem */
+}
+
+/* KVKK Section - KVKK Bölümü */
+.kvkk-section {
+    margin-bottom: 2.5rem; /* Alt margin: 2.5rem - Bottom margin: 2.5rem */
+}
+
+.kvkk-section:last-child {
+    margin-bottom: 0; /* Son bölüm alt margin: 0 - Last section bottom margin: 0 */
+}
+
+.kvkk-section h3 {
+    font-size: 1.5rem; /* Font boyutu: 1.5rem - Font size: 1.5rem */
+    font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+    color: #e4002b; /* Metin rengi: kırmızı - Text color: red */
+    margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
+    padding-bottom: 0.5rem; /* Alt padding: 0.5rem - Bottom padding: 0.5rem */
+    border-bottom: 2px solid #e4002b; /* Alt kenarlık: 2px solid kırmızı - Bottom border: 2px solid red */
+}
+
+.kvkk-section h4 {
+    font-size: 1.2rem; /* Font boyutu: 1.2rem - Font size: 1.2rem */
+    font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+    color: #1a1a1a; /* Metin rengi: koyu gri - Text color: dark gray */
+    margin-top: 1.5rem; /* Üst margin: 1.5rem - Top margin: 1.5rem */
+    margin-bottom: 0.75rem; /* Alt margin: 0.75rem - Bottom margin: 0.75rem */
+}
+
+.kvkk-section p {
+    color: #333; /* Metin rengi: koyu gri - Text color: dark gray */
+    line-height: 1.8; /* Satır yüksekliği: 1.8 - Line height: 1.8 */
+    margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
+    text-align: justify; /* Metin hizalama: iki yana yasla - Text alignment: justify */
+}
+
+.kvkk-section ul {
+    margin-left: 1.5rem; /* Sol margin: 1.5rem - Left margin: 1.5rem */
+    margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
+}
+
+.kvkk-section ul li {
+    color: #333; /* Metin rengi: koyu gri - Text color: dark gray */
+    line-height: 1.8; /* Satır yüksekliği: 1.8 - Line height: 1.8 */
+    margin-bottom: 0.5rem; /* Alt margin: 0.5rem - Bottom margin: 0.5rem */
+}
+
+.kvkk-section strong {
+    color: #1a1a1a; /* Metin rengi: koyu gri - Text color: dark gray */
+    font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+}
+
+/* KVKK Highlight - KVKK Vurgu */
+.kvkk-highlight {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%); /* Arka plan gradient: açık kırmızı tonları - Background gradient: light red tones */
+    padding: 1.5rem; /* İç boşluk: 1.5rem - Padding: 1.5rem */
+    border-left: 4px solid #e4002b; /* Sol kenarlık: 4px solid kırmızı - Left border: 4px solid red */
+    border-radius: 8px; /* Kenar yuvarlaklığı: 8px - Border radius: 8px */
+    margin: 1.5rem 0; /* Margin: 1.5rem üst-alt - Margin: 1.5rem top-bottom */
+}
+
+/* KVKK Contact Info - KVKK İletişim Bilgileri */
+.kvkk-contact-info {
+    background: #f8f9fa; /* Arka plan: açık gri - Background: light gray */
+    padding: 1.5rem; /* İç boşluk: 1.5rem - Padding: 1.5rem */
+    border-radius: 8px; /* Kenar yuvarlaklığı: 8px - Border radius: 8px */
+    margin-top: 1.5rem; /* Üst margin: 1.5rem - Top margin: 1.5rem */
+}
+
+.kvkk-contact-info p {
+    margin-bottom: 0.5rem; /* Alt margin: 0.5rem - Bottom margin: 0.5rem */
+}
+
+/* Responsive Design - Mobil Uyumluluk */
+@media (max-width: 768px) {
+    .kvkk-page-header {
+        padding: 1.5rem 1.25rem; /* İç boşluk: 1.5rem üst-alt, 1.25rem yanlar - Padding: 1.5rem top-bottom, 1.25rem sides */
+    }
+
+    .kvkk-page-header .page-title {
+        font-size: 1.5rem; /* Font boyutu: 1.5rem - Font size: 1.5rem */
+    }
+
+    .kvkk-content {
+        padding: 1.5rem; /* İç boşluk: 1.5rem - Padding: 1.5rem */
+    }
+}
+
+@media (max-width: 480px) {
+    .kvkk-page-header .page-title {
+        font-size: 1.25rem; /* Font boyutu: 1.25rem - Font size: 1.25rem */
+        flex-direction: column; /* Dikey düzen - Vertical layout */
+        align-items: flex-start; /* Sol hizalama - Left alignment */
+        gap: 0.5rem; /* Elemanlar arası boşluk: 0.5rem - Gap: 0.5rem */
+    }
+}
+

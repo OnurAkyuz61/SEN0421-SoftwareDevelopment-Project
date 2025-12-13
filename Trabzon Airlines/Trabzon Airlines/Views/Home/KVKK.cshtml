@@ -5,174 +5,38 @@
     // KVKK Clarification Text page - Dual language support
     ViewBag.Title = "KVKK Aydınlatma Metni";
     ViewBag.TitleEn = "KVKK Clarification Text";
+    Layout = "~/Views/Shared/_Layout.cshtml"; /* Layout dosyası yolu - Layout file path */
 }
 
+@* Styles bölümü - CSS dosyası ekleme - Styles section - Adding CSS file *@
 @section styles {
-    <link rel="stylesheet" href="~/Content/css/about.css">
-    <style>
-        /* KVKK özel stilleri */
-        /* KVKK custom styles */
-        .kvkk-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-        }
-
-        .kvkk-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding: 2rem 0;
-            border-bottom: 3px solid #e4002b;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border-radius: 16px;
-            padding: 2.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .kvkk-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-        }
-
-        .kvkk-title i {
-            color: #e4002b;
-            font-size: 2.5rem;
-        }
-
-        .kvkk-subtitle {
-            font-size: 1.1rem;
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-
-        .kvkk-last-updated {
-            font-size: 0.9rem;
-            color: #999;
-            font-style: italic;
-        }
-
-        .kvkk-content {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .kvkk-section {
-            margin-bottom: 2.5rem;
-        }
-
-        .kvkk-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .kvkk-section h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #e4002b;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e4002b;
-        }
-
-        .kvkk-section h4 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-top: 1.5rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .kvkk-section p {
-            color: #333;
-            line-height: 1.8;
-            margin-bottom: 1rem;
-            text-align: justify;
-        }
-
-        .kvkk-section ul {
-            margin-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .kvkk-section ul li {
-            color: #333;
-            line-height: 1.8;
-            margin-bottom: 0.5rem;
-        }
-
-        .kvkk-section strong {
-            color: #1a1a1a;
-            font-weight: 600;
-        }
-
-        .kvkk-highlight {
-            background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
-            padding: 1.5rem;
-            border-left: 4px solid #e4002b;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-        }
-
-        .kvkk-contact-info {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-top: 1.5rem;
-        }
-
-        .kvkk-contact-info p {
-            margin-bottom: 0.5rem;
-        }
-
-        @media (max-width: 768px) {
-            .kvkk-container {
-                padding: 1rem;
-            }
-
-            .kvkk-content {
-                padding: 1.5rem;
-            }
-
-            .kvkk-title {
-                font-size: 2rem;
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            .kvkk-title i {
-                font-size: 2rem;
-            }
-        }
-    </style>
+    @* Support CSS dosyası (header için) - Support CSS file (for header) *@
+    <link rel="stylesheet" href="~/Content/css/support.css?v=@DateTime.Now.Ticks" />
+    @* KVKK CSS dosyası (cache önleme için timestamp) - KVKK CSS file (timestamp for cache prevention) *@
+    <link rel="stylesheet" href="~/Content/css/kvkk.css?v=@DateTime.Now.Ticks" />
 }
 
 <!-- KVKK AYDINLATMA METNİ SECTION - KVKK Clarification Text Section -->
-<section class="kvkk-container">
-    <div class="kvkk-header">
-        <h1 class="kvkk-title" 
-            data-tr="KVKK Aydınlatma Metni" 
-            data-en="KVKK Clarification Text">
-            <i class="fa-solid fa-shield-halved"></i>
-            <span>KVKK Aydınlatma Metni</span>
-        </h1>
-        <p class="kvkk-subtitle" 
-           data-tr="6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında aydınlatma metni" 
-           data-en="Clarification text within the scope of Law No. 6698 on the Protection of Personal Data">
-            6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında aydınlatma metni
-        </p>
-        <p class="kvkk-last-updated" 
-           data-tr="Son Güncelleme: 01 Ocak 2025" 
-           data-en="Last Updated: January 1, 2025">
-            Son Güncelleme: 01 Ocak 2025
-        </p>
+<div class="container py-4" style="max-width: 1100px;">
+    <div class="kvkk-page-header">
+        <div class="page-header-content">
+            <h1 class="page-title">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span data-tr="KVKK Aydınlatma Metni" data-en="KVKK Clarification Text">KVKK Aydınlatma Metni</span>
+            </h1>
+            <p class="page-subtitle">
+                <span data-tr="6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında aydınlatma metni" 
+                      data-en="Clarification text within the scope of Law No. 6698 on the Protection of Personal Data">
+                    6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında aydınlatma metni
+                </span>
+            </p>
+            <p class="page-last-updated">
+                <span data-tr="Son Güncelleme: 01 Ocak 2025" 
+                      data-en="Last Updated: January 1, 2025">
+                    Son Güncelleme: 01 Ocak 2025
+                </span>
+            </p>
+        </div>
     </div>
 
     <div class="kvkk-content">
@@ -199,21 +63,33 @@
                 Hizmetlerimizden yararlanmanız için aşağıdaki kişisel verileriniz işlenmektedir:
             </p>
             <ul>
-                <li data-tr="<strong>Kimlik Bilgileri:</strong> Ad, soyad, doğum tarihi, TC kimlik numarası, pasaport bilgileri" 
-                   data-en="<strong>Identity Information:</strong> Name, surname, date of birth, Turkish ID number, passport information">
-                    <strong>Kimlik Bilgileri:</strong> Ad, soyad, doğum tarihi, TC kimlik numarası, pasaport bilgileri
+                <li>
+                    <strong data-tr="Kimlik Bilgileri:" data-en="Identity Information:">Kimlik Bilgileri:</strong> 
+                    <span data-tr="Ad, soyad, doğum tarihi, TC kimlik numarası, pasaport bilgileri" 
+                          data-en="Name, surname, date of birth, Turkish ID number, passport information">
+                        Ad, soyad, doğum tarihi, TC kimlik numarası, pasaport bilgileri
+                    </span>
                 </li>
-                <li data-tr="<strong>İletişim Bilgileri:</strong> E-posta adresi, telefon numarası, adres bilgileri" 
-                   data-en="<strong>Contact Information:</strong> Email address, phone number, address information">
-                    <strong>İletişim Bilgileri:</strong> E-posta adresi, telefon numarası, adres bilgileri
+                <li>
+                    <strong data-tr="İletişim Bilgileri:" data-en="Contact Information:">İletişim Bilgileri:</strong> 
+                    <span data-tr="E-posta adresi, telefon numarası, adres bilgileri" 
+                          data-en="Email address, phone number, address information">
+                        E-posta adresi, telefon numarası, adres bilgileri
+                    </span>
                 </li>
-                <li data-tr="<strong>Rezervasyon Bilgileri:</strong> Uçuş bilgileri, rezervasyon numarası, ödeme bilgileri" 
-                   data-en="<strong>Booking Information:</strong> Flight information, reservation number, payment information">
-                    <strong>Rezervasyon Bilgileri:</strong> Uçuş bilgileri, rezervasyon numarası, ödeme bilgileri
+                <li>
+                    <strong data-tr="Rezervasyon Bilgileri:" data-en="Booking Information:">Rezervasyon Bilgileri:</strong> 
+                    <span data-tr="Uçuş bilgileri, rezervasyon numarası, ödeme bilgileri" 
+                          data-en="Flight information, reservation number, payment information">
+                        Uçuş bilgileri, rezervasyon numarası, ödeme bilgileri
+                    </span>
                 </li>
-                <li data-tr="<strong>İşlem Güvenliği Bilgileri:</strong> IP adresi, çerez bilgileri, oturum bilgileri" 
-                   data-en="<strong>Transaction Security Information:</strong> IP address, cookie information, session information">
-                    <strong>İşlem Güvenliği Bilgileri:</strong> IP adresi, çerez bilgileri, oturum bilgileri
+                <li>
+                    <strong data-tr="İşlem Güvenliği Bilgileri:" data-en="Transaction Security Information:">İşlem Güvenliği Bilgileri:</strong> 
+                    <span data-tr="IP adresi, çerez bilgileri, oturum bilgileri" 
+                          data-en="IP address, cookie information, session information">
+                        IP adresi, çerez bilgileri, oturum bilgileri
+                    </span>
                 </li>
             </ul>
         </div>
@@ -302,9 +178,12 @@
                 </li>
             </ul>
             <div class="kvkk-highlight">
-                <p data-tr="<strong>Önemli:</strong> Kişisel verileriniz, KVKK ve ilgili mevzuat hükümlerine uygun olarak, gerekli güvenlik önlemleri alınarak aktarılmaktadır." 
-                   data-en="<strong>Important:</strong> Your personal data is transferred in accordance with KVKK and relevant legislation provisions, with necessary security measures taken.">
-                    <strong>Önemli:</strong> Kişisel verileriniz, KVKK ve ilgili mevzuat hükümlerine uygun olarak, gerekli güvenlik önlemleri alınarak aktarılmaktadır.
+                <p>
+                    <strong data-tr="Önemli:" data-en="Important:">Önemli:</strong> 
+                    <span data-tr="Kişisel verileriniz, KVKK ve ilgili mevzuat hükümlerine uygun olarak, gerekli güvenlik önlemleri alınarak aktarılmaktadır." 
+                          data-en="Your personal data is transferred in accordance with KVKK and relevant legislation provisions, with necessary security measures taken.">
+                        Kişisel verileriniz, KVKK ve ilgili mevzuat hükümlerine uygun olarak, gerekli güvenlik önlemleri alınarak aktarılmaktadır.
+                    </span>
                 </p>
             </div>
         </div>
@@ -382,9 +261,12 @@
                 </li>
             </ul>
             <div class="kvkk-highlight">
-                <p data-tr="<strong>Haklarınızı Kullanma:</strong> Yukarıda belirtilen haklarınızı kullanmak için kvkk@trabzonairlines.com adresine e-posta gönderebilir veya yazılı olarak başvuruda bulunabilirsiniz." 
-                   data-en="<strong>Exercising Your Rights:</strong> To exercise your rights stated above, you can send an email to kvkk@trabzonairlines.com or make a written application.">
-                    <strong>Haklarınızı Kullanma:</strong> Yukarıda belirtilen haklarınızı kullanmak için kvkk@trabzonairlines.com adresine e-posta gönderebilir veya yazılı olarak başvuruda bulunabilirsiniz.
+                <p>
+                    <strong data-tr="Haklarınızı Kullanma:" data-en="Exercising Your Rights:">Haklarınızı Kullanma:</strong> 
+                    <span data-tr="Yukarıda belirtilen haklarınızı kullanmak için kvkk@trabzonairlines.com adresine e-posta gönderebilir veya yazılı olarak başvuruda bulunabilirsiniz." 
+                          data-en="To exercise your rights stated above, you can send an email to kvkk@trabzonairlines.com or make a written application.">
+                        Yukarıda belirtilen haklarınızı kullanmak için kvkk@trabzonairlines.com adresine e-posta gönderebilir veya yazılı olarak başvuruda bulunabilirsiniz.
+                    </span>
                 </p>
             </div>
         </div>
@@ -443,12 +325,15 @@
         <!-- Son Not -->
         <div class="kvkk-section">
             <div class="kvkk-highlight">
-                <p data-tr="<strong>Önemli:</strong> Bu aydınlatma metni, Trabzon Airlines web sitesi ve hizmetleri için geçerlidir. KVKK kapsamındaki haklarınızı kullanmak için yukarıdaki iletişim bilgilerinden bize ulaşabilirsiniz. Kişisel Verilerin Korunması Kurulu'na şikayet başvurusunda bulunma hakkınız saklıdır." 
-                   data-en="<strong>Important:</strong> This clarification text applies to Trabzon Airlines website and services. You can contact us using the contact information above to exercise your rights under KVKK. Your right to file a complaint with the Personal Data Protection Board is reserved.">
-                    <strong>Önemli:</strong> Bu aydınlatma metni, Trabzon Airlines web sitesi ve hizmetleri için geçerlidir. KVKK kapsamındaki haklarınızı kullanmak için yukarıdaki iletişim bilgilerinden bize ulaşabilirsiniz. Kişisel Verilerin Korunması Kurulu'na şikayet başvurusunda bulunma hakkınız saklıdır.
+                <p>
+                    <strong data-tr="Önemli:" data-en="Important:">Önemli:</strong> 
+                    <span data-tr="Bu aydınlatma metni, Trabzon Airlines web sitesi ve hizmetleri için geçerlidir. KVKK kapsamındaki haklarınızı kullanmak için yukarıdaki iletişim bilgilerinden bize ulaşabilirsiniz. Kişisel Verilerin Korunması Kurulu'na şikayet başvurusunda bulunma hakkınız saklıdır." 
+                          data-en="This clarification text applies to Trabzon Airlines website and services. You can contact us using the contact information above to exercise your rights under KVKK. Your right to file a complaint with the Personal Data Protection Board is reserved.">
+                        Bu aydınlatma metni, Trabzon Airlines web sitesi ve hizmetleri için geçerlidir. KVKK kapsamındaki haklarınızı kullanmak için yukarıdaki iletişim bilgilerinden bize ulaşabilirsiniz. Kişisel Verilerin Korunması Kurulu'na şikayet başvurusunda bulunma hakkınız saklıdır.
+                    </span>
                 </p>
             </div>
         </div>
     </div>
-</section>
+</div>
 

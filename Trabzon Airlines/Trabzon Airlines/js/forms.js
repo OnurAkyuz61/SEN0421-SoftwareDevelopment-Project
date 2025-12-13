@@ -1,16 +1,16 @@
 // Form işlemleri ve validasyon
 
-// İletişim formu gönderimi
+// İletişim formu gönderimi - Form server'a gönderilecek
+// Contact form submission - Form will be submitted to server
 function submitContactForm(event) {
-  event.preventDefault();
-  
+  // Form doğrulama - Form validation
   const form = event.target;
   const formData = new FormData(form);
   const data = Object.fromEntries(formData);
   
   const currentLang = typeof currentLanguage !== 'undefined' ? currentLanguage : (localStorage.getItem('language') || 'tr');
   
-  // Gerekli alanları kontrol et
+  // Gerekli alanları kontrol et - Check required fields
   const requiredFields = ['fullName', 'email', 'subject', 'message', 'kvkk'];
   let isValid = true;
   
@@ -22,30 +22,25 @@ function submitContactForm(event) {
   }
   
   if (!isValid) {
+    event.preventDefault();
     showFormMessage('error', 
       currentLang === 'tr' ? 'Lütfen tüm zorunlu alanları doldurun!' : 'Please fill in all required fields!'
     );
-    return;
+    return false;
   }
   
-  // E-posta formatını kontrol et
+  // E-posta formatını kontrol et - Check email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(data.email)) {
+    event.preventDefault();
     showFormMessage('error', 
       currentLang === 'tr' ? 'Geçerli bir e-posta adresi girin!' : 'Please enter a valid email address!'
     );
-    return;
+    return false;
   }
   
-  console.log('İletişim formu gönderildi:', data);
-  
-  // Başarı mesajı göster
-  showFormMessage('success', 
-    currentLang === 'tr' ? 'Mesajınız başarıyla gönderildi! En kısa sürede size dönüş yapacağız.' : 'Your message has been sent successfully! We will get back to you soon.'
-  );
-  
-  // Formu temizle
-  form.reset();
+  // Form geçerli, server'a gönderilecek - Form is valid, will be submitted to server
+  return true;
 }
 
 // Form mesajı gösterme fonksiyonu

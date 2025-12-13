@@ -164,6 +164,29 @@
   box-sizing: border-box; /* Kutu modeli: border-box - Box sizing: border-box */
 }
 
+/* Form içindeki tüm input, select ve textarea için max-width override - Override max-width for all inputs, selects and textareas in form */
+.contact-form input[type="text"],
+.contact-form input[type="email"],
+.contact-form input[type="tel"],
+.contact-form input[type="number"],
+.contact-form select,
+.contact-form textarea,
+.contact-form-container input[type="text"],
+.contact-form-container input[type="email"],
+.contact-form-container input[type="tel"],
+.contact-form-container input[type="number"],
+.contact-form-container select,
+.contact-form-container textarea,
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+  max-width: 100% !important; /* Maksimum genişlik: %100 (öncelikli) - Max width: 100% (important) */
+  width: 100% !important; /* Genişlik: %100 (öncelikli) - Width: 100% (important) */
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
@@ -181,17 +204,32 @@
   flex-direction: row; /* Flex yönü: yatay - Flex direction: row */
   align-items: flex-start; /* Dikey hizalama: başlangıç - Vertical alignment: flex-start */
   gap: 0.75rem; /* Elemanlar arası boşluk: 0.75rem - Gap between elements: 0.75rem */
+  margin: 0; /* Margin: 0 - Margin: 0 */
+  padding: 0; /* Padding: 0 - Padding: 0 */
 }
 
 .checkbox-group input[type="checkbox"] {
-  width: auto; /* Genişlik: otomatik - Width: auto */
+  width: auto !important; /* Genişlik: otomatik (öncelikli) - Width: auto (important) */
+  max-width: auto !important; /* Maksimum genişlik: otomatik (öncelikli) - Max width: auto (important) */
   margin-top: 0.25rem; /* Üst margin: 0.25rem - Top margin: 0.25rem */
+  flex-shrink: 0; /* Küçülme: yok - Flex shrink: 0 */
 }
 
 .checkbox-label {
   font-size: 0.9rem; /* Font boyutu: 0.9rem - Font size: 0.9rem */
-  line-height: 1.4; /* Satır yüksekliği: 1.4 - Line height: 1.4 */
+  line-height: 1.5; /* Satır yüksekliği: 1.5 - Line height: 1.5 */
   color: var(--gray); /* Metin rengi: gri - Text color: gray */
+  flex: 1; /* Esneklik: 1 - Flex: 1 */
+  min-width: 0; /* Minimum genişlik: 0 - Min width: 0 */
+  width: 100%; /* Genişlik: %100 - Width: 100% */
+  display: flex; /* Görünüm: flex - Display: flex */
+  flex-wrap: wrap; /* Sarma: evet - Flex wrap: wrap */
+  align-items: flex-start; /* Dikey hizalama: başlangıç - Vertical alignment: flex-start */
+  gap: 0.25rem; /* Elemanlar arası boşluk: 0.25rem - Gap between elements: 0.25rem */
+}
+
+.checkbox-label a {
+  white-space: nowrap; /* Boşluk: satır kırma yok - White space: no wrap */
 }
 
 .checkbox-label a {

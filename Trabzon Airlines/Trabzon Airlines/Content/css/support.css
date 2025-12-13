@@ -50,6 +50,16 @@
     transition: box-shadow 0.3s ease; /* Geçiş: gölge 0.3s - Transition: box shadow 0.3s */
 }
 
+/* Form içindeki tüm input, select ve textarea için max-width override - Override max-width for all inputs, selects and textareas in form */
+.support-form input[type="text"],
+.support-form input[type="email"],
+.support-form input[type="tel"],
+.support-form input[type="number"],
+.support-form select,
+.support-form textarea {
+    max-width: 100% !important; /* Maksimum genişlik: %100 (öncelikli) - Max width: 100% (important) */
+}
+
 .support-form:hover {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12); /* Hover gölge: daha güçlü - Hover box shadow: stronger */
 }
@@ -72,11 +82,14 @@
 
 .support-form .form-control,
 .support-form .form-select {
+    width: 100% !important; /* Genişlik: %100 (öncelikli) - Width: 100% (important) */
+    max-width: 100% !important; /* Maksimum genişlik: %100 (öncelikli) - Max width: 100% (important) */
     border: 2px solid #e1e5e9; /* Kenarlık: 2px solid açık gri - Border: 2px solid light gray */
     border-radius: 8px; /* Kenar yuvarlaklığı: 8px - Border radius: 8px */
     padding: 0.75rem 1rem; /* İç boşluk: 0.75rem üst-alt, 1rem yanlar - Padding: 0.75rem top-bottom, 1rem sides */
     font-size: 1rem; /* Font boyutu: 1rem - Font size: 1rem */
     transition: all 0.3s ease; /* Geçiş: tüm özellikler 0.3s - Transition: all properties 0.3s */
+    box-sizing: border-box; /* Kutu modeli: border-box - Box sizing: border-box */
 }
 
 .support-form .form-control:focus,
@@ -87,8 +100,11 @@
 }
 
 .support-form textarea {
+    width: 100% !important; /* Genişlik: %100 (öncelikli) - Width: 100% (important) */
+    max-width: 100% !important; /* Maksimum genişlik: %100 (öncelikli) - Max width: 100% (important) */
     resize: vertical; /* Yeniden boyutlandırma: dikey - Resize: vertical */
     min-height: 120px; /* Minimum yükseklik: 120px - Minimum height: 120px */
+    box-sizing: border-box; /* Kutu modeli: border-box - Box sizing: border-box */
 }
 
 .support-form .form-text {
@@ -297,12 +313,23 @@
 
 /* PNR Group Highlight - PNR Grubu Vurgulama */
 #pnrGroup {
-    padding: 1rem; /* İç boşluk: 1rem - Padding: 1rem */
+    padding: 0; /* İç boşluk: 0 - Padding: 0 */
+    margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
     border-radius: 8px; /* Kenar yuvarlaklığı: 8px - Border radius: 8px */
     transition: all 0.3s ease; /* Geçiş: tüm özellikler 0.3s - Transition: all properties 0.3s */
 }
 
+#pnrGroup .form-label {
+    margin-bottom: 0.5rem; /* Alt margin: 0.5rem - Bottom margin: 0.5rem */
+}
+
+#pnrGroup .form-control {
+    width: 100% !important; /* Genişlik: %100 (öncelikli) - Width: 100% (important) */
+    max-width: 100% !important; /* Maksimum genişlik: %100 (öncelikli) - Max width: 100% (important) */
+}
+
 #pnrGroup.border {
+    padding: 1rem; /* İç boşluk: 1rem (sadece border durumunda) - Padding: 1rem (only when border is active) */
     background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%); /* Arka plan gradient: açık kırmızı tonları - Background gradient: light red tones */
     border: 2px solid #e4002b !important; /* Kenarlık: 2px solid kırmızı (öncelikli) - Border: 2px solid red (important) */
 }

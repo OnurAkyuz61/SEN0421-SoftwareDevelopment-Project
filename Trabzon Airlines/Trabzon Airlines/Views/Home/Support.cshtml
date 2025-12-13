@@ -10,7 +10,8 @@
 
 @* Styles bölümü - CSS dosyası ekleme - Styles section - Adding CSS file *@
 @section styles {
-    <link rel="stylesheet" href="~/Content/css/support.css?v=@DateTime.Now.Ticks" /> /* Support CSS dosyası (cache önleme için timestamp) - Support CSS file (timestamp for cache prevention) */
+    @* Support CSS dosyası (cache önleme için timestamp) - Support CSS file (timestamp for cache prevention) *@
+    <link rel="stylesheet" href="~/Content/css/support.css?v=@DateTime.Now.Ticks" />
 }
 
 @* Ana container - Main container *@
