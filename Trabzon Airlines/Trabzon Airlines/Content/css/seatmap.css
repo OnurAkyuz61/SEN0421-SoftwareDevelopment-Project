@@ -1,159 +1,153 @@
-/*Uçak Tasarım Kısmı*/
+/*Uçak Tasarım Kısmı - Aircraft Design Section*/
 
 .plane-body {
-    background: #eef1f5;
-    width: max-content;
-    margin: 0 auto;
-    padding: 25px;
-    border-radius: 35px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    text-align: center;
+    background: #eef1f5; /* Arka plan: açık mavi-gri - Background: light blue-gray */
+    width: max-content; /* Genişlik: içerik kadar - Width: max-content */
+    margin: 0 auto; /* Margin: 0 üst-alt, auto yanlar (ortala) - Margin: 0 top-bottom, auto sides (center) */
+    padding: 25px; /* İç boşluk: 25px - Padding: 25px */
+    border-radius: 35px; /* Kenar yuvarlaklığı: 35px - Border radius: 35px */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Gölge efekti - Box shadow effect */
+    text-align: center; /* Metin hizalama: ortala - Text alignment: center */
 }
 
 .cockpit, .tail {
-    font-size: 32px;
-    margin-bottom: 10px;
+    font-size: 32px; /* Font boyutu: 32px - Font size: 32px */
+    margin-bottom: 10px; /* Alt margin: 10px - Bottom margin: 10px */
 }
 
 .seat-item {
-    width: 45px;
-    height: 45px;
-    background: #cfd8dc;
-    border-radius: 8px;
-    margin: 7px;
-    font-size: 0.8rem;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-    border: 2px solid transparent;
-    position: relative;
-    transition: all 0.3s ease; /* Yumuşak geçiş animasyonu */
+    width: 45px; /* Genişlik: 45px - Width: 45px */
+    height: 45px; /* Yükseklik: 45px - Height: 45px */
+    background: #cfd8dc; /* Arka plan: açık gri-mavi - Background: light gray-blue */
+    border-radius: 8px; /* Kenar yuvarlaklığı: 8px - Border radius: 8px */
+    margin: 7px; /* Margin: 7px (her yönden) - Margin: 7px (all sides) */
+    font-size: 0.8rem; /* Font boyutu: 0.8rem - Font size: 0.8rem */
+    display: inline-flex; /* Görünüm: satır içi flex - Display: inline-flex */
+    justify-content: center; /* Yatay hizalama: orta - Horizontal alignment: center */
+    align-items: center; /* Dikey hizalama: orta - Vertical alignment: center */
+    cursor: pointer; /* İmleç tipi: pointer - Cursor: pointer */
+    user-select: none; /* Kullanıcı seçimi: yok - User select: none */
+    border: 2px solid transparent; /* Kenarlık: 2px solid şeffaf - Border: 2px solid transparent */
+    position: relative; /* Konum: göreceli - Position: relative */
+    transition: all 0.3s ease; /* Geçiş: tüm özellikler 0.3s yumuşak - Transition: all properties 0.3s ease */
 }
 
     .seat-item input {
-        display: none;
+        display: none; /* Görünüm: yok (gizli) - Display: none (hidden) */
     }
 
     .seat-item:hover {
-        border-color: #007bff;
+        border-color: #007bff; /* Hover kenarlık rengi: mavi - Hover border color: blue */
     }
 
     .seat-item.free {
-        /* Varsayılan renk - economy için */
-        /* Default color - for economy */
-        background: #90caf9;
+        /* Varsayılan renk - economy için - Default color - for economy */
+        background: #90caf9; /* Arka plan: açık mavi - Background: light blue */
     }
 
     .seat-item.reserved {
-        background: #e53935;
-        cursor: not-allowed;
-        color: white;
+        background: #e53935; /* Arka plan: kırmızı - Background: red */
+        cursor: not-allowed; /* İmleç tipi: izin verilmez - Cursor: not-allowed */
+        color: white; /* Metin rengi: beyaz - Text color: white */
     }
 
     .seat-item.selected {
-        background: #00c853 !important; /* Koyu yeşil - Belirgin seçili renk */
-        color: white !important;
-        border: 3px solid #00e676 !important; /* Parlak yeşil border */
-        box-shadow: 0 0 15px rgba(0, 200, 83, 0.8) !important; /* Glow efekti */
-        transform: scale(1.15) !important; /* Biraz büyüt */
-        font-weight: bold !important; /* Kalın yazı */
-        z-index: 10 !important; /* Üstte göster */
+        background: #00c853 !important; /* Arka plan: koyu yeşil (önemli) - Background: dark green (important) */
+        color: white !important; /* Metin rengi: beyaz (önemli) - Text color: white (important) */
+        border: 3px solid #00e676 !important; /* Kenarlık: 3px solid parlak yeşil (önemli) - Border: 3px solid bright green (important) */
+        box-shadow: 0 0 15px rgba(0, 200, 83, 0.8) !important; /* Gölge: parıltı efekti (önemli) - Box shadow: glow effect (important) */
+        transform: scale(1.15) !important; /* Dönüşüm: %15 büyüt (önemli) - Transform: scale 1.15 (important) */
+        font-weight: bold !important; /* Font kalınlığı: kalın (önemli) - Font weight: bold (important) */
+        z-index: 10 !important; /* Z-index: 10 (önemli) - Z-index: 10 (important) */
     }
 
 .aisle {
-    width: 30px;
-    height: 40px;
-    display: inline-block;
+    width: 30px; /* Genişlik: 30px - Width: 30px */
+    height: 40px; /* Yükseklik: 40px - Height: 40px */
+    display: inline-block; /* Görünüm: satır içi blok - Display: inline-block */
 }
 
 .seat-info-box {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 10px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    display: flex; /* Görünüm: flex - Display: flex */
+    justify-content: center; /* Yatay hizalama: orta - Horizontal alignment: center */
+    gap: 15px; /* Elemanlar arası boşluk: 15px - Gap between elements: 15px */
+    margin-top: 10px; /* Üst margin: 10px - Top margin: 10px */
+    font-size: 0.9rem; /* Font boyutu: 0.9rem - Font size: 0.9rem */
+    font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
 }
 
 .seat-indicator {
-    width: 18px;
-    height: 18px;
-    display: inline-block;
-    border-radius: 4px;
+    width: 18px; /* Genişlik: 18px - Width: 18px */
+    height: 18px; /* Yükseklik: 18px - Height: 18px */
+    display: inline-block; /* Görünüm: satır içi blok - Display: inline-block */
+    border-radius: 4px; /* Kenar yuvarlaklığı: 4px - Border radius: 4px */
 }
 
 
-/* Business sınıfı boş koltuklar - sarı (en yüksek öncelik) */
-/* Business class empty seats - yellow (highest priority) */
+/* Business sınıfı boş koltuklar - sarı (en yüksek öncelik) - Business class empty seats - yellow (highest priority) */
 .seat-item.free.business,
 .seat-item.business.free {
-    background: #ffd54f !important; /* Sarı */
-    color: #333 !important;
+    background: #ffd54f !important; /* Arka plan: sarı (önemli) - Background: yellow (important) */
+    color: #333 !important; /* Metin rengi: koyu gri (önemli) - Text color: dark gray (important) */
 }
 
-/* Economy sınıfı boş koltuklar - mavi */
-/* Economy class empty seats - blue */
+/* Economy sınıfı boş koltuklar - mavi - Economy class empty seats - blue */
 .seat-item.free.economy,
 .seat-item.economy.free {
-    background: #90caf9 !important; /* Mavi */
-    color: #333 !important;
+    background: #90caf9 !important; /* Arka plan: mavi (önemli) - Background: blue (important) */
+    color: #333 !important; /* Metin rengi: koyu gri (önemli) - Text color: dark gray (important) */
 }
 
-/* Seçili - Belirgin yeşil renk */
+/* Seçili - Belirgin yeşil renk - Selected - Prominent green color */
 .seat-item.selected,
 .seat-item input:checked ~ * {
-    background: #00c853 !important; /* Koyu yeşil - Belirgin seçili renk */
-    color: #fff !important;
-    border: 3px solid #00e676 !important; /* Parlak yeşil border */
-    box-shadow: 0 0 10px rgba(0, 200, 83, 0.6) !important; /* Glow efekti */
-    transform: scale(1.1); /* Biraz büyüt */
-    font-weight: bold !important; /* Kalın yazı */
+    background: #00c853 !important; /* Arka plan: koyu yeşil (önemli) - Background: dark green (important) */
+    color: #fff !important; /* Metin rengi: beyaz (önemli) - Text color: white (important) */
+    border: 3px solid #00e676 !important; /* Kenarlık: 3px solid parlak yeşil (önemli) - Border: 3px solid bright green (important) */
+    box-shadow: 0 0 10px rgba(0, 200, 83, 0.6) !important; /* Gölge: parıltı efekti (önemli) - Box shadow: glow effect (important) */
+    transform: scale(1.1); /* Dönüşüm: %10 büyüt - Transform: scale 1.1 */
+    font-weight: bold !important; /* Font kalınlığı: kalın (önemli) - Font weight: bold (important) */
 }
 
-/* Dolu */
+/* Dolu - Reserved */
 .seat-item.reserved {
-    background: #e53935 !important;
-    color: #fff;
-    cursor: not-allowed;
+    background: #e53935 !important; /* Arka plan: kırmızı (önemli) - Background: red (important) */
+    color: #fff; /* Metin rengi: beyaz - Text color: white */
+    cursor: not-allowed; /* İmleç tipi: izin verilmez - Cursor: not-allowed */
 }
 
 
 .seat-indicator.business {
-    background: #ffd54f;
+    background: #ffd54f; /* Arka plan: sarı - Background: yellow */
 }
 
 .seat-indicator.economy {
-    background: #90caf9;
+    background: #90caf9; /* Arka plan: mavi - Background: blue */
 }
 
 .seat-indicator.free {
-    background: #90caf9;
+    background: #90caf9; /* Arka plan: mavi - Background: blue */
 }
 
 .seat-indicator.reserved {
-    background: #e53935;
+    background: #e53935; /* Arka plan: kırmızı - Background: red */
 }
 
 .seat-indicator.selected {
-    background: #00c853; /* Koyu yeşil - Seçili koltuk rengi */
-    border: 2px solid #00e676; /* Parlak yeşil border */
+    background: #00c853; /* Arka plan: koyu yeşil - Background: dark green */
+    border: 2px solid #00e676; /* Kenarlık: 2px solid parlak yeşil - Border: 2px solid bright green */
 }
 
-/* Gizli koltuklar - Filtreleme için */
-/* Hidden seats - For filtering */
+/* Gizli koltuklar - Filtreleme için - Hidden seats - For filtering */
 .seat-item.seat-hidden {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
+    display: none !important; /* Görünüm: yok (önemli) - Display: none (important) */
+    visibility: hidden !important; /* Görünürlük: gizli (önemli) - Visibility: hidden (important) */
+    opacity: 0 !important; /* Opaklık: 0 (önemli) - Opacity: 0 (important) */
 }
 
-/* Görünür koltuklar - Filtreleme için */
-/* Visible seats - For filtering */
+/* Görünür koltuklar - Filtreleme için - Visible seats - For filtering */
 .seat-item.seat-visible {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+    display: inline-flex !important; /* Görünüm: satır içi flex (önemli) - Display: inline-flex (important) */
+    visibility: visible !important; /* Görünürlük: görünür (önemli) - Visibility: visible (important) */
+    opacity: 1 !important; /* Opaklık: 1 (önemli) - Opacity: 1 (important) */
 }
-

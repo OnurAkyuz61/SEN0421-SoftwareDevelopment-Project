@@ -1,24 +1,31 @@
-﻿@model List<Trabzon_Airlines.Models.FlightSeat>
+﻿@* Model tanımı - FlightSeat listesi kullanılıyor - Model definition - Using FlightSeat list *@
+@model List<Trabzon_Airlines.Models.FlightSeat>
+@* Razor kod bloğu - ViewBag ve Layout ayarları - Razor code block - ViewBag and Layout settings *@
 @{
-    ViewBag.Title = "Koltuk Detayı";
-    ViewBag.TitleEn = "Seat Details";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Koltuk Detayı"; /* Sayfa başlığı (Türkçe) - Page title (Turkish) */
+    ViewBag.TitleEn = "Seat Details"; /* Sayfa başlığı (İngilizce) - Page title (English) */
+    Layout = "~/Views/Shared/_AdminLayout.cshtml"; /* Admin layout dosyası yolu - Admin layout file path */
 
 }
 
-<h2>Koltuk Yönetimi</h2>
-<h4>Uçuş: @ViewBag.Flight.FlightNumber (@ViewBag.Flight.FromCode - @ViewBag.Flight.ToCode)</h4>
-<hr />
+@* Sayfa başlığı - Page heading *@
+<h2>Koltuk Yönetimi</h2> @* Koltuk yönetimi başlığı - Seat management heading *@
+@* Uçuş bilgisi alt başlığı - Flight information subtitle *@
+<h4>Uçuş: @ViewBag.Flight.FlightNumber (@ViewBag.Flight.FromCode - @ViewBag.Flight.ToCode)</h4> @* Uçuş numarası ve rotası - Flight number and route *@
+<hr /> @* Yatay çizgi ayırıcı - Horizontal line separator *@
 
-<div style="padding:20px;">
+@* Koltuk listesi container - Seat list container *@
+<div style="padding:20px;"> @* İç boşluk: 20px - Padding: 20px *@
+    @* Koltuklar döngüsü - Seats loop *@
     @foreach (var item in Model)
     {
-        string color = item.IsReserved ? "red" : "green";
+        string color = item.IsReserved ? "red" : "green"; @* Renk değişkeni (rezerve ise kırmızı, değilse yeşil) - Color variable (red if reserved, green otherwise) *@
 
+        @* Koltuk detay linki - Seat detail link *@
         <a href="@Url.Action("SeatDetail", "AdminFlights", new { id = item.FlightSeatId })"
-           style="margin:10px; display:inline-block; font-weight:bold; color:@color;">
+           style="margin:10px; display:inline-block; font-weight:bold; color:@color;"> @* Link stili (margin, inline-block, kalın, renk) - Link style (margin, inline-block, bold, color) *@
 
-            @item.Seat.SeatNumber (@item.Seat.CabinClass)
+            @item.Seat.SeatNumber (@item.Seat.CabinClass) @* Koltuk numarası ve kabin sınıfı - Seat number and cabin class *@
         </a>
     }
 </div>

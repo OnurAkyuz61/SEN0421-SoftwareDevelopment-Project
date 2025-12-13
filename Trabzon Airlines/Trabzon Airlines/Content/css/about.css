@@ -1,379 +1,378 @@
-/* Ana içerik bölümü */
+/* Ana içerik bölümü - Main Content Section */
 .about-hero {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-  color: var(--white);
-  padding: 4rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); /* Arka plan gradient: birincil renkten koyu birincil renge - Background gradient: primary color to dark primary color */
+  color: var(--white); /* Metin rengi: beyaz - Text color: white */
+  padding: 4rem 0; /* İç boşluk: 4rem üst-alt, 0 yanlar - Padding: 4rem top-bottom, 0 sides */
+  text-align: center; /* Metin hizalama: ortala - Text alignment: center */
+  position: relative; /* Konum: göreceli - Position: relative */
+  overflow: hidden; /* Taşan içerik: gizle - Overflow: hidden */
 }
 
 .about-hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
-  background-size: 100px 100px;
-  pointer-events: none;
+  content: ''; /* İçerik: boş - Content: empty */
+  position: absolute; /* Konum: mutlak - Position: absolute */
+  top: 0; /* Üst: 0 - Top: 0 */
+  left: 0; /* Sol: 0 - Left: 0 */
+  right: 0; /* Sağ: 0 - Right: 0 */
+  bottom: 0; /* Alt: 0 - Bottom: 0 */
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></svg>'); /* Arka plan görseli: SVG desen - Background image: SVG pattern */
+  background-size: 100px 100px; /* Arka plan boyutu: 100px x 100px - Background size: 100px x 100px */
+  pointer-events: none; /* İşaretçi olayları: yok - Pointer events: none */
 }
 
 .about-title {
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 3rem; /* Font boyutu: 3rem - Font size: 3rem */
+  font-weight: 700; /* Font kalınlığı: 700 (bold) - Font weight: 700 (bold) */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Metin gölgesi - Text shadow */
 }
 
 .about-subtitle {
-  font-size: 1.2rem;
-  opacity: 0.9;
-  max-width: 600px;
-  margin: 0 auto;
+  font-size: 1.2rem; /* Font boyutu: 1.2rem - Font size: 1.2rem */
+  opacity: 0.9; /* Opaklık: 0.9 - Opacity: 0.9 */
+  max-width: 600px; /* Maksimum genişlik: 600px - Max width: 600px */
+  margin: 0 auto; /* Margin: 0 üst-alt, auto yanlar (ortala) - Margin: 0 top-bottom, auto sides (center) */
 }
 
-/* İstatistik kartları */
+/* İstatistik kartları - Statistics Cards */
 .stats-section {
-  padding: 4rem 0;
-  background: var(--light-gray);
+  padding: 4rem 0; /* İç boşluk: 4rem üst-alt, 0 yanlar - Padding: 4rem top-bottom, 0 sides */
+  background: var(--light-gray); /* Arka plan: açık gri - Background: light gray */
 }
 
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  display: grid; /* Görünüm: grid - Display: grid */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Grid sütunları: otomatik sığdır, min 200px - Grid columns: auto-fit, min 200px */
+  gap: 2rem; /* Elemanlar arası boşluk: 2rem - Gap between elements: 2rem */
+  margin-top: 2rem; /* Üst margin: 2rem - Top margin: 2rem */
 }
 
 .stat-card {
-  background: var(--white);
-  padding: 2rem;
-  border-radius: var(--radius-medium);
-  text-align: center;
-  box-shadow: var(--shadow-light);
-  transition: all var(--transition-normal) ease;
+  background: var(--white); /* Arka plan: beyaz - Background: white */
+  padding: 2rem; /* İç boşluk: 2rem - Padding: 2rem */
+  border-radius: var(--radius-medium); /* Kenar yuvarlaklığı: orta - Border radius: medium */
+  text-align: center; /* Metin hizalama: ortala - Text alignment: center */
+  box-shadow: var(--shadow-light); /* Gölge: hafif - Box shadow: light */
+  transition: all var(--transition-normal) ease; /* Geçiş: tüm özellikler normal süre - Transition: all properties normal duration */
 }
 
 .stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-medium);
+  transform: translateY(-5px); /* Hover dönüşüm: yukarı 5px - Hover transform: translate up 5px */
+  box-shadow: var(--shadow-medium); /* Hover gölge: orta - Hover box shadow: medium */
 }
 
 .stat-number {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem; /* Font boyutu: 2.5rem - Font size: 2.5rem */
+  font-weight: 700; /* Font kalınlığı: 700 (bold) - Font weight: 700 (bold) */
+  color: var(--primary-color); /* Metin rengi: birincil renk - Text color: primary color */
+  margin-bottom: 0.5rem; /* Alt margin: 0.5rem - Bottom margin: 0.5rem */
 }
 
 .stat-label {
-  color: var(--gray);
-  font-weight: 500;
+  color: var(--gray); /* Metin rengi: gri - Text color: gray */
+  font-weight: 500; /* Font kalınlığı: 500 - Font weight: 500 */
 }
 
-/* Misyon ve vizyon */
+/* Misyon ve vizyon - Mission and Vision */
 .mission-vision {
-  padding: 4rem 0;
+  padding: 4rem 0; /* İç boşluk: 4rem üst-alt, 0 yanlar - Padding: 4rem top-bottom, 0 sides */
 }
 
 .mission-vision-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 3rem;
-  margin-top: 3rem;
+  display: grid; /* Görünüm: grid - Display: grid */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Grid sütunları: otomatik sığdır, min 300px - Grid columns: auto-fit, min 300px */
+  gap: 3rem; /* Elemanlar arası boşluk: 3rem - Gap between elements: 3rem */
+  margin-top: 3rem; /* Üst margin: 3rem - Top margin: 3rem */
 }
 
 .mission-card, .vision-card {
-  background: var(--white);
-  padding: 2.5rem;
-  border-radius: var(--radius-medium);
-  box-shadow: var(--shadow-light);
-  transition: all var(--transition-normal) ease;
+  background: var(--white); /* Arka plan: beyaz - Background: white */
+  padding: 2.5rem; /* İç boşluk: 2.5rem - Padding: 2.5rem */
+  border-radius: var(--radius-medium); /* Kenar yuvarlaklığı: orta - Border radius: medium */
+  box-shadow: var(--shadow-light); /* Gölge: hafif - Box shadow: light */
+  transition: all var(--transition-normal) ease; /* Geçiş: tüm özellikler normal süre - Transition: all properties normal duration */
 }
 
 .mission-card:hover, .vision-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-medium);
+  transform: translateY(-3px); /* Hover dönüşüm: yukarı 3px - Hover transform: translate up 3px */
+  box-shadow: var(--shadow-medium); /* Hover gölge: orta - Hover box shadow: medium */
 }
 
 .mission-card {
-  border-left: 4px solid var(--primary-color);
+  border-left: 4px solid var(--primary-color); /* Sol kenarlık: 4px solid birincil renk - Left border: 4px solid primary color */
 }
 
 .vision-card {
-  border-left: 4px solid var(--secondary-color);
+  border-left: 4px solid var(--secondary-color); /* Sol kenarlık: 4px solid ikincil renk - Left border: 4px solid secondary color */
 }
 
 .card-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2.5rem; /* Font boyutu: 2.5rem - Font size: 2.5rem */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
 }
 
 .mission-card .card-icon {
-  color: var(--primary-color);
+  color: var(--primary-color); /* İkon rengi: birincil renk - Icon color: primary color */
 }
 
 .vision-card .card-icon {
-  color: var(--secondary-color);
+  color: var(--secondary-color); /* İkon rengi: ikincil renk - Icon color: secondary color */
 }
 
 .card-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
+  font-size: 1.5rem; /* Font boyutu: 1.5rem - Font size: 1.5rem */
+  font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
 }
 
 .card-content {
-  color: var(--gray);
-  line-height: 1.6;
+  color: var(--gray); /* Metin rengi: gri - Text color: gray */
+  line-height: 1.6; /* Satır yüksekliği: 1.6 - Line height: 1.6 */
 }
 
-/* Değerler bölümü */
+/* Değerler bölümü - Values Section */
 .values-section {
-  padding: 4rem 0;
-  background: var(--light-gray);
+  padding: 4rem 0; /* İç boşluk: 4rem üst-alt, 0 yanlar - Padding: 4rem top-bottom, 0 sides */
+  background: var(--light-gray); /* Arka plan: açık gri - Background: light gray */
 }
 
 .values-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-top: 3rem;
+  display: grid; /* Görünüm: grid - Display: grid */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Grid sütunları: otomatik sığdır, min 250px - Grid columns: auto-fit, min 250px */
+  gap: 2rem; /* Elemanlar arası boşluk: 2rem - Gap between elements: 2rem */
+  margin-top: 3rem; /* Üst margin: 3rem - Top margin: 3rem */
 }
 
 .value-item {
-  background: var(--white);
-  padding: 2rem;
-  border-radius: var(--radius-medium);
-  text-align: center;
-  box-shadow: var(--shadow-light);
-  transition: all var(--transition-normal) ease;
+  background: var(--white); /* Arka plan: beyaz - Background: white */
+  padding: 2rem; /* İç boşluk: 2rem - Padding: 2rem */
+  border-radius: var(--radius-medium); /* Kenar yuvarlaklığı: orta - Border radius: medium */
+  text-align: center; /* Metin hizalama: ortala - Text alignment: center */
+  box-shadow: var(--shadow-light); /* Gölge: hafif - Box shadow: light */
+  transition: all var(--transition-normal) ease; /* Geçiş: tüm özellikler normal süre - Transition: all properties normal duration */
 }
 
 .value-item:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-medium);
+  transform: translateY(-5px); /* Hover dönüşüm: yukarı 5px - Hover transform: translate up 5px */
+  box-shadow: var(--shadow-medium); /* Hover gölge: orta - Hover box shadow: medium */
 }
 
 .value-icon {
-  font-size: 2rem;
-  color: var(--primary-color);
-  margin-bottom: 1rem;
+  font-size: 2rem; /* Font boyutu: 2rem - Font size: 2rem */
+  color: var(--primary-color); /* İkon rengi: birincil renk - Icon color: primary color */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
 }
 
 .value-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 1.2rem; /* Font boyutu: 1.2rem - Font size: 1.2rem */
+  font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+  margin-bottom: 0.5rem; /* Alt margin: 0.5rem - Bottom margin: 0.5rem */
 }
 
 .value-description {
-  color: var(--gray);
-  font-size: 0.9rem;
+  color: var(--gray); /* Metin rengi: gri - Text color: gray */
+  font-size: 0.9rem; /* Font boyutu: 0.9rem - Font size: 0.9rem */
 }
 
-/* Company info section */
+/* Company info section - Şirket Bilgisi Bölümü */
 .company-info {
-  padding: 4rem 0;
-  background: var(--white);
+  padding: 4rem 0; /* İç boşluk: 4rem üst-alt, 0 yanlar - Padding: 4rem top-bottom, 0 sides */
+  background: var(--white); /* Arka plan: beyaz - Background: white */
 }
 
 .info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  display: grid; /* Görünüm: grid - Display: grid */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Grid sütunları: otomatik sığdır, min 300px - Grid columns: auto-fit, min 300px */
+  gap: 2rem; /* Elemanlar arası boşluk: 2rem - Gap between elements: 2rem */
+  margin-top: 2rem; /* Üst margin: 2rem - Top margin: 2rem */
 }
 
 .info-card {
-  background: var(--white);
-  padding: 2rem;
-  border-radius: var(--radius-medium);
-  box-shadow: var(--shadow-light);
-  text-align: center;
-  transition: all var(--transition-normal) ease;
-  border: 1px solid #e1e5e9;
+  background: var(--white); /* Arka plan: beyaz - Background: white */
+  padding: 2rem; /* İç boşluk: 2rem - Padding: 2rem */
+  border-radius: var(--radius-medium); /* Kenar yuvarlaklığı: orta - Border radius: medium */
+  box-shadow: var(--shadow-light); /* Gölge: hafif - Box shadow: light */
+  text-align: center; /* Metin hizalama: ortala - Text alignment: center */
+  transition: all var(--transition-normal) ease; /* Geçiş: tüm özellikler normal süre - Transition: all properties normal duration */
+  border: 1px solid #e1e5e9; /* Kenarlık: 1px solid açık gri - Border: 1px solid light gray */
 }
 
 .info-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-medium);
+  transform: translateY(-5px); /* Hover dönüşüm: yukarı 5px - Hover transform: translate up 5px */
+  box-shadow: var(--shadow-medium); /* Hover gölge: orta - Hover box shadow: medium */
 }
 
 .info-icon {
-  font-size: 2.5rem;
-  color: var(--primary-color);
-  margin-bottom: 1rem;
+  font-size: 2.5rem; /* Font boyutu: 2.5rem - Font size: 2.5rem */
+  color: var(--primary-color); /* İkon rengi: birincil renk - Icon color: primary color */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
 }
 
 .info-card h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--black);
+  font-size: 1.3rem; /* Font boyutu: 1.3rem - Font size: 1.3rem */
+  font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
+  color: var(--black); /* Metin rengi: siyah - Text color: black */
 }
 
 .info-card p {
-  color: var(--gray);
-  line-height: 1.6;
+  color: var(--gray); /* Metin rengi: gri - Text color: gray */
+  line-height: 1.6; /* Satır yüksekliği: 1.6 - Line height: 1.6 */
 }
 
-/* Stats section styling */
+/* Stats section styling - İstatistik Bölümü Stilleri */
 .stats-section {
-  padding: 4rem 0;
-  background: var(--light-gray);
+  padding: 4rem 0; /* İç boşluk: 4rem üst-alt, 0 yanlar - Padding: 4rem top-bottom, 0 sides */
+  background: var(--light-gray); /* Arka plan: açık gri - Background: light gray */
 }
 
 .section-title {
-  text-align: center;
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: var(--black);
-  margin-bottom: 1rem;
+  text-align: center; /* Metin hizalama: ortala - Text alignment: center */
+  font-size: 2.2rem; /* Font boyutu: 2.2rem - Font size: 2.2rem */
+  font-weight: 700; /* Font kalınlığı: 700 (bold) - Font weight: 700 (bold) */
+  color: var(--black); /* Metin rengi: siyah - Text color: black */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
 }
 
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  display: grid; /* Görünüm: grid - Display: grid */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Grid sütunları: otomatik sığdır, min 200px - Grid columns: auto-fit, min 200px */
+  gap: 2rem; /* Elemanlar arası boşluk: 2rem - Gap between elements: 2rem */
+  margin-top: 2rem; /* Üst margin: 2rem - Top margin: 2rem */
 }
 
 .stat-item {
-  background: var(--white);
-  padding: 2rem;
-  border-radius: var(--radius-medium);
-  text-align: center;
-  box-shadow: var(--shadow-light);
-  transition: all var(--transition-normal) ease;
+  background: var(--white); /* Arka plan: beyaz - Background: white */
+  padding: 2rem; /* İç boşluk: 2rem - Padding: 2rem */
+  border-radius: var(--radius-medium); /* Kenar yuvarlaklığı: orta - Border radius: medium */
+  text-align: center; /* Metin hizalama: ortala - Text alignment: center */
+  box-shadow: var(--shadow-light); /* Gölge: hafif - Box shadow: light */
+  transition: all var(--transition-normal) ease; /* Geçiş: tüm özellikler normal süre - Transition: all properties normal duration */
 }
 
 .stat-item:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-medium);
+  transform: translateY(-5px); /* Hover dönüşüm: yukarı 5px - Hover transform: translate up 5px */
+  box-shadow: var(--shadow-medium); /* Hover gölge: orta - Hover box shadow: medium */
 }
 
 .stat-number {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem; /* Font boyutu: 2.5rem - Font size: 2.5rem */
+  font-weight: 700; /* Font kalınlığı: 700 (bold) - Font weight: 700 (bold) */
+  color: var(--primary-color); /* Metin rengi: birincil renk - Text color: primary color */
+  margin-bottom: 0.5rem; /* Alt margin: 0.5rem - Bottom margin: 0.5rem */
 }
 
 .stat-label {
-  color: var(--gray);
-  font-weight: 500;
+  color: var(--gray); /* Metin rengi: gri - Text color: gray */
+  font-weight: 500; /* Font kalınlığı: 500 - Font weight: 500 */
 }
 
-/* Team section */
+/* Team section - Takım Bölümü */
 .team-section {
-  padding: 4rem 0;
-  background: var(--white);
+  padding: 4rem 0; /* İç boşluk: 4rem üst-alt, 0 yanlar - Padding: 4rem top-bottom, 0 sides */
+  background: var(--white); /* Arka plan: beyaz - Background: white */
 }
 
 .team-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  display: grid; /* Görünüm: grid - Display: grid */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Grid sütunları: otomatik sığdır, min 280px - Grid columns: auto-fit, min 280px */
+  gap: 2rem; /* Elemanlar arası boşluk: 2rem - Gap between elements: 2rem */
+  margin-top: 2rem; /* Üst margin: 2rem - Top margin: 2rem */
 }
 
 .team-member {
-  background: var(--white);
-  padding: 2rem;
-  border-radius: var(--radius-medium);
-  box-shadow: var(--shadow-light);
-  text-align: center;
-  transition: all var(--transition-normal) ease;
-  border: 1px solid #e1e5e9;
+  background: var(--white); /* Arka plan: beyaz - Background: white */
+  padding: 2rem; /* İç boşluk: 2rem - Padding: 2rem */
+  border-radius: var(--radius-medium); /* Kenar yuvarlaklığı: orta - Border radius: medium */
+  box-shadow: var(--shadow-light); /* Gölge: hafif - Box shadow: light */
+  text-align: center; /* Metin hizalama: ortala - Text alignment: center */
+  transition: all var(--transition-normal) ease; /* Geçiş: tüm özellikler normal süre - Transition: all properties normal duration */
+  border: 1px solid #e1e5e9; /* Kenarlık: 1px solid açık gri - Border: 1px solid light gray */
 }
 
 .team-member:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-medium);
+  transform: translateY(-5px); /* Hover dönüşüm: yukarı 5px - Hover transform: translate up 5px */
+  box-shadow: var(--shadow-medium); /* Hover gölge: orta - Hover box shadow: medium */
 }
 
 .member-photo {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 1.5rem;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid var(--primary-color);
+  width: 120px; /* Genişlik: 120px - Width: 120px */
+  height: 120px; /* Yükseklik: 120px - Height: 120px */
+  margin: 0 auto 1.5rem; /* Margin: 0 üst-alt, auto yanlar (ortala), 1.5rem alt - Margin: 0 top-bottom, auto sides (center), 1.5rem bottom */
+  border-radius: 50%; /* Kenar yuvarlaklığı: %50 (daire) - Border radius: 50% (circle) */
+  overflow: hidden; /* Taşan içerik: gizle - Overflow: hidden */
+  border: 4px solid var(--primary-color); /* Kenarlık: 4px solid birincil renk - Border: 4px solid primary color */
 }
 
 .member-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 100%; /* Genişlik: %100 - Width: 100% */
+  height: 100%; /* Yükseklik: %100 - Height: 100% */
+  object-fit: cover; /* Nesne sığdırma: kapsama - Object fit: cover */
 }
 
 .member-name {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: var(--black);
-  margin-bottom: 0.5rem;
+  font-size: 1.3rem; /* Font boyutu: 1.3rem - Font size: 1.3rem */
+  font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+  color: var(--black); /* Metin rengi: siyah - Text color: black */
+  margin-bottom: 0.5rem; /* Alt margin: 0.5rem - Bottom margin: 0.5rem */
 }
 
 .member-title {
-  color: var(--primary-color);
-  font-weight: 500;
-  margin-bottom: 1rem;
+  color: var(--primary-color); /* Metin rengi: birincil renk - Text color: primary color */
+  font-weight: 500; /* Font kalınlığı: 500 - Font weight: 500 */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
 }
 
 .member-bio {
-  color: var(--gray);
-  line-height: 1.6;
-  font-size: 0.9rem;
+  color: var(--gray); /* Metin rengi: gri - Text color: gray */
+  line-height: 1.6; /* Satır yüksekliği: 1.6 - Line height: 1.6 */
+  font-size: 0.9rem; /* Font boyutu: 0.9rem - Font size: 0.9rem */
 }
 
-/* Responsive tasarım */
-@media (max-width: 768px) {
+/* Responsive tasarım - Responsive Design */
+@media (max-width: 768px) { /* Medya sorgusu: maksimum genişlik 768px - Media query: max width 768px */
   .about-title {
-    font-size: 2rem;
+    font-size: 2rem; /* Font boyutu: 2rem - Font size: 2rem */
   }
   
   .about-subtitle {
-    font-size: 1rem;
+    font-size: 1rem; /* Font boyutu: 1rem - Font size: 1rem */
   }
   
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr); /* Grid sütunları: 2 eşit sütun - Grid columns: 2 equal columns */
+    gap: 1rem; /* Elemanlar arası boşluk: 1rem - Gap between elements: 1rem */
   }
   
   .stat-card {
-    padding: 1.5rem;
+    padding: 1.5rem; /* İç boşluk: 1.5rem - Padding: 1.5rem */
   }
   
   .stat-number {
-    font-size: 2rem;
+    font-size: 2rem; /* Font boyutu: 2rem - Font size: 2rem */
   }
   
   .mission-vision-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+    grid-template-columns: 1fr; /* Grid sütunları: 1 sütun - Grid columns: 1 column */
+    gap: 2rem; /* Elemanlar arası boşluk: 2rem - Gap between elements: 2rem */
   }
   
   .values-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 1fr; /* Grid sütunları: 1 sütun - Grid columns: 1 column */
+    gap: 1.5rem; /* Elemanlar arası boşluk: 1.5rem - Gap between elements: 1.5rem */
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 480px) { /* Medya sorgusu: maksimum genişlik 480px - Media query: max width 480px */
   .about-hero {
-    padding: 2rem 0;
+    padding: 2rem 0; /* İç boşluk: 2rem üst-alt, 0 yanlar - Padding: 2rem top-bottom, 0 sides */
   }
   
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Grid sütunları: 1 sütun - Grid columns: 1 column */
   }
   
   .mission-card, .vision-card {
-    padding: 1.5rem;
+    padding: 1.5rem; /* İç boşluk: 1.5rem - Padding: 1.5rem */
   }
 }
-

@@ -1,282 +1,317 @@
-﻿@using System.Linq;
+﻿@* System.Linq using direktifi - System.Linq using directive *@
+@using System.Linq;
 
+@* Razor kod bloğu - ViewBag ve Layout ayarları - Razor code block - ViewBag and Layout settings *@
 @{
-    ViewBag.Title = "Destek";
-    ViewBag.TitleEn = "Support";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Destek"; /* Sayfa başlığı (Türkçe) - Page title (Turkish) */
+    ViewBag.TitleEn = "Support"; /* Sayfa başlığı (İngilizce) - Page title (English) */
+    Layout = "~/Views/Shared/_Layout.cshtml"; /* Layout dosyası yolu - Layout file path */
 }
 
+@* Styles bölümü - CSS dosyası ekleme - Styles section - Adding CSS file *@
 @section styles {
-    <link rel="stylesheet" href="~/Content/css/support.css?v=@DateTime.Now.Ticks" />
+    <link rel="stylesheet" href="~/Content/css/support.css?v=@DateTime.Now.Ticks" /> /* Support CSS dosyası (cache önleme için timestamp) - Support CSS file (timestamp for cache prevention) */
 }
 
-<div class="container py-4" style="max-width: 1100px;">
+@* Ana container - Main container *@
+<div class="container py-4" style="max-width: 1100px;"> @* Container (padding-y: 4, maksimum genişlik: 1100px) - Container (padding-y: 4, max width: 1100px) *@
+    @* Destek sayfa başlığı - Support page header *@
     <div class="support-page-header">
         <div class="page-header-content">
             <h1 class="page-title">
-                <i class="fa-solid fa-headset"></i>
-                <span data-tr="Müşteri Destek" data-en="Customer Support">Müşteri Destek</span>
+                <i class="fa-solid fa-headset"></i> @* Kulaklık ikonu - Headset icon *@
+                <span data-tr="Müşteri Destek" data-en="Customer Support">Müşteri Destek</span> @* Çok dilli başlık - Multilingual title *@
             </h1>
             <p class="page-subtitle">
                 <span data-tr="Uçuşlarınızla ilgili her türlü soru için bize ulaşabilirsiniz."
                       data-en="You can contact us for any questions about your flights.">
                     Uçuşlarınızla ilgili her türlü soru için bize ulaşabilirsiniz.
-                </span>
+                </span> @* Çok dilli alt başlık - Multilingual subtitle *@
             </p>
         </div>
     </div>
 
-    @* Hata / başarı mesajları (TR/EN destekli) *@
+    @* Hata / başarı mesajları (TR/EN destekli) - Error / success messages (TR/EN supported) *@
     @if (TempData["SupportError_tr"] != null)
     {
-        var errTr = TempData["SupportError_tr"].ToString();
-        var errEn = (TempData["SupportError_en"] ?? errTr).ToString();
+        var errTr = TempData["SupportError_tr"].ToString(); @* Türkçe hata mesajı değişkeni - Turkish error message variable *@
+        var errEn = (TempData["SupportError_en"] ?? errTr).ToString(); @* İngilizce hata mesajı değişkeni (yoksa Türkçe kullan) - English error message variable (use Turkish if not available) *@
         <div class="alert alert-danger">
-            <span data-tr="@errTr" data-en="@errEn">@errTr</span>
+            <span data-tr="@errTr" data-en="@errEn">@errTr</span> @* Çok dilli hata mesajı - Multilingual error message *@
         </div>
     }
 
+    @* Başarı mesajı kontrolü - Success message check *@
     @if (TempData["SupportSuccess_tr"] != null)
     {
-        var okTr = TempData["SupportSuccess_tr"].ToString();
-        var okEn = (TempData["SupportSuccess_en"] ?? okTr).ToString();
+        var okTr = TempData["SupportSuccess_tr"].ToString(); @* Türkçe başarı mesajı değişkeni - Turkish success message variable *@
+        var okEn = (TempData["SupportSuccess_en"] ?? okTr).ToString(); @* İngilizce başarı mesajı değişkeni (yoksa Türkçe kullan) - English success message variable (use Turkish if not available) *@
         <div class="alert alert-success">
-            <span data-tr="@okTr" data-en="@okEn">@okTr</span>
+            <span data-tr="@okTr" data-en="@okEn">@okTr</span> @* Çok dilli başarı mesajı - Multilingual success message *@
         </div>
     }
 
+    @* İki sütunlu düzen - Two column layout *@
     <div class="row">
-        @* Sol: Form *@
-        <div class="col-lg-8 mb-4">
+        @* Sol: Form - Left: Form *@
+        <div class="col-lg-8 mb-4"> @* Sol sütun (büyük ekranlarda 8/12, alt margin: 4) - Left column (8/12 on large screens, bottom margin: 4) *@
+            @* Destek formu - Support form *@
             @using (Html.BeginForm("Support", "Support", FormMethod.Post, new { @class = "card p-4 shadow-sm border-0 support-form" }))
             {
-                @Html.AntiForgeryToken()
+                @Html.AntiForgeryToken() @* CSRF koruması token'ı - CSRF protection token *@
 
                 <h2 class="h5 mb-3" data-tr="Destek Talebi Oluştur" data-en="Create Support Request">
                     Destek Talebi Oluştur
-                </h2>
+                </h2> @* Form başlığı (çok dilli) - Form title (multilingual) *@
 
+                @* Ad Soyad alanı - Full name field *@
                 <div class="mb-3">
-                    <label for="fullName" class="form-label" data-tr="Ad Soyad" data-en="Full Name">Ad Soyad</label>
-                    <input type="text" class="form-control" id="fullName" name="fullName" required />
+                    <label for="fullName" class="form-label" data-tr="Ad Soyad" data-en="Full Name">Ad Soyad</label> @* Form etiketi (çok dilli) - Form label (multilingual) *@
+                    <input type="text" class="form-control" id="fullName" name="fullName" required /> @* Ad soyad input (zorunlu) - Full name input (required) *@
                 </div>
 
+                @* E-posta alanı - Email field *@
                 <div class="mb-3">
-                    <label for="email" class="form-label" data-tr="E-posta" data-en="Email">E-posta</label>
-                    <input type="email" class="form-control" id="email" name="email" required />
+                    <label for="email" class="form-label" data-tr="E-posta" data-en="Email">E-posta</label> @* Form etiketi (çok dilli) - Form label (multilingual) *@
+                    <input type="email" class="form-control" id="email" name="email" required /> @* E-posta input (email tipi, zorunlu) - Email input (email type, required) *@
                 </div>
 
+                @* Konu seçimi alanı - Topic selection field *@
                 <div class="mb-3">
-                    <label for="topic" class="form-label" data-tr="Konu" data-en="Topic">Konu</label>
-                    <select class="form-select" id="topic" name="topic" required>
+                    <label for="topic" class="form-label" data-tr="Konu" data-en="Topic">Konu</label> @* Form etiketi (çok dilli) - Form label (multilingual) *@
+                    <select class="form-select" id="topic" name="topic" required> @* Konu dropdown (zorunlu) - Topic dropdown (required) *@
                         <option value="" selected disabled data-tr="Lütfen seçin" data-en="Please select">
                             Lütfen seçin
-                        </option>
+                        </option> @* Varsayılan seçenek (devre dışı, çok dilli) - Default option (disabled, multilingual) *@
                         <option value="reservation" data-tr="Rezervasyon / PNR" data-en="Reservation / PNR">
                             Rezervasyon / PNR
-                        </option>
+                        </option> @* Rezervasyon seçeneği (çok dilli) - Reservation option (multilingual) *@
                         <option value="payment" data-tr="Ödeme / İade" data-en="Payment / Refund">
                             Ödeme / İade
-                        </option>
+                        </option> @* Ödeme seçeneği (çok dilli) - Payment option (multilingual) *@
                         <option value="flight-change" data-tr="Uçuş Değişikliği" data-en="Flight Change">
                             Uçuş Değişikliği
-                        </option>
+                        </option> @* Uçuş değişikliği seçeneği (çok dilli) - Flight change option (multilingual) *@
                         <option value="other" data-tr="Diğer" data-en="Other">
                             Diğer
-                        </option>
+                        </option> @* Diğer seçeneği (çok dilli) - Other option (multilingual) *@
                     </select>
                 </div>
 
+                @* PNR grubu (koşullu görünür) - PNR group (conditionally visible) *@
                 <div class="mb-3" id="pnrGroup">
                     <label for="pnr" class="form-label" data-tr="PNR Kodu (varsa)" data-en="PNR Code (if any)">
                         PNR Kodu (varsa)
-                    </label>
-                    <input type="text" class="form-control" id="pnr" name="pnr" maxlength="10" />
+                    </label> @* PNR etiketi (çok dilli) - PNR label (multilingual) *@
+                    <input type="text" class="form-control" id="pnr" name="pnr" maxlength="10" /> @* PNR input (maksimum 10 karakter) - PNR input (max 10 characters) *@
                 </div>
 
+                @* Mesaj alanı - Message field *@
                 <div class="mb-3">
-                    <label for="message" class="form-label" data-tr="Mesajınız" data-en="Your Message">Mesajınız</label>
-                    <textarea class="form-control" id="message" name="message" rows="5" required maxlength="1000"></textarea>
-                    <small id="messageCounter" class="form-text text-muted d-block mt-1">0 / 1000</small>
+                    <label for="message" class="form-label" data-tr="Mesajınız" data-en="Your Message">Mesajınız</label> @* Mesaj etiketi (çok dilli) - Message label (multilingual) *@
+                    <textarea class="form-control" id="message" name="message" rows="5" required maxlength="1000"></textarea> @* Mesaj textarea (5 satır, zorunlu, maksimum 1000 karakter) - Message textarea (5 rows, required, max 1000 characters) *@
+                    <small id="messageCounter" class="form-text text-muted d-block mt-1">0 / 1000</small> @* Karakter sayacı - Character counter *@
                 </div>
 
+                @* Gönder butonu - Submit button *@
                 <button type="submit" class="btn btn-primary w-100"
                         data-tr="Talebi Gönder" data-en="Submit Request">
                     Talebi Gönder
-                </button>
+                </button> @* Gönder butonu (tam genişlik, çok dilli) - Submit button (full width, multilingual) *@
             }
         </div>
 
-        @* Sağ: İletişim bilgileri *@
-        <div class="col-lg-4">
+        @* Sağ: İletişim bilgileri - Right: Contact information *@
+        <div class="col-lg-4"> @* Sağ sütun (büyük ekranlarda 4/12) - Right column (4/12 on large screens) *@
+            @* İletişim bilgileri kartı - Contact information card *@
             <div class="support-contact-card">
                 <h2 data-tr="Bize Ulaşın" data-en="Contact Us">
-                    <i class="fa-solid fa-phone"></i>
+                    <i class="fa-solid fa-phone"></i> @* Telefon ikonu - Phone icon *@
                     Bize Ulaşın
-                </h2>
+                </h2> @* Başlık (çok dilli) - Heading (multilingual) *@
 
+                @* Telefon numarası - Phone number *@
                 <p>
-                    <i class="fa-solid fa-phone"></i>
-                    <strong>+90 462 000 00 00</strong>
+                    <i class="fa-solid fa-phone"></i> @* Telefon ikonu - Phone icon *@
+                    <strong>+90 462 000 00 00</strong> @* Telefon numarası (kalın) - Phone number (bold) *@
                 </p>
+                @* E-posta adresi - Email address *@
                 <p>
-                    <i class="fa-solid fa-envelope"></i>
-                    <strong>support@trabzonairlines.com</strong>
+                    <i class="fa-solid fa-envelope"></i> @* E-posta ikonu - Email icon *@
+                    <strong>support@trabzonairlines.com</strong> @* E-posta adresi (kalın) - Email address (bold) *@
                 </p>
+                @* Çalışma saatleri - Working hours *@
                 <p class="mb-0">
-                    <i class="fa-solid fa-clock"></i>
-                    <span data-tr="7/24 hizmet" data-en="24/7 service">7/24 hizmet</span>
+                    <i class="fa-solid fa-clock"></i> @* Saat ikonu - Clock icon *@
+                    <span data-tr="7/24 hizmet" data-en="24/7 service">7/24 hizmet</span> @* Çalışma saatleri (çok dilli) - Working hours (multilingual) *@
                 </p>
             </div>
 
+            @* Sık sorulan konular kartı - Common topics card *@
             <div class="support-contact-card">
                 <h2 data-tr="Sık Sorulan Konular" data-en="Common Topics">
-                    <i class="fa-solid fa-question-circle"></i>
+                    <i class="fa-solid fa-question-circle"></i> @* Soru işareti ikonu - Question mark icon *@
                     Sık Sorulan Konular
-                </h2>
+                </h2> @* Başlık (çok dilli) - Heading (multilingual) *@
                 <ul>
-                    <li>• <span data-tr="Rezervasyon iptali ve iade" data-en="Booking cancellation and refund">Rezervasyon iptali ve iade</span></li>
-                    <li>• <span data-tr="Uçuş değişikliği" data-en="Flight change">Uçuş değişikliği</span></li>
-                    <li>• <span data-tr="Bagaj kuralları" data-en="Baggage rules">Bagaj kuralları</span></li>
-                    <li>• <span data-tr="Online check-in" data-en="Online check-in">Online check-in</span></li>
+                    <li>• <span data-tr="Rezervasyon iptali ve iade" data-en="Booking cancellation and refund">Rezervasyon iptali ve iade</span></li> @* Liste öğesi 1 (çok dilli) - List item 1 (multilingual) *@
+                    <li>• <span data-tr="Uçuş değişikliği" data-en="Flight change">Uçuş değişikliği</span></li> @* Liste öğesi 2 (çok dilli) - List item 2 (multilingual) *@
+                    <li>• <span data-tr="Bagaj kuralları" data-en="Baggage rules">Bagaj kuralları</span></li> @* Liste öğesi 3 (çok dilli) - List item 3 (multilingual) *@
+                    <li>• <span data-tr="Online check-in" data-en="Online check-in">Online check-in</span></li> @* Liste öğesi 4 (çok dilli) - List item 4 (multilingual) *@
                 </ul>
             </div>
         </div>
     </div>
 
-    @*  GEÇMİŞ DESTEK TALEPLERİ BLOĞU *@
+    @* GEÇMİŞ DESTEK TALEPLERİ BLOĞU - PREVIOUS SUPPORT REQUESTS BLOCK *@
+    @* ViewBag verilerini alma - Getting ViewBag data *@
     @{
-        var ticketList = ViewBag.MySupportTickets as System.Collections.Generic.IEnumerable<Trabzon_Airlines.Models.SupportRequest>;
-        bool isLoggedIn = ViewBag.IsLoggedIn != null && (bool)ViewBag.IsLoggedIn;
+        var ticketList = ViewBag.MySupportTickets as System.Collections.Generic.IEnumerable<Trabzon_Airlines.Models.SupportRequest>; @* Destek talepleri listesi - Support requests list *@
+        bool isLoggedIn = ViewBag.IsLoggedIn != null && (bool)ViewBag.IsLoggedIn; @* Giriş durumu kontrolü - Login status check *@
     }
 
-    <div class="row mt-4">
-        <div class="col-12">
+    @* Geçmiş talepler satırı - Previous requests row *@
+    <div class="row mt-4"> @* Satır (üst margin: 4) - Row (top margin: 4) *@
+        <div class="col-12"> @* Tam genişlik sütun - Full width column *@
+            @* Giriş yapılmış ve talep varsa - If logged in and has tickets *@
             @if (isLoggedIn && ticketList != null && ticketList.Any())
             {
+                @* Geçmiş destek talepleri kartı - Previous support requests card *@
                 <div class="support-history-card">
                     <div class="support-history-title">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <i class="fa-solid fa-clock-rotate-left"></i> @* Geri dönüş ikonu - Clock rotate left icon *@
                         <h2 data-tr="Önceki Destek Talepleriniz" data-en="Your Previous Support Tickets">
                             Önceki Destek Talepleriniz
-                        </h2>
+                        </h2> @* Başlık (çok dilli) - Heading (multilingual) *@
                     </div>
 
+                        @* Responsive tablo container - Responsive table container *@
                         <div class="table-responsive">
-                            <table class="table table-sm table-striped mb-0 support-history-table">
+                            <table class="table table-sm table-striped mb-0 support-history-table"> @* Tablo (küçük, çizgili, alt margin: 0) - Table (small, striped, bottom margin: 0) *@
                                 <thead>
                                     <tr>
-                                        <th>#</th>
-                                        <th data-tr="Tarih" data-en="Date">Tarih</th>
-                                        <th>PNR</th>
-                                        <th data-tr="Konu" data-en="Topic">Konu</th>
-                                        <th data-tr="Durum" data-en="Status">Durum</th>
+                                        <th>#</th> @* Sıra numarası sütunu - Row number column *@
+                                        <th data-tr="Tarih" data-en="Date">Tarih</th> @* Tarih sütunu (çok dilli) - Date column (multilingual) *@
+                                        <th>PNR</th> @* PNR sütunu - PNR column *@
+                                        <th data-tr="Konu" data-en="Topic">Konu</th> @* Konu sütunu (çok dilli) - Topic column (multilingual) *@
+                                        <th data-tr="Durum" data-en="Status">Durum</th> @* Durum sütunu (çok dilli) - Status column (multilingual) *@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @* Destek talepleri döngüsü - Support requests loop *@
                                     @foreach (var t in ticketList)
                                     {
-                                        string badgeClass = "badge bg-secondary";
+                                        string badgeClass = "badge bg-secondary"; @* Varsayılan badge sınıfı (gri) - Default badge class (gray) *@
 
+                                        @* Durum kontrolü - Status check *@
                                         if (t.Status == "New")
                                         {
-                                            badgeClass = "badge bg-danger";
+                                            badgeClass = "badge bg-danger"; @* Yeni durum (kırmızı) - New status (red) *@
                                         }
                                         else if (t.Status == "InProgress")
                                         {
-                                            badgeClass = "badge bg-warning text-dark";
+                                            badgeClass = "badge bg-warning text-dark"; @* İşlemde durum (sarı, koyu metin) - In progress status (yellow, dark text) *@
                                         }
                                         else if (t.Status == "Resolved")
                                         {
-                                            badgeClass = "badge bg-success";
+                                            badgeClass = "badge bg-success"; @* Çözüldü durum (yeşil) - Resolved status (green) *@
                                         }
 
                                         <tr>
-                                            <td>#@t.SupportRequestId</td>
-                                            <td>@t.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
-                                            <td>@(string.IsNullOrEmpty(t.PNR) ? "-" : t.PNR)</td>
-                                            <td>@t.Topic</td>
-                                            <td><span class="@badgeClass">@t.Status</span></td>
+                                            <td>#@t.SupportRequestId</td> @* Talep ID'si - Request ID *@
+                                            <td>@t.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td> @* Oluşturulma tarihi (formatlanmış) - Created date (formatted) *@
+                                            <td>@(string.IsNullOrEmpty(t.PNR) ? "-" : t.PNR)</td> @* PNR (boşsa "-") - PNR ("-" if empty) *@
+                                            <td>@t.Topic</td> @* Konu - Topic *@
+                                            <td><span class="@badgeClass">@t.Status</span></td> @* Durum (badge ile) - Status (with badge) *@
                                         </tr>
                                     }
                                 </tbody>
                             </table>
                         </div>
 
+                    @* Bilgilendirme metni - Information text *@
                     <small class="text-muted d-block mt-3"
                            data-tr="Son 10 talebiniz gösterilmektedir."
                            data-en="Last 10 tickets are shown.">
                         Son 10 talebiniz gösterilmektedir.
-                    </small>
+                    </small> @* Çok dilli bilgilendirme (küçük, gri) - Multilingual information (small, gray) *@
                 </div>
             }
+            @* Giriş yapılmış ama talep yoksa - If logged in but no tickets *@
             else if (isLoggedIn)
             {
+                @* Bilgi mesajı - Info message *@
                 <div class="alert alert-info mb-0">
                     <span data-tr="Henüz bir destek talebiniz bulunmuyor."
                           data-en="You don't have any support tickets yet.">
                         Henüz bir destek talebiniz bulunmuyor.
-                    </span>
+                    </span> @* Çok dilli mesaj - Multilingual message *@
                 </div>
             }
+            @* Giriş yapılmamışsa - If not logged in *@
             else
             {
+                @* Bilgi mesajı - Info message *@
                 <div class="alert alert-info mb-0">
                     <span data-tr="Giriş yaparak geçmiş destek taleplerinizi görüntüleyebilirsiniz."
                           data-en="Log in to see your previous support tickets.">
                         Giriş yaparak geçmiş destek taleplerinizi görüntüleyebilirsiniz.
-                    </span>
+                    </span> @* Çok dilli mesaj - Multilingual message *@
                 </div>
             }
         </div>
     </div>
 </div>
 
+@* Scripts bölümü - JavaScript kodları - Scripts section - JavaScript code *@
 @section scripts {
     <script>
+        @* DOM yüklendiğinde çalışacak kod - Code to run when DOM is loaded *@
         document.addEventListener("DOMContentLoaded", function () {
-            // 1) Hata / başarı mesajına yumuşak scroll + pulse animasyonu
-            var alertBox = document.querySelector(".alert-success, .alert-danger");
+            @* 1) Hata / başarı mesajına yumuşak scroll + pulse animasyonu - 1) Smooth scroll + pulse animation to error/success message *@
+            var alertBox = document.querySelector(".alert-success, .alert-danger"); @* Alert kutusu seçici - Alert box selector *@
             if (alertBox) {
-                alertBox.scrollIntoView({ behavior: "smooth", block: "start" });
-                alertBox.classList.add("support-alert-pulse");
+                alertBox.scrollIntoView({ behavior: "smooth", block: "start" }); @* Yumuşak scroll - Smooth scroll *@
+                alertBox.classList.add("support-alert-pulse"); @* Pulse animasyonu ekle - Add pulse animation *@
 
                 setTimeout(function () {
-                    alertBox.classList.remove("support-alert-pulse");
+                    alertBox.classList.remove("support-alert-pulse"); @* 2.5 saniye sonra pulse animasyonunu kaldır - Remove pulse animation after 2.5 seconds *@
                 }, 2500);
             }
 
-            // 2) Mesaj karakter sayacı
-            var messageInput = document.getElementById("message");
-            var counter = document.getElementById("messageCounter");
+            @* 2) Mesaj karakter sayacı - 2) Message character counter *@
+            var messageInput = document.getElementById("message"); @* Mesaj input elementi - Message input element *@
+            var counter = document.getElementById("messageCounter"); @* Sayaç elementi - Counter element *@
 
             if (messageInput && counter) {
-                var maxLen = messageInput.getAttribute("maxlength") ? parseInt(messageInput.getAttribute("maxlength")) : 1000;
+                var maxLen = messageInput.getAttribute("maxlength") ? parseInt(messageInput.getAttribute("maxlength")) : 1000; @* Maksimum uzunluk (varsayılan: 1000) - Maximum length (default: 1000) *@
 
+                @* Sayaç güncelleme fonksiyonu - Counter update function *@
                 function updateCounter() {
-                    var len = messageInput.value.length;
-                    counter.textContent = len + " / " + maxLen;
+                    var len = messageInput.value.length; @* Mevcut uzunluk - Current length *@
+                    counter.textContent = len + " / " + maxLen; @* Sayaç metnini güncelle - Update counter text *@
                 }
 
-                messageInput.addEventListener("input", updateCounter);
-                updateCounter();
+                messageInput.addEventListener("input", updateCounter); @* Input event listener ekle - Add input event listener *@
+                updateCounter(); @* İlk güncelleme - Initial update *@
             }
 
-            // 3) Konu "Rezervasyon / PNR" seçilince PNR alanını vurgula
-            var topicSelect = document.getElementById("topic");
-            var pnrGroup = document.getElementById("pnrGroup");
+            @* 3) Konu "Rezervasyon / PNR" seçilince PNR alanını vurgula - 3) Highlight PNR field when "Reservation / PNR" topic is selected *@
+            var topicSelect = document.getElementById("topic"); @* Konu select elementi - Topic select element *@
+            var pnrGroup = document.getElementById("pnrGroup"); @* PNR grup elementi - PNR group element *@
 
             if (topicSelect && pnrGroup) {
+                @* PNR durum güncelleme fonksiyonu - PNR state update function *@
                 function updatePnrState() {
                     if (topicSelect.value === "reservation") {
-                        pnrGroup.classList.add("border", "border-danger", "bg-light");
+                        pnrGroup.classList.add("border", "border-danger", "bg-light"); @* Rezervasyon seçilince border ve arka plan ekle - Add border and background when reservation is selected *@
                     } else {
-                        pnrGroup.classList.remove("border", "border-danger", "bg-light");
+                        pnrGroup.classList.remove("border", "border-danger", "bg-light"); @* Diğer durumlarda border ve arka planı kaldır - Remove border and background in other cases *@
                     }
                 }
 
-                topicSelect.addEventListener("change", updatePnrState);
-                updatePnrState();
+                topicSelect.addEventListener("change", updatePnrState); @* Change event listener ekle - Add change event listener *@
+                updatePnrState(); @* İlk güncelleme - Initial update *@
             }
         });
     </script>

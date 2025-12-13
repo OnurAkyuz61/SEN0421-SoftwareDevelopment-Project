@@ -1,119 +1,140 @@
-﻿@model Trabzon_Airlines.Models.AccountViewModel
+﻿@* Model tanımı - AccountViewModel modeli kullanılıyor - Model definition - Using AccountViewModel model *@
+@model Trabzon_Airlines.Models.AccountViewModel
 
+@* Razor kod bloğu - ViewBag ve Layout ayarları - Razor code block - ViewBag and Layout settings *@
 @{
-    ViewBag.Title = "Hesabım";
-    ViewBag.TitleEn = "My Account";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Hesabım"; /* Sayfa başlığı (Türkçe) - Page title (Turkish) */
+    ViewBag.TitleEn = "My Account"; /* Sayfa başlığı (İngilizce) - Page title (English) */
+    Layout = "~/Views/Shared/_Layout.cshtml"; /* Layout dosyası yolu - Layout file path */
 }
 
+@* Styles bölümü - CSS dosyası ekleme - Styles section - Adding CSS file *@
 @section styles {
-    <link rel="stylesheet" href="~/Content/css/admin-dashboard.css?v=@DateTime.Now.Ticks">
+    <link rel="stylesheet" href="~/Content/css/admin-dashboard.css?v=@DateTime.Now.Ticks"> /* Admin dashboard CSS dosyası (cache önleme için timestamp) - Admin dashboard CSS file (timestamp for cache prevention) */
 }
 
+@* Başarı mesajı kontrolü - Success message check *@
 @if (TempData["Success_tr"] != null)
 {
-    <div class="alert alert-success">@TempData["Success_tr"]</div>
+    <div class="alert alert-success">@TempData["Success_tr"]</div> /* Başarı mesajı gösterimi - Success message display */
 }
+@* Hata mesajı kontrolü - Error message check *@
 @if (TempData["Error_tr"] != null)
 {
-    <div class="alert alert-danger">@TempData["Error_tr"]</div>
+    <div class="alert alert-danger">@TempData["Error_tr"]</div> /* Hata mesajı gösterimi - Error message display */
 }
 
+@* Sayfa başlık bölümü - Page header section *@
 <div class="admin-page-header">
     <div class="page-header-content">
         <h1 class="page-title">
-            <i class="fa-solid fa-user-gear"></i>
-            <span data-tr="Hesabım" data-en="My Account">Hesabım</span>
+            <i class="fa-solid fa-user-gear"></i> @* Kullanıcı ayarları ikonu - User settings icon *@
+            <span data-tr="Hesabım" data-en="My Account">Hesabım</span> @* Çok dilli başlık - Multilingual title *@
         </h1>
         <p class="page-subtitle">
             <span data-tr="Hesap bilgilerinizi görüntüleyebilir ve şifrenizi güncelleyebilirsiniz."
                   data-en="View your account details and update your password.">
                 Hesap bilgilerinizi görüntüleyebilir ve şifrenizi güncelleyebilirsiniz.
-            </span>
+            </span> @* Çok dilli alt başlık - Multilingual subtitle *@
         </p>
     </div>
 </div>
 
+@* Dashboard grid - İki sütunlu düzen - Dashboard grid - Two column layout *@
 <div class="dashboard-grid">
+    @* Profil bilgileri kartı - Profile information card *@
     <div class="dashboard-card">
         <div class="dashboard-card-header">
             <h2 class="dashboard-card-title">
-                <i class="fa-solid fa-id-card"></i>
-                <span data-tr="Profil Bilgileri" data-en="Profile Information">Profil Bilgileri</span>
+                <i class="fa-solid fa-id-card"></i> @* Kimlik kartı ikonu - ID card icon *@
+                <span data-tr="Profil Bilgileri" data-en="Profile Information">Profil Bilgileri</span> @* Çok dilli başlık - Multilingual title *@
             </h2>
         </div>
         <div class="dashboard-card-body">
+            @* Ad alanı - First name field *@
             <div class="form-group mb-2">
-                <label class="form-label" data-tr="Ad" data-en="First Name">Ad</label>
-                <input type="text" class="form-control" value="@Model.FirstName" disabled />
+                <label class="form-label" data-tr="Ad" data-en="First Name">Ad</label> @* Form etiketi - Form label *@
+                <input type="text" class="form-control" value="@Model.FirstName" disabled /> @* Ad input (devre dışı) - First name input (disabled) *@
             </div>
+            @* Soyad alanı - Last name field *@
             <div class="form-group mb-2">
-                <label class="form-label" data-tr="Soyad" data-en="Last Name">Soyad</label>
-                <input type="text" class="form-control" value="@Model.LastName" disabled />
+                <label class="form-label" data-tr="Soyad" data-en="Last Name">Soyad</label> @* Form etiketi - Form label *@
+                <input type="text" class="form-control" value="@Model.LastName" disabled /> @* Soyad input (devre dışı) - Last name input (disabled) *@
             </div>
+            @* E-posta alanı - Email field *@
             <div class="form-group mb-2">
-                <label class="form-label" data-tr="E-posta" data-en="Email">E-posta</label>
-                <input type="email" class="form-control" value="@Model.Email" disabled />
+                <label class="form-label" data-tr="E-posta" data-en="Email">E-posta</label> @* Form etiketi - Form label *@
+                <input type="email" class="form-control" value="@Model.Email" disabled /> @* E-posta input (devre dışı) - Email input (disabled) *@
             </div>
+            @* Telefon alanı - Phone field *@
             <div class="form-group mb-2">
-                <label class="form-label" data-tr="Telefon" data-en="Phone">Telefon</label>
-                <input type="text" class="form-control" value="@Model.Phone" disabled />
+                <label class="form-label" data-tr="Telefon" data-en="Phone">Telefon</label> @* Form etiketi - Form label *@
+                <input type="text" class="form-control" value="@Model.Phone" disabled /> @* Telefon input (devre dışı) - Phone input (disabled) *@
             </div>
+            @* TC Kimlik No alanı - National ID field *@
             <div class="form-group mb-2">
-                <label class="form-label" data-tr="TC Kimlik No" data-en="National ID">TC Kimlik No</label>
-                <input type="text" class="form-control" value="@Model.TcNumber" disabled />
+                <label class="form-label" data-tr="TC Kimlik No" data-en="National ID">TC Kimlik No</label> @* Form etiketi - Form label *@
+                <input type="text" class="form-control" value="@Model.TcNumber" disabled /> @* TC Kimlik No input (devre dışı) - National ID input (disabled) *@
             </div>
+            @* Doğum Tarihi alanı - Birth date field *@
             <div class="form-group mb-2">
-                <label class="form-label" data-tr="Doğum Tarihi" data-en="Birth Date">Doğum Tarihi</label>
-                <input type="text" class="form-control" value="@Model.BirthDate.ToString("dd.MM.yyyy")" disabled />
+                <label class="form-label" data-tr="Doğum Tarihi" data-en="Birth Date">Doğum Tarihi</label> @* Form etiketi - Form label *@
+                <input type="text" class="form-control" value="@Model.BirthDate.ToString("dd.MM.yyyy")" disabled /> @* Doğum tarihi input (formatlanmış, devre dışı) - Birth date input (formatted, disabled) *@
             </div>
+            @* Cinsiyet alanı - Gender field *@
             <div class="form-group mb-2">
-                <label class="form-label" data-tr="Cinsiyet" data-en="Gender">Cinsiyet</label>
-                <input type="text" class="form-control" value="@Model.Gender" disabled />
+                <label class="form-label" data-tr="Cinsiyet" data-en="Gender">Cinsiyet</label> @* Form etiketi - Form label *@
+                <input type="text" class="form-control" value="@Model.Gender" disabled /> @* Cinsiyet input (devre dışı) - Gender input (disabled) *@
             </div>
         </div>
     </div>
 
+    @* Şifre değiştirme kartı - Change password card *@
     <div class="dashboard-card">
         <div class="dashboard-card-header">
             <h2 class="dashboard-card-title">
-                <i class="fa-solid fa-key"></i>
-                <span data-tr="Şifre Değiştir" data-en="Change Password">Şifre Değiştir</span>
+                <i class="fa-solid fa-key"></i> @* Anahtar ikonu - Key icon *@
+                <span data-tr="Şifre Değiştir" data-en="Change Password">Şifre Değiştir</span> @* Çok dilli başlık - Multilingual title *@
             </h2>
         </div>
         <div class="dashboard-card-body">
+            @* Şifre değiştirme formu - Change password form *@
             @using (Html.BeginForm("Account", "Account", FormMethod.Post))
             {
-                @Html.AntiForgeryToken()
-                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.AntiForgeryToken() @* CSRF koruması token'ı - CSRF protection token *@
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" }) @* Validasyon özeti - Validation summary *@
 
+                @* Mevcut şifre alanı - Current password field *@
                 <div class="form-group mb-2">
-                    @Html.LabelFor(m => m.ChangePassword.CurrentPassword, new { @class = "form-label" })
-                    @Html.PasswordFor(m => m.ChangePassword.CurrentPassword, new { @class = "form-control" })
-                    @Html.ValidationMessageFor(m => m.ChangePassword.CurrentPassword, "", new { @class = "text-danger" })
+                    @Html.LabelFor(m => m.ChangePassword.CurrentPassword, new { @class = "form-label" }) @* Mevcut şifre etiketi - Current password label *@
+                    @Html.PasswordFor(m => m.ChangePassword.CurrentPassword, new { @class = "form-control" }) @* Mevcut şifre input (şifre tipi) - Current password input (password type) *@
+                    @Html.ValidationMessageFor(m => m.ChangePassword.CurrentPassword, "", new { @class = "text-danger" }) @* Validasyon mesajı - Validation message *@
                 </div>
 
+                @* Yeni şifre alanı - New password field *@
                 <div class="form-group mb-2">
-                    @Html.LabelFor(m => m.ChangePassword.NewPassword, new { @class = "form-label" })
-                    @Html.PasswordFor(m => m.ChangePassword.NewPassword, new { @class = "form-control" })
-                    @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword, "", new { @class = "text-danger" })
+                    @Html.LabelFor(m => m.ChangePassword.NewPassword, new { @class = "form-label" }) @* Yeni şifre etiketi - New password label *@
+                    @Html.PasswordFor(m => m.ChangePassword.NewPassword, new { @class = "form-control" }) @* Yeni şifre input (şifre tipi) - New password input (password type) *@
+                    @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword, "", new { @class = "text-danger" }) @* Validasyon mesajı - Validation message *@
                 </div>
 
+                @* Yeni şifre onay alanı - Confirm new password field *@
                 <div class="form-group mb-3">
-                    @Html.LabelFor(m => m.ChangePassword.ConfirmNewPassword, new { @class = "form-label" })
-                    @Html.PasswordFor(m => m.ChangePassword.ConfirmNewPassword, new { @class = "form-control" })
-                    @Html.ValidationMessageFor(m => m.ChangePassword.ConfirmNewPassword, "", new { @class = "text-danger" })
+                    @Html.LabelFor(m => m.ChangePassword.ConfirmNewPassword, new { @class = "form-label" }) @* Yeni şifre onay etiketi - Confirm new password label *@
+                    @Html.PasswordFor(m => m.ChangePassword.ConfirmNewPassword, new { @class = "form-control" }) @* Yeni şifre onay input (şifre tipi) - Confirm new password input (password type) *@
+                    @Html.ValidationMessageFor(m => m.ChangePassword.ConfirmNewPassword, "", new { @class = "text-danger" }) @* Validasyon mesajı - Validation message *@
                 </div>
 
+                @* Gönder butonu - Submit button *@
                 <button type="submit" class="btn btn-primary w-100" data-tr="Şifreyi Güncelle" data-en="Update Password">
                     Şifreyi Güncelle
-                </button>
+                </button> @* Çok dilli buton metni - Multilingual button text *@
             }
         </div>
     </div>
 </div>
 
+@* Scripts bölümü - JavaScript dosyaları ekleme - Scripts section - Adding JavaScript files *@
 @section scripts {
-    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/jqueryval") @* jQuery validation bundle - jQuery validation bundle *@
 }
-

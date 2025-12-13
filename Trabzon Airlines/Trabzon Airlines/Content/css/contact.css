@@ -1,346 +1,345 @@
-/* İletişim hero bölümü */
+/* İletişim hero bölümü - Contact Hero Section */
 .contact-hero {
-  background: linear-gradient(135deg, var(--secondary-color) 0%, #004499 100%);
-  color: var(--white);
-  padding: 4rem 0;
-  margin: -2rem -1rem 2rem -1rem;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+  background: linear-gradient(135deg, var(--secondary-color) 0%, #004499 100%); /* Arka plan gradient: ikincil renkten koyu maviye - Background gradient: secondary color to dark blue */
+  color: var(--white); /* Metin rengi: beyaz - Text color: white */
+  padding: 4rem 0; /* İç boşluk: 4rem üst-alt, 0 yanlar - Padding: 4rem top-bottom, 0 sides */
+  margin: -2rem -1rem 2rem -1rem; /* Margin: -2rem üst, -1rem yanlar, 2rem alt, -1rem yanlar - Margin: -2rem top, -1rem sides, 2rem bottom, -1rem sides */
+  text-align: center; /* Metin hizalama: ortala - Text alignment: center */
+  position: relative; /* Konum: göreceli - Position: relative */
+  overflow: hidden; /* Taşan içerik: gizle - Overflow: hidden */
 }
 
 .contact-hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M20,20 Q40,10 60,20 T100,20" stroke="rgba(255,255,255,0.1)" stroke-width="1" fill="none"/><path d="M0,60 Q20,50 40,60 T80,60" stroke="rgba(255,255,255,0.1)" stroke-width="1" fill="none"/></svg>');
-  background-size: 200px 100px;
-  pointer-events: none;
+  content: ''; /* İçerik: boş - Content: empty */
+  position: absolute; /* Konum: mutlak - Position: absolute */
+  top: 0; /* Üst: 0 - Top: 0 */
+  left: 0; /* Sol: 0 - Left: 0 */
+  right: 0; /* Sağ: 0 - Right: 0 */
+  bottom: 0; /* Alt: 0 - Bottom: 0 */
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M20,20 Q40,10 60,20 T100,20" stroke="rgba(255,255,255,0.1)" stroke-width="1" fill="none"/><path d="M0,60 Q20,50 40,60 T80,60" stroke="rgba(255,255,255,0.1)" stroke-width="1" fill="none"/></svg>'); /* Arka plan görseli: SVG desen - Background image: SVG pattern */
+  background-size: 200px 100px; /* Arka plan boyutu: 200px x 100px - Background size: 200px x 100px */
+  pointer-events: none; /* İşaretçi olayları: yok - Pointer events: none */
 }
 
 .contact-title {
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 3rem; /* Font boyutu: 3rem - Font size: 3rem */
+  font-weight: 700; /* Font kalınlığı: 700 (bold) - Font weight: 700 (bold) */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Metin gölgesi - Text shadow */
 }
 
 .contact-subtitle {
-  font-size: 1.2rem;
-  opacity: 0.9;
-  max-width: 600px;
-  margin: 0 auto;
+  font-size: 1.2rem; /* Font boyutu: 1.2rem - Font size: 1.2rem */
+  opacity: 0.9; /* Opaklık: 0.9 - Opacity: 0.9 */
+  max-width: 600px; /* Maksimum genişlik: 600px - Max width: 600px */
+  margin: 0 auto; /* Margin: 0 üst-alt, auto yanlar (ortala) - Margin: 0 top-bottom, auto sides (center) */
 }
 
-/* İletişim bilgileri bölümü */
+/* İletişim bilgileri bölümü - Contact Information Section */
 .contact-info {
-  padding: 4rem 0;
+  padding: 4rem 0; /* İç boşluk: 4rem üst-alt, 0 yanlar - Padding: 4rem top-bottom, 0 sides */
 }
 
 .contact-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  margin-top: 2rem;
+  display: grid; /* Görünüm: grid - Display: grid */
+  grid-template-columns: 1fr 1fr; /* Grid sütunları: 2 eşit sütun - Grid columns: 2 equal columns */
+  gap: 4rem; /* Elemanlar arası boşluk: 4rem - Gap between elements: 4rem */
+  margin-top: 2rem; /* Üst margin: 2rem - Top margin: 2rem */
 }
 
-/* İletişim kartları */
+/* İletişim kartları - Contact Cards */
 .contact-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  display: grid; /* Görünüm: grid - Display: grid */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Grid sütunları: otomatik sığdır, min 250px - Grid columns: auto-fit, min 250px */
+  gap: 2rem; /* Elemanlar arası boşluk: 2rem - Gap between elements: 2rem */
 }
 
 .contact-card {
-  background: var(--white);
-  padding: 2rem;
-  border-radius: var(--radius-medium);
-  text-align: center;
-  box-shadow: var(--shadow-light);
-  transition: all var(--transition-normal) ease;
-  border-top: 4px solid var(--primary-color);
+  background: var(--white); /* Arka plan: beyaz - Background: white */
+  padding: 2rem; /* İç boşluk: 2rem - Padding: 2rem */
+  border-radius: var(--radius-medium); /* Kenar yuvarlaklığı: orta - Border radius: medium */
+  text-align: center; /* Metin hizalama: ortala - Text alignment: center */
+  box-shadow: var(--shadow-light); /* Gölge: hafif - Box shadow: light */
+  transition: all var(--transition-normal) ease; /* Geçiş: tüm özellikler normal süre - Transition: all properties normal duration */
+  border-top: 4px solid var(--primary-color); /* Üst kenarlık: 4px solid birincil renk - Top border: 4px solid primary color */
 }
 
 .contact-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-medium);
+  transform: translateY(-5px); /* Hover dönüşüm: yukarı 5px - Hover transform: translate up 5px */
+  box-shadow: var(--shadow-medium); /* Hover gölge: orta - Hover box shadow: medium */
 }
 
 .contact-icon {
-  width: 60px;
-  height: 60px;
-  background: var(--primary-color);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1rem;
-  color: var(--white);
-  font-size: 1.5rem;
+  width: 60px; /* Genişlik: 60px - Width: 60px */
+  height: 60px; /* Yükseklik: 60px - Height: 60px */
+  background: var(--primary-color); /* Arka plan: birincil renk - Background: primary color */
+  border-radius: 50%; /* Kenar yuvarlaklığı: %50 (daire) - Border radius: 50% (circle) */
+  display: flex; /* Görünüm: flex - Display: flex */
+  align-items: center; /* Dikey hizalama: orta - Vertical alignment: center */
+  justify-content: center; /* Yatay hizalama: orta - Horizontal alignment: center */
+  margin: 0 auto 1rem; /* Margin: 0 üst-alt, auto yanlar (ortala), 1rem alt - Margin: 0 top-bottom, auto sides (center), 1rem bottom */
+  color: var(--white); /* Metin rengi: beyaz - Text color: white */
+  font-size: 1.5rem; /* Font boyutu: 1.5rem - Font size: 1.5rem */
 }
 
 .contact-card h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--black);
+  font-size: 1.3rem; /* Font boyutu: 1.3rem - Font size: 1.3rem */
+  font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+  margin-bottom: 0.5rem; /* Alt margin: 0.5rem - Bottom margin: 0.5rem */
+  color: var(--black); /* Metin rengi: siyah - Text color: black */
 }
 
 .contact-card p {
-  color: var(--gray);
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
+  color: var(--gray); /* Metin rengi: gri - Text color: gray */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
+  font-size: 0.9rem; /* Font boyutu: 0.9rem - Font size: 0.9rem */
 }
 
 .contact-link {
-  color: var(--primary-color);
-  font-weight: 600;
-  text-decoration: none;
-  transition: color var(--transition-fast) ease;
+  color: var(--primary-color); /* Metin rengi: birincil renk - Text color: primary color */
+  font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+  text-decoration: none; /* Metin süsleme: yok - Text decoration: none */
+  transition: color var(--transition-fast) ease; /* Geçiş: renk hızlı süre - Transition: color fast duration */
 }
 
 .contact-link:hover {
-  color: var(--primary-dark);
+  color: var(--primary-dark); /* Hover metin rengi: koyu birincil renk - Hover text color: dark primary color */
 }
 
 .contact-address {
-  font-style: normal;
-  color: var(--gray);
+  font-style: normal; /* Font stili: normal - Font style: normal */
+  color: var(--gray); /* Metin rengi: gri - Text color: gray */
 }
 
 .working-hours p {
-  margin-bottom: 0.25rem;
-  font-size: 0.9rem;
+  margin-bottom: 0.25rem; /* Alt margin: 0.25rem - Bottom margin: 0.25rem */
+  font-size: 0.9rem; /* Font boyutu: 0.9rem - Font size: 0.9rem */
 }
 
-/* İletişim formu */
+/* İletişim formu - Contact Form */
 .contact-form-container {
-  background: var(--white);
-  padding: 2.5rem;
-  border-radius: var(--radius-medium);
-  box-shadow: var(--shadow-light);
+  background: var(--white); /* Arka plan: beyaz - Background: white */
+  padding: 2.5rem; /* İç boşluk: 2.5rem - Padding: 2.5rem */
+  border-radius: var(--radius-medium); /* Kenar yuvarlaklığı: orta - Border radius: medium */
+  box-shadow: var(--shadow-light); /* Gölge: hafif - Box shadow: light */
 }
 
 .form-title {
-  font-size: 1.8rem;
-  font-weight: 600;
-  margin-bottom: 2rem;
-  color: var(--black);
-  text-align: center;
+  font-size: 1.8rem; /* Font boyutu: 1.8rem - Font size: 1.8rem */
+  font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+  margin-bottom: 2rem; /* Alt margin: 2rem - Bottom margin: 2rem */
+  color: var(--black); /* Metin rengi: siyah - Text color: black */
+  text-align: center; /* Metin hizalama: ortala - Text alignment: center */
 }
 
 .contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  display: flex; /* Görünüm: flex - Display: flex */
+  flex-direction: column; /* Flex yönü: dikey - Flex direction: column */
+  gap: 1.5rem; /* Elemanlar arası boşluk: 1.5rem - Gap between elements: 1.5rem */
 }
 
 .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: flex; /* Görünüm: flex - Display: flex */
+  flex-direction: column; /* Flex yönü: dikey - Flex direction: column */
+  gap: 0.5rem; /* Elemanlar arası boşluk: 0.5rem - Gap between elements: 0.5rem */
 }
 
 .form-group label {
-  font-weight: 600;
-  color: var(--black);
-  font-size: 0.9rem;
+  font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+  color: var(--black); /* Metin rengi: siyah - Text color: black */
+  font-size: 0.9rem; /* Font boyutu: 0.9rem - Font size: 0.9rem */
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-  width: 100% !important;
-  max-width: 100% !important;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e1e5e9;
-  border-radius: var(--radius-small);
-  font-size: 1rem;
-  transition: all var(--transition-fast) ease;
-  font-family: inherit;
-  box-sizing: border-box;
+  width: 100% !important; /* Genişlik: %100 (önemli) - Width: 100% (important) */
+  max-width: 100% !important; /* Maksimum genişlik: %100 (önemli) - Max width: 100% (important) */
+  padding: 0.75rem 1rem; /* İç boşluk: 0.75rem üst-alt, 1rem yanlar - Padding: 0.75rem top-bottom, 1rem sides */
+  border: 2px solid #e1e5e9; /* Kenarlık: 2px solid açık gri - Border: 2px solid light gray */
+  border-radius: var(--radius-small); /* Kenar yuvarlaklığı: küçük - Border radius: small */
+  font-size: 1rem; /* Font boyutu: 1rem - Font size: 1rem */
+  transition: all var(--transition-fast) ease; /* Geçiş: tüm özellikler hızlı süre - Transition: all properties fast duration */
+  font-family: inherit; /* Font ailesi: kalıtım - Font family: inherit */
+  box-sizing: border-box; /* Kutu modeli: border-box - Box sizing: border-box */
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(228, 0, 43, 0.1);
+  outline: none; /* Dış çizgi: yok - Outline: none */
+  border-color: var(--primary-color); /* Focus kenarlık rengi: birincil renk - Focus border color: primary color */
+  box-shadow: 0 0 0 3px rgba(228, 0, 43, 0.1); /* Focus gölge efekti - Focus box shadow effect */
 }
 
 .form-group textarea {
-  resize: vertical;
-  min-height: 120px;
+  resize: vertical; /* Yeniden boyutlandırma: dikey - Resize: vertical */
+  min-height: 120px; /* Minimum yükseklik: 120px - Min height: 120px */
 }
 
 .checkbox-group {
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 0.75rem;
+  flex-direction: row; /* Flex yönü: yatay - Flex direction: row */
+  align-items: flex-start; /* Dikey hizalama: başlangıç - Vertical alignment: flex-start */
+  gap: 0.75rem; /* Elemanlar arası boşluk: 0.75rem - Gap between elements: 0.75rem */
 }
 
 .checkbox-group input[type="checkbox"] {
-  width: auto;
-  margin-top: 0.25rem;
+  width: auto; /* Genişlik: otomatik - Width: auto */
+  margin-top: 0.25rem; /* Üst margin: 0.25rem - Top margin: 0.25rem */
 }
 
 .checkbox-label {
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: var(--gray);
+  font-size: 0.9rem; /* Font boyutu: 0.9rem - Font size: 0.9rem */
+  line-height: 1.4; /* Satır yüksekliği: 1.4 - Line height: 1.4 */
+  color: var(--gray); /* Metin rengi: gri - Text color: gray */
 }
 
 .checkbox-label a {
-  color: var(--primary-color);
-  text-decoration: none;
+  color: var(--primary-color); /* Link rengi: birincil renk - Link color: primary color */
+  text-decoration: none; /* Metin süsleme: yok - Text decoration: none */
 }
 
 .checkbox-label a:hover {
-  text-decoration: underline;
+  text-decoration: underline; /* Hover metin süsleme: alt çizgi - Hover text decoration: underline */
 }
 
 .submit-btn {
-  background: var(--primary-color);
-  color: var(--white);
-  padding: 1rem 2rem;
-  border: none;
-  border-radius: var(--radius-small);
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast) ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  background: var(--primary-color); /* Arka plan: birincil renk - Background: primary color */
+  color: var(--white); /* Metin rengi: beyaz - Text color: white */
+  padding: 1rem 2rem; /* İç boşluk: 1rem üst-alt, 2rem yanlar - Padding: 1rem top-bottom, 2rem sides */
+  border: none; /* Kenarlık: yok - Border: none */
+  border-radius: var(--radius-small); /* Kenar yuvarlaklığı: küçük - Border radius: small */
+  font-size: 1.1rem; /* Font boyutu: 1.1rem - Font size: 1.1rem */
+  font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+  cursor: pointer; /* İmleç tipi: pointer - Cursor: pointer */
+  transition: all var(--transition-fast) ease; /* Geçiş: tüm özellikler hızlı süre - Transition: all properties fast duration */
+  display: flex; /* Görünüm: flex - Display: flex */
+  align-items: center; /* Dikey hizalama: orta - Vertical alignment: center */
+  justify-content: center; /* Yatay hizalama: orta - Horizontal alignment: center */
+  gap: 0.5rem; /* Elemanlar arası boşluk: 0.5rem - Gap between elements: 0.5rem */
 }
 
 .submit-btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
+  background: var(--primary-dark); /* Hover arka plan: koyu birincil renk - Hover background: dark primary color */
+  transform: translateY(-1px); /* Hover dönüşüm: yukarı 1px - Hover transform: translate up 1px */
 }
 
-/* FAQ bölümü */
+/* FAQ bölümü - FAQ Section */
 .faq-section {
-  padding: 4rem 0;
-  background: var(--light-gray);
+  padding: 4rem 0; /* İç boşluk: 4rem üst-alt, 0 yanlar - Padding: 4rem top-bottom, 0 sides */
+  background: var(--light-gray); /* Arka plan: açık gri - Background: light gray */
 }
 
 .faq-container {
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 800px; /* Maksimum genişlik: 800px - Max width: 800px */
+  margin: 0 auto; /* Margin: 0 üst-alt, auto yanlar (ortala) - Margin: 0 top-bottom, auto sides (center) */
 }
 
 .faq-item {
-  background: var(--white);
-  border-radius: var(--radius-small);
-  margin-bottom: 1rem;
-  overflow: hidden;
-  box-shadow: var(--shadow-light);
+  background: var(--white); /* Arka plan: beyaz - Background: white */
+  border-radius: var(--radius-small); /* Kenar yuvarlaklığı: küçük - Border radius: small */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
+  overflow: hidden; /* Taşan içerik: gizle - Overflow: hidden */
+  box-shadow: var(--shadow-light); /* Gölge: hafif - Box shadow: light */
 }
 
 .faq-question {
-  width: 100%;
-  background: none;
-  border: none;
-  padding: 1.5rem;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--black);
-  transition: background-color var(--transition-fast) ease;
+  width: 100%; /* Genişlik: %100 - Width: 100% */
+  background: none; /* Arka plan: yok - Background: none */
+  border: none; /* Kenarlık: yok - Border: none */
+  padding: 1.5rem; /* İç boşluk: 1.5rem - Padding: 1.5rem */
+  text-align: left; /* Metin hizalama: sol - Text alignment: left */
+  cursor: pointer; /* İmleç tipi: pointer - Cursor: pointer */
+  display: flex; /* Görünüm: flex - Display: flex */
+  justify-content: space-between; /* Yatay hizalama: aralarında boşluk - Horizontal alignment: space between */
+  align-items: center; /* Dikey hizalama: orta - Vertical alignment: center */
+  font-size: 1.1rem; /* Font boyutu: 1.1rem - Font size: 1.1rem */
+  font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+  color: var(--black); /* Metin rengi: siyah - Text color: black */
+  transition: background-color var(--transition-fast) ease; /* Geçiş: arka plan rengi hızlı süre - Transition: background color fast duration */
 }
 
 .faq-question:hover {
-  background: var(--light-gray);
+  background: var(--light-gray); /* Hover arka plan: açık gri - Hover background: light gray */
 }
 
 .faq-question i {
-  color: var(--primary-color);
-  transition: transform var(--transition-fast) ease;
+  color: var(--primary-color); /* İkon rengi: birincil renk - Icon color: primary color */
+  transition: transform var(--transition-fast) ease; /* Geçiş: dönüşüm hızlı süre - Transition: transform fast duration */
 }
 
 .faq-answer {
-  display: none;
-  padding: 0 1.5rem 1.5rem;
-  color: var(--gray);
-  line-height: 1.6;
+  display: none; /* Görünüm: yok (gizli) - Display: none (hidden) */
+  padding: 0 1.5rem 1.5rem; /* İç boşluk: 0 üst, 1.5rem yanlar, 1.5rem alt - Padding: 0 top, 1.5rem sides, 1.5rem bottom */
+  color: var(--gray); /* Metin rengi: gri - Text color: gray */
+  line-height: 1.6; /* Satır yüksekliği: 1.6 - Line height: 1.6 */
 }
 
-/* Form mesaj bildirimleri */
+/* Form mesaj bildirimleri - Form Message Notifications */
 .form-message {
-  padding: 1rem;
-  border-radius: var(--radius-small);
-  margin-bottom: 1rem;
-  display: none;
-  align-items: center;
-  gap: 0.5rem;
+  padding: 1rem; /* İç boşluk: 1rem - Padding: 1rem */
+  border-radius: var(--radius-small); /* Kenar yuvarlaklığı: küçük - Border radius: small */
+  margin-bottom: 1rem; /* Alt margin: 1rem - Bottom margin: 1rem */
+  display: none; /* Görünüm: yok (gizli) - Display: none (hidden) */
+  align-items: center; /* Dikey hizalama: orta - Vertical alignment: center */
+  gap: 0.5rem; /* Elemanlar arası boşluk: 0.5rem - Gap between elements: 0.5rem */
 }
 
 .form-message.success {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+  background: #d4edda; /* Başarı arka plan: açık yeşil - Success background: light green */
+  color: #155724; /* Başarı metin rengi: koyu yeşil - Success text color: dark green */
+  border: 1px solid #c3e6cb; /* Başarı kenarlık: 1px solid açık yeşil - Success border: 1px solid light green */
 }
 
 .form-message.error {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background: #f8d7da; /* Hata arka plan: açık kırmızı - Error background: light red */
+  color: #721c24; /* Hata metin rengi: koyu kırmızı - Error text color: dark red */
+  border: 1px solid #f5c6cb; /* Hata kenarlık: 1px solid açık kırmızı - Error border: 1px solid light red */
 }
 
 .form-message i {
-  font-size: 1.2rem;
+  font-size: 1.2rem; /* İkon boyutu: 1.2rem - Icon size: 1.2rem */
 }
 
-/* Responsive tasarım */
-@media (max-width: 768px) {
+/* Responsive tasarım - Responsive Design */
+@media (max-width: 768px) { /* Medya sorgusu: maksimum genişlik 768px - Media query: max width 768px */
   .contact-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+    grid-template-columns: 1fr; /* Grid sütunları: 1 sütun - Grid columns: 1 column */
+    gap: 2rem; /* Elemanlar arası boşluk: 2rem - Gap between elements: 2rem */
   }
   
   .contact-cards {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 1fr; /* Grid sütunları: 1 sütun - Grid columns: 1 column */
+    gap: 1.5rem; /* Elemanlar arası boşluk: 1.5rem - Gap between elements: 1.5rem */
   }
   
   .contact-form-container {
-    padding: 1.5rem;
+    padding: 1.5rem; /* İç boşluk: 1.5rem - Padding: 1.5rem */
   }
   
   .contact-title {
-    font-size: 2rem;
+    font-size: 2rem; /* Font boyutu: 2rem - Font size: 2rem */
   }
   
   .contact-subtitle {
-    font-size: 1rem;
+    font-size: 1rem; /* Font boyutu: 1rem - Font size: 1rem */
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 480px) { /* Medya sorgusu: maksimum genişlik 480px - Media query: max width 480px */
   .contact-hero {
-    padding: 2rem 0;
+    padding: 2rem 0; /* İç boşluk: 2rem üst-alt, 0 yanlar - Padding: 2rem top-bottom, 0 sides */
   }
   
   .contact-card {
-    padding: 1.5rem;
+    padding: 1.5rem; /* İç boşluk: 1.5rem - Padding: 1.5rem */
   }
   
   .contact-form-container {
-    padding: 1rem;
+    padding: 1rem; /* İç boşluk: 1rem - Padding: 1rem */
   }
   
   .form-title {
-    font-size: 1.5rem;
+    font-size: 1.5rem; /* Font boyutu: 1.5rem - Font size: 1.5rem */
   }
 }
-

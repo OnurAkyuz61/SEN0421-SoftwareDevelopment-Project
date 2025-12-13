@@ -1,21 +1,22 @@
-/* Set padding to keep content from hitting the edges */
+/* Set padding to keep content from hitting the edges - İçeriğin kenarlara çarpmaması için padding ayarla */
 .body-content {
-    margin-top: 15px;
-    padding-left: 15px;
-    padding-right: 15px;
+    margin-top: 15px; /* Üst margin: 15px - Top margin: 15px */
+    padding-left: 15px; /* Sol padding: 15px - Left padding: 15px */
+    padding-right: 15px; /* Sağ padding: 15px - Right padding: 15px */
 }
 
 /* Override the default bootstrap behavior where horizontal description lists 
    will truncate terms that are too long to fit in the left column 
-*/
+   - Bootstrap'un varsayılan davranışını geçersiz kıl: yatay açıklama listelerinde
+   sol sütuna sığmayan terimler kesilmesin */
 .dl-horizontal dt {
-    white-space: normal;
+    white-space: normal; /* Beyaz boşluk: normal - White space: normal */
 }
 
-/* Set width on the form input elements since they're 100% wide by default */
+/* Set width on the form input elements since they're 100% wide by default 
+   - Form giriş öğelerine genişlik ayarla çünkü varsayılan olarak %100 genişlikte */
 input,
 select,
 textarea {
-    max-width: 280px;
+    max-width: 280px; /* Maksimum genişlik: 280px - Max width: 280px */
 }
-

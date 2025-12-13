@@ -3,156 +3,141 @@
    ADMIN USER DETAIL CSS - User Detail Styles
    ============================================ */
 
-/* Detay Grid */
-/* Detail Grid */
+/* Detay Grid - Detail Grid */
 .detail-grid {
-    display: grid; /* Grid düzeni */
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Otomatik sütunlar */
-    gap: 30px; /* Elemanlar arası boşluk */
-    margin-bottom: 30px; /* Alt margin */
+    display: grid; /* Görünüm: grid - Display: grid */
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Grid sütunları: otomatik sığdır, min 400px - Grid columns: auto-fit, min 400px */
+    gap: 30px; /* Elemanlar arası boşluk: 30px - Gap between elements: 30px */
+    margin-bottom: 30px; /* Alt margin: 30px - Bottom margin: 30px */
 }
 
-/* Detay Öğesi */
-/* Detail Item */
+/* Detay Öğesi - Detail Item */
 .detail-item {
-    display: flex; /* Flexbox düzeni */
-    justify-content: space-between; /* Elemanlar arası boşluk */
-    align-items: center; /* Dikey hizalama */
-    padding: 16px 0; /* Dikey padding */
-    border-bottom: 1px solid #e2e8f0; /* Alt kenarlık */
+    display: flex; /* Görünüm: flex - Display: flex */
+    justify-content: space-between; /* Yatay hizalama: aralarında boşluk - Horizontal alignment: space between */
+    align-items: center; /* Dikey hizalama: orta - Vertical alignment: center */
+    padding: 16px 0; /* İç boşluk: 16px üst-alt, 0 yanlar - Padding: 16px top-bottom, 0 sides */
+    border-bottom: 1px solid #e2e8f0; /* Alt kenarlık: 1px solid açık gri - Bottom border: 1px solid light gray */
 }
 
-/* Detay Öğesi Son Eleman */
-/* Detail Item Last */
+/* Detay Öğesi Son Eleman - Detail Item Last */
 .detail-item:last-child {
-    border-bottom: none; /* Alt kenarlık yok */
+    border-bottom: none; /* Alt kenarlık: yok - Bottom border: none */
 }
 
-/* Detay Etiketi */
-/* Detail Label */
+/* Detay Etiketi - Detail Label */
 .detail-label {
-    font-weight: 600; /* Font kalınlığı */
-    color: #4a5568; /* Metin rengi */
-    font-size: 14px; /* Font boyutu */
+    font-weight: 600; /* Font kalınlığı: 600 - Font weight: 600 */
+    color: #4a5568; /* Metin rengi: gri - Text color: gray */
+    font-size: 14px; /* Font boyutu: 14px - Font size: 14px */
 }
 
-/* Detay Değeri */
-/* Detail Value */
+/* Detay Değeri - Detail Value */
 .detail-value {
-    color: #1a202c; /* Metin rengi */
-    font-size: 15px; /* Font boyutu */
-    text-align: right; /* Sağ hizalama */
+    color: #1a202c; /* Metin rengi: koyu gri - Text color: dark gray */
+    font-size: 15px; /* Font boyutu: 15px - Font size: 15px */
+    text-align: right; /* Metin hizalama: sağ - Text alignment: right */
 }
 
-/* Detay Aksiyonlar */
-/* Detail Actions */
+/* Detay Aksiyonlar - Detail Actions */
 .detail-actions {
-    display: flex; /* Flexbox düzeni */
-    align-items: center; /* Dikey hizalama */
-    gap: 20px; /* Elemanlar arası boşluk (artırıldı) */
-    justify-content: flex-end; /* Sağa hizalama */
-    padding: 30px 0; /* Dikey padding (artırıldı) */
-    border-top: 2px solid #e2e8f0; /* Üst kenarlık (kalınlaştırıldı) */
-    margin-top: 30px; /* Üst margin (artırıldı) */
-    background: linear-gradient(to bottom, transparent, #f8f9fa); /* Hafif gradient arka plan */
-    border-radius: 0 0 12px 12px; /* Alt köşeleri yuvarlat */
-    padding-left: 20px; /* Sol padding */
-    padding-right: 20px; /* Sağ padding */
+    display: flex; /* Görünüm: flex - Display: flex */
+    align-items: center; /* Dikey hizalama: orta - Vertical alignment: center */
+    gap: 20px; /* Elemanlar arası boşluk: 20px - Gap between elements: 20px */
+    justify-content: flex-end; /* Yatay hizalama: sağ - Horizontal alignment: flex-end */
+    padding: 30px 0; /* İç boşluk: 30px üst-alt, 0 yanlar - Padding: 30px top-bottom, 0 sides */
+    border-top: 2px solid #e2e8f0; /* Üst kenarlık: 2px solid açık gri - Top border: 2px solid light gray */
+    margin-top: 30px; /* Üst margin: 30px - Top margin: 30px */
+    background: linear-gradient(to bottom, transparent, #f8f9fa); /* Arka plan gradient: şeffaftan açık griye - Background gradient: transparent to light gray */
+    border-radius: 0 0 12px 12px; /* Kenar yuvarlaklığı: alt köşeler 12px - Border radius: bottom corners 12px */
+    padding-left: 20px; /* Sol padding: 20px - Left padding: 20px */
+    padding-right: 20px; /* Sağ padding: 20px - Right padding: 20px */
 }
 
-/* Sil Butonu (Büyük ve Modern) */
-/* Delete Button (Large and Modern) */
+/* Sil Butonu (Büyük ve Modern) - Delete Button (Large and Modern) */
 .btn-delete-action {
-    display: inline-flex; /* Satır içi flex */
-    align-items: center; /* Dikey hizalama */
-    justify-content: center; /* Yatay hizalama */
-    gap: 12px; /* Elemanlar arası boşluk */
-    padding: 16px 32px; /* Padding (daha büyük) */
-    background: linear-gradient(135deg, #e4002b 0%, #c41e3a 50%, #a01a2e 100%); /* Kırmızı gradient (3 renk) */
-    color: white; /* Beyaz renk */
-    text-decoration: none; /* Alt çizgi yok */
-    border-radius: 12px; /* Yuvarlatılmış köşeler (daha yuvarlak) */
-    font-weight: 700; /* Font kalınlığı (daha kalın) */
-    font-size: 16px; /* Font boyutu (daha büyük) */
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Yumuşak geçiş efekti */
-    border: none; /* Kenarlık yok */
-    cursor: pointer; /* İmleç tipi */
-    box-shadow: 0 6px 20px rgba(228, 0, 43, 0.3), 0 2px 8px rgba(228, 0, 43, 0.2); /* Çift katmanlı gölge */
-    position: relative; /* Göreceli konum */
-    overflow: hidden; /* Taşan içerik gizle */
-    letter-spacing: 0.5px; /* Harf aralığı */
-    text-transform: none; /* Büyük harf yok */
+    display: inline-flex; /* Görünüm: satır içi flex - Display: inline-flex */
+    align-items: center; /* Dikey hizalama: orta - Vertical alignment: center */
+    justify-content: center; /* Yatay hizalama: orta - Horizontal alignment: center */
+    gap: 12px; /* Elemanlar arası boşluk: 12px - Gap between elements: 12px */
+    padding: 16px 32px; /* İç boşluk: 16px üst-alt, 32px yanlar - Padding: 16px top-bottom, 32px sides */
+    background: linear-gradient(135deg, #e4002b 0%, #c41e3a 50%, #a01a2e 100%); /* Arka plan gradient: kırmızı tonları (3 renk) - Background gradient: red tones (3 colors) */
+    color: white; /* Metin rengi: beyaz - Text color: white */
+    text-decoration: none; /* Metin süsleme: yok - Text decoration: none */
+    border-radius: 12px; /* Kenar yuvarlaklığı: 12px - Border radius: 12px */
+    font-weight: 700; /* Font kalınlığı: 700 (bold) - Font weight: 700 (bold) */
+    font-size: 16px; /* Font boyutu: 16px - Font size: 16px */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Geçiş: tüm özellikler 0.4s yumuşak eğri - Transition: all properties 0.4s cubic-bezier */
+    border: none; /* Kenarlık: yok - Border: none */
+    cursor: pointer; /* İmleç tipi: pointer - Cursor: pointer */
+    box-shadow: 0 6px 20px rgba(228, 0, 43, 0.3), 0 2px 8px rgba(228, 0, 43, 0.2); /* Gölge: çift katmanlı - Box shadow: double layer */
+    position: relative; /* Konum: göreceli - Position: relative */
+    overflow: hidden; /* Taşan içerik: gizle - Overflow: hidden */
+    letter-spacing: 0.5px; /* Harf aralığı: 0.5px - Letter spacing: 0.5px */
+    text-transform: none; /* Metin dönüşümü: yok - Text transform: none */
 }
 
-/* Sil Butonu Hover */
-/* Delete Button Hover */
+/* Sil Butonu Hover - Delete Button Hover */
 .btn-delete-action:hover {
-    transform: translateY(-4px) scale(1.02); /* Yukarı kaydırma ve hafif büyütme */
-    box-shadow: 0 10px 30px rgba(228, 0, 43, 0.4), 0 4px 12px rgba(228, 0, 43, 0.3); /* Daha güçlü gölge */
-    color: white; /* Beyaz renk */
-    background: linear-gradient(135deg, #c41e3a 0%, #a01a2e 50%, #7a1423 100%); /* Daha koyu hover gradient */
+    transform: translateY(-4px) scale(1.02); /* Hover dönüşüm: yukarı 4px ve %2 büyüt - Hover transform: translate up 4px and scale 1.02 */
+    box-shadow: 0 10px 30px rgba(228, 0, 43, 0.4), 0 4px 12px rgba(228, 0, 43, 0.3); /* Hover gölge: daha güçlü çift katmanlı - Hover box shadow: stronger double layer */
+    color: white; /* Hover metin rengi: beyaz - Hover text color: white */
+    background: linear-gradient(135deg, #c41e3a 0%, #a01a2e 50%, #7a1423 100%); /* Hover arka plan gradient: daha koyu kırmızı tonları - Hover background gradient: darker red tones */
 }
 
-/* Sil Butonu Aktif */
-/* Delete Button Active */
+/* Sil Butonu Aktif - Delete Button Active */
 .btn-delete-action:active {
-    transform: translateY(-2px) scale(0.98); /* Basıldığında hafif aşağı */
-    box-shadow: 0 4px 15px rgba(228, 0, 43, 0.3); /* Aktif gölge */
+    transform: translateY(-2px) scale(0.98); /* Aktif dönüşüm: yukarı 2px ve %2 küçült - Active transform: translate up 2px and scale 0.98 */
+    box-shadow: 0 4px 15px rgba(228, 0, 43, 0.3); /* Aktif gölge: tek katmanlı - Active box shadow: single layer */
 }
 
-/* Sil Butonu İkon */
-/* Delete Button Icon */
+/* Sil Butonu İkon - Delete Button Icon */
 .btn-delete-action i {
-    font-size: 18px; /* İkon boyutu */
-    transition: transform 0.3s ease; /* İkon geçiş efekti */
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)); /* İkon gölgesi */
+    font-size: 18px; /* İkon boyutu: 18px - Icon size: 18px */
+    transition: transform 0.3s ease; /* Geçiş: dönüşüm 0.3s - Transition: transform 0.3s ease */
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)); /* Filtre: gölge efekti - Filter: drop shadow effect */
 }
 
-/* Sil Butonu Hover İkon */
-/* Delete Button Hover Icon */
+/* Sil Butonu Hover İkon - Delete Button Hover Icon */
 .btn-delete-action:hover i {
-    transform: rotate(-10deg) scale(1.1); /* Hover'da döndürme ve büyütme */
+    transform: rotate(-10deg) scale(1.1); /* Hover dönüşüm: -10 derece döndür ve %10 büyüt - Hover transform: rotate -10deg and scale 1.1 */
 }
 
-/* Sil Butonu Öncesi (Pseudo-element) */
-/* Delete Button Before (Pseudo-element) */
+/* Sil Butonu Öncesi (Pseudo-element) - Delete Button Before (Pseudo-element) */
 .btn-delete-action::before {
-    content: ''; /* İçerik yok */
-    position: absolute; /* Mutlak konum */
-    top: 0; /* Üstten 0 */
-    left: -100%; /* Soldan -100% (gizli) */
-    width: 100%; /* Tam genişlik */
-    height: 100%; /* Tam yükseklik */
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); /* Parlama efekti */
-    transition: left 0.5s ease; /* Geçiş efekti */
+    content: ''; /* İçerik: boş - Content: empty */
+    position: absolute; /* Konum: mutlak - Position: absolute */
+    top: 0; /* Üst: 0 - Top: 0 */
+    left: -100%; /* Sol: -100% (gizli) - Left: -100% (hidden) */
+    width: 100%; /* Genişlik: %100 - Width: 100% */
+    height: 100%; /* Yükseklik: %100 - Height: 100% */
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); /* Arka plan gradient: parlama efekti - Background gradient: shine effect */
+    transition: left 0.5s ease; /* Geçiş: sol pozisyon 0.5s - Transition: left position 0.5s ease */
 }
 
-/* Sil Butonu Hover Öncesi */
-/* Delete Button Hover Before */
+/* Sil Butonu Hover Öncesi - Delete Button Hover Before */
 .btn-delete-action:hover::before {
-    left: 100%; /* Sağa kaydır (parlama efekti) */
+    left: 100%; /* Hover sol pozisyon: %100 (sağa kaydır) - Hover left position: 100% (shift right) */
 }
 
-/* Responsive Design */
-/* Responsive Design */
-@media (max-width: 768px) {
-    /* Detay Grid */
+/* Responsive Design - Responsive Tasarım */
+@media (max-width: 768px) { /* Medya sorgusu: maksimum genişlik 768px - Media query: max width 768px */
+    /* Detay Grid - Detail Grid */
     .detail-grid {
-        grid-template-columns: 1fr; /* Tek sütun */
-        gap: 20px; /* Elemanlar arası boşluk azalt */
+        grid-template-columns: 1fr; /* Grid sütunları: 1 sütun - Grid columns: 1 column */
+        gap: 20px; /* Elemanlar arası boşluk: 20px - Gap between elements: 20px */
     }
     
-    /* Detay Aksiyonlar */
+    /* Detay Aksiyonlar - Detail Actions */
     .detail-actions {
-        flex-direction: column; /* Dikey düzen */
-        align-items: stretch; /* Tam genişlik */
+        flex-direction: column; /* Flex yönü: dikey - Flex direction: column */
+        align-items: stretch; /* Dikey hizalama: tam genişlik - Vertical alignment: stretch */
     }
     
-    /* Butonlar */
+    /* Butonlar - Buttons */
     .btn-delete-action,
     .btn-secondary-action {
-        width: 100%; /* Tam genişlik */
-        justify-content: center; /* Yatay hizalama */
+        width: 100%; /* Genişlik: %100 - Width: 100% */
+        justify-content: center; /* Yatay hizalama: orta - Horizontal alignment: center */
     }
 }
-
