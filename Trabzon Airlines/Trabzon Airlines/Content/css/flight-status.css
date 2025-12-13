@@ -1,0 +1,321 @@
+/* ================== FLIGHT STATUS PAGE STYLES ================== */
+/* Uçuş Durumu Sayfası Stilleri - Flight Status Page Styles */
+
+/* Page Content Container - Sayfa İçerik Konteyneri */
+.page-content {
+    padding: 2rem 0;
+    min-height: calc(100vh - 200px);
+}
+
+/* Page Header - Sayfa Başlığı */
+.flight-status-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+.flight-status-header .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.flight-status-header .page-title i {
+    color: #e4002b;
+    font-size: 2.5rem;
+}
+
+/* Flight Status Table - Uçuş Durumu Tablosu */
+.flight-status-container {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    overflow-x: auto;
+}
+
+.fly-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+    background: #ffffff;
+}
+
+.fly-table thead {
+    background: linear-gradient(135deg, #e4002b 0%, #c20025 100%);
+    color: #ffffff;
+}
+
+.fly-table thead th {
+    padding: 1.25rem 1rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.fly-table thead th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.fly-table thead th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.fly-table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.fly-table tbody tr:hover {
+    background: linear-gradient(135deg, rgba(228, 0, 43, 0.05) 0%, rgba(228, 0, 43, 0.02) 100%);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.fly-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.fly-table tbody td {
+    padding: 1.25rem 1rem;
+    color: #1a202c;
+    vertical-align: middle;
+    font-size: 0.95rem;
+}
+
+.fly-table tbody td:first-child {
+    font-weight: 600;
+    color: #e4002b;
+    font-size: 1rem;
+}
+
+/* Flight Number - Uçuş Numarası */
+.flight-number {
+    font-weight: 700;
+    color: #e4002b;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+/* Route Display - Güzergah Gösterimi */
+.route-display {
+    font-weight: 600;
+    color: #1a202c;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.route-display .route-arrow {
+    color: #e4002b;
+    font-size: 1.2rem;
+}
+
+/* Departure Time - Kalkış Saati */
+.departure-time {
+    font-weight: 600;
+    color: #1a202c;
+    font-family: 'Courier New', monospace;
+}
+
+/* Weather Condition - Hava Durumu */
+.weather-condition {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-weight: 500;
+    color: #1a202c;
+}
+
+.weather-condition i {
+    color: #0066cc;
+}
+
+/* Delay Risk Badges - Rötar Riski Rozetleri */
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: #1a202c;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.badge.bg-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+/* Empty State - Boş Durum */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #e4002b;
+    opacity: 0.3;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Responsive Design - Mobil Uyumluluk */
+@media (max-width: 768px) {
+    .flight-status-header {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .flight-status-header .page-title {
+        font-size: 1.75rem;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .flight-status-header .page-title i {
+        font-size: 1.75rem;
+    }
+
+    .flight-status-container {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .fly-table {
+        font-size: 0.875rem;
+    }
+
+    .fly-table thead th,
+    .fly-table tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .fly-table thead th {
+        font-size: 0.8rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-content {
+        padding: 1rem 0;
+    }
+
+    .flight-status-header .page-title {
+        font-size: 1.5rem;
+    }
+
+    .fly-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .fly-table thead,
+    .fly-table tbody,
+    .fly-table tr,
+    .fly-table td,
+    .fly-table th {
+        display: block;
+    }
+
+    .fly-table thead {
+        display: none;
+    }
+
+    .fly-table tr {
+        margin-bottom: 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem;
+        background: #ffffff;
+    }
+
+    .fly-table td {
+        border: none;
+        padding: 0.5rem 0;
+        text-align: left;
+        position: relative;
+        padding-left: 50%;
+    }
+
+    .fly-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 45%;
+        font-weight: 600;
+        color: #e4002b;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+    }
+
+    .badge {
+        display: inline-block;
+    }
+}
+
+/* Print Styles - Yazdırma Stilleri */
+@media print {
+    .flight-status-container {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+
+    .fly-table tbody tr:hover {
+        background: transparent;
+        transform: none;
+        box-shadow: none;
+    }
+}
+

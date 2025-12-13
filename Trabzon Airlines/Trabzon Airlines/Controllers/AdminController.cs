@@ -152,7 +152,7 @@ namespace Trabzon_Airlines.Controllers
                     ToCode = f.ToCode,
                     DepartureTime = f.DepartureTime,
                     ArrivalTime = f.ArrivalTime,
-                    Price = f.Price
+                    Price = f.EconomyPrice
                 })
                 .ToList();
 
@@ -349,10 +349,24 @@ namespace Trabzon_Airlines.Controllers
             }
         }
 
+
+
+        // Admin kullanıcılarını görüntelemek için
+        public ActionResult AdminAcounts()
+        {
+            var admins = db.Admins.ToList(); 
+            return View(admins);
+        }
+
+
+
+
+
         // --------------------------
         // DISPOSE - KAYNAKLARI TEMİZLE
         // Dispose - Clean up resources
         // --------------------------
+
         protected override void Dispose(bool disposing)
         {
             // Eğer disposing true ise veritabanı bağlantısını kapat

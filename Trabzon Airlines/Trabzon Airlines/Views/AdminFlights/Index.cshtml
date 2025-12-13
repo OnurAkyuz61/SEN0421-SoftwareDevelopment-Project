@@ -104,7 +104,12 @@
                                 @* Fiyat *@
                                 @* Price *@
                                 <td>
-                                    <strong class="price-value">@flight.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</strong>
+                                    <div>
+                                        <strong>Eco:</strong> @flight.EconomyPrice.ToString("C", new System.Globalization.CultureInfo("tr-TR"))
+                                    </div>
+                                    <div>
+                                        <strong>Bus:</strong> @flight.BusinessPrice.ToString("C", new System.Globalization.CultureInfo("tr-TR"))
+                                    </div>
                                 </td>
 
                                 @* Hava Durumu *@

@@ -95,11 +95,43 @@
 /* Seat Number */
 .seat-number {
     display: inline-block; /* Satır içi blok */
-    padding: 4px 10px; /* Padding */
-    background: #f0f0f0; /* Açık gri arka plan */
-    border-radius: 4px; /* Yuvarlatılmış köşeler */
+    padding: 6px 12px; /* Padding */
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); /* Yeşil gradient arka plan */
+    border-radius: 6px; /* Yuvarlatılmış köşeler */
+    font-weight: 600; /* Font kalınlığı */
+    color: #2e7d32; /* Koyu yeşil renk */
+    font-size: 14px; /* Font boyutu */
+    box-shadow: 0 2px 4px rgba(46, 125, 50, 0.2); /* Gölge efekti */
+    transition: all 0.3s ease; /* Geçiş efekti */
+}
+
+/* Koltuk Numarası Hover */
+/* Seat Number Hover */
+.seat-number:hover {
+    transform: translateY(-2px); /* Yukarı kaydırma */
+    box-shadow: 0 4px 8px rgba(46, 125, 50, 0.3); /* Hover gölge */
+}
+
+/* Rota Bilgisi */
+/* Route Info */
+.route-info {
+    display: flex; /* Flexbox düzeni */
+    align-items: center; /* Dikey hizalama */
+    gap: 8px; /* Elemanlar arası boşluk */
+}
+
+/* Rota Kodu */
+/* Route Code */
+.route-code {
     font-weight: 600; /* Font kalınlığı */
     color: #333; /* Metin rengi */
-    font-size: 14px; /* Font boyutu */
+    font-size: 16px; /* Font boyutu */
+}
+
+/* Rota Ok */
+/* Route Arrow */
+.route-arrow {
+    color: #e4002b; /* Kırmızı renk */
+    font-size: 14px; /* İkon boyutu */
 }
 

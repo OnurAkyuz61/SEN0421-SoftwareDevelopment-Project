@@ -80,16 +80,16 @@
                         <span data-tr="Dashboard" data-en="Dashboard">Dashboard</span>
                     </a>
                 </li>
-                
+
                 @* Uçuş Yönetimi *@
                 @* Flight Management *@
                 <li class="admin-menu-item">
-                    <a href="@Url.Action("Index", "AdminFlights")" class="admin-menu-link @((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "AdminFlights" ? "active" : "")">
+                    <a href="@Url.Action("Index", "AdminFlights")" class="admin-menu-link @((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "AdminFlights" && (ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "Index" ? "active" : "")">
                         <i class="fa-solid fa-plane"></i>
                         <span data-tr="Uçuş Yönetimi" data-en="Flight Management">Uçuş Yönetimi</span>
                     </a>
                 </li>
-                
+
                 @* Yeni Uçuş Ekle *@
                 @* Add New Flight *@
                 <li class="admin-menu-item">
@@ -98,7 +98,7 @@
                         <span data-tr="Yeni Uçuş Ekle" data-en="Add New Flight">Yeni Uçuş Ekle</span>
                     </a>
                 </li>
-                
+
                 @* Rezervasyon Yönetimi *@
                 @* Booking Management *@
                 <li class="admin-menu-item">
@@ -107,7 +107,7 @@
                         <span data-tr="Rezervasyon Yönetimi" data-en="Booking Management">Rezervasyon Yönetimi</span>
                     </a>
                 </li>
-                
+
                 @* Kullanıcı Yönetimi *@
                 @* User Management *@
                 <li class="admin-menu-item">
@@ -116,16 +116,16 @@
                         <span data-tr="Kullanıcı Yönetimi" data-en="User Management">Kullanıcı Yönetimi</span>
                     </a>
                 </li>
-                
+
                 @* Admin Yönetimi *@
                 @* Admin Management *@
                 <li class="admin-menu-item">
-                    <a href="@Url.Action("Index", "AdminAdmins")" class="admin-menu-link @((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "AdminAdmins" ? "active" : "")">
+                    <a href="@Url.Action("AdminAcounts", "Admin")" class="admin-menu-link @((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "AdminAdmins" ? "active" : "")">
                         <i class="fa-solid fa-user-shield"></i>
                         <span data-tr="Admin Yönetimi" data-en="Admin Management">Admin Yönetimi</span>
                     </a>
                 </li>
-                
+
                 @* Ayarlar *@
                 @* Settings *@
                 <li class="admin-menu-item">
@@ -134,6 +134,17 @@
                         <span data-tr="Ayarlar" data-en="Settings">Ayarlar</span>
                     </a>
                 </li>
+                @* Admin Support *@
+                <li class="admin-menu-item">
+                    <a href="@Url.Action("Index", "AdminSupport")"
+                       class="admin-menu-link @(((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "AdminSupport") ? "active" : "")">
+                        <i class="fa-solid fa-headset"></i>
+                        <span data-tr="Destek Talepleri" data-en="Support Tickets">Destek Talepleri</span>
+                    </a>
+                </li>
+
+
+
             </ul>
         </div>
     </aside>

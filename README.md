@@ -95,7 +95,8 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
 - 📄 **Sayfalar**
   - Ana Sayfa (Index) - Uçuş arama ve öne çıkan teklifler
   - Hakkımızda (About) - Şirket bilgileri, misyon, vizyon, ekip
-  - İletişim (Contact) - İletişim formu ve FAQ
+  - İletişim (Contact) - İletişim formu ve FAQ (KVKK ve Gizlilik Politikası linkleri)
+  - Destek (Support) - Müşteri destek formu ve geçmiş talepler
   - Giriş Yap (Login) - Kullanıcı girişi
   - Kayıt Ol (Signup) - Yeni kullanıcı kaydı
   - Paketler (Packages) - Tüm paketleri listeleme
@@ -103,12 +104,17 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - Fırsatlar (Deals) - Tüm fırsatları listeleme
   - Fırsat Detay (DealDetail) - Fırsat detay sayfası
   - Ayarlar (Settings) - Kullanıcı profil ve ayar yönetimi
-  - Site Haritası (Sitemap) - Site yapısı
+  - Site Haritası (Sitemap) - Site yapısı (Admin sayfaları tek kategori altında)
   - Gizlilik Politikası (Privacy) - KVKK ve gizlilik bilgileri
+  - **KVKK Aydınlatma Metni (KVKK)** - 6698 sayılı KVKK kapsamında aydınlatma metni
+  - **Trip AI (TripAI)** - Akıllı seyahat planlayıcı
+  - **Uçuş Listesi (Flights/Index)** - Modern kart tasarımı ile aktif uçuş listesi
+  - **Uçuş Durumu (Flights/Status)** - Uçuş durum bilgileri ve rötar riski
   - **Koltuk Seçimi (Booking/SelectSeat)** - Uçuş sonrası koltuk seçimi (giriş zorunlu)
   - **Güvenli Ödeme (Payment/Index)** - Simüle edilmiş ödeme sayfası (giriş zorunlu)
   - **Ödeme Başarı (Payment/success)** - Başarılı ödeme sonrası rezervasyon oluşturma
   - **Rezervasyon Sonucu (Booking/BookingResult)** - Rezervasyon onay sayfası
+  - **404 Sayfa Bulunamadı (Error/NotFound)** - Özel 404 hata sayfası
 
 - 🔐 **Admin Sayfaları** ✅
   - **Admin Giriş (Admin/Login)** - Admin paneli giriş sayfası
@@ -116,10 +122,15 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - **Uçuş Yönetimi (AdminFlights/Index)** - Tüm uçuşları listeleme
   - **Yeni Uçuş Ekle (AdminFlights/Create)** - Yeni uçuş ekleme formu
   - **Uçuş Düzenle (AdminFlights/Edit)** - Uçuş bilgilerini düzenleme
+  - **Uçuş Sil (AdminFlights/Delete)** - Uçuş silme işlemi
   - **Rezervasyon Yönetimi (AdminBookings/Index)** - Tüm rezervasyonları listeleme
   - **Rezervasyon Detayı (AdminBookings/Details)** - Rezervasyon detay görüntüleme
   - **Kullanıcı Yönetimi (AdminUsers/Index)** - Tüm kullanıcıları listeleme
   - **Kullanıcı Detayı (AdminUsers/Details)** - Kullanıcı detay görüntüleme
+  - **Admin Yönetimi (AdminAdmins/Index)** - Admin kullanıcıları listeleme
+  - **Yeni Admin Ekle (AdminAdmins/Create)** - Yeni admin ekleme
+  - **Admin Düzenle (AdminAdmins/Edit)** - Admin bilgilerini düzenleme
+  - **Destek Talepleri (AdminSupport/Index)** - Müşteri destek taleplerini yönetme
   - **Ayarlar (Admin/Settings)** - Admin profil ve şifre yönetimi
 
 ## 🛠️ Kullanılan Teknolojiler
@@ -139,7 +150,21 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
 ### Frontend
 - **HTML5** - Semantik yapı ve erişilebilirlik
 - **CSS3** - Modern styling, animasyonlar ve responsive tasarım
-  - Custom CSS dosyaları (style.css, about.css, auth.css, contact.css)
+  - Custom CSS dosyaları:
+    - style.css - Ana stil dosyası
+    - about.css - Hakkımızda sayfası
+    - auth.css - Giriş/Kayıt sayfaları
+    - contact.css - İletişim sayfası
+    - support.css - Destek sayfası
+    - trip.css - Trip AI sayfası
+    - flight-list.css - Uçuş listesi sayfası
+    - flight-status.css - Uçuş durumu sayfası
+    - admin-layout.css - Admin paneli layout
+    - admin-dashboard.css - Admin dashboard
+    - admin-flights.css - Admin uçuş yönetimi
+    - admin-bookings.css - Admin rezervasyon yönetimi
+    - admin-users.css - Admin kullanıcı yönetimi
+    - ve diğer admin sayfaları için özel CSS dosyaları
   - Bootstrap 5 - Grid sistemi ve utilities
 - **JavaScript (ES6+)** - İnteraktif özellikler ve DOM manipülasyonu
   - airports.js - Havalimanı listesi ve seçim
@@ -150,6 +175,7 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - alerts.js - Uyarı mesajları
   - multi-city.js - Çoklu uçuş yönetimi
   - trip-type.js - Seyahat türü yönetimi
+  - tripai.js - Trip AI fonksiyonları
   - main.js - Ana initialization
   - auth.js - Kimlik doğrulama
 - **Font Awesome 6.5.0** - İkon kütüphanesi
@@ -180,13 +206,19 @@ web-prog-proj/
 │       │   ├── FilterConfig.cs   # Filter yapılandırması
 │       │   └── RouteConfig.cs     # Route yapılandırması
 │       ├── Controllers/
-│       │   ├── HomeController.cs   # Ana controller (Index, About, Contact, Login, Signup, Packages, Deals, Settings)
-│       │   ├── AdminController.cs  # Admin controller (Dashboard, Packages, Deals yönetimi)
+│       │   ├── HomeController.cs   # Ana controller (Index, About, Contact, Login, Signup, Packages, Deals, Settings, Support, TripAI, Privacy, KVKK, Sitemap)
+│       │   ├── AdminController.cs  # Admin controller (Dashboard, Packages, Deals yönetimi, Settings)
 │       │   ├── FlightsController.cs # Uçuş controller (Index, Status, Search, SearchResults)
 │       │   ├── AdminFlightsController.cs # Admin uçuş yönetimi (CRUD işlemleri)
-│       │   ├── BookingController.cs # Rezervasyon controller (SelectSeat, vb.)
-│       │   ├── PaymentController.cs # Ödeme controller (Index, Pay, Callback - Iyzico entegrasyonu)
-│       │   └── AccountController.cs # Hesap yönetimi controller
+│       │   ├── BookingController.cs # Rezervasyon controller (SelectSeat, BookingResult)
+│       │   ├── PaymentController.cs # Ödeme controller (Index, Pay, success, error - Simüle edilmiş ödeme)
+│       │   ├── AccountController.cs # Hesap yönetimi controller (Dashboard, Account)
+│       │   ├── SupportController.cs # Destek controller (Support form POST)
+│       │   ├── AdminBookingsController.cs # Admin rezervasyon yönetimi
+│       │   ├── AdminUsersController.cs # Admin kullanıcı yönetimi
+│       │   ├── AdminAdminsController.cs # Admin admin yönetimi
+│       │   ├── AdminSupport.cs # Admin destek talepleri yönetimi
+│       │   └── ErrorController.cs # Hata yönetimi (NotFound, Index)
 │       ├── Models/
 │       │   ├── User.cs             # Kullanıcı modeli
 │       │   ├── Admin.cs            # Admin modeli
@@ -246,11 +278,21 @@ web-prog-proj/
 │       │       └── _Layout.cshtml # Master layout
 │       ├── Content/
 │       │   ├── css/
-│       │   │   ├── style.css      # Ana CSS
-│       │   │   ├── about.css       # Hakkımızda CSS
-│       │   │   ├── auth.css       # Auth sayfaları CSS
-│       │   │   └── contact.css   # İletişim CSS
-│       │   └── bootstrap.css      # Bootstrap CSS
+│       │   │   ├── style.css          # Ana CSS
+│       │   │   ├── about.css           # Hakkımızda CSS
+│       │   │   ├── auth.css           # Auth sayfaları CSS
+│       │   │   ├── contact.css        # İletişim CSS
+│       │   │   ├── support.css        # Destek sayfası CSS
+│       │   │   ├── trip.css            # Trip AI sayfası CSS
+│       │   │   ├── flight-list.css    # Uçuş listesi CSS
+│       │   │   ├── flight-status.css  # Uçuş durumu CSS
+│       │   │   ├── admin-layout.css    # Admin layout CSS
+│       │   │   ├── admin-dashboard.css # Admin dashboard CSS
+│       │   │   ├── admin-flights.css  # Admin uçuş yönetimi CSS
+│       │   │   ├── admin-bookings.css  # Admin rezervasyon CSS
+│       │   │   ├── admin-users.css     # Admin kullanıcı CSS
+│       │   │   └── ...                 # Diğer admin sayfaları CSS dosyaları
+│       │   └── bootstrap.css          # Bootstrap CSS
 │       ├── Scripts/
 │       │   ├── airports.js        # Havalimanı yönetimi
 │       │   ├── language.js        # Dil sistemi
@@ -360,10 +402,53 @@ web-prog-proj/
 - Ekip tanıtımı (CEO, CTO, Operations Manager)
 
 ### 📞 İletişim (Home/Contact)
-- İletişim formu (Ad Soyad, E-posta, Telefon, Konu, Mesaj)
+- İletişim formu (Ad Soyad, E-posta, Telefon, Konu, Rezervasyon Numarası, Mesaj)
+- **KVKK ve Gizlilik Politikası linkleri** - Form altında onay checkbox'ı
 - Şirket iletişim bilgileri (Telefon, E-posta, Adres, Çalışma Saatleri)
 - Sık sorulan sorular (FAQ)
 - Form validasyonu
+- **Tam genişlik input alanları** - Modern form tasarımı
+
+### 🆘 Destek (Home/Support)
+- Müşteri destek formu (Ad Soyad, E-posta, Konu, PNR, Mesaj)
+- İletişim bilgileri kartları
+- Sık sorulan konular listesi
+- Geçmiş destek talepleri tablosu (giriş yapmış kullanıcılar için)
+- Modern kart tasarımı ve gradient efektler
+- Responsive tasarım
+
+### 🤖 Trip AI (Home/TripAI)
+- Akıllı seyahat planlayıcı
+- Form: Şehir, Seyahat Süresi, Bütçe, İlgi Alanı seçimi
+- AI chat arayüzü - Mesaj baloncukları
+- Örnek seyahat planları
+- Modern kart tasarımı ve animasyonlar
+- Responsive tasarım
+
+### ✈️ Uçuş Listesi (Flights/Index)
+- **Modern kart tasarımı** - Tablo yerine kart görünümü
+- Uçuş bilgileri: Sefer numarası, güzergah, saatler, fiyatlar
+- **Bilet Satın Al butonu** - Koltuk seçim sayfasına yönlendirme
+- Economy ve Business fiyat gösterimi
+- Hover efektleri ve animasyonlar
+- Responsive grid yapısı
+
+### 📊 Uçuş Durumu (Flights/Status)
+- Tüm uçuşların durum bilgileri
+- Hava durumu ve rötar riski gösterimi
+- Modern tablo tasarımı
+- Renkli badge'ler (Yüksek/Orta/Düşük risk)
+- Responsive tasarım
+
+### 📋 KVKK Aydınlatma Metni (Home/KVKK)
+- 6698 sayılı KVKK kapsamında aydınlatma metni
+- Veri sorumlusu bilgileri
+- İşlenen kişisel veriler
+- İşlenme amaçları ve hukuki sebepler
+- Kişisel veri sahibinin hakları
+- Güvenlik önlemleri
+- İletişim bilgileri
+- Modern sayfa tasarımı
 
 ### 🔐 Giriş Yap (Home/Login)
 - E-posta ve şifre ile giriş
@@ -472,6 +557,7 @@ web-prog-proj/
 - `/` - Ana sayfa (Home/Index)
 - `/Home/About` - Hakkımızda
 - `/Home/Contact` - İletişim
+- `/Home/Support` - Müşteri destek
 - `/Home/Login` - Giriş yap
 - `/Home/Signup` - Kayıt ol
 - `/Home/Packages` - Paketler listesi
@@ -481,22 +567,39 @@ web-prog-proj/
 - `/Home/Settings` - Kullanıcı ayarları
 - `/Home/Sitemap` - Site haritası
 - `/Home/Privacy` - Gizlilik politikası
-- `/Flights/Index` - Aktif uçuş listesi
+- `/Home/KVKK` - KVKK aydınlatma metni
+- `/Home/TripAI` - Trip AI - Akıllı seyahat planlayıcı
+- `/Flights/Index` - Aktif uçuş listesi (Modern kart tasarımı)
 - `/Flights/Status` - Uçuş durum sayfası
 - `/Flights/Search` - Uçuş arama (POST - JSON API)
 - `/Flights/SearchResults` - Uçuş arama sonuçları
 - `/Booking/SelectSeat` - Koltuk seçimi (giriş zorunlu)
+- `/Booking/BookingResult` - Rezervasyon sonucu
 - `/Payment/Index` - Güvenli ödeme sayfası (simüle edilmiş ödeme, giriş zorunlu)
 - `/Payment/Pay` - Ödeme işlemi (POST - simüle edilmiş)
 - `/Payment/success` - Ödeme başarı sayfası (rezervasyon oluşturma)
+- `/Payment/error` - Ödeme hata sayfası
+- `/Account/Dashboard` - Kullanıcı dashboard
+- `/Account/Account` - Hesap bilgileri
+- `/Error/NotFound` - 404 sayfa bulunamadı
 - `/Admin/Login` - Admin giriş
 - `/Admin/Dashboard` - Admin dashboard
 - `/Admin/Packages` - Admin paket yönetimi
 - `/Admin/Deals` - Admin fırsat yönetimi
+- `/Admin/Settings` - Admin ayarlar
+- `/Admin/AdminAcounts` - Admin yönetimi
 - `/AdminFlights/Index` - Admin uçuş listesi
 - `/AdminFlights/Create` - Yeni uçuş ekleme
 - `/AdminFlights/Edit/{id}` - Uçuş düzenleme
 - `/AdminFlights/Delete/{id}` - Uçuş silme
+- `/AdminBookings/Index` - Admin rezervasyon listesi
+- `/AdminBookings/Details/{id}` - Rezervasyon detayı
+- `/AdminUsers/Index` - Admin kullanıcı listesi
+- `/AdminUsers/Details/{id}` - Kullanıcı detayı
+- `/AdminAdmins/Index` - Admin admin listesi
+- `/AdminAdmins/Create` - Yeni admin ekleme
+- `/AdminAdmins/Edit/{id}` - Admin düzenleme
+- `/AdminSupport/Index` - Destek talepleri yönetimi
 
 ### Özellikler
 - **Havalimanı Yönetimi:** 66+ Türkiye havalimanı (uluslararası ve yerel)
@@ -508,7 +611,7 @@ web-prog-proj/
 - **Otomatik Migration:** Uygulama başlangıcında otomatik veritabanı güncelleme
 - **Güvenlik:** SHA256 şifre hash'leme, Session yönetimi, Anti-forgery token
 - **Yetkilendirme:** Admin paneli için özel yetkilendirme attribute'u
-- **CRUD İşlemleri:** Paket, fırsat ve uçuş yönetimi için tam CRUD desteği
+- **CRUD İşlemleri:** Paket, fırsat, uçuş, kullanıcı, admin ve rezervasyon yönetimi için tam CRUD desteği
 - **Rezervasyon Sistemi:** Paket, fırsat ve uçuş rezervasyonları için model yapısı
 - **Ödeme Sistemi:** Simüle edilmiş ödeme sistemi (gerçek ödeme yapılmaz)
 - **Koltuk Rezervasyonu:** Uçuş sonrası koltuk seçimi ve rezervasyon sistemi
@@ -520,6 +623,12 @@ web-prog-proj/
 - **Session Yönetimi:** Rezervasyon bilgilerinin ödeme sayfasına aktarımı
 - **Dinamik UI:** Gerçek zamanlı kart bilgisi gösterimi ve para birimi dönüşümü
 - **Otomatik Rezervasyon:** Ödeme simülasyonu sonrası otomatik bilet oluşturma
+- **Hata Yönetimi:** 404 sayfa bulunamadı ve genel hata sayfaları (ErrorController)
+- **KVKK Uyumluluğu:** KVKK aydınlatma metni ve gizlilik politikası sayfaları
+- **Destek Sistemi:** Müşteri destek formu ve talep yönetimi (SupportController)
+- **Trip AI:** Akıllı seyahat planlayıcı ile örnek seyahat planları
+- **Modern CSS Tasarımı:** Tüm sayfalar için tutarlı, modern ve responsive CSS tasarımı
+- **Sitemap Güncellemesi:** Admin sayfaları tek kategori altında organize edildi
 
 ## 🎯 Gerçekleştirilen Özellikler
 
@@ -532,8 +641,10 @@ web-prog-proj/
 - **Uçuş Arama:** Gelişmiş arama formu ve validasyon
 - **Uçuş Arama API:** Veritabanı entegrasyonu ile gerçek zamanlı uçuş arama (FlightsController/Search)
 - **Uçuş Sonuçları:** Detaylı uçuş sonuçları sayfası (SearchResults)
+- **Uçuş Listesi:** Modern kart tasarımı ile aktif uçuş listesi
+- **Uçuş Durumu:** Hava durumu ve rötar riski ile uçuş durum sayfası
 - **Popup Modal:** Uçuş bulunamadığında kullanıcıya bilgilendirme modal'ı
-- **Kullanıcı Yönetimi:** Login, Signup ve Settings sayfaları
+- **Kullanıcı Yönetimi:** Login, Signup, Settings, Dashboard ve Account sayfaları
 - **Form Validasyonu:** Client-side ve server-side validasyon
 - **Modal Sistemleri:** Havalimanı, yolcu, dil seçim modalları
 - **Bundle & Minification:** CSS/JS optimizasyonu
@@ -541,12 +652,21 @@ web-prog-proj/
 - **Admin Paneli:** Tam özellikli admin yönetim sistemi
 - **Paket Yönetimi:** CRUD işlemleri ile paket yönetimi
 - **Fırsat Yönetimi:** CRUD işlemleri ile fırsat yönetimi
+- **Uçuş Yönetimi:** CRUD işlemleri ile uçuş yönetimi
+- **Kullanıcı Yönetimi:** Admin panelinde kullanıcı listeleme ve detay görüntüleme
+- **Admin Yönetimi:** Admin kullanıcıları için CRUD işlemleri
+- **Destek Yönetimi:** Müşteri destek taleplerini yönetme
 - **Güvenlik:** SHA256 şifre hash'leme, Session yönetimi
 - **Yetkilendirme:** Admin paneli için özel yetkilendirme sistemi
 - **Ödeme Sistemi:** Simüle edilmiş ödeme sistemi (gerçek ödeme yapılmaz)
 - **Koltuk Seçimi:** Uçuş sonrası koltuk seçimi ve rezervasyon sistemi
 - **Kullanıcı Giriş Kontrolü:** Rezervasyon işlemleri için zorunlu giriş kontrolü
 - **ReturnUrl Desteği:** Giriş sonrası önceki sayfaya geri dönüş
+- **Hata Yönetimi:** 404 sayfa bulunamadı ve genel hata sayfaları
+- **KVKK Uyumluluğu:** KVKK aydınlatma metni ve gizlilik politikası sayfaları
+- **Destek Sistemi:** Müşteri destek formu ve geçmiş talep görüntüleme
+- **Trip AI:** Akıllı seyahat planlayıcı ile örnek seyahat planları
+- **Modern CSS Tasarımı:** Tüm sayfalar için tutarlı, modern ve responsive CSS tasarımı
 
 ### 🔧 Teknik Özellikler
 - ASP.NET MVC 5 (.NET Framework 4.7.2)
@@ -570,28 +690,42 @@ web-prog-proj/
 ### Önemli Dosyalar
 - `BundleConfig.cs` - CSS/JS bundle yapılandırması
 - `_Layout.cshtml` - Master layout (header, sidebar, footer, modals - uçuş bulunamadı modal'ı dahil)
-- `HomeController.cs` - Ana controller ve action'lar
-- `AdminController.cs` - Admin paneli controller'ı
+- `_AdminLayout.cshtml` - Admin paneli layout
+- `HomeController.cs` - Ana controller ve action'lar (Index, About, Contact, Support, Login, Signup, TripAI, Privacy, KVKK, Sitemap)
+- `AdminController.cs` - Admin paneli controller'ı (Dashboard, Settings, AdminAcounts)
 - `FlightsController.cs` - Uçuş controller (Index, Status, Search API, SearchResults)
-- `AdminFlightsController.cs` - Admin uçuş yönetimi controller'ı
-- `BookingController.cs` - Rezervasyon controller'ı (SelectSeat - koltuk seçimi, giriş kontrolü)
-- `PaymentController.cs` - Ödeme controller'ı (Index, Pay - simüle edilmiş ödeme)
-- `AccountController.cs` - Hesap yönetimi controller'ı (Login, Signup - ReturnUrl desteği)
-- `TAContext.cs` - Entity Framework veritabanı bağlamı (Flights, Seats, FlightSeats, Bookings, Users, Admins)
+- `AdminFlightsController.cs` - Admin uçuş yönetimi controller'ı (CRUD işlemleri)
+- `BookingController.cs` - Rezervasyon controller'ı (SelectSeat - koltuk seçimi, BookingResult, giriş kontrolü)
+- `PaymentController.cs` - Ödeme controller'ı (Index, Pay, success, error - simüle edilmiş ödeme)
+- `AccountController.cs` - Hesap yönetimi controller'ı (Dashboard, Account)
+- `SupportController.cs` - Destek controller'ı (Support form POST)
+- `ErrorController.cs` - Hata yönetimi controller'ı (NotFound, Index)
+- `AdminBookingsController.cs` - Admin rezervasyon yönetimi controller'ı
+- `AdminUsersController.cs` - Admin kullanıcı yönetimi controller'ı
+- `AdminAdminsController.cs` - Admin admin yönetimi controller'ı
+- `AdminSupport.cs` - Admin destek talepleri controller'ı
+- `TAContext.cs` - Entity Framework veritabanı bağlamı (Flights, Seats, FlightSeats, Bookings, Users, Admins, SupportRequests)
 - `AuthorizeAdminAttribute.cs` - Admin yetkilendirme attribute'u
-- `Web.config` - Web uygulaması yapılandırması (Connection String: TAConn)
-- `Global.asax.cs` - Otomatik migration yapılandırması
+- `Web.config` - Web uygulaması yapılandırması (Connection String: TAConn, Custom Errors)
+- `Global.asax.cs` - Otomatik migration yapılandırması ve hata yönetimi
+- `RouteConfig.cs` - Route yapılandırması (404 route dahil)
 - `Migrations/Configuration.cs` - Migration yapılandırması (AutomaticMigrationsEnabled = true)
-- `Models/` - Veritabanı modelleri (User, Admin, Flight, Seat, FlightSeat, Booking, Package, Deal, vb.)
+- `Models/` - Veritabanı modelleri (User, Admin, Flight, Seat, FlightSeat, Booking, Package, Deal, SupportRequest, vb.)
 - `js/flight-search.js` - Uçuş arama JavaScript fonksiyonları (AJAX entegrasyonu dahil)
+- `js/tripai.js` - Trip AI JavaScript fonksiyonları
+- `Content/css/support.css` - Destek sayfası CSS
+- `Content/css/trip.css` - Trip AI sayfası CSS
+- `Content/css/flight-list.css` - Uçuş listesi CSS
+- `Content/css/flight-status.css` - Uçuş durumu CSS
 
 ### Veritabanı Modelleri
-- **User:** Kullanıcı bilgileri (Ad, Soyad, E-posta, Şifre, TC, vb.)
-- **Admin:** Admin kullanıcı bilgileri (Kullanıcı adı, Şifre, Super Admin durumu)
-- **Flight:** Uçuş bilgileri (Sefer No, Kalkış/Varış havalimanı kodları, Kalkış/Varış zamanları, Fiyat, Aktif durumu, Hava durumu, Rötar riski)
+- **User:** Kullanıcı bilgileri (Ad, Soyad, E-posta, Şifre, TC, Doğum Tarihi, Cinsiyet, Telefon, vb.)
+- **Admin:** Admin kullanıcı bilgileri (Kullanıcı adı, Şifre, Ad, Soyad, E-posta, Super Admin durumu, Aktif durumu)
+- **Flight:** Uçuş bilgileri (Sefer No, Kalkış/Varış havalimanı kodları, Kalkış/Varış zamanları, Economy/Business fiyatları, Aktif durumu, Hava durumu, Rötar riski)
 - **Seat:** Koltuk bilgileri (Koltuk numarası, Kabin sınıfı)
 - **FlightSeat:** Uçuş-Koltuk ilişki tablosu (Uçuş ID, Koltuk ID, Rezerve durumu)
-- **Booking:** Rezervasyon bilgileri (Uçuş ID, Koltuk ID, Yolcu bilgileri, PNR, Rezervasyon tarihi) - Ödeme simülasyonu sonrası otomatik oluşturulur
+- **Booking:** Rezervasyon bilgileri (Uçuş ID, Koltuk ID, Yolcu bilgileri, PNR, Rezervasyon tarihi, Fiyat) - Ödeme simülasyonu sonrası otomatik oluşturulur
+- **SupportRequest:** Destek talepleri (Ad Soyad, E-posta, Konu, PNR, Mesaj, Durum, Kullanıcı ID, Oluşturulma tarihi)
 - **Package:** Paket bilgileri (Başlık, Açıklama, Fiyat, İndirim, Kategori, vb.)
 - **Deal:** Fırsat bilgileri (Başlık, Açıklama, İndirim, Tarih aralığı, Kampanya kodu, vb.)
 - **PackageReservation:** Paket rezervasyonları

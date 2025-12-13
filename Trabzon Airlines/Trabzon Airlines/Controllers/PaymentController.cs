@@ -88,7 +88,7 @@ namespace Trabzon_Airlines.Controllers
                     if (finalAmount == (amount ?? 1500m))
                     {
                         int totalPassengers = adultCount + childCount; // Infant genelde ücretsiz
-                        finalAmount = flight.Price * totalPassengers;
+                        finalAmount = pendingBooking.TotalPrice * totalPassengers;
                     }
                     
                     // Uçuş süresini hesapla (dakika cinsinden)
@@ -376,7 +376,13 @@ namespace Trabzon_Airlines.Controllers
                             PassengerName = user?.FirstName ?? "Bilinmeyen", // Yolcu adı - Passenger name
                             PassengerSurname = user?.LastName ?? "Kullanıcı", // Yolcu soyadı - Passenger surname
                             PNR = pnr, // PNR kodu - PNR code
-                            BookingDate = DateTime.Now // Rezervasyon tarihi - Booking date
+                            BookingDate = DateTime.Now, // Rezervasyon tarihi - Booking date
+
+
+
+                            // Güncel fiyatlandırma Koltuk buisnes economy göre 
+                            Price = pendingBooking.TotalPrice,
+                            CabinClass = pendingBooking.CabinClass
                         };
 
                         // Rezervasyonu veritabanına ekle

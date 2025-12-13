@@ -1,0 +1,119 @@
+﻿@model Trabzon_Airlines.Models.AccountViewModel
+
+@{
+    ViewBag.Title = "Hesabım";
+    ViewBag.TitleEn = "My Account";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/admin-dashboard.css?v=@DateTime.Now.Ticks">
+}
+
+@if (TempData["Success_tr"] != null)
+{
+    <div class="alert alert-success">@TempData["Success_tr"]</div>
+}
+@if (TempData["Error_tr"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error_tr"]</div>
+}
+
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="fa-solid fa-user-gear"></i>
+            <span data-tr="Hesabım" data-en="My Account">Hesabım</span>
+        </h1>
+        <p class="page-subtitle">
+            <span data-tr="Hesap bilgilerinizi görüntüleyebilir ve şifrenizi güncelleyebilirsiniz."
+                  data-en="View your account details and update your password.">
+                Hesap bilgilerinizi görüntüleyebilir ve şifrenizi güncelleyebilirsiniz.
+            </span>
+        </p>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <h2 class="dashboard-card-title">
+                <i class="fa-solid fa-id-card"></i>
+                <span data-tr="Profil Bilgileri" data-en="Profile Information">Profil Bilgileri</span>
+            </h2>
+        </div>
+        <div class="dashboard-card-body">
+            <div class="form-group mb-2">
+                <label class="form-label" data-tr="Ad" data-en="First Name">Ad</label>
+                <input type="text" class="form-control" value="@Model.FirstName" disabled />
+            </div>
+            <div class="form-group mb-2">
+                <label class="form-label" data-tr="Soyad" data-en="Last Name">Soyad</label>
+                <input type="text" class="form-control" value="@Model.LastName" disabled />
+            </div>
+            <div class="form-group mb-2">
+                <label class="form-label" data-tr="E-posta" data-en="Email">E-posta</label>
+                <input type="email" class="form-control" value="@Model.Email" disabled />
+            </div>
+            <div class="form-group mb-2">
+                <label class="form-label" data-tr="Telefon" data-en="Phone">Telefon</label>
+                <input type="text" class="form-control" value="@Model.Phone" disabled />
+            </div>
+            <div class="form-group mb-2">
+                <label class="form-label" data-tr="TC Kimlik No" data-en="National ID">TC Kimlik No</label>
+                <input type="text" class="form-control" value="@Model.TcNumber" disabled />
+            </div>
+            <div class="form-group mb-2">
+                <label class="form-label" data-tr="Doğum Tarihi" data-en="Birth Date">Doğum Tarihi</label>
+                <input type="text" class="form-control" value="@Model.BirthDate.ToString("dd.MM.yyyy")" disabled />
+            </div>
+            <div class="form-group mb-2">
+                <label class="form-label" data-tr="Cinsiyet" data-en="Gender">Cinsiyet</label>
+                <input type="text" class="form-control" value="@Model.Gender" disabled />
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <h2 class="dashboard-card-title">
+                <i class="fa-solid fa-key"></i>
+                <span data-tr="Şifre Değiştir" data-en="Change Password">Şifre Değiştir</span>
+            </h2>
+        </div>
+        <div class="dashboard-card-body">
+            @using (Html.BeginForm("Account", "Account", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                <div class="form-group mb-2">
+                    @Html.LabelFor(m => m.ChangePassword.CurrentPassword, new { @class = "form-label" })
+                    @Html.PasswordFor(m => m.ChangePassword.CurrentPassword, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.ChangePassword.CurrentPassword, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group mb-2">
+                    @Html.LabelFor(m => m.ChangePassword.NewPassword, new { @class = "form-label" })
+                    @Html.PasswordFor(m => m.ChangePassword.NewPassword, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.ChangePassword.ConfirmNewPassword, new { @class = "form-label" })
+                    @Html.PasswordFor(m => m.ChangePassword.ConfirmNewPassword, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.ChangePassword.ConfirmNewPassword, "", new { @class = "text-danger" })
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" data-tr="Şifreyi Güncelle" data-en="Update Password">
+                    Şifreyi Güncelle
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+

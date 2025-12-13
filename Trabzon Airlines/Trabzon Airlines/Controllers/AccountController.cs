@@ -1,79 +1,57 @@
-﻿using System.Linq; // LINQ sorguları için
-using System.Web.Mvc; // MVC controller için
-using Trabzon_Airlines.Data; // Veritabanı bağlamı için
-using Trabzon_Airlines.Models; // Model sınıfları için
-using System.Security.Cryptography; // Şifre hash'leme için
-using System.Text; // String işlemleri için
+﻿using System;
+using System.Linq;
+using System.Web.Mvc;
+using System.Security.Cryptography;
+using System.Text;
+using Trabzon_Airlines.Data;
+using Trabzon_Airlines.Models;
 
 namespace Trabzon_Airlines.Controllers
 {
     // Hesap yönetimi controller'ı - Kullanıcı kayıt ve giriş işlemleri
-    // Account management controller - User registration and login operations
     public class AccountController : Controller
     {
-        // Veritabanı bağlamı - TAContext sınıfından instance
-        // Database context - Instance from TAContext class
         private TAContext db = new TAContext();
 
         // --------------------------
         // SIGNUP (REGISTER) - POST
-        // Kullanıcı kayıt işlemi - POST metodu
         // --------------------------
-        [HttpPost] // HTTP POST isteği için
-        [ValidateAntiForgeryToken] // CSRF koruması için
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Signup(User model)
         {
-            // Model validasyonu kontrolü
-            // Check model validation
             if (!ModelState.IsValid)
             {
-                // Model geçersizse kayıt sayfasına yönlendir
-                // If model is invalid, redirect to signup page
                 return RedirectToAction("Signup", "Home");
             }
 
-            // E-posta zaten kayıtlı mı kontrol et
-            // Check if email is already registered
             var existing = db.Users.FirstOrDefault(x => x.Email == model.Email);
             if (existing != null)
             {
-                // E-posta zaten kayıtlıysa hata mesajı göster
-                // If email is already registered, show error message
                 TempData["Error_tr"] = "Bu e-posta adresi zaten kayıtlı!";
                 TempData["Error_en"] = "This email address is already registered!";
                 return RedirectToAction("Signup", "Home");
             }
 
-            // Şifreyi hash'le - SHA256 algoritması ile
-            // Hash the password - Using SHA256 algorithm
             model.Password = HashPassword(model.Password);
 
-            // Kullanıcıyı veritabanına kaydet
-            // Save user to database
             db.Users.Add(model);
             db.SaveChanges();
 
-            // Başarı mesajı göster
-            // Show success message
             TempData["Success_tr"] = "Kayıt başarılı! Giriş yapabilirsiniz.";
             TempData["Success_en"] = "Registration successful! You can now log in.";
 
-            // Giriş sayfasına yönlendir
-            // Redirect to login page
             return RedirectToAction("Login", "Home");
         }
 
         // --------------------------
         // LOGIN - POST
-        // Kullanıcı giriş işlemi - POST metodu
         // --------------------------
-        [HttpPost] // HTTP POST isteği için
-        [ValidateAntiForgeryToken] // CSRF koruması için
-        [ValidateInput(false)] // HTML input validasyonunu kapat
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ValidateInput(false)]
         public ActionResult Login(string email, string password)
         {
-            // E-posta ve şifre boş kontrolü
-            // Check if email and password are empty
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
                 TempData["Error_tr"] = "E-posta ve şifre gereklidir!";
@@ -81,24 +59,13 @@ namespace Trabzon_Airlines.Controllers
                 return RedirectToAction("Login", "Home");
             }
 
-            // Şifreyi hash'le - SHA256 algoritması ile
-            // Hash the password - Using SHA256 algorithm
             string hashedPassword = HashPassword(password);
 
-            // Debug: Veritabanında bu e-postaya sahip kullanıcı var mı kontrol et
-            // Debug: Check if user with this email exists in database
             var userByEmail = db.Users.FirstOrDefault(x => x.Email == email);
-            
-            // Veritabanından kullanıcıyı bul
-            // Find user from database
             var user = db.Users.FirstOrDefault(x => x.Email == email && x.Password == hashedPassword);
 
-            // Kullanıcı bulunamadıysa hata mesajı göster
-            // If user not found, show error message
             if (user == null)
             {
-                // Eğer e-posta varsa ama şifre yanlışsa
-                // If email exists but password is wrong
                 if (userByEmail != null)
                 {
                     TempData["Error_tr"] = "Şifre hatalı!";
@@ -106,76 +73,285 @@ namespace Trabzon_Airlines.Controllers
                 }
                 else
                 {
-                    // E-posta veritabanında yoksa
-                    // If email doesn't exist in database
                     TempData["Error_tr"] = "Bu e-posta adresi kayıtlı değil! Lütfen önce kayıt olun.";
                     TempData["Error_en"] = "This email address is not registered! Please sign up first.";
                 }
                 return RedirectToAction("Login", "Home");
             }
 
-            // Giriş başarılı - Session'a kullanıcı bilgilerini kaydet
-            // Login successful - Save user information to session
+            // Session set
             Session["UserId"] = user.UserId;
             Session["UserName"] = user.FirstName;
             Session["UserEmail"] = user.Email;
 
-            // ReturnUrl varsa oraya yönlendir, yoksa ana sayfaya yönlendir
-            // If ReturnUrl exists, redirect there, otherwise redirect to homepage
             string returnUrl = Request.QueryString["returnUrl"];
             if (!string.IsNullOrEmpty(returnUrl))
             {
                 return Redirect(returnUrl);
             }
 
-            // Ana sayfaya yönlendir
-            // Redirect to homepage
+            // Kullanıcı paneline
+            return RedirectToAction("Dashboard", "Account");
+        }
+
+        // --------------------------
+        // KULLANICI DASHBOARD
+        // --------------------------
+        [HttpGet]
+        public ActionResult Dashboard()
+        {
+            if (Session["UserId"] == null)
+            {
+                return RedirectToAction("Login", "Home");
+            }
+
+            int userId = (int)Session["UserId"];
+            var user = db.Users.Find(userId);
+
+            if (user == null)
+            {
+                Session.Clear();
+                return RedirectToAction("Login", "Home");
+            }
+
+            var fullName = user.FirstName + " " + user.LastName;
+            ViewBag.UserFullName = fullName;
+
+            // Booking tablosunda UserId yok → PassengerName/Surname ile eşliyoruz
+            var bookingsQuery =
+                db.Bookings
+                  .Where(b => b.PassengerName == user.FirstName &&
+                              b.PassengerSurname == user.LastName)
+                  .Join(db.Flights,
+                        b => b.FlightId,
+                        f => f.FlightId,
+                        (b, f) => new { Booking = b, Flight = f });
+
+            var now = DateTime.Now;
+
+            var upcomingList = bookingsQuery
+                .Where(x => x.Flight.DepartureTime >= now)
+                .OrderBy(x => x.Flight.DepartureTime)
+                .ToList()
+                .Select(x => new BookingListItemViewModel
+                {
+                    BookingId = x.Booking.BookingId,
+                    PNR = x.Booking.PNR,
+                    FlightNumber = x.Flight.FlightNumber,
+                    FromCode = x.Flight.FromCode,
+                    ToCode = x.Flight.ToCode,
+                    DepartureTime = x.Flight.DepartureTime,
+                    ArrivalTime = x.Flight.ArrivalTime,
+                    Price = x.Booking.Price  //Dashborddan alınan fiyat çıkar
+                })
+                .ToList();
+
+            var pastList = bookingsQuery
+                .Where(x => x.Flight.DepartureTime < now)
+                .OrderByDescending(x => x.Flight.DepartureTime)
+                .ToList()
+                .Select(x => new BookingListItemViewModel
+                {
+                    BookingId = x.Booking.BookingId,
+                    PNR = x.Booking.PNR,
+                    FlightNumber = x.Flight.FlightNumber,
+                    FromCode = x.Flight.FromCode,
+                    ToCode = x.Flight.ToCode,
+                    DepartureTime = x.Flight.DepartureTime,
+                    ArrivalTime = x.Flight.ArrivalTime,
+                    Price = x.Booking.Price
+                })
+                .ToList();
+
+            var allBookings = bookingsQuery.ToList();
+            var totalSpent = allBookings.Sum(x => x.Booking.Price);
+
+            var vm = new UserDashboardViewModel
+            {
+                FullName = fullName,
+                TotalBookings = allBookings.Count,
+                UpcomingCount = upcomingList.Count,
+                PastCount = pastList.Count,
+                TotalSpent = totalSpent,
+                UpcomingBookings = upcomingList,
+                PastBookings = pastList
+            };
+
+            return View(vm);
+        }
+
+        // --------------------------
+        // REZERVASYON İPTAL
+        // --------------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelBooking(int id)
+        {
+            if (Session["UserId"] == null)
+            {
+                return RedirectToAction("Login", "Home");
+            }
+
+            int userId = (int)Session["UserId"];
+            var user = db.Users.Find(userId);
+
+            if (user == null)
+            {
+                Session.Clear();
+                return RedirectToAction("Login", "Home");
+            }
+
+            var booking = db.Bookings.FirstOrDefault(b =>
+                b.BookingId == id &&
+                b.PassengerName == user.FirstName &&
+                b.PassengerSurname == user.LastName);
+
+            if (booking == null)
+            {
+                TempData["Error_tr"] = "Rezervasyon bulunamadı.";
+                TempData["Error_en"] = "Booking not found.";
+                return RedirectToAction("Dashboard");
+            }
+
+            // Koltuğu boşa çıkar
+            var flightSeat = db.FlightSeats
+                .FirstOrDefault(fs => fs.FlightId == booking.FlightId &&
+                                      fs.SeatId == booking.SeatId);
+
+            if (flightSeat != null)
+            {
+                flightSeat.IsReserved = false;
+            }
+
+            db.Bookings.Remove(booking);
+            db.SaveChanges();
+
+            TempData["Success_tr"] = "Rezervasyonunuz iptal edildi.";
+            TempData["Success_en"] = "Your booking has been cancelled.";
+            return RedirectToAction("Dashboard");
+        }
+
+        // --------------------------
+        // HESABIM (GET)
+        // --------------------------
+        [HttpGet]
+        public ActionResult Account()
+        {
+            if (Session["UserId"] == null)
+            {
+                return RedirectToAction("Login", "Home");
+            }
+
+            int userId = (int)Session["UserId"];
+            var user = db.Users.Find(userId);
+
+            if (user == null)
+            {
+                Session.Clear();
+                return RedirectToAction("Login", "Home");
+            }
+
+            var vm = new AccountViewModel
+            {
+                UserId = user.UserId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Phone = user.Phone,
+                TcNumber = user.TcNumber,
+                BirthDate = user.BirthDate,
+                Gender = user.Gender,
+                ChangePassword = new ChangePasswordViewModel()
+            };
+
+            return View(vm);
+        }
+
+        // --------------------------
+        // HESABIM (POST) - Şifre değiştir
+        // --------------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Account(AccountViewModel model)
+        {
+            if (Session["UserId"] == null)
+            {
+                return RedirectToAction("Login", "Home");
+            }
+
+            int userId = (int)Session["UserId"];
+            var user = db.Users.Find(userId);
+
+            if (user == null)
+            {
+                Session.Clear();
+                return RedirectToAction("Login", "Home");
+            }
+
+            if (model.ChangePassword != null &&
+                !string.IsNullOrWhiteSpace(model.ChangePassword.CurrentPassword) &&
+                !string.IsNullOrWhiteSpace(model.ChangePassword.NewPassword))
+            {
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
+
+                var currentHashed = HashPassword(model.ChangePassword.CurrentPassword);
+
+                if (user.Password != currentHashed)
+                {
+                    ModelState.AddModelError("", "Mevcut şifre hatalı.");
+                    return View(model);
+                }
+
+                user.Password = HashPassword(model.ChangePassword.NewPassword);
+                db.SaveChanges();
+
+                TempData["Success_tr"] = "Şifreniz başarıyla güncellendi.";
+                TempData["Success_en"] = "Your password has been updated.";
+                return RedirectToAction("Account");
+            }
+
+            return RedirectToAction("Account");
+        }
+
+        // --------------------------
+        // LOGOUT - Çıkış
+        // --------------------------
+        public ActionResult Logout()
+        {
+            Session.Clear();
             return RedirectToAction("Index", "Home");
         }
 
         // --------------------------
-        // ŞİFRE HASH'LEME FONKSİYONU
-        // Password hashing function - SHA256
+        // ŞİFRE HASH FONKSİYONU
         // --------------------------
         private string HashPassword(string password)
         {
-            // SHA256 hash algoritması kullanarak şifreyi hash'le
-            // Hash the password using SHA256 hash algorithm
             using (SHA256 sha256Hash = SHA256.Create())
             {
-                // Şifreyi byte array'e çevir
-                // Convert password to byte array
                 byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
 
-                // Byte array'i hexadecimal string'e çevir
-                // Convert byte array to hexadecimal string
                 StringBuilder builder = new StringBuilder();
                 for (int i = 0; i < bytes.Length; i++)
                 {
-                    builder.Append(bytes[i].ToString("x2")); // Her byte'ı 2 haneli hex'e çevir
+                    builder.Append(bytes[i].ToString("x2"));
                 }
-
-                // Hash'lenmiş şifreyi döndür
-                // Return hashed password
                 return builder.ToString();
             }
         }
 
         // --------------------------
-        // DISPOSE - KAYNAKLARI TEMİZLE
-        // Dispose - Clean up resources
+        // DISPOSE
         // --------------------------
         protected override void Dispose(bool disposing)
         {
-            // Eğer disposing true ise veritabanı bağlantısını kapat
-            // If disposing is true, close database connection
             if (disposing)
             {
-                db.Dispose(); // Veritabanı bağlantısını kapat
+                db.Dispose();
             }
-
-            // Base dispose metodunu çağır
-            // Call base dispose method
             base.Dispose(disposing);
         }
     }

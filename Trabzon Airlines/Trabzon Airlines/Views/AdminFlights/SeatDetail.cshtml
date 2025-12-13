@@ -1,18 +1,24 @@
-@model Trabzon_Airlines.Models.FlightSeat
+ï»¿@model Trabzon_Airlines.Models.FlightSeat
+@{ 
+    ViewBag.Title = "Koltuk YÃ¶netimi";
+    ViewBag.TitleEn = "Seat Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+}
 
 <h2>Koltuk Bilgisi</h2>
 <hr />
 
-<p><b>Uçuþ:</b> @Model.Flight.FlightNumber (@Model.Flight.FromCode - @Model.Flight.ToCode)</p>
+<p><b>UÃ§uÅŸ:</b> @Model.Flight.FlightNumber (@Model.Flight.FromCode - @Model.Flight.ToCode)</p>
 <p><b>Koltuk:</b> @Model.Seat.SeatNumber (@Model.Seat.CabinClass)</p>
-<p><b>Durum:</b> @(Model.IsReserved ? "DOLU" : "BOÞ")</p>
+<p><b>Durum:</b> @(Model.IsReserved ? "DOLU" : "BOÅž")</p>
 
 @if (Model.IsReserved)
 {
     <a href="@Url.Action("Unreserve", "AdminFlights", new { id = Model.FlightSeatId })"
-       class="btn btn-danger">Koltuk Boþalt</a>
+       class="btn btn-danger">Koltuk BoÅŸalt</a>
 }
 else
 {
-    <span style="color:green;">Bu koltuk þu anda boþtur.</span>
+    <span style="color:green;">Bu koltuk ÅŸu anda boÅŸtur.</span>
 }

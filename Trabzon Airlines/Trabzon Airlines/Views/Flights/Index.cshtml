@@ -9,64 +9,153 @@
     ViewBag.TitleEn = "Flight List";
 }
 
-@* Ana başlık - Çeviri desteği ile *@
-@* Main header - With translation support *@
-<h2 data-tr="Uçuş Listesi" data-en="Flight List">Uçuş Listesi</h2>
-@* Yatay çizgi ayırıcı *@
-@* Horizontal line separator *@
-<hr />
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/flight-list.css?v=@DateTime.Now.Ticks" />
+}
 
-@* Uçuş listesi tablosu *@
-@* Flight list table *@
-<table class="table table-bordered">
-    @* Tablo başlıkları *@
-    @* Table headers *@
-    <tr>
-        @* Sefer numarası sütunu *@
-        @* Flight number column *@
-        <th data-tr="Sefer No" data-en="Flight No">Sefer No</th>
-        @* Kalkış havalimanı sütunu *@
-        @* Departure airport column *@
-        <th data-tr="Kalkış" data-en="Departure">Kalkış</th>
-        @* Varış havalimanı sütunu *@
-        @* Arrival airport column *@
-        <th data-tr="Varış" data-en="Arrival">Varış</th>
-        @* Kalkış zamanı sütunu *@
-        @* Departure time column *@
-        <th data-tr="Kalkış Zamanı" data-en="Departure Time">Kalkış Zamanı</th>
-        @* Varış zamanı sütunu *@
-        @* Arrival time column *@
-        <th data-tr="Varış Zamanı" data-en="Arrival Time">Varış Zamanı</th>
-        @* İşlemler sütunu *@
-        @* Actions column *@
-        <th></th>
-    </tr>
+@* Sayfa içeriği container'ı *@
+@* Page content container *@
+<div class="flight-list-container">
+    <div class="container">
+        @* Sayfa başlığı - Çeviri desteği ile *@
+        @* Page title - With translation support *@
+        <div class="flight-list-header">
+            <h1 class="page-title" data-tr="Uçuş Listesi" data-en="Flight List">
+                <i class="fa-solid fa-plane"></i>
+                <span data-tr="Uçuş Listesi" data-en="Flight List">Uçuş Listesi</span>
+            </h1>
+            <p class="page-subtitle" data-tr="Mevcut tüm aktif uçuşlarımızı görüntüleyebilir ve bilet satın alabilirsiniz." 
+               data-en="You can view all our active flights and purchase tickets.">
+                Mevcut tüm aktif uçuşlarımızı görüntüleyebilir ve bilet satın alabilirsiniz.
+            </p>
+        </div>
 
-    @* Her uçuş için tablo satırı oluştur *@
-    @* Create table row for each flight *@
-    @foreach (var f in Model)
-    {
-        <tr>
-            @* Uçuş numarası gösterimi *@
-            @* Flight number display *@
-            <td>@f.FlightNumber</td>
-            @* Kalkış havalimanı kodu gösterimi *@
-            @* Departure airport code display *@
-            <td>@f.FromCode</td>
-            @* Varış havalimanı kodu gösterimi *@
-            @* Arrival airport code display *@
-            <td>@f.ToCode</td>
-            @* Kalkış zamanı gösterimi *@
-            @* Departure time display *@
-            <td>@f.DepartureTime</td>
-            @* Varış zamanı gösterimi *@
-            @* Arrival time display *@
-            <td>@f.ArrivalTime</td>
-            @* Koltuk seçim butonu *@
-            @* Seat selection button *@
-            <td>
-                @Html.ActionLink("Koltuk Seç", "SelectSeat", "Booking", new { flightId = f.FlightId }, new { @class = "btn btn-primary", data_tr = "Koltuk Seç", data_en = "Select Seat" })
-            </td>
-        </tr>
-    }
-</table>
+        @* Eğer uçuş yoksa bilgi mesajı göster *@
+        @* If no flights, show info message *@
+        @if (Model == null || !Model.Any())
+        {
+            <div class="flight-list-empty">
+                <i class="fa-solid fa-plane-slash"></i>
+                <p data-tr="Henüz aktif uçuş bulunmamaktadır." data-en="No active flights available yet.">Henüz aktif uçuş bulunmamaktadır.</p>
+            </div>
+        }
+        else
+        {
+            @* Uçuş kartları container'ı *@
+            @* Flight cards container *@
+            <div class="flight-cards-container">
+                @* Her uçuş için kart oluştur *@
+                @* Create card for each flight *@
+                @foreach (var f in Model)
+                {
+                    <div class="flight-card">
+                        @* Uçuş başlığı *@
+                        @* Flight header *@
+                        <div class="flight-card-header">
+                            <span class="flight-number">@f.FlightNumber</span>
+                            <span class="flight-status active" data-tr="Aktif" data-en="Active">Aktif</span>
+                        </div>
+
+                        @* Uçuş güzergahı *@
+                        @* Flight route *@
+                        <div class="flight-route">
+                            <div class="route-item">
+                                <span class="route-code">@f.FromCode</span>
+                                <span class="route-city" data-tr="Kalkış" data-en="Departure">Kalkış</span>
+                            </div>
+                            <div class="route-arrow">
+                                <i class="fa-solid fa-plane"></i>
+                            </div>
+                            <div class="route-item">
+                                <span class="route-code">@f.ToCode</span>
+                                <span class="route-city" data-tr="Varış" data-en="Arrival">Varış</span>
+                            </div>
+                        </div>
+
+                        @* Uçuş saatleri *@
+                        @* Flight times *@
+                        <div class="flight-times">
+                            <div class="time-item">
+                                <span class="time-label" data-tr="Kalkış" data-en="Departure">Kalkış</span>
+                                <span class="time-value">@f.DepartureTime.ToString("HH:mm")</span>
+                                <small style="color: #666; font-size: 0.75rem;">@f.DepartureTime.ToString("dd.MM.yyyy")</small>
+                            </div>
+                            <div class="time-item">
+                                <span class="time-label" data-tr="Varış" data-en="Arrival">Varış</span>
+                                <span class="time-value">@f.ArrivalTime.ToString("HH:mm")</span>
+                                <small style="color: #666; font-size: 0.75rem;">@f.ArrivalTime.ToString("dd.MM.yyyy")</small>
+                            </div>
+                        </div>
+
+                        @* Uçuş fiyatları *@
+                        @* Flight prices *@
+                        <div class="flight-prices">
+                            <div class="price-item">
+                                <span class="price-label" data-tr="Economy" data-en="Economy">Economy</span>
+                                <span class="price-value">@f.EconomyPrice.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</span>
+                            </div>
+                            <div class="price-item">
+                                <span class="price-label" data-tr="Business" data-en="Business">Business</span>
+                                <span class="price-value">@f.BusinessPrice.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</span>
+                            </div>
+                        </div>
+
+                        @* Bilet satın al butonu *@
+                        @* Buy ticket button *@
+                        <a href="@Url.Action("SelectSeat", "Booking", new { flightId = f.FlightId })" 
+                           class="buy-ticket-btn"
+                           data-tr="Bilet Satın Al"
+                           data-en="Buy Ticket">
+                            <i class="fa-solid fa-ticket"></i>
+                            <span data-tr="Bilet Satın Al" data-en="Buy Ticket">Bilet Satın Al</span>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        // Dil değişikliğinde buton metinlerini güncelle
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateButtonTexts() {
+                var currentLang = localStorage.getItem('language') || 'tr';
+                var buttons = document.querySelectorAll('.buy-ticket-btn');
+                buttons.forEach(function(btn) {
+                    var icon = btn.querySelector('i');
+                    var span = btn.querySelector('span');
+                    if (span) {
+                        var trText = btn.getAttribute('data-tr');
+                        var enText = btn.getAttribute('data-en');
+                        if (currentLang === 'tr' && trText) {
+                            span.textContent = trText;
+                        } else if (currentLang === 'en' && enText) {
+                            span.textContent = enText;
+                        }
+                    }
+                });
+            }
+            
+            // Sayfa yüklendiğinde güncelle
+            updateButtonTexts();
+            
+            // Dil değişikliğini dinle
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'language') {
+                    updateButtonTexts();
+                }
+            });
+            
+            // updateLanguage fonksiyonu çağrıldığında da güncelle
+            if (typeof updateLanguage === 'function') {
+                var originalUpdateLanguage = updateLanguage;
+                updateLanguage = function() {
+                    originalUpdateLanguage();
+                    updateButtonTexts();
+                };
+            }
+        });
+    </script>
+}

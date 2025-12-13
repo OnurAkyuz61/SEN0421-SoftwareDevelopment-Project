@@ -1,0 +1,359 @@
+/* ================== SUPPORT PAGE STYLES ================== */
+/* Destek Sayfası Stilleri - Support Page Styles */
+
+/* Page Header - Sayfa Başlığı */
+.support-page-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+}
+
+.support-page-header .page-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.support-page-header .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.support-page-header .page-title i {
+    color: #e4002b;
+    font-size: 2rem;
+}
+
+.support-page-header .page-subtitle {
+    font-size: 1rem;
+    color: #666;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Support Form - Destek Formu */
+.support-form {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    transition: box-shadow 0.3s ease;
+}
+
+.support-form:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.support-form h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e4002b;
+}
+
+.support-form .form-label {
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.support-form .form-control,
+.support-form .form-select {
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.support-form .form-control:focus,
+.support-form .form-select:focus {
+    border-color: #e4002b;
+    box-shadow: 0 0 0 3px rgba(228, 0, 43, 0.1);
+    outline: none;
+}
+
+.support-form textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.support-form .form-text {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.support-form .btn-primary {
+    background: linear-gradient(135deg, #e4002b 0%, #c20025 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 0.875rem 2rem;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(228, 0, 43, 0.3);
+}
+
+.support-form .btn-primary:hover {
+    background: linear-gradient(135deg, #c20025 0%, #a01a2e 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(228, 0, 43, 0.4);
+}
+
+/* Contact Info Cards - İletişim Bilgileri Kartları */
+.support-contact-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.support-contact-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.support-contact-card h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.support-contact-card h2 i {
+    color: #e4002b;
+}
+
+.support-contact-card p {
+    margin-bottom: 0.75rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.support-contact-card p i {
+    color: #e4002b;
+    width: 20px;
+    text-align: center;
+}
+
+.support-contact-card p strong {
+    color: #1a202c;
+    font-weight: 600;
+}
+
+.support-contact-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.support-contact-card ul li {
+    padding: 0.5rem 0;
+    color: #666;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.support-contact-card ul li:last-child {
+    border-bottom: none;
+}
+
+/* Support History Table - Destek Geçmişi Tablosu */
+.support-history-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    margin-top: 2rem;
+}
+
+.support-history-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e4002b;
+}
+
+.support-history-title i {
+    color: #e4002b;
+    font-size: 1.5rem;
+}
+
+.support-history-title h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin: 0;
+}
+
+.support-history-table {
+    margin-bottom: 0;
+}
+
+.support-history-table thead {
+    background: linear-gradient(135deg, #e4002b 0%, #c20025 100%);
+    color: #ffffff;
+}
+
+.support-history-table thead th {
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.support-history-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.support-history-table tbody tr:hover {
+    background-color: rgba(228, 0, 43, 0.05);
+    cursor: default;
+}
+
+.support-history-table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-top: 1px solid #e2e8f0;
+    color: #1a202c;
+}
+
+.support-history-table .badge {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+/* Alert Animations - Uyarı Animasyonları */
+.support-alert-pulse {
+    animation: supportPulse 0.6s ease-in-out 0s 3;
+}
+
+@keyframes supportPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 0.75rem rgba(0, 0, 0, 0.18);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: none;
+    }
+}
+
+.alert {
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
+    border-left: 4px solid #17a2b8;
+}
+
+/* PNR Group Highlight - PNR Grubu Vurgulama */
+#pnrGroup {
+    padding: 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#pnrGroup.border {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+    border: 2px solid #e4002b !important;
+}
+
+/* Responsive Design - Mobil Uyumluluk */
+@media (max-width: 768px) {
+    .support-page-header {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .support-page-header .page-title {
+        font-size: 1.5rem;
+    }
+
+    .support-form {
+        padding: 1.5rem;
+    }
+
+    .support-contact-card {
+        padding: 1.25rem;
+    }
+
+    .support-history-card {
+        padding: 1.25rem;
+        overflow-x: auto;
+    }
+
+    .support-history-table {
+        font-size: 0.875rem;
+    }
+
+    .support-history-table thead th,
+    .support-history-table tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .support-page-header .page-title {
+        font-size: 1.25rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .support-form h2 {
+        font-size: 1.25rem;
+    }
+
+    .support-form .btn-primary {
+        width: 100%;
+    }
+}
+

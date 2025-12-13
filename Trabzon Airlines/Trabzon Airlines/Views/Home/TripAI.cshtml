@@ -12,18 +12,17 @@
 
         @* HERO / ÜST BÖLÜM - Ana başlık ve alt başlık *@
         @* HERO / TOP SECTION - Main title and subtitle *@
-        <section class="tripai-hero">
-            @* Ana başlık - Çeviri desteği ile *@
-            @* Main title - With translation support *@
-            <h1 class="tripai-title" data-tr="Trip AI – Akıllı Seyahat Planlayıcı" data-en="Trip AI – Smart Travel Planner">
-                Trip AI – Akıllı Seyahat Planlayıcı
-            </h1>
-            @* Alt başlık - Çeviri desteği ile *@
-            @* Subtitle - With translation support *@
-            <p class="tripai-subtitle" data-tr="Sadece birkaç bilgi gir, senin için hazır planı gösterelim." data-en="Just enter a few details, and we'll show you a ready-made plan.">
-                Sadece birkaç bilgi gir, senin için hazır planı gösterelim.
-            </p>
-        </section>
+        <div class="support-page-header">
+            <div class="page-header-content">
+                <h1 class="page-title">
+                    <i class="fa-solid fa-robot"></i>
+                    <span data-tr="Trip AI – Akıllı Seyahat Planlayıcı" data-en="Trip AI – Smart Travel Planner">Trip AI – Akıllı Seyahat Planlayıcı</span>
+                </h1>
+                <p class="page-subtitle" data-tr="Sadece birkaç bilgi gir, senin için hazır planı gösterelim." data-en="Just enter a few details, and we'll show you a ready-made plan.">
+                    Sadece birkaç bilgi gir, senin için hazır planı gösterelim.
+                </p>
+            </div>
+        </div>
 
         @* FORM + SONUÇ BÖLÜMÜ - Form ve AI çıktı alanı *@
         @* FORM + RESULT SECTION - Form and AI output area *@
@@ -135,6 +134,9 @@
 @* CSS stilleri bölümü - Trip AI CSS dosyası *@
 @* CSS styles section - Trip AI CSS file *@
 @section styles {
+    @* Support CSS dosyası - Başlık için *@
+    @* Support CSS file - For header *@
+    <link href="~/Content/css/support.css" rel="stylesheet" />
     @* Trip AI CSS dosyası *@
     @* Trip AI CSS file *@
     <link href="~/Content/css/trip.css" rel="stylesheet" />

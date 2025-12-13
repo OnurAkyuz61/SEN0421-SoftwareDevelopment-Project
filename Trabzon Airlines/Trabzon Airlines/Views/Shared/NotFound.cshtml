@@ -1,0 +1,406 @@
+@* 404 Sayfa Bulunamadı - Özel 404 hata sayfası *@
+@* 404 Page Not Found - Custom 404 error page *@
+@{
+    // 404 sayfası - Yanlış link veya bulunamayan sayfa için
+    // 404 page - For wrong links or pages not found
+    Layout = null; // Layout kullanma - Standalone sayfa
+    Response.StatusCode = 404; // HTTP 404 status kodu
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    @* Meta etiketleri *@
+    @* Meta tags *@
+    <meta charset="utf-8" />
+    @* Viewport ayarı - Responsive tasarım için *@
+    @* Viewport setting - For responsive design *@
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @* Sayfa başlığı - Dinamik dil desteği ile *@
+    @* Page title - With dynamic language support *@
+    <title data-tr="404 - Sayfa Bulunamadı - Trabzon Airlines" data-en="404 - Page Not Found - Trabzon Airlines">404 - Sayfa Bulunamadı - Trabzon Airlines</title>
+    @* Font Awesome ikonları *@
+    @* Font Awesome icons *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    @* 404 sayfası özel CSS stilleri *@
+    @* 404 page custom CSS styles *@
+    <style>
+        @* Genel reset ve temel stiller *@
+        @* General reset and base styles *@
+        * {
+            margin: 0; /* Tüm margin'leri sıfırla */
+            padding: 0; /* Tüm padding'leri sıfırla */
+            box-sizing: border-box; /* Box model ayarı */
+        }
+
+        @* Body stilleri *@
+        @* Body styles *@
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; /* Modern font ailesi */
+            margin: 0; /* Margin yok */
+            padding: 0; /* Padding yok */
+            background: linear-gradient(135deg, #e4002b 0%, #c41e3a 50%, #a01a2e 100%); /* Kırmızı gradient arka plan */
+            min-height: 100vh; /* Minimum yükseklik - Tam ekran */
+            display: flex; /* Flexbox düzeni */
+            justify-content: center; /* Yatay hizalama - Ortala */
+            align-items: center; /* Dikey hizalama - Ortala */
+            position: relative; /* Göreceli konum */
+            overflow: hidden; /* Taşan içerik gizle */
+        }
+
+        @* Arka plan animasyonu - Uçak ikonları *@
+        @* Background animation - Plane icons *@
+        body::before {
+            content: ''; /* İçerik yok */
+            position: absolute; /* Mutlak konum */
+            top: 0; /* Üstten 0 */
+            left: 0; /* Soldan 0 */
+            width: 100%; /* Tam genişlik */
+            height: 100%; /* Tam yükseklik */
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%); /* Gradient efektleri */
+            animation: float 20s ease-in-out infinite; /* Yavaş animasyon */
+            z-index: 0; /* Z-index değeri */
+        }
+
+        @* Animasyon keyframes *@
+        @* Animation keyframes *@
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); } /* Başlangıç ve bitiş */
+            50% { transform: translateY(-20px) rotate(5deg); } /* Orta nokta */
+        }
+
+        @* 404 Container - Ana içerik kutusu *@
+        @* 404 Container - Main content box *@
+        .notfound-container {
+            background: white; /* Beyaz arka plan */
+            border-radius: 24px; /* Yuvarlatılmış köşeler */
+            padding: 4rem 3rem; /* Padding */
+            text-align: center; /* Metin hizalama - Ortala */
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1); /* Çift katmanlı gölge */
+            max-width: 700px; /* Maksimum genişlik */
+            margin: 2rem; /* Margin */
+            position: relative; /* Göreceli konum */
+            z-index: 1; /* Z-index değeri */
+            animation: slideUp 0.6s ease-out; /* Yukarı kayma animasyonu */
+        }
+
+        @* Slide up animasyonu *@
+        @* Slide up animation *@
+        @keyframes slideUp {
+            from {
+                opacity: 0; /* Başlangıçta görünmez */
+                transform: translateY(30px); /* Aşağıdan başla */
+            }
+            to {
+                opacity: 1; /* Görünür */
+                transform: translateY(0); /* Normal konum */
+            }
+        }
+
+        @* 404 İkon - Büyük uçak ikonu *@
+        @* 404 Icon - Large plane icon *@
+        .notfound-icon {
+            font-size: 8rem; /* İkon boyutu - Çok büyük */
+            color: #e4002b; /* Kırmızı renk */
+            margin-bottom: 1.5rem; /* Alt margin */
+            display: inline-block; /* Satır içi blok */
+            animation: bounce 2s ease-in-out infinite; /* Zıplama animasyonu */
+            filter: drop-shadow(0 10px 20px rgba(228, 0, 43, 0.3)); /* İkon gölgesi */
+        }
+
+        @* Bounce animasyonu *@
+        @* Bounce animation *@
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); } /* Başlangıç ve bitiş */
+            50% { transform: translateY(-20px); } /* Yukarı zıpla */
+        }
+
+        @* 404 Numarası - Büyük "404" metni *@
+        @* 404 Number - Large "404" text *@
+        .notfound-number {
+            font-size: 8rem; /* Font boyutu - Çok büyük */
+            font-weight: 900; /* Font kalınlığı - Çok kalın */
+            color: #e4002b; /* Kırmızı renk */
+            margin-bottom: 1rem; /* Alt margin */
+            line-height: 1; /* Satır yüksekliği */
+            text-shadow: 0 4px 12px rgba(228, 0, 43, 0.3); /* Metin gölgesi */
+            letter-spacing: -5px; /* Harf aralığı - Negatif (yakın) */
+        }
+
+        @* 404 Başlık *@
+        @* 404 Title *@
+        .notfound-title {
+            font-size: 2.5rem; /* Font boyutu */
+            font-weight: 700; /* Font kalınlığı */
+            color: #1a1a1a; /* Koyu renk */
+            margin-bottom: 1rem; /* Alt margin */
+            line-height: 1.2; /* Satır yüksekliği */
+        }
+
+        @* 404 Mesajı *@
+        @* 404 Message *@
+        .notfound-message {
+            font-size: 1.2rem; /* Font boyutu */
+            color: #666; /* Açık gri renk */
+            margin-bottom: 2.5rem; /* Alt margin */
+            line-height: 1.6; /* Satır yüksekliği */
+            max-width: 500px; /* Maksimum genişlik */
+            margin-left: auto; /* Otomatik sol margin */
+            margin-right: auto; /* Otomatik sağ margin */
+        }
+
+        @* 404 Aksiyon Butonları *@
+        @* 404 Action Buttons *@
+        .notfound-actions {
+            display: flex; /* Flexbox düzeni */
+            gap: 1rem; /* Elemanlar arası boşluk */
+            justify-content: center; /* Yatay hizalama - Ortala */
+            flex-wrap: wrap; /* Sarmalama - Mobil için */
+        }
+
+        @* Buton stili *@
+        @* Button style *@
+        .btn {
+            padding: 1rem 2.5rem; /* Padding */
+            border-radius: 12px; /* Yuvarlatılmış köşeler */
+            text-decoration: none; /* Alt çizgi yok */
+            font-weight: 600; /* Font kalınlığı */
+            font-size: 1rem; /* Font boyutu */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Yumuşak geçiş efekti */
+            display: inline-flex; /* Satır içi flex */
+            align-items: center; /* Dikey hizalama */
+            gap: 0.75rem; /* Elemanlar arası boşluk */
+            border: none; /* Kenarlık yok */
+            cursor: pointer; /* İmleç tipi */
+            position: relative; /* Göreceli konum */
+            overflow: hidden; /* Taşan içerik gizle */
+        }
+
+        @* Birincil buton - Ana sayfaya dön *@
+        @* Primary button - Return to homepage *@
+        .btn-primary {
+            background: linear-gradient(135deg, #e4002b 0%, #c41e3a 100%); /* Kırmızı gradient */
+            color: white; /* Beyaz renk */
+            box-shadow: 0 6px 20px rgba(228, 0, 43, 0.3); /* Gölge efekti */
+        }
+
+        @* Birincil buton hover *@
+        @* Primary button hover *@
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #c41e3a 0%, #a01a2e 100%); /* Hover gradient */
+            transform: translateY(-3px) scale(1.05); /* Yukarı kaydırma ve büyütme */
+            box-shadow: 0 10px 30px rgba(228, 0, 43, 0.4); /* Hover gölge */
+            color: white; /* Beyaz renk */
+        }
+
+        @* İkincil buton - Geri git *@
+        @* Secondary button - Go back *@
+        .btn-secondary {
+            background: white; /* Beyaz arka plan */
+            color: #333; /* Koyu renk */
+            border: 2px solid #e2e8f0; /* Kenarlık */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Gölge efekti */
+        }
+
+        @* İkincil buton hover *@
+        @* Secondary button hover *@
+        .btn-secondary:hover {
+            background: #f8f9fa; /* Hover arka plan */
+            border-color: #e4002b; /* Hover kenarlık rengi */
+            color: #e4002b; /* Hover metin rengi */
+            transform: translateY(-2px); /* Yukarı kaydırma */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Hover gölge */
+        }
+
+        @* Buton ikonu *@
+        @* Button icon *@
+        .btn i {
+            font-size: 1.1rem; /* İkon boyutu */
+            transition: transform 0.3s ease; /* İkon geçiş efekti */
+        }
+
+        @* Buton hover ikonu *@
+        @* Button hover icon *@
+        .btn:hover i {
+            transform: scale(1.2); /* Hover'da büyütme */
+        }
+
+        @* Responsive tasarım - Mobil cihazlar *@
+        @* Responsive design - Mobile devices *@
+        @media (max-width: 768px) {
+            @* 404 Container *@
+            .notfound-container {
+                padding: 3rem 2rem; /* Padding azalt */
+                margin: 1rem; /* Margin azalt */
+                border-radius: 20px; /* Köşe yuvarlaklığı azalt */
+            }
+
+            @* 404 Numarası *@
+            .notfound-number {
+                font-size: 5rem; /* Font boyutu küçült */
+            }
+
+            @* 404 İkon *@
+            .notfound-icon {
+                font-size: 5rem; /* İkon boyutu küçült */
+            }
+
+            @* 404 Başlık *@
+            .notfound-title {
+                font-size: 2rem; /* Font boyutu küçült */
+            }
+
+            @* 404 Mesajı *@
+            .notfound-message {
+                font-size: 1rem; /* Font boyutu küçült */
+            }
+
+            @* Butonlar *@
+            .btn {
+                padding: 0.875rem 2rem; /* Padding azalt */
+                font-size: 0.95rem; /* Font boyutu küçült */
+            }
+
+            @* Aksiyon butonları *@
+            .notfound-actions {
+                flex-direction: column; /* Dikey düzen */
+                align-items: stretch; /* Tam genişlik */
+            }
+
+            @* Butonlar tam genişlik *@
+            .btn {
+                width: 100%; /* Tam genişlik */
+                justify-content: center; /* Yatay hizalama - Ortala */
+            }
+        }
+
+        @* Çok küçük ekranlar *@
+        @* Very small screens *@
+        @media (max-width: 480px) {
+            @* 404 Container *@
+            .notfound-container {
+                padding: 2rem 1.5rem; /* Padding daha da azalt */
+            }
+
+            @* 404 Numarası *@
+            .notfound-number {
+                font-size: 4rem; /* Font boyutu daha da küçült */
+            }
+
+            @* 404 İkon *@
+            .notfound-icon {
+                font-size: 4rem; /* İkon boyutu daha da küçült */
+            }
+
+            @* 404 Başlık *@
+            .notfound-title {
+                font-size: 1.75rem; /* Font boyutu küçült */
+            }
+        }
+    </style>
+</head>
+<body>
+    @* 404 İçeriği Container'ı *@
+    @* 404 Content Container *@
+    <div class="notfound-container">
+        @* 404 İkonu - Uçak ikonu *@
+        @* 404 Icon - Plane icon *@
+        <div class="notfound-icon">
+            <i class="fa-solid fa-plane-slash"></i>
+        </div>
+        
+        @* 404 Numarası - Büyük "404" metni *@
+        @* 404 Number - Large "404" text *@
+        <div class="notfound-number">404</div>
+        
+        @* 404 Başlığı - Çeviri desteği ile *@
+        @* 404 Title - With translation support *@
+        <h1 class="notfound-title" data-tr="Sayfa Bulunamadı" data-en="Page Not Found">Sayfa Bulunamadı</h1>
+        
+        @* 404 Mesajı - Çeviri desteği ile *@
+        @* 404 Message - With translation support *@
+        <p class="notfound-message" data-tr="Üzgünüz, aradığınız sayfa bulunamadı. Sayfa kaldırılmış, taşınmış veya geçici olarak kullanılamaz durumda olabilir." 
+           data-en="Sorry, the page you are looking for could not be found. The page may have been removed, moved, or is temporarily unavailable.">
+            Üzgünüz, aradığınız sayfa bulunamadı. Sayfa kaldırılmış, taşınmış veya geçici olarak kullanılamaz durumda olabilir.
+        </p>
+        
+        @* 404 Aksiyon Butonları *@
+        @* 404 Action Buttons *@
+        <div class="notfound-actions">
+            @* Ana sayfaya dön butonu *@
+            @* Return to homepage button *@
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary" data-tr="Ana Sayfaya Dön" data-en="Return to Homepage">
+                @* Ana sayfa ikonu *@
+                @* Homepage icon *@
+                <i class="fa-solid fa-home"></i>
+                @* Buton metni - Çeviri desteği ile *@
+                @* Button text - With translation support *@
+                <span data-tr="Ana Sayfaya Dön" data-en="Return to Homepage">Ana Sayfaya Dön</span>
+            </a>
+            
+            @* Geri git butonu - JavaScript ile *@
+            @* Go back button - With JavaScript *@
+            <a href="javascript:history.back()" class="btn btn-secondary" data-tr="Geri Git" data-en="Go Back">
+                @* Geri ok ikonu *@
+                @* Back arrow icon *@
+                <i class="fa-solid fa-arrow-left"></i>
+                @* Buton metni - Çeviri desteği ile *@
+                @* Button text - With translation support *@
+                <span data-tr="Geri Git" data-en="Go Back">Geri Git</span>
+            </a>
+        </div>
+    </div>
+
+    @* Dil sistemi script'i - Çevirileri uygulamak için *@
+    @* Language system script - To apply translations *@
+    <script>
+        @* Sayfa yüklendiğinde çalışacak fonksiyon *@
+        @* Function to run when page loads *@
+        document.addEventListener('DOMContentLoaded', function() {
+            @* Mevcut dil ayarını al (localStorage'dan) *@
+            @* Get current language setting (from localStorage) *@
+            const currentLang = localStorage.getItem('language') || 'tr'; // Varsayılan Türkçe
+            
+            @* Tüm çeviri elementlerini güncelle *@
+            @* Update all translation elements *@
+            const elements = document.querySelectorAll('[data-tr][data-en]'); // Çeviri desteği olan tüm elementler
+            elements.forEach(element => {
+                @* Türkçe ve İngilizce metinleri al *@
+                @* Get Turkish and English texts *@
+                const trText = element.getAttribute('data-tr'); // Türkçe metin
+                const enText = element.getAttribute('data-en'); // İngilizce metin
+                
+                @* Dil ayarına göre metni güncelle *@
+                @* Update text according to language setting *@
+                if (currentLang === 'tr' && trText) {
+                    element.textContent = trText; // Türkçe metni ayarla
+                } else if (currentLang === 'en' && enText) {
+                    element.textContent = enText; // İngilizce metni ayarla
+                }
+            });
+            
+            @* Title'ı güncelle *@
+            @* Update title *@
+            const titleElement = document.querySelector('title[data-tr][data-en]'); // Title elementi
+            if (titleElement) {
+                @* Türkçe ve İngilizce başlıkları al *@
+                @* Get Turkish and English titles *@
+                const trTitle = titleElement.getAttribute('data-tr'); // Türkçe başlık
+                const enTitle = titleElement.getAttribute('data-en'); // İngilizce başlık
+                
+                @* Dil ayarına göre başlığı güncelle *@
+                @* Update title according to language setting *@
+                if (currentLang === 'tr' && trTitle) {
+                    titleElement.textContent = trTitle; // Türkçe başlığı ayarla
+                } else if (currentLang === 'en' && enTitle) {
+                    titleElement.textContent = enTitle; // İngilizce başlığı ayarla
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

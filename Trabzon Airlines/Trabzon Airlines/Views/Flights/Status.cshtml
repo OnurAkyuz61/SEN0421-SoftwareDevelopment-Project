@@ -9,25 +9,40 @@
     ViewBag.TitleEn = "Flight Status";
 }
 
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/flight-status.css?v=@DateTime.Now.Ticks" />
+}
+
 @* Sayfa içeriği container'ı *@
 @* Page content container *@
 <div class="page-content">
     <div class="container">
         @* Sayfa başlığı - Çeviri desteği ile *@
         @* Page title - With translation support *@
-        <h2 class="page-title" data-tr="Uçuş Durumu" data-en="Flight Status">Uçuş Durumu</h2>
+        <div class="flight-status-header">
+            <h2 class="page-title" data-tr="Uçuş Durumu" data-en="Flight Status">
+                <i class="fa-solid fa-plane-departure"></i>
+                <span data-tr="Uçuş Durumu" data-en="Flight Status">Uçuş Durumu</span>
+            </h2>
+        </div>
 
         @* Eğer uçuş yoksa bilgi mesajı göster *@
         @* If no flights, show info message *@
         @if (!Model.Any())
         {
-            <p data-tr="Henüz uçuş eklenmemiş." data-en="No flights have been added yet.">Henüz uçuş eklenmemiş.</p>
+            <div class="flight-status-container">
+                <div class="empty-state">
+                    <i class="fa-solid fa-plane-slash"></i>
+                    <p data-tr="Henüz uçuş eklenmemiş." data-en="No flights have been added yet.">Henüz uçuş eklenmemiş.</p>
+                </div>
+            </div>
         }
         else
         {
             @* Uçuş durumu tablosu *@
             @* Flight status table *@
-            <table class="table table-bordered table-striped fly-table">
+            <div class="flight-status-container">
+                <table class="fly-table">
                 @* Tablo başlıkları *@
                 @* Table headers *@
                 <thead>
@@ -59,19 +74,28 @@
                         <tr>
                             @* Uçuş numarası gösterimi *@
                             @* Flight number display *@
-                            <td>@item.FlightNumber</td>
+                            <td class="flight-number">@item.FlightNumber</td>
 
                             @* Güzergah gösterimi - Kalkış ve varış havalimanları *@
                             @* Route display - Departure and arrival airports *@
-                            <td>@item.FromCode → @item.ToCode</td>
+                            <td class="route-display">
+                                <span>@item.FromCode</span>
+                                <span class="route-arrow">→</span>
+                                <span>@item.ToCode</span>
+                            </td>
 
                             @* Kalkış zamanı gösterimi - Tarih ve saat formatı *@
                             @* Departure time display - Date and time format *@
-                            <td>@item.DepartureTime.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td class="departure-time">@item.DepartureTime.ToString("dd.MM.yyyy HH:mm")</td>
 
                             @* Hava durumu gösterimi *@
                             @* Weather condition display *@
-                            <td>@item.WeatherCondition</td>
+                            <td>
+                                <span class="weather-condition">
+                                    <i class="fa-solid fa-cloud-sun"></i>
+                                    @item.WeatherCondition
+                                </span>
+                            </td>
 
                             @* Rötar riski gösterimi - Renkli badge ile *@
                             @* Delay risk display - With colored badge *@
@@ -105,6 +129,7 @@
                     }
                 </tbody>
             </table>
+            </div>
         }
     </div>
 </div>

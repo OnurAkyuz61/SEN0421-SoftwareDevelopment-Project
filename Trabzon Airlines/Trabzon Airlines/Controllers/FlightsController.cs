@@ -125,7 +125,8 @@ namespace Trabzon_Airlines.Controllers
                         toCode = f.ToCode,
                         departureTime = f.DepartureTime.ToString("yyyy-MM-dd HH:mm"),
                         arrivalTime = f.ArrivalTime.ToString("yyyy-MM-dd HH:mm"),
-                        price = f.Price,
+                        economyPrice = f.EconomyPrice,
+                        businessPrice = f.BusinessPrice,
                         weatherCondition = f.WeatherCondition,
                         delayRisk = f.DelayRisk
                     }).ToList(),
@@ -137,7 +138,8 @@ namespace Trabzon_Airlines.Controllers
                         toCode = f.ToCode,
                         departureTime = f.DepartureTime.ToString("yyyy-MM-dd HH:mm"),
                         arrivalTime = f.ArrivalTime.ToString("yyyy-MM-dd HH:mm"),
-                        price = f.Price,
+                        economyPrice = f.EconomyPrice,
+                        businessPrice = f.BusinessPrice,
                         weatherCondition = f.WeatherCondition,
                         delayRisk = f.DelayRisk
                     }).ToList() : null

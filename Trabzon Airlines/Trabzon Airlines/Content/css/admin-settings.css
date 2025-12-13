@@ -174,3 +174,42 @@
     box-shadow: 0 6px 20px rgba(108, 117, 125, 0.35); /* Hover gölge */
 }
 
+/* ============================================
+   RESPONSIVE DESIGN - Mobil Uyumluluk
+   RESPONSIVE DESIGN - Mobile Compatibility
+   ============================================ */
+
+/* Tablet ve Küçük Ekranlar (768px ve altı) */
+/* Tablets and Small Screens (768px and below) */
+@media (max-width: 768px) {
+    /* Form Bölümü */
+    .form-section {
+        padding: 20px; /* Padding azalt */
+        margin: 25px 0; /* Margin azalt */
+    }
+    
+    /* Form Kontrolü */
+    .form-control {
+        font-size: 14px; /* Font boyutu küçült */
+        padding: 12px 16px; /* Padding azalt */
+    }
+    
+    /* Form Etiketi */
+    .form-label {
+        font-size: 14px; /* Font boyutu küçült */
+    }
+    
+    /* Form Aksiyonları */
+    .form-actions {
+        flex-direction: column; /* Dikey düzen */
+        gap: 10px; /* Elemanlar arası boşluk azalt */
+    }
+    
+    /* Birincil ve İkincil Aksiyon Butonları */
+    .btn-primary-action,
+    .btn-secondary-action {
+        width: 100%; /* Tam genişlik */
+        justify-content: center; /* Yatay hizalama */
+    }
+}
+

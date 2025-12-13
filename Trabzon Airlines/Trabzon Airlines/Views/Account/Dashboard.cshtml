@@ -1,0 +1,187 @@
+﻿@using System.Linq
+@model Trabzon_Airlines.Models.UserDashboardViewModel
+
+@{
+    ViewBag.Title = "Kullanıcı Paneli";
+    ViewBag.TitleEn = "User Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/admin-dashboard.css?v=@DateTime.Now.Ticks">
+}
+
+<div class="admin-page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="fa-solid fa-user"></i>
+            <span data-tr="Kullanıcı Paneli" data-en="User Dashboard">Kullanıcı Paneli</span>
+        </h1>
+        <p class="page-subtitle">
+            <span data-tr="Hoş geldiniz," data-en="Welcome,">Hoş geldiniz,</span>
+            <strong>@Model.FullName</strong>
+        </p>
+    </div>
+</div>
+
+@if (TempData["Success_tr"] != null)
+{
+    <div class="alert alert-success">@TempData["Success_tr"]</div>
+}
+@if (TempData["Error_tr"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error_tr"]</div>
+}
+
+<div class="stats-grid">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-ticket"></i>
+        </div>
+        <div class="stat-card-content">
+            <h3 class="stat-card-value">@Model.TotalBookings</h3>
+            <p class="stat-card-label" data-tr="Toplam Rezervasyon" data-en="Total Bookings">Toplam Rezervasyon</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-plane-departure"></i>
+        </div>
+        <div class="stat-card-content">
+            <h3 class="stat-card-value">@Model.UpcomingCount</h3>
+            <p class="stat-card-label" data-tr="Yaklaşan Uçuşlar" data-en="Upcoming Flights">Yaklaşan Uçuşlar</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-plane-arrival"></i>
+        </div>
+        <div class="stat-card-content">
+            <h3 class="stat-card-value">@Model.PastCount</h3>
+            <p class="stat-card-label" data-tr="Geçmiş Uçuşlar" data-en="Past Flights">Geçmiş Uçuşlar</p>
+        </div>
+    </div>
+
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-coins"></i>
+        </div>
+        <div class="stat-card-content">
+            <h3 class="stat-card-value">
+                @Model.TotalSpent.ToString("C", new System.Globalization.CultureInfo("tr-TR"))
+            </h3>
+            <p class="stat-card-label" data-tr="Toplam Harcama" data-en="Total Spent">Toplam Harcama</p>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <h2 class="dashboard-card-title">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span data-tr="Yaklaşan Uçuşlarım" data-en="My Upcoming Flights">Yaklaşan Uçuşlarım</span>
+            </h2>
+        </div>
+        <div class="dashboard-card-body">
+            @if (Model.UpcomingBookings == null || !Model.UpcomingBookings.Any())
+            {
+                <div class="dashboard-empty">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p data-tr="Yaklaşan uçuşunuz bulunmuyor" data-en="No upcoming flights">Yaklaşan uçuşunuz bulunmuyor</p>
+                </div>
+            }
+            else
+            {
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th data-tr="PNR" data-en="PNR">PNR</th>
+                            <th data-tr="Uçuş" data-en="Flight">Uçuş</th>
+                            <th data-tr="Rota" data-en="Route">Rota</th>
+                            <th data-tr="Kalkış" data-en="Departure">Kalkış</th>
+                            <th data-tr="Varış" data-en="Arrival">Varış</th>
+                            <th data-tr="Fiyat" data-en="Price">Fiyat</th>
+                            <th data-tr="İşlemler" data-en="Actions">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var b in Model.UpcomingBookings)
+                        {
+                            <tr>
+                                <td><strong>@b.PNR</strong></td>
+                                <td>@b.FlightNumber</td>
+                                <td>@b.FromCode → @b.ToCode</td>
+                                <td>@b.DepartureTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@b.ArrivalTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@b.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</td>
+                                <td>
+                                    @using (Html.BeginForm("CancelBooking", "Account",
+                                        new { id = b.BookingId },
+                                        FormMethod.Post,
+                                        new { onsubmit = "return confirm('Bu rezervasyonu iptal etmek istediğinize emin misiniz?');" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn-action btn-delete" data-tr="İptal Et" data-en="Cancel">
+                                            İptal Et
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <h2 class="dashboard-card-title">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span data-tr="Geçmiş Uçuşlarım" data-en="My Past Flights">Geçmiş Uçuşlarım</span>
+            </h2>
+        </div>
+        <div class="dashboard-card-body">
+            @if (Model.PastBookings == null || !Model.PastBookings.Any())
+            {
+                <div class="dashboard-empty">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p data-tr="Geçmiş uçuşunuz bulunmuyor" data-en="No past flights">Geçmiş uçuşunuz bulunmuyor</p>
+                </div>
+            }
+            else
+            {
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th data-tr="PNR" data-en="PNR">PNR</th>
+                            <th data-tr="Uçuş" data-en="Flight">Uçuş</th>
+                            <th data-tr="Rota" data-en="Route">Rota</th>
+                            <th data-tr="Kalkış" data-en="Departure">Kalkış</th>
+                            <th data-tr="Varış" data-en="Arrival">Varış</th>
+                            <th data-tr="Fiyat" data-en="Price">Fiyat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var b in Model.PastBookings)
+                        {
+                            <tr>
+                                <td><strong>@b.PNR</strong></td>
+                                <td>@b.FlightNumber</td>
+                                <td>@b.FromCode → @b.ToCode</td>
+                                <td>@b.DepartureTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@b.ArrivalTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@b.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+</div>

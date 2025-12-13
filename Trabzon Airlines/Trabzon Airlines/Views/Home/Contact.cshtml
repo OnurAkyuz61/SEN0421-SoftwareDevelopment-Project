@@ -150,8 +150,10 @@
             <input type="checkbox" id="kvkk" name="kvkk" required>
             <label for="kvkk" class="checkbox-label">
               <span data-tr="Kişisel verilerimin işlenmesine ve " data-en="I agree to the processing of my personal data and ">Kişisel verilerimin işlenmesine ve </span>
-              <a href="#" onclick="showComingSoonAlert('privacy'); return false;" data-tr="KVKK Aydınlatma Metni" data-en="Privacy Policy">KVKK Aydınlatma Metni</a>
-              <span data-tr="'ni okuduğumu kabul ediyorum. *" data-en=" and confirm that I have read it. *">'ni okuduğumu kabul ediyorum. *</span>
+              <a href="@Url.Action("KVKK", "Home")" target="_blank" data-tr="KVKK Aydınlatma Metni" data-en="KVKK Clarification Text">KVKK Aydınlatma Metni</a>
+              <span data-tr=" ile " data-en=" and "> ile </span>
+              <a href="@Url.Action("Privacy", "Home")" target="_blank" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik Politikası</a>
+              <span data-tr="'ni okuduğumu kabul ediyorum. *" data-en=" and confirm that I have read them. *">'ni okuduğumu kabul ediyorum. *</span>
             </label>
           </div>
 

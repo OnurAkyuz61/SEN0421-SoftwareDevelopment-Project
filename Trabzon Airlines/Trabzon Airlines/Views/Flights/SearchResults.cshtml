@@ -204,10 +204,11 @@
                                         ${(() => {
                                             // Tek kişi fiyatını al ve toplam yolcu sayısıyla çarp
                                             // Get single passenger price and multiply by total passenger count
-                                            const singlePrice = parseFloat(flight.price || 0);
+                                            const singlePrice = parseFloat(flight.economyPrice || 0);
                                             const totalPrice = singlePrice * totalPayingPassengers;
                                             const priceInfo = convertPrice(totalPrice, selectedCurrency);
                                             return priceInfo.symbol + priceInfo.price.toFixed(2);
+
                                         })()}
                                     </div>
                                     <a href="/Booking/SelectSeat?flightId=${flight.flightId}" class="btn btn-primary" style="background: var(--primary-color); color: white; padding: 0.75rem 1.5rem; border-radius: 5px; text-decoration: none; display: inline-block;">
@@ -263,7 +264,7 @@
                                             ${(() => {
                                                 // Tek kişi fiyatını al ve toplam yolcu sayısıyla çarp
                                                 // Get single passenger price and multiply by total passenger count
-                                                const singlePrice = parseFloat(flight.price || 0);
+                                                 const singlePrice = parseFloat(flight.economyPrice || 0);
                                                 const totalPrice = singlePrice * totalPayingPassengers;
                                                 const priceInfo = convertPrice(totalPrice, selectedCurrency);
                                                 return priceInfo.symbol + priceInfo.price.toFixed(2);

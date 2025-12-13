@@ -52,104 +52,114 @@
 
             @* Form Grid *@
             @* Form Grid *@
-            <div class="form-grid">
-                @* Uçuş Numarası *@
-                @* Flight Number *@
-                <div class="form-group">
-                    <label for="FlightNumber" class="form-label">
-                        <i class="fa-solid fa-hashtag"></i>
-                        <span data-tr="Uçuş Numarası *" data-en="Flight Number *">Uçuş Numarası *</span>
-                    </label>
-                    @Html.TextBoxFor(m => m.FlightNumber, new { @class = "form-control", required = "required" })
-                    @Html.ValidationMessageFor(m => m.FlightNumber, "", new { @class = "validation-error" })
-                </div>
-
-                @* Kalkış Havalimanı *@
-                @* Departure Airport *@
-                <div class="form-group">
-                    <label for="FromCode" class="form-label">
-                        <i class="fa-solid fa-plane-departure"></i>
-                        <span data-tr="Kalkış (IATA) *" data-en="Departure (IATA) *">Kalkış (IATA) *</span>
-                    </label>
-                    @Html.TextBoxFor(m => m.FromCode, new { @class = "form-control", maxlength = "3", required = "required" })
-                    @Html.ValidationMessageFor(m => m.FromCode, "", new { @class = "validation-error" })
-                </div>
-
-                @* Varış Havalimanı *@
-                @* Arrival Airport *@
-                <div class="form-group">
-                    <label for="ToCode" class="form-label">
-                        <i class="fa-solid fa-plane-arrival"></i>
-                        <span data-tr="Varış (IATA) *" data-en="Arrival (IATA) *">Varış (IATA) *</span>
-                    </label>
-                    @Html.TextBoxFor(m => m.ToCode, new { @class = "form-control", maxlength = "3", required = "required" })
-                    @Html.ValidationMessageFor(m => m.ToCode, "", new { @class = "validation-error" })
-                </div>
-
-                @* Kalkış Zamanı *@
-                @* Departure Time *@
-                <div class="form-group">
-                    <label for="DepartureTime" class="form-label">
-                        <i class="fa-solid fa-calendar-alt"></i>
-                        <span data-tr="Kalkış Zamanı *" data-en="Departure Time *">Kalkış Zamanı *</span>
-                    </label>
-                    @Html.TextBoxFor(m => m.DepartureTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local", required = "required" })
-                    @Html.ValidationMessageFor(m => m.DepartureTime, "", new { @class = "validation-error" })
-                </div>
-
-                @* Varış Zamanı *@
-                @* Arrival Time *@
-                <div class="form-group">
-                    <label for="ArrivalTime" class="form-label">
-                        <i class="fa-solid fa-calendar-check"></i>
-                        <span data-tr="Varış Zamanı *" data-en="Arrival Time *">Varış Zamanı *</span>
-                    </label>
-                    @Html.TextBoxFor(m => m.ArrivalTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local", required = "required" })
-                    @Html.ValidationMessageFor(m => m.ArrivalTime, "", new { @class = "validation-error" })
-                </div>
-
-                @* Fiyat *@
-                @* Price *@
-                <div class="form-group">
-                    <label for="Price" class="form-label">
-                        <i class="fa-solid fa-lira-sign"></i>
-                        <span data-tr="Fiyat (₺) *" data-en="Price (₺) *">Fiyat (₺) *</span>
-                    </label>
-                    @Html.TextBoxFor(m => m.Price, new { @class = "form-control", type = "number", step = "0.01", min = "0", required = "required" })
-                    @Html.ValidationMessageFor(m => m.Price, "", new { @class = "validation-error" })
-                </div>
-
-                @* Hava Durumu *@
-                @* Weather Condition *@
-                <div class="form-group">
-                    <label for="WeatherCondition" class="form-label">
-                        <i class="fa-solid fa-cloud-sun"></i>
-                        <span data-tr="Hava Durumu" data-en="Weather Condition">Hava Durumu</span>
-                    </label>
-                    @Html.DropDownListFor(m => m.WeatherCondition, (IEnumerable<SelectListItem>)ViewBag.WeatherOptions, new { @class = "form-control" })
-                    @Html.ValidationMessageFor(m => m.WeatherCondition, "", new { @class = "validation-error" })
-                </div>
-
-                @* Rötar Riski *@
-                @* Delay Risk *@
-                <div class="form-group">
-                    <label for="DelayRisk" class="form-label">
-                        <i class="fa-solid fa-exclamation-triangle"></i>
-                        <span data-tr="Rötar Riski" data-en="Delay Risk">Rötar Riski</span>
-                    </label>
-                    @Html.DropDownListFor(m => m.DelayRisk, (IEnumerable<SelectListItem>)ViewBag.DelayRiskOptions, new { @class = "form-control" })
-                    @Html.ValidationMessageFor(m => m.DelayRisk, "", new { @class = "validation-error" })
-                </div>
-
-                @* Aktif Durumu *@
-                @* Active Status *@
-                <div class="form-group form-group-checkbox">
-                    <label class="checkbox-label">
-                        @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-checkbox" })
-                        <span data-tr="Uçuş Aktif" data-en="Flight Active">Uçuş Aktif</span>
-                    </label>
-                </div>
+        <div class="form-grid">
+            @* Uçuş Numarası *@
+            @* Flight Number *@
+            <div class="form-group">
+                <label for="FlightNumber" class="form-label">
+                    <i class="fa-solid fa-hashtag"></i>
+                    <span data-tr="Uçuş Numarası *" data-en="Flight Number *">Uçuş Numarası *</span>
+                </label>
+                @Html.TextBoxFor(m => m.FlightNumber, new { @class = "form-control", required = "required" })
+                @Html.ValidationMessageFor(m => m.FlightNumber, "", new { @class = "validation-error" })
             </div>
+
+            @* Kalkış Havalimanı *@
+            @* Departure Airport *@
+            <div class="form-group">
+                <label for="FromCode" class="form-label">
+                    <i class="fa-solid fa-plane-departure"></i>
+                    <span data-tr="Kalkış (IATA) *" data-en="Departure (IATA) *">Kalkış (IATA) *</span>
+                </label>
+                @Html.TextBoxFor(m => m.FromCode, new { @class = "form-control", maxlength = "3", required = "required" })
+                @Html.ValidationMessageFor(m => m.FromCode, "", new { @class = "validation-error" })
+            </div>
+
+            @* Varış Havalimanı *@
+            @* Arrival Airport *@
+            <div class="form-group">
+                <label for="ToCode" class="form-label">
+                    <i class="fa-solid fa-plane-arrival"></i>
+                    <span data-tr="Varış (IATA) *" data-en="Arrival (IATA) *">Varış (IATA) *</span>
+                </label>
+                @Html.TextBoxFor(m => m.ToCode, new { @class = "form-control", maxlength = "3", required = "required" })
+                @Html.ValidationMessageFor(m => m.ToCode, "", new { @class = "validation-error" })
+            </div>
+
+            @* Kalkış Zamanı *@
+            @* Departure Time *@
+            <div class="form-group">
+                <label for="DepartureTime" class="form-label">
+                    <i class="fa-solid fa-calendar-alt"></i>
+                    <span data-tr="Kalkış Zamanı *" data-en="Departure Time *">Kalkış Zamanı *</span>
+                </label>
+                @Html.TextBoxFor(m => m.DepartureTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local", required = "required" })
+                @Html.ValidationMessageFor(m => m.DepartureTime, "", new { @class = "validation-error" })
+            </div>
+
+            @* Varış Zamanı *@
+            @* Arrival Time *@
+            <div class="form-group">
+                <label for="ArrivalTime" class="form-label">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span data-tr="Varış Zamanı *" data-en="Arrival Time *">Varış Zamanı *</span>
+                </label>
+                @Html.TextBoxFor(m => m.ArrivalTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local", required = "required" })
+                @Html.ValidationMessageFor(m => m.ArrivalTime, "", new { @class = "validation-error" })
+            </div>
+
+            @* Fiyat *@
+            @* Economy Price *@
+            <div class="form-group">
+                <label for="Economy Price" class="form-label">
+                    <i class="fa-solid fa-lira-sign"></i>
+                    <span data-tr="Fiyat (₺) *" data-en="Price (₺) *">Economy Fiyat (₺) *</span>
+                </label>
+                @Html.TextBoxFor(m => m.EconomyPrice, new { @class = "form-control", type = "number", step = "0.01", min = "0", required = "required" })
+                @Html.ValidationMessageFor(m => m.EconomyPrice, "", new { @class = "validation-error" })
+            </div>
+
+            @* Buisness Price *@
+            <div class="form-group">
+                <label for="Buisness Price" class="form-label">
+                    <i class="fa-solid fa-lira-sign"></i>
+                    <span data-tr="Fiyat (₺) *" data-en="Price (₺) *">Buisness Fiyat (₺) *</span>
+                </label>
+                @Html.TextBoxFor(m => m.BusinessPrice, new { @class = "form-control", type = "number", step = "0.01", min = "0", required = "required" })
+                @Html.ValidationMessageFor(m => m.BusinessPrice, "", new { @class = "validation-error" })
+            </div>
+
+            @* Hava Durumu *@
+            @* Weather Condition *@
+            <div class="form-group">
+                <label for="WeatherCondition" class="form-label">
+                    <i class="fa-solid fa-cloud-sun"></i>
+                    <span data-tr="Hava Durumu" data-en="Weather Condition">Hava Durumu</span>
+                </label>
+                @Html.DropDownListFor(m => m.WeatherCondition, (IEnumerable<SelectListItem>)ViewBag.WeatherOptions, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.WeatherCondition, "", new { @class = "validation-error" })
+            </div>
+
+            @* Rötar Riski *@
+            @* Delay Risk *@
+            <div class="form-group">
+                <label for="DelayRisk" class="form-label">
+                    <i class="fa-solid fa-exclamation-triangle"></i>
+                    <span data-tr="Rötar Riski" data-en="Delay Risk">Rötar Riski</span>
+                </label>
+                @Html.DropDownListFor(m => m.DelayRisk, (IEnumerable<SelectListItem>)ViewBag.DelayRiskOptions, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.DelayRisk, "", new { @class = "validation-error" })
+            </div>
+
+            @* Aktif Durumu *@
+            @* Active Status *@
+            <div class="form-group form-group-checkbox">
+                <label class="checkbox-label">
+                    @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-checkbox" })
+                    <span data-tr="Uçuş Aktif" data-en="Flight Active">Uçuş Aktif</span>
+                </label>
+            </div>
+        </div>
 
             @* Form Butonları *@
             @* Form Buttons *@

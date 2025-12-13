@@ -38,5 +38,8 @@ namespace Trabzon_Airlines.Data
         // Adminler tablosu - Tüm admin kayıtları
         // Admins table - All admin records
         public DbSet<Admin> Admins { get; set; }
+
+        //Destek talepleri tablosu-Ticketlar
+        public DbSet<SupportRequest> SupportRequests { get; set; }
     }
 }

@@ -144,12 +144,24 @@
 @* Aksiyon Butonları *@
 @* Action Buttons *@
 <div class="detail-actions">
-    <a href="@Url.Action("Delete", "AdminUsers", new { id = Model.UserId })" class="btn-action btn-delete" onclick="return confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?');">
+    @* Kullanıcıyı Sil Butonu *@
+    @* Delete User Button *@
+    <a href="@Url.Action("Delete", "AdminUsers", new { id = Model.UserId })" class="btn-delete-action" onclick="return confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?');">
+        @* Sil ikonu *@
+        @* Delete icon *@
         <i class="fa-solid fa-trash"></i>
+        @* Buton metni - Çeviri desteği ile *@
+        @* Button text - With translation support *@
         <span data-tr="Kullanıcıyı Sil" data-en="Delete User">Kullanıcıyı Sil</span>
     </a>
+    @* Listeye Dön Butonu *@
+    @* Back to List Button *@
     <a href="@Url.Action("Index", "AdminUsers")" class="btn-secondary-action">
+        @* Geri ok ikonu *@
+        @* Back arrow icon *@
         <i class="fa-solid fa-arrow-left"></i>
+        @* Buton metni - Çeviri desteği ile *@
+        @* Button text - With translation support *@
         <span data-tr="Listeye Dön" data-en="Back to List">Listeye Dön</span>
     </a>
 </div>

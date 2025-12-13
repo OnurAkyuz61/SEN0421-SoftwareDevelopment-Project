@@ -138,13 +138,17 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
+    <Compile Include="Controllers\AdminAdminsController.cs" />
     <Compile Include="Controllers\AdminBookingsController.cs" />
     <Compile Include="Controllers\AdminFlightsController.cs" />
+    <Compile Include="Controllers\AdminSupport.cs" />
     <Compile Include="Controllers\AdminUsersController.cs" />
     <Compile Include="Controllers\BookingController.cs" />
+    <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\FlightsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\PaymentController.cs" />
+    <Compile Include="Controllers\SupportController.cs" />
     <Compile Include="Data\TAContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -169,7 +173,28 @@
     <Compile Include="Migrations\202512042119378_AddAdminsTable.Designer.cs">
       <DependentUpon>202512042119378_AddAdminsTable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202512112242103_AddSupportRequestsTable.cs" />
+    <Compile Include="Migrations\202512112242103_AddSupportRequestsTable.Designer.cs">
+      <DependentUpon>202512112242103_AddSupportRequestsTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512120040376_E_Son.cs" />
+    <Compile Include="Migrations\202512120040376_E_Son.Designer.cs">
+      <DependentUpon>202512120040376_E_Son.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512120105205_AddCabinPricesToFlight.cs" />
+    <Compile Include="Migrations\202512120105205_AddCabinPricesToFlight.Designer.cs">
+      <DependentUpon>202512120105205_AddCabinPricesToFlight.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512120119190_AddPriceToBooking.cs" />
+    <Compile Include="Migrations\202512120119190_AddPriceToBooking.Designer.cs">
+      <DependentUpon>202512120119190_AddPriceToBooking.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512120154270_RemovePriceFromFlight.cs" />
+    <Compile Include="Migrations\202512120154270_RemovePriceFromFlight.Designer.cs">
+      <DependentUpon>202512120154270_RemovePriceFromFlight.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\Admin.cs" />
     <Compile Include="Models\Booking.cs" />
     <Compile Include="Models\Flight.cs" />
@@ -178,6 +203,7 @@
     <Compile Include="Models\RecentBookingViewModel.cs" />
     <Compile Include="Models\RecentFlightViewModel.cs" />
     <Compile Include="Models\Seat.cs" />
+    <Compile Include="Models\SupportRequest.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -231,6 +257,7 @@
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\NotFound.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_AdminLayout.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
@@ -259,10 +286,16 @@
     <Content Include="Views\AdminBookings\Details.cshtml" />
     <Content Include="Views\AdminUsers\Index.cshtml" />
     <Content Include="Views\AdminUsers\Details.cshtml" />
+    <Content Include="Views\Account\Dashboard.cshtml" />
+    <Content Include="Views\Account\Account.cshtml" />
+    <Content Include="Views\Home\Support.cshtml" />
+    <Content Include="Views\Home\KVKK.cshtml" />
+    <Content Include="Views\AdminSupport\Index.cshtml" />
+    <Content Include="Views\Flights\SearchResults.cshtml" />
+    <Content Include="Views\Admin\AdminAcounts.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\Account\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -306,6 +339,21 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202512042119378_AddAdminsTable.resx">
       <DependentUpon>202512042119378_AddAdminsTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512112242103_AddSupportRequestsTable.resx">
+      <DependentUpon>202512112242103_AddSupportRequestsTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512120040376_E_Son.resx">
+      <DependentUpon>202512120040376_E_Son.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512120105205_AddCabinPricesToFlight.resx">
+      <DependentUpon>202512120105205_AddCabinPricesToFlight.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512120119190_AddPriceToBooking.resx">
+      <DependentUpon>202512120119190_AddPriceToBooking.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512120154270_RemovePriceFromFlight.resx">
+      <DependentUpon>202512120154270_RemovePriceFromFlight.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

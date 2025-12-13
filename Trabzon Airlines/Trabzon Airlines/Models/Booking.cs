@@ -59,5 +59,12 @@ namespace Trabzon_Airlines.Models
 
         [ForeignKey("SeatId")] // Foreign key attribute'u
         public virtual Seat Seat { get; set; } // Koltuk bilgisi
+
+
+
+        // Bilet alındıktan sonra fiyat değişse bile, fiyat sbt kalır
+        public decimal Price { get; set; }
+        public string CabinClass { get; set; }
+
     }
 }

@@ -1,0 +1,283 @@
+﻿@using System.Linq;
+
+@{
+    ViewBag.Title = "Destek";
+    ViewBag.TitleEn = "Support";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/support.css?v=@DateTime.Now.Ticks" />
+}
+
+<div class="container py-4" style="max-width: 1100px;">
+    <div class="support-page-header">
+        <div class="page-header-content">
+            <h1 class="page-title">
+                <i class="fa-solid fa-headset"></i>
+                <span data-tr="Müşteri Destek" data-en="Customer Support">Müşteri Destek</span>
+            </h1>
+            <p class="page-subtitle">
+                <span data-tr="Uçuşlarınızla ilgili her türlü soru için bize ulaşabilirsiniz."
+                      data-en="You can contact us for any questions about your flights.">
+                    Uçuşlarınızla ilgili her türlü soru için bize ulaşabilirsiniz.
+                </span>
+            </p>
+        </div>
+    </div>
+
+    @* Hata / başarı mesajları (TR/EN destekli) *@
+    @if (TempData["SupportError_tr"] != null)
+    {
+        var errTr = TempData["SupportError_tr"].ToString();
+        var errEn = (TempData["SupportError_en"] ?? errTr).ToString();
+        <div class="alert alert-danger">
+            <span data-tr="@errTr" data-en="@errEn">@errTr</span>
+        </div>
+    }
+
+    @if (TempData["SupportSuccess_tr"] != null)
+    {
+        var okTr = TempData["SupportSuccess_tr"].ToString();
+        var okEn = (TempData["SupportSuccess_en"] ?? okTr).ToString();
+        <div class="alert alert-success">
+            <span data-tr="@okTr" data-en="@okEn">@okTr</span>
+        </div>
+    }
+
+    <div class="row">
+        @* Sol: Form *@
+        <div class="col-lg-8 mb-4">
+            @using (Html.BeginForm("Support", "Support", FormMethod.Post, new { @class = "card p-4 shadow-sm border-0 support-form" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <h2 class="h5 mb-3" data-tr="Destek Talebi Oluştur" data-en="Create Support Request">
+                    Destek Talebi Oluştur
+                </h2>
+
+                <div class="mb-3">
+                    <label for="fullName" class="form-label" data-tr="Ad Soyad" data-en="Full Name">Ad Soyad</label>
+                    <input type="text" class="form-control" id="fullName" name="fullName" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label" data-tr="E-posta" data-en="Email">E-posta</label>
+                    <input type="email" class="form-control" id="email" name="email" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="topic" class="form-label" data-tr="Konu" data-en="Topic">Konu</label>
+                    <select class="form-select" id="topic" name="topic" required>
+                        <option value="" selected disabled data-tr="Lütfen seçin" data-en="Please select">
+                            Lütfen seçin
+                        </option>
+                        <option value="reservation" data-tr="Rezervasyon / PNR" data-en="Reservation / PNR">
+                            Rezervasyon / PNR
+                        </option>
+                        <option value="payment" data-tr="Ödeme / İade" data-en="Payment / Refund">
+                            Ödeme / İade
+                        </option>
+                        <option value="flight-change" data-tr="Uçuş Değişikliği" data-en="Flight Change">
+                            Uçuş Değişikliği
+                        </option>
+                        <option value="other" data-tr="Diğer" data-en="Other">
+                            Diğer
+                        </option>
+                    </select>
+                </div>
+
+                <div class="mb-3" id="pnrGroup">
+                    <label for="pnr" class="form-label" data-tr="PNR Kodu (varsa)" data-en="PNR Code (if any)">
+                        PNR Kodu (varsa)
+                    </label>
+                    <input type="text" class="form-control" id="pnr" name="pnr" maxlength="10" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="message" class="form-label" data-tr="Mesajınız" data-en="Your Message">Mesajınız</label>
+                    <textarea class="form-control" id="message" name="message" rows="5" required maxlength="1000"></textarea>
+                    <small id="messageCounter" class="form-text text-muted d-block mt-1">0 / 1000</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100"
+                        data-tr="Talebi Gönder" data-en="Submit Request">
+                    Talebi Gönder
+                </button>
+            }
+        </div>
+
+        @* Sağ: İletişim bilgileri *@
+        <div class="col-lg-4">
+            <div class="support-contact-card">
+                <h2 data-tr="Bize Ulaşın" data-en="Contact Us">
+                    <i class="fa-solid fa-phone"></i>
+                    Bize Ulaşın
+                </h2>
+
+                <p>
+                    <i class="fa-solid fa-phone"></i>
+                    <strong>+90 462 000 00 00</strong>
+                </p>
+                <p>
+                    <i class="fa-solid fa-envelope"></i>
+                    <strong>support@trabzonairlines.com</strong>
+                </p>
+                <p class="mb-0">
+                    <i class="fa-solid fa-clock"></i>
+                    <span data-tr="7/24 hizmet" data-en="24/7 service">7/24 hizmet</span>
+                </p>
+            </div>
+
+            <div class="support-contact-card">
+                <h2 data-tr="Sık Sorulan Konular" data-en="Common Topics">
+                    <i class="fa-solid fa-question-circle"></i>
+                    Sık Sorulan Konular
+                </h2>
+                <ul>
+                    <li>• <span data-tr="Rezervasyon iptali ve iade" data-en="Booking cancellation and refund">Rezervasyon iptali ve iade</span></li>
+                    <li>• <span data-tr="Uçuş değişikliği" data-en="Flight change">Uçuş değişikliği</span></li>
+                    <li>• <span data-tr="Bagaj kuralları" data-en="Baggage rules">Bagaj kuralları</span></li>
+                    <li>• <span data-tr="Online check-in" data-en="Online check-in">Online check-in</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    @*  GEÇMİŞ DESTEK TALEPLERİ BLOĞU *@
+    @{
+        var ticketList = ViewBag.MySupportTickets as System.Collections.Generic.IEnumerable<Trabzon_Airlines.Models.SupportRequest>;
+        bool isLoggedIn = ViewBag.IsLoggedIn != null && (bool)ViewBag.IsLoggedIn;
+    }
+
+    <div class="row mt-4">
+        <div class="col-12">
+            @if (isLoggedIn && ticketList != null && ticketList.Any())
+            {
+                <div class="support-history-card">
+                    <div class="support-history-title">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <h2 data-tr="Önceki Destek Talepleriniz" data-en="Your Previous Support Tickets">
+                            Önceki Destek Talepleriniz
+                        </h2>
+                    </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped mb-0 support-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th data-tr="Tarih" data-en="Date">Tarih</th>
+                                        <th>PNR</th>
+                                        <th data-tr="Konu" data-en="Topic">Konu</th>
+                                        <th data-tr="Durum" data-en="Status">Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var t in ticketList)
+                                    {
+                                        string badgeClass = "badge bg-secondary";
+
+                                        if (t.Status == "New")
+                                        {
+                                            badgeClass = "badge bg-danger";
+                                        }
+                                        else if (t.Status == "InProgress")
+                                        {
+                                            badgeClass = "badge bg-warning text-dark";
+                                        }
+                                        else if (t.Status == "Resolved")
+                                        {
+                                            badgeClass = "badge bg-success";
+                                        }
+
+                                        <tr>
+                                            <td>#@t.SupportRequestId</td>
+                                            <td>@t.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                            <td>@(string.IsNullOrEmpty(t.PNR) ? "-" : t.PNR)</td>
+                                            <td>@t.Topic</td>
+                                            <td><span class="@badgeClass">@t.Status</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                    <small class="text-muted d-block mt-3"
+                           data-tr="Son 10 talebiniz gösterilmektedir."
+                           data-en="Last 10 tickets are shown.">
+                        Son 10 talebiniz gösterilmektedir.
+                    </small>
+                </div>
+            }
+            else if (isLoggedIn)
+            {
+                <div class="alert alert-info mb-0">
+                    <span data-tr="Henüz bir destek talebiniz bulunmuyor."
+                          data-en="You don't have any support tickets yet.">
+                        Henüz bir destek talebiniz bulunmuyor.
+                    </span>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mb-0">
+                    <span data-tr="Giriş yaparak geçmiş destek taleplerinizi görüntüleyebilirsiniz."
+                          data-en="Log in to see your previous support tickets.">
+                        Giriş yaparak geçmiş destek taleplerinizi görüntüleyebilirsiniz.
+                    </span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1) Hata / başarı mesajına yumuşak scroll + pulse animasyonu
+            var alertBox = document.querySelector(".alert-success, .alert-danger");
+            if (alertBox) {
+                alertBox.scrollIntoView({ behavior: "smooth", block: "start" });
+                alertBox.classList.add("support-alert-pulse");
+
+                setTimeout(function () {
+                    alertBox.classList.remove("support-alert-pulse");
+                }, 2500);
+            }
+
+            // 2) Mesaj karakter sayacı
+            var messageInput = document.getElementById("message");
+            var counter = document.getElementById("messageCounter");
+
+            if (messageInput && counter) {
+                var maxLen = messageInput.getAttribute("maxlength") ? parseInt(messageInput.getAttribute("maxlength")) : 1000;
+
+                function updateCounter() {
+                    var len = messageInput.value.length;
+                    counter.textContent = len + " / " + maxLen;
+                }
+
+                messageInput.addEventListener("input", updateCounter);
+                updateCounter();
+            }
+
+            // 3) Konu "Rezervasyon / PNR" seçilince PNR alanını vurgula
+            var topicSelect = document.getElementById("topic");
+            var pnrGroup = document.getElementById("pnrGroup");
+
+            if (topicSelect && pnrGroup) {
+                function updatePnrState() {
+                    if (topicSelect.value === "reservation") {
+                        pnrGroup.classList.add("border", "border-danger", "bg-light");
+                    } else {
+                        pnrGroup.classList.remove("border", "border-danger", "bg-light");
+                    }
+                }
+
+                topicSelect.addEventListener("change", updatePnrState);
+                updatePnrState();
+            }
+        });
+    </script>
+}

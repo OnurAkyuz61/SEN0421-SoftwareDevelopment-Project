@@ -1,0 +1,454 @@
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
+@{
+    // KVKK Aydınlatma Metni sayfası - Çift dil desteği
+    // KVKK Clarification Text page - Dual language support
+    ViewBag.Title = "KVKK Aydınlatma Metni";
+    ViewBag.TitleEn = "KVKK Clarification Text";
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/about.css">
+    <style>
+        /* KVKK özel stilleri */
+        /* KVKK custom styles */
+        .kvkk-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .kvkk-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 3px solid #e4002b;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .kvkk-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .kvkk-title i {
+            color: #e4002b;
+            font-size: 2.5rem;
+        }
+
+        .kvkk-subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .kvkk-last-updated {
+            font-size: 0.9rem;
+            color: #999;
+            font-style: italic;
+        }
+
+        .kvkk-content {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kvkk-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .kvkk-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .kvkk-section h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #e4002b;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e4002b;
+        }
+
+        .kvkk-section h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .kvkk-section p {
+            color: #333;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        .kvkk-section ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .kvkk-section ul li {
+            color: #333;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .kvkk-section strong {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .kvkk-highlight {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+            padding: 1.5rem;
+            border-left: 4px solid #e4002b;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .kvkk-contact-info {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+
+        .kvkk-contact-info p {
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .kvkk-container {
+                padding: 1rem;
+            }
+
+            .kvkk-content {
+                padding: 1.5rem;
+            }
+
+            .kvkk-title {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .kvkk-title i {
+                font-size: 2rem;
+            }
+        }
+    </style>
+}
+
+<!-- KVKK AYDINLATMA METNİ SECTION - KVKK Clarification Text Section -->
+<section class="kvkk-container">
+    <div class="kvkk-header">
+        <h1 class="kvkk-title" 
+            data-tr="KVKK Aydınlatma Metni" 
+            data-en="KVKK Clarification Text">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>KVKK Aydınlatma Metni</span>
+        </h1>
+        <p class="kvkk-subtitle" 
+           data-tr="6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında aydınlatma metni" 
+           data-en="Clarification text within the scope of Law No. 6698 on the Protection of Personal Data">
+            6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında aydınlatma metni
+        </p>
+        <p class="kvkk-last-updated" 
+           data-tr="Son Güncelleme: 01 Ocak 2025" 
+           data-en="Last Updated: January 1, 2025">
+            Son Güncelleme: 01 Ocak 2025
+        </p>
+    </div>
+
+    <div class="kvkk-content">
+        <!-- 1. Veri Sorumlusu -->
+        <div class="kvkk-section">
+            <h3 data-tr="1. Veri Sorumlusu" data-en="1. Data Controller">1. Veri Sorumlusu</h3>
+            <p data-tr="6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) uyarınca, kişisel verileriniz Trabzon Airlines tarafından veri sorumlusu sıfatıyla işlenmektedir." 
+               data-en="In accordance with Law No. 6698 on the Protection of Personal Data (KVKK), your personal data is processed by Trabzon Airlines as the data controller.">
+                6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) uyarınca, kişisel verileriniz Trabzon Airlines tarafından veri sorumlusu sıfatıyla işlenmektedir.
+            </p>
+            <div class="kvkk-contact-info">
+                <p><strong data-tr="Veri Sorumlusu:" data-en="Data Controller:">Veri Sorumlusu:</strong> Trabzon Airlines</p>
+                <p><strong data-tr="Adres:" data-en="Address:">Adres:</strong> Trabzon Havalimanı, 61000 Trabzon, Türkiye</p>
+                <p><strong data-tr="E-posta:" data-en="Email:">E-posta:</strong> kvkk@trabzonairlines.com</p>
+                <p><strong data-tr="Telefon:" data-en="Phone:">Telefon:</strong> +90 (462) 230 00 00</p>
+            </div>
+        </div>
+
+        <!-- 2. İşlenen Kişisel Veriler -->
+        <div class="kvkk-section">
+            <h3 data-tr="2. İşlenen Kişisel Veriler" data-en="2. Processed Personal Data">2. İşlenen Kişisel Veriler</h3>
+            <p data-tr="Hizmetlerimizden yararlanmanız için aşağıdaki kişisel verileriniz işlenmektedir:" 
+               data-en="The following personal data is processed for you to benefit from our services:">
+                Hizmetlerimizden yararlanmanız için aşağıdaki kişisel verileriniz işlenmektedir:
+            </p>
+            <ul>
+                <li data-tr="<strong>Kimlik Bilgileri:</strong> Ad, soyad, doğum tarihi, TC kimlik numarası, pasaport bilgileri" 
+                   data-en="<strong>Identity Information:</strong> Name, surname, date of birth, Turkish ID number, passport information">
+                    <strong>Kimlik Bilgileri:</strong> Ad, soyad, doğum tarihi, TC kimlik numarası, pasaport bilgileri
+                </li>
+                <li data-tr="<strong>İletişim Bilgileri:</strong> E-posta adresi, telefon numarası, adres bilgileri" 
+                   data-en="<strong>Contact Information:</strong> Email address, phone number, address information">
+                    <strong>İletişim Bilgileri:</strong> E-posta adresi, telefon numarası, adres bilgileri
+                </li>
+                <li data-tr="<strong>Rezervasyon Bilgileri:</strong> Uçuş bilgileri, rezervasyon numarası, ödeme bilgileri" 
+                   data-en="<strong>Booking Information:</strong> Flight information, reservation number, payment information">
+                    <strong>Rezervasyon Bilgileri:</strong> Uçuş bilgileri, rezervasyon numarası, ödeme bilgileri
+                </li>
+                <li data-tr="<strong>İşlem Güvenliği Bilgileri:</strong> IP adresi, çerez bilgileri, oturum bilgileri" 
+                   data-en="<strong>Transaction Security Information:</strong> IP address, cookie information, session information">
+                    <strong>İşlem Güvenliği Bilgileri:</strong> IP adresi, çerez bilgileri, oturum bilgileri
+                </li>
+            </ul>
+        </div>
+
+        <!-- 3. Kişisel Verilerin İşlenme Amaçları -->
+        <div class="kvkk-section">
+            <h3 data-tr="3. Kişisel Verilerin İşlenme Amaçları" data-en="3. Purposes of Processing Personal Data">3. Kişisel Verilerin İşlenme Amaçları</h3>
+            <p data-tr="Kişisel verileriniz aşağıdaki amaçlarla işlenmektedir:" 
+               data-en="Your personal data is processed for the following purposes:">
+                Kişisel verileriniz aşağıdaki amaçlarla işlenmektedir:
+            </p>
+            <ul>
+                <li data-tr="Uçuş rezervasyonu ve bilet satışı işlemlerinin gerçekleştirilmesi" 
+                   data-en="Carrying out flight reservation and ticket sales transactions">
+                    Uçuş rezervasyonu ve bilet satışı işlemlerinin gerçekleştirilmesi
+                </li>
+                <li data-tr="Müşteri hizmetleri ve destek taleplerinin yönetimi" 
+                   data-en="Management of customer services and support requests">
+                    Müşteri hizmetleri ve destek taleplerinin yönetimi
+                </li>
+                <li data-tr="Yasal yükümlülüklerin yerine getirilmesi" 
+                   data-en="Fulfillment of legal obligations">
+                    Yasal yükümlülüklerin yerine getirilmesi
+                </li>
+                <li data-tr="Güvenlik ve denetim işlemlerinin gerçekleştirilmesi" 
+                   data-en="Carrying out security and audit operations">
+                    Güvenlik ve denetim işlemlerinin gerçekleştirilmesi
+                </li>
+                <li data-tr="Pazarlama ve iletişim faaliyetlerinin yürütülmesi (açık rıza ile)" 
+                   data-en="Conducting marketing and communication activities (with explicit consent)">
+                    Pazarlama ve iletişim faaliyetlerinin yürütülmesi (açık rıza ile)
+                </li>
+            </ul>
+        </div>
+
+        <!-- 4. Kişisel Verilerin İşlenme Hukuki Sebepleri -->
+        <div class="kvkk-section">
+            <h3 data-tr="4. Kişisel Verilerin İşlenme Hukuki Sebepleri" data-en="4. Legal Basis for Processing Personal Data">4. Kişisel Verilerin İşlenme Hukuki Sebepleri</h3>
+            <p data-tr="Kişisel verileriniz KVKK'nın 5. ve 6. maddelerinde belirtilen aşağıdaki hukuki sebeplere dayanarak işlenmektedir:" 
+               data-en="Your personal data is processed based on the following legal grounds specified in Articles 5 and 6 of the KVKK:">
+                Kişisel verileriniz KVKK'nın 5. ve 6. maddelerinde belirtilen aşağıdaki hukuki sebeplere dayanarak işlenmektedir:
+            </p>
+            <ul>
+                <li data-tr="Açık rızanızın bulunması" 
+                   data-en="Your explicit consent">
+                    Açık rızanızın bulunması
+                </li>
+                <li data-tr="Sözleşmenin kurulması veya ifasıyla doğrudan doğruya ilgili olması" 
+                   data-en="Being directly related to the establishment or performance of a contract">
+                    Sözleşmenin kurulması veya ifasıyla doğrudan doğruya ilgili olması
+                </li>
+                <li data-tr="Yasal yükümlülüğün yerine getirilmesi" 
+                   data-en="Fulfillment of legal obligation">
+                    Yasal yükümlülüğün yerine getirilmesi
+                </li>
+                <li data-tr="Veri sorumlusunun hukuki yükümlülüğünü yerine getirmesi" 
+                   data-en="Fulfillment of the legal obligation of the data controller">
+                    Veri sorumlusunun hukuki yükümlülüğünü yerine getirmesi
+                </li>
+            </ul>
+        </div>
+
+        <!-- 5. Kişisel Verilerin Aktarımı -->
+        <div class="kvkk-section">
+            <h3 data-tr="5. Kişisel Verilerin Aktarımı" data-en="5. Transfer of Personal Data">5. Kişisel Verilerin Aktarımı</h3>
+            <p data-tr="Kişisel verileriniz, yukarıda belirtilen amaçların gerçekleştirilmesi için aşağıdaki üçüncü kişilere aktarılabilir:" 
+               data-en="Your personal data may be transferred to the following third parties for the realization of the purposes stated above:">
+                Kişisel verileriniz, yukarıda belirtilen amaçların gerçekleştirilmesi için aşağıdaki üçüncü kişilere aktarılabilir:
+            </p>
+            <ul>
+                <li data-tr="Ödeme işlemleri için ödeme hizmet sağlayıcıları" 
+                   data-en="Payment service providers for payment transactions">
+                    Ödeme işlemleri için ödeme hizmet sağlayıcıları
+                </li>
+                <li data-tr="Uçuş operasyonları için havalimanı yetkilileri ve havacılık otoriteleri" 
+                   data-en="Airport authorities and aviation authorities for flight operations">
+                    Uçuş operasyonları için havalimanı yetkilileri ve havacılık otoriteleri
+                </li>
+                <li data-tr="Yasal yükümlülükler için kamu kurum ve kuruluşları" 
+                   data-en="Public institutions and organizations for legal obligations">
+                    Yasal yükümlülükler için kamu kurum ve kuruluşları
+                </li>
+                <li data-tr="Hukuki danışmanlık hizmetleri için hukuk büroları" 
+                   data-en="Law firms for legal consulting services">
+                    Hukuki danışmanlık hizmetleri için hukuk büroları
+                </li>
+            </ul>
+            <div class="kvkk-highlight">
+                <p data-tr="<strong>Önemli:</strong> Kişisel verileriniz, KVKK ve ilgili mevzuat hükümlerine uygun olarak, gerekli güvenlik önlemleri alınarak aktarılmaktadır." 
+                   data-en="<strong>Important:</strong> Your personal data is transferred in accordance with KVKK and relevant legislation provisions, with necessary security measures taken.">
+                    <strong>Önemli:</strong> Kişisel verileriniz, KVKK ve ilgili mevzuat hükümlerine uygun olarak, gerekli güvenlik önlemleri alınarak aktarılmaktadır.
+                </p>
+            </div>
+        </div>
+
+        <!-- 6. Kişisel Verilerin Toplanma Yöntemi -->
+        <div class="kvkk-section">
+            <h3 data-tr="6. Kişisel Verilerin Toplanma Yöntemi" data-en="6. Method of Collecting Personal Data">6. Kişisel Verilerin Toplanma Yöntemi</h3>
+            <p data-tr="Kişisel verileriniz aşağıdaki yöntemlerle toplanmaktadır:" 
+               data-en="Your personal data is collected through the following methods:">
+                Kişisel verileriniz aşağıdaki yöntemlerle toplanmaktadır:
+            </p>
+            <ul>
+                <li data-tr="Web sitemiz üzerinden doldurduğunuz formlar" 
+                   data-en="Forms you fill out on our website">
+                    Web sitemiz üzerinden doldurduğunuz formlar
+                </li>
+                <li data-tr="Telefon, e-posta veya canlı destek üzerinden yaptığınız iletişimler" 
+                   data-en="Communications you make via phone, email or live support">
+                    Telefon, e-posta veya canlı destek üzerinden yaptığınız iletişimler
+                </li>
+                <li data-tr="Rezervasyon ve ödeme işlemleri sırasında" 
+                   data-en="During reservation and payment transactions">
+                    Rezervasyon ve ödeme işlemleri sırasında
+                </li>
+                <li data-tr="Çerezler ve benzeri teknolojiler aracılığıyla" 
+                   data-en="Through cookies and similar technologies">
+                    Çerezler ve benzeri teknolojiler aracılığıyla
+                </li>
+            </ul>
+        </div>
+
+        <!-- 7. Kişisel Veri Sahibinin Hakları -->
+        <div class="kvkk-section">
+            <h3 data-tr="7. Kişisel Veri Sahibinin Hakları" data-en="7. Rights of Personal Data Subject">7. Kişisel Veri Sahibinin Hakları</h3>
+            <p data-tr="KVKK'nın 11. maddesi uyarınca, kişisel veri sahibi olarak aşağıdaki haklara sahipsiniz:" 
+               data-en="In accordance with Article 11 of the KVKK, as a personal data subject, you have the following rights:">
+                KVKK'nın 11. maddesi uyarınca, kişisel veri sahibi olarak aşağıdaki haklara sahipsiniz:
+            </p>
+            <ul>
+                <li data-tr="Kişisel verilerinizin işlenip işlenmediğini öğrenme" 
+                   data-en="Learning whether your personal data is processed">
+                    Kişisel verilerinizin işlenip işlenmediğini öğrenme
+                </li>
+                <li data-tr="İşlenmişse buna ilişkin bilgi talep etme" 
+                   data-en="Requesting information if processed">
+                    İşlenmişse buna ilişkin bilgi talep etme
+                </li>
+                <li data-tr="İşlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme" 
+                   data-en="Learning the purpose of processing and whether it is used in accordance with its purpose">
+                    İşlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme
+                </li>
+                <li data-tr="Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme" 
+                   data-en="Knowing the third parties to whom it is transferred domestically or abroad">
+                    Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme
+                </li>
+                <li data-tr="Eksik veya yanlış işlenmişse düzeltilmesini isteme" 
+                   data-en="Requesting correction if processed incompletely or incorrectly">
+                    Eksik veya yanlış işlenmişse düzeltilmesini isteme
+                </li>
+                <li data-tr="KVKK'da öngörülen şartlar çerçevesinde silinmesini veya yok edilmesini isteme" 
+                   data-en="Requesting deletion or destruction within the framework of the conditions stipulated in KVKK">
+                    KVKK'da öngörülen şartlar çerçevesinde silinmesini veya yok edilmesini isteme
+                </li>
+                <li data-tr="Aktarıldığı üçüncü kişilere yukarıdaki işlemlerin bildirilmesini isteme" 
+                   data-en="Requesting notification of the above operations to third parties to whom it is transferred">
+                    Aktarıldığı üçüncü kişilere yukarıdaki işlemlerin bildirilmesini isteme
+                </li>
+                <li data-tr="İşlenen verilerin münhasıran otomatik sistemler ile analiz edilmesi suretiyle aleyhinize bir sonucun ortaya çıkmasına itiraz etme" 
+                   data-en="Objecting to the emergence of a result against you by analyzing the processed data exclusively through automated systems">
+                    İşlenen verilerin münhasıran otomatik sistemler ile analiz edilmesi suretiyle aleyhinize bir sonucun ortaya çıkmasına itiraz etme
+                </li>
+                <li data-tr="Kişisel verilerin kanuna aykırı olarak işlenmesi sebebiyle zarara uğramanız hâlinde zararın giderilmesini talep etme" 
+                   data-en="Requesting compensation for damages if you suffer damage due to unlawful processing of personal data">
+                    Kişisel verilerin kanuna aykırı olarak işlenmesi sebebiyle zarara uğramanız hâlinde zararın giderilmesini talep etme
+                </li>
+            </ul>
+            <div class="kvkk-highlight">
+                <p data-tr="<strong>Haklarınızı Kullanma:</strong> Yukarıda belirtilen haklarınızı kullanmak için kvkk@trabzonairlines.com adresine e-posta gönderebilir veya yazılı olarak başvuruda bulunabilirsiniz." 
+                   data-en="<strong>Exercising Your Rights:</strong> To exercise your rights stated above, you can send an email to kvkk@trabzonairlines.com or make a written application.">
+                    <strong>Haklarınızı Kullanma:</strong> Yukarıda belirtilen haklarınızı kullanmak için kvkk@trabzonairlines.com adresine e-posta gönderebilir veya yazılı olarak başvuruda bulunabilirsiniz.
+                </p>
+            </div>
+        </div>
+
+        <!-- 8. Kişisel Verilerin Saklanma Süresi -->
+        <div class="kvkk-section">
+            <h3 data-tr="8. Kişisel Verilerin Saklanma Süresi" data-en="8. Retention Period of Personal Data">8. Kişisel Verilerin Saklanma Süresi</h3>
+            <p data-tr="Kişisel verileriniz, işlenme amaçlarının gerektirdiği süre boyunca ve ilgili mevzuatta öngörülen saklama süreleri dikkate alınarak saklanmaktadır. İşlenme amacının ortadan kalkması veya saklama süresinin dolması durumunda, kişisel verileriniz KVKK'ya uygun olarak silinir, yok edilir veya anonim hale getirilir." 
+               data-en="Your personal data is stored for the period required by the processing purposes and taking into account the retention periods stipulated in the relevant legislation. If the processing purpose disappears or the retention period expires, your personal data is deleted, destroyed or anonymized in accordance with KVKK.">
+                Kişisel verileriniz, işlenme amaçlarının gerektirdiği süre boyunca ve ilgili mevzuatta öngörülen saklama süreleri dikkate alınarak saklanmaktadır. İşlenme amacının ortadan kalkması veya saklama süresinin dolması durumunda, kişisel verileriniz KVKK'ya uygun olarak silinir, yok edilir veya anonim hale getirilir.
+            </p>
+        </div>
+
+        <!-- 9. Güvenlik Önlemleri -->
+        <div class="kvkk-section">
+            <h3 data-tr="9. Güvenlik Önlemleri" data-en="9. Security Measures">9. Güvenlik Önlemleri</h3>
+            <p data-tr="Kişisel verilerinizin güvenliğini sağlamak için teknik ve idari güvenlik önlemleri alınmaktadır. Bu önlemler arasında şunlar yer almaktadır:" 
+               data-en="Technical and administrative security measures are taken to ensure the security of your personal data. These measures include:">
+                Kişisel verilerinizin güvenliğini sağlamak için teknik ve idari güvenlik önlemleri alınmaktadır. Bu önlemler arasında şunlar yer almaktadır:
+            </p>
+            <ul>
+                <li data-tr="SSL sertifikası ile şifreli veri iletimi" 
+                   data-en="Encrypted data transmission with SSL certificate">
+                    SSL sertifikası ile şifreli veri iletimi
+                </li>
+                <li data-tr="Güvenlik duvarları ve erişim kontrol sistemleri" 
+                   data-en="Firewalls and access control systems">
+                    Güvenlik duvarları ve erişim kontrol sistemleri
+                </li>
+                <li data-tr="Düzenli güvenlik denetimleri ve güncellemeler" 
+                   data-en="Regular security audits and updates">
+                    Düzenli güvenlik denetimleri ve güncellemeler
+                </li>
+                <li data-tr="Personel eğitimleri ve bilinçlendirme çalışmaları" 
+                   data-en="Staff training and awareness activities">
+                    Personel eğitimleri ve bilinçlendirme çalışmaları
+                </li>
+            </ul>
+        </div>
+
+        <!-- 10. İletişim -->
+        <div class="kvkk-section">
+            <h3 data-tr="10. İletişim" data-en="10. Contact">10. İletişim</h3>
+            <p data-tr="KVKK kapsamındaki haklarınızı kullanmak, sorularınızı iletmek veya şikayetlerinizi bildirmek için aşağıdaki iletişim bilgilerinden bize ulaşabilirsiniz:" 
+               data-en="You can contact us using the following contact information to exercise your rights under KVKK, submit your questions or report your complaints:">
+                KVKK kapsamındaki haklarınızı kullanmak, sorularınızı iletmek veya şikayetlerinizi bildirmek için aşağıdaki iletişim bilgilerinden bize ulaşabilirsiniz:
+            </p>
+            <div class="kvkk-contact-info">
+                <p><strong data-tr="E-posta:" data-en="Email:">E-posta:</strong> kvkk@trabzonairlines.com</p>
+                <p><strong data-tr="Telefon:" data-en="Phone:">Telefon:</strong> +90 (462) 230 00 00</p>
+                <p><strong data-tr="Adres:" data-en="Address:">Adres:</strong> Trabzon Havalimanı, 61000 Trabzon, Türkiye</p>
+                <p><strong data-tr="Çalışma Saatleri:" data-en="Working Hours:">Çalışma Saatleri:</strong> <span data-tr="Pazartesi - Cuma: 09:00 - 18:00" data-en="Monday - Friday: 09:00 - 18:00">Pazartesi - Cuma: 09:00 - 18:00</span></p>
+            </div>
+        </div>
+
+        <!-- Son Not -->
+        <div class="kvkk-section">
+            <div class="kvkk-highlight">
+                <p data-tr="<strong>Önemli:</strong> Bu aydınlatma metni, Trabzon Airlines web sitesi ve hizmetleri için geçerlidir. KVKK kapsamındaki haklarınızı kullanmak için yukarıdaki iletişim bilgilerinden bize ulaşabilirsiniz. Kişisel Verilerin Korunması Kurulu'na şikayet başvurusunda bulunma hakkınız saklıdır." 
+                   data-en="<strong>Important:</strong> This clarification text applies to Trabzon Airlines website and services. You can contact us using the contact information above to exercise your rights under KVKK. Your right to file a complaint with the Personal Data Protection Board is reserved.">
+                    <strong>Önemli:</strong> Bu aydınlatma metni, Trabzon Airlines web sitesi ve hizmetleri için geçerlidir. KVKK kapsamındaki haklarınızı kullanmak için yukarıdaki iletişim bilgilerinden bize ulaşabilirsiniz. Kişisel Verilerin Korunması Kurulu'na şikayet başvurusunda bulunma hakkınız saklıdır.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+

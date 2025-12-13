@@ -48,13 +48,6 @@ namespace Trabzon_Airlines.Models
         [Required(ErrorMessage = "Varış zamanı zorunludur")] // Zorunlu alan
         public DateTime ArrivalTime { get; set; }
 
-        // Uçuş fiyatı - Bilet fiyatı
-        // Flight price - Ticket price
-        [Display(Name = "Fiyat")] // Görünen isim
-        [Required(ErrorMessage = "Fiyat zorunludur")] // Zorunlu alan
-        [Range(0, double.MaxValue, ErrorMessage = "Fiyat 0'dan büyük olmalıdır")] // Fiyat pozitif olmalı
-        public decimal Price { get; set; }
-
         // Aktif mi? - Uçuş aktif mi pasif mi
         // Is active? - Is flight active or inactive
         [Display(Name = "Aktif mi?")] // Görünen isim
@@ -71,5 +64,10 @@ namespace Trabzon_Airlines.Models
         [Display(Name = "Rötar Riski")] // Görünen isim
         [StringLength(20)] // Maksimum 20 karakter
         public string DelayRisk { get; set; }
+
+
+
+        public decimal EconomyPrice { get; set; }
+        public decimal BusinessPrice { get; set; }
     }
 }

@@ -171,10 +171,19 @@ namespace Trabzon_Airlines.Controllers
             // Find admin from database
             var admin = db.Admins.Find(id);
 
-            // Admin bulunamadıysa 404 hatası döndür
-            // If admin not found, return 404 error
+            // Admin bulunamadıysa hata mesajı göster ve listeye yönlendir
+            // If admin not found, show error message and redirect to list
             if (admin == null)
-                return HttpNotFound();
+            {
+                // Hata mesajı
+                // Error message
+                TempData["AdminErrorKey"] = "AdminNotFound";
+                TempData["AdminError_tr"] = "Admin bulunamadı!";
+                TempData["AdminError_en"] = "Admin not found!";
+                // Admin listesine yönlendir
+                // Redirect to admin list
+                return RedirectToAction("Index");
+            }
 
             // Admin düzenleme view'ını döndür
             // Return admin edit view

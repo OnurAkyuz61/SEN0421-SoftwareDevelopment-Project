@@ -50,9 +50,10 @@
                 bool isAdminLoginPage = (controller == "Admin" && action == "Login");
                 bool isAdminPage = (controller == "Admin");
                 bool adminLogged = (Session["AdminId"] != null);
+                bool userLogged = (Session["UserId"] != null);
             }
 
-            @* 1) ADMIN LOGIN SAYFASI: sadece dil, billing YOK *@
+            @* 1) ADMIN LOGIN SAYFASI *@
             @if (isAdminLoginPage)
             {
                 <div class="dropdown-select" onclick="openLangModal()">
@@ -61,8 +62,7 @@
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
             }
-
-            @* 2) ADMIN PANEL (login olmuş) : dil + admin adı + logout, billing YOK *@
+            @* 2) ADMIN PANEL *@
             else if (adminLogged && isAdminPage)
             {
                 <div class="dropdown-select" onclick="openLangModal()">
@@ -82,17 +82,10 @@
                     Çıkış Yap
                 </button>
             }
-
-            @* 3) NORMAL USER SAYFALARI: her şey normal + billing VAR *@
+            @* 3) NORMAL USER SAYFALARI *@
             else
             {
-                <!-- Arama butonu -->
-                <div class="header-search" onclick="toggleSearch()">
-                    <span data-tr="Arama" data-en="Search">Arama</span>
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </div>
-
-                <!-- Dil ve para birimi seçici -->
+           
                 <div class="dropdown-select" onclick="openLangModal()">
                     <img id="headerFlag" src="https://flagcdn.com/w20/tr.png" class="flag-icon" alt="Dil bayrağı">
                     <span id="headerLang">Türkçe</span>
@@ -100,19 +93,44 @@
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
 
-                <!-- Kayıt ol ve giriş yap butonları -->
-                <button class="join-btn"
-                        onclick="window.location.href='@Url.Action("Signup", "Home")'"
-                        data-tr="Kayıt Ol" data-en="Sign Up">
-                    Kayıt Ol
-                </button>
+                @* Kullanıcı login değilse *@
+                if (!userLogged)
+                {
+                    <button class="join-btn"
+                            onclick="window.location.href='@Url.Action("Signup", "Home")'"
+                            data-tr="Kayıt Ol" data-en="Sign Up">
+                        Kayıt Ol
+                    </button>
 
-                <button class="signin-btn"
-                        onclick="window.location.href='@Url.Action("Login", "Home")'"
-                        data-tr="Giriş Yap" data-en="Login">
-                    Giriş Yap
-                </button>
+                    <button class="signin-btn"
+                            onclick="window.location.href='@Url.Action("Login", "Home")'"
+                            data-tr="Giriş Yap" data-en="Login">
+                        Giriş Yap
+                    </button>
+                }
+                else
+                {
+                    <button class="join-btn"
+                            onclick="window.location.href='@Url.Action("Dashboard", "Account")'"
+                            data-tr="Rezervasyonlarım" data-en="My Trips">
+                        Rezervasyonlarım
+                    </button>
+
+                    <button class="signin-btn"
+                            onclick="window.location.href='@Url.Action("Account", "Account")'"
+                            data-tr="Hesabım" data-en="My Account">
+                        Hesabım
+                    </button>
+
+                    <button class="signin-btn"
+                            style="background:#ff3b30; border-color:#ff3b30;"
+                            onclick="window.location.href='@Url.Action("Logout", "Account")'"
+                            data-tr="Çıkış Yap" data-en="Logout">
+                        Çıkış Yap
+                    </button>
+                }
             }
+
 
         </div>
     </header>
@@ -152,7 +170,7 @@
 
             <!-- Seyahat planları -->
             <li>
-                <a href="#" onclick="showComingSoonAlert('trips'); return false;">
+                <a href="@Url.Action("Index", "Flights")">
                     <i class="fa-solid fa-map"></i>
                     <span data-tr="Seyahatler" data-en="Trips">Seyahatler</span>
                 </a>
@@ -195,11 +213,12 @@
 
             <!-- Destek -->
             <li>
-                <a href="#" onclick="showComingSoonAlert('support'); return false;">
+                <a href="@Url.Action("Support", "Home")">
                     <i class="fa-solid fa-headset"></i>
                     <span data-tr="Destek" data-en="Support">Destek</span>
                 </a>
             </li>
+
 
             <!-- Menü ayırıcısı -->
             <hr class="menu-divider">
