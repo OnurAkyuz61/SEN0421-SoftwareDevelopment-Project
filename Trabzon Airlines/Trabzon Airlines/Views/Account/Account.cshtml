@@ -10,7 +10,8 @@
 
 @* Styles bölümü - CSS dosyası ekleme - Styles section - Adding CSS file *@
 @section styles {
-    <link rel="stylesheet" href="~/Content/css/admin-dashboard.css?v=@DateTime.Now.Ticks"> /* Admin dashboard CSS dosyası (cache önleme için timestamp) - Admin dashboard CSS file (timestamp for cache prevention) */
+    @* Admin dashboard CSS dosyası (cache önleme için timestamp) - Admin dashboard CSS file (timestamp for cache prevention) *@
+    <link rel="stylesheet" href="~/Content/css/admin-dashboard.css?v=@DateTime.Now.Ticks">
 }
 
 @* Başarı mesajı kontrolü - Success message check *@

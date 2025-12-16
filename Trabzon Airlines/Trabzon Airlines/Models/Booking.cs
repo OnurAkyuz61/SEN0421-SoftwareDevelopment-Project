@@ -66,5 +66,12 @@ namespace Trabzon_Airlines.Models
         public decimal Price { get; set; }
         public string CabinClass { get; set; }
 
+        // Check-in properties
+        public bool CheckedIn { get; set; }
+        public DateTime? CheckInTime { get; set; }
+
+        // Navigation property for meals
+        public virtual ICollection<BookingMeal> BookingMeals { get; set; }
+
     }
 }

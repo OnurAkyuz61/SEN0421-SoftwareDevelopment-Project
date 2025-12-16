@@ -1,5 +1,6 @@
 ﻿using System; // DateTime için
 using System.Collections.Generic; // List koleksiyonları için
+using System.Data.Entity; // Entity Framework Include için
 using System.Linq; // LINQ sorguları için
 using System.Net; // HTTP status kodları için
 using System.Web; // HTTP context için
@@ -56,12 +57,17 @@ namespace Trabzon_Airlines.Controllers
 
         // --------------------------
         // SELECT SEAT - POST
-        // Koltuk seçim işlemi - POST metodu
+        // Koltuk seçim işlemi - POST metodu (çoklu koltuk seçimi destekler)
         // --------------------------
         [HttpPost] // HTTP POST isteği için
         [ValidateAntiForgeryToken] // CSRF koruması için
-        public ActionResult SelectSeat(int? FlightId, int? SelectedSeatId)
+        public ActionResult SelectSeat(int? FlightId, int[] SelectedSeatIds)
         {
+            // Debug: Form verilerini logla
+            // Debug: Log form data
+            System.Diagnostics.Debug.WriteLine($"SelectSeat POST - FlightId: {FlightId}");
+            System.Diagnostics.Debug.WriteLine($"SelectSeat POST - SelectedSeatIds: {(SelectedSeatIds != null ? string.Join(", ", SelectedSeatIds) : "null")}");
+            
             // Kullanıcı giriş kontrolü
             if (Session["UserId"] == null)
             {
@@ -72,45 +78,31 @@ namespace Trabzon_Airlines.Controllers
                 return RedirectToAction("Login", "Home", new { returnUrl = returnUrl });
             }
 
-            // Koltuk seçilmiş mi?
-            if (SelectedSeatId == null)
+            // Koltuk seçilmiş mi? (Form'dan da kontrol et)
+            // Is seat selected? (Also check from form)
+            if (SelectedSeatIds == null || SelectedSeatIds.Length == 0)
             {
-                TempData["Error"] = "Lütfen bir koltuk seçin.";
-                return RedirectToAction("SelectSeat", new { flightId = FlightId });
+                // Form'dan da dene
+                // Try from form too
+                var seatIdsFromForm = Request.Form["SelectedSeatIds"];
+                if (seatIdsFromForm != null && !string.IsNullOrEmpty(seatIdsFromForm))
+                {
+                    SelectedSeatIds = seatIdsFromForm.Split(',').Select(s => int.Parse(s.Trim())).ToArray();
+                }
+                
+                if (SelectedSeatIds == null || SelectedSeatIds.Length == 0)
+                {
+                    TempData["Error_tr"] = "Lütfen en az bir koltuk seçin.";
+                    TempData["Error_en"] = "Please select at least one seat.";
+                    return RedirectToAction("SelectSeat", new { flightId = FlightId });
+                }
             }
 
-            //  Seçilen koltuğu Seat ve Flight ile birlikte getir
-            var fs = db.FlightSeats
-                       .Include("Seat")
-                       .Include("Flight")
-                       .FirstOrDefault(x => x.FlightId == FlightId && x.SeatId == SelectedSeatId);
-
-            if (fs == null)
-                return HttpNotFound();
-
-            // Koltuk daha önce alınmış mı
-            if (fs.IsReserved)
-            {
-                TempData["Error"] = "Bu koltuk az önce başka biri tarafından alındı.";
-                return RedirectToAction("SelectSeat", new { flightId = FlightId });
-            }
-
-            // Koltuğu geçici olarak rezerve et
-            fs.IsReserved = true;
-            db.SaveChanges();
-
-            //  Koltuk sınıfına göre BİRİM FİYAT belirle
-            decimal basePrice = fs.Seat.CabinClass == "Business"
-                ? fs.Flight.BusinessPrice
-                : fs.Flight.EconomyPrice;
-
-            // Yolcu sayıları varsayılan
+            // Formdan yolcu sayılarını al
             int adultCount = 1;
             int childCount = 0;
             int infantCount = 0;
-            string cabinClass = fs.Seat.CabinClass;
-
-            // Formdan yolcu sayılarını al
+            
             if (!string.IsNullOrEmpty(Request.Form["AdultCount"]))
                 int.TryParse(Request.Form["AdultCount"], out adultCount);
 
@@ -123,30 +115,169 @@ namespace Trabzon_Airlines.Controllers
             // Infant ücretsiz = sadece adult + child
             int totalPassengers = adultCount + childCount;
 
-            //  TOPLAM FİYAT
-            decimal totalPrice = basePrice * totalPassengers;
+            // Seçilen koltuk sayısı yolcu sayısıyla eşleşmeli
+            if (SelectedSeatIds.Length != totalPassengers)
+            {
+                TempData["Error_tr"] = $"Seçtiğiniz koltuk sayısı ({SelectedSeatIds.Length}) yolcu sayısı ({totalPassengers}) ile eşleşmiyor. Lütfen {totalPassengers} koltuk seçin.";
+                TempData["Error_en"] = $"Selected seat count ({SelectedSeatIds.Length}) does not match passenger count ({totalPassengers}). Please select {totalPassengers} seats.";
+                return RedirectToAction("SelectSeat", new { flightId = FlightId });
+            }
 
-            // Rezervasyon bilgisini Session kaydet
+            // Uçuş bilgisini al
+            var flight = db.Flights.Find(FlightId);
+            if (flight == null)
+                return HttpNotFound();
+
+            // Seçilen tüm koltukları kontrol et ve getir
+            var selectedSeats = new List<FlightSeat>();
+            var selectedSeatInfo = new List<object>(); // Session için anonim tip listesi
+            decimal totalPrice = 0;
+            string cabinClass = null;
+
+            foreach (var seatId in SelectedSeatIds)
+            {
+                var fs = db.FlightSeats
+                           .Include(x => x.Seat)
+                           .Include(x => x.Flight)
+                           .FirstOrDefault(x => x.FlightId == FlightId && x.SeatId == seatId);
+
+                if (fs == null)
+                {
+                    TempData["Error_tr"] = "Seçilen koltuklardan biri bulunamadı.";
+                    TempData["Error_en"] = "One of the selected seats was not found.";
+                    return RedirectToAction("SelectSeat", new { flightId = FlightId });
+                }
+
+                // Koltuk daha önce alınmış mı
+                if (fs.IsReserved)
+                {
+                    TempData["Error_tr"] = $"Koltuk {fs.Seat.SeatNumber} az önce başka biri tarafından alındı.";
+                    TempData["Error_en"] = $"Seat {fs.Seat.SeatNumber} was just taken by someone else.";
+                    return RedirectToAction("SelectSeat", new { flightId = FlightId });
+                }
+
+                // Koltuk sınıfına göre BİRİM FİYAT belirle
+                decimal basePrice = fs.Seat.CabinClass == "Business"
+                    ? fs.Flight.BusinessPrice
+                    : fs.Flight.EconomyPrice;
+
+                // İlk koltuktan kabin sınıfını al (tüm koltuklar aynı sınıfta olmalı)
+                if (cabinClass == null)
+                    cabinClass = fs.Seat.CabinClass;
+
+                // Her koltuk için fiyat ekle (1 yolcu = 1 koltuk)
+                totalPrice += basePrice;
+
+                // FlightSeat listesine ekle
+                selectedSeats.Add(fs);
+                
+                // Session için anonim tip oluştur
+                selectedSeatInfo.Add(new
+                {
+                    SeatId = fs.SeatId,
+                    SeatNumber = fs.Seat.SeatNumber,
+                    BasePrice = basePrice
+                });
+            }
+
+            // Koltuğu geçici olarak rezerve et
+            foreach (var fs in selectedSeats)
+            {
+                fs.IsReserved = true;
+            }
+            db.SaveChanges();
+
+            // Rezervasyon bilgisini Session kaydet (çoklu koltuk için)
             Session["PendingBooking"] = new
             {
-                FlightId = fs.FlightId,
-                SeatId = fs.SeatId,
-                FlightNumber = fs.Flight.FlightNumber,
-                FromCode = fs.Flight.FromCode,
-                ToCode = fs.Flight.ToCode,
-                DepartureTime = fs.Flight.DepartureTime,
-                ArrivalTime = fs.Flight.ArrivalTime,
-                SeatNumber = fs.Seat.SeatNumber,
+                FlightId = flight.FlightId,
+                SelectedSeatIds = SelectedSeatIds, // Tüm seçili koltuk ID'leri
+                SelectedSeats = selectedSeatInfo, // Koltuk detayları (anonim tip listesi)
+                FlightNumber = flight.FlightNumber,
+                FromCode = flight.FromCode,
+                ToCode = flight.ToCode,
+                DepartureTime = flight.DepartureTime,
+                ArrivalTime = flight.ArrivalTime,
                 CabinClass = cabinClass,
                 AdultCount = adultCount,
                 ChildCount = childCount,
                 InfantCount = infantCount,
-                BasePrice = basePrice,
                 TotalPrice = totalPrice
             };
 
             // Ödeme sayfasına yönlendir
             return RedirectToAction("Index", "Payment", new { amount = totalPrice });
+        }
+
+        // --------------------------
+        // MEAL SELECTION - GET
+        // Yemek seçim sayfası - GET metodu (Tamamen statik - veritabanı sorgusu yok)
+        // --------------------------
+        [HttpGet]
+        public ActionResult MealSelection(int? bookingId)
+        {
+            // TAMAMEN STATİK SAYFA - Veritabanı sorgusu yapılmıyor
+            // COMPLETELY STATIC PAGE - No database query
+            
+            // BookingId'yi ViewBag'e gönder (view'da kullanılabilir ama zorunlu değil)
+            // Send bookingId to ViewBag (can be used in view but not required)
+            ViewBag.BookingId = bookingId;
+            ViewBag.Booking = null; // Her zaman null - statik sayfa
+            
+            // Boş model gönder (view'da statik yemek listesi var)
+            // Send empty model (view has static meal list)
+            return View(new List<Meal>());
+        }
+
+        // --------------------------
+        // MEAL SELECTION - POST
+        // Yemek seçim işlemi - POST metodu
+        // --------------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult MealSelection(int? bookingId, int[] selectedMeals)
+        {
+            // Statik yemek seçimi - Veritabanına kaydetmeden devam et
+            // Static meal selection - Continue without saving to database
+            // Seçilen yemekler sadece istatistik için kullanılabilir
+            
+            // Form'dan bookingId'yi de kontrol et (boş string gelirse null yap)
+            // Also check bookingId from form (set to null if empty string)
+            if (!bookingId.HasValue)
+            {
+                string bookingIdStr = Request.Form["bookingId"];
+                if (!string.IsNullOrEmpty(bookingIdStr) && int.TryParse(bookingIdStr, out int parsedBookingId))
+                {
+                    bookingId = parsedBookingId;
+                }
+            }
+            
+            // bookingId varsa BookingResult sayfasına yönlendir
+            // If bookingId exists, redirect to BookingResult page
+            if (bookingId.HasValue && bookingId.Value > 0)
+            {
+                try
+                {
+                    // Booking var mı kontrol et
+                    // Check if booking exists
+                    var booking = db.Bookings.FirstOrDefault(b => b.BookingId == bookingId.Value);
+                    if (booking != null)
+                    {
+                        return RedirectToAction("BookingResult", new { bookingId = bookingId.Value });
+                    }
+                }
+                catch
+                {
+                    // Hata durumunda ana sayfaya yönlendir
+                    // In case of error, redirect to home
+                }
+            }
+            
+            // bookingId yoksa veya booking bulunamadıysa ana sayfaya yönlendir
+            // If bookingId doesn't exist or booking not found, redirect to home
+            TempData["Success_tr"] = "Yemek seçiminiz alındı. Teşekkür ederiz!";
+            TempData["Success_en"] = "Your meal selection has been received. Thank you!";
+            return RedirectToAction("Index", "Home");
         }
 
         // --------------------------
@@ -159,8 +290,9 @@ namespace Trabzon_Airlines.Controllers
             // Rezervasyon bilgisini veritabanından getir (uçuş ve koltuk bilgileri ile)
             // Get booking information from database (with flight and seat information)
             var booking = db.Bookings
-                            .Include("Flight") // Uçuş bilgisini dahil et
-                            .Include("Seat") // Koltuk bilgisini dahil et
+                            .Include(b => b.Flight) // Uçuş bilgisini dahil et
+                            .Include(b => b.Seat) // Koltuk bilgisini dahil et
+                            .Include(b => b.BookingMeals.Select(bm => bm.Meal)) // Yemek bilgilerini dahil et
                             .FirstOrDefault(b => b.BookingId == bookingId);
 
             // Rezervasyon bulunamadıysa 404 hatası döndür

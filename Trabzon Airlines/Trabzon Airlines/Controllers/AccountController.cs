@@ -52,10 +52,18 @@ namespace Trabzon_Airlines.Controllers
         [ValidateInput(false)]
         public ActionResult Login(string email, string password)
         {
+            // returnUrl'i metodun başında bir kez al (hem QueryString'den hem de form'dan)
+            // Get returnUrl once at the beginning of the method (from both QueryString and form)
+            string returnUrl = Request.Form["returnUrl"] ?? Request.QueryString["returnUrl"];
+
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
                 TempData["Error_tr"] = "E-posta ve şifre gereklidir!";
                 TempData["Error_en"] = "Email and password are required!";
+                if (!string.IsNullOrEmpty(returnUrl))
+                {
+                    return RedirectToAction("Login", "Home", new { returnUrl = returnUrl });
+                }
                 return RedirectToAction("Login", "Home");
             }
 
@@ -76,6 +84,10 @@ namespace Trabzon_Airlines.Controllers
                     TempData["Error_tr"] = "Bu e-posta adresi kayıtlı değil! Lütfen önce kayıt olun.";
                     TempData["Error_en"] = "This email address is not registered! Please sign up first.";
                 }
+                if (!string.IsNullOrEmpty(returnUrl))
+                {
+                    return RedirectToAction("Login", "Home", new { returnUrl = returnUrl });
+                }
                 return RedirectToAction("Login", "Home");
             }
 
@@ -83,9 +95,10 @@ namespace Trabzon_Airlines.Controllers
             Session["UserId"] = user.UserId;
             Session["UserName"] = user.FirstName;
             Session["UserEmail"] = user.Email;
-
-            string returnUrl = Request.QueryString["returnUrl"];
-            if (!string.IsNullOrEmpty(returnUrl))
+            
+            // returnUrl varsa ve geçerliyse oraya yönlendir
+            // If returnUrl exists and is valid, redirect there
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);
             }

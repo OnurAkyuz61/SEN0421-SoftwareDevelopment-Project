@@ -12,8 +12,12 @@
 
 @* Styles bölümü - CSS dosyası ekleme - Styles section - Adding CSS file *@
 @section styles {
-    <link rel="stylesheet" href="~/Content/css/admin-dashboard.css?v=@DateTime.Now.Ticks"> /* Admin dashboard CSS dosyası (cache önleme için timestamp) - Admin dashboard CSS file (timestamp for cache prevention) */
+    @* Admin dashboard CSS dosyası (cache önleme için timestamp) - Admin dashboard CSS file (timestamp for cache prevention) *@
+    <link rel="stylesheet" href="~/Content/css/admin-dashboard.css?v=@DateTime.Now.Ticks">
 }
+
+@* Anti-forgery token (JavaScript için) - Anti-forgery token (for JavaScript) *@
+@Html.AntiForgeryToken()
 
 @* Sayfa başlık bölümü - Page header section *@
 <div class="admin-page-header">
@@ -137,17 +141,14 @@
                                 <td>@b.ArrivalTime.ToString("dd.MM.yyyy HH:mm")</td> @* Varış zamanı (formatlanmış) - Arrival time (formatted) *@
                                 <td>@b.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</td> @* Fiyat (para formatında) - Price (currency format) *@
                                 <td>
-                                    @* İptal formu - Cancel form *@
-                                    @using (Html.BeginForm("CancelBooking", "Account",
-                                        new { id = b.BookingId },
-                                        FormMethod.Post,
-                                        new { onsubmit = "return confirm('Bu rezervasyonu iptal etmek istediğinize emin misiniz?');" }))
-                                    {
-                                        @Html.AntiForgeryToken() @* CSRF koruması token'ı - CSRF protection token *@
-                                        <button type="submit" class="btn-action btn-delete" data-tr="İptal Et" data-en="Cancel">
-                                            İptal Et
-                                        </button> @* İptal butonu (çok dilli) - Cancel button (multilingual) *@
-                                    }
+                                    @* İptal butonu - Cancel button *@
+                                    <button type="button" 
+                                            class="btn-action btn-delete" 
+                                            onclick="showCancelBookingModal(@b.BookingId)"
+                                            data-tr="İptal Et" 
+                                            data-en="Cancel">
+                                        İptal Et
+                                    </button>
                                 </td>
                             </tr>
                         }
@@ -209,3 +210,115 @@
     </div>
 
 </div>
+
+@* Scripts bölümü - JavaScript fonksiyonları - Scripts section - JavaScript functions *@
+@section scripts {
+    <script>
+        // İptal modal'ını göster - Show cancel modal
+        function showCancelBookingModal(bookingId) {
+            const modal = document.getElementById('cancelBookingModal');
+            if (!modal) return;
+
+            // Modal'ı göster - Show modal
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+
+            // Onay butonuna tıklama olayını ayarla - Set click event for confirm button
+            const confirmBtn = document.getElementById('confirmCancelBtn');
+            if (confirmBtn) {
+                // Önceki event listener'ları temizle - Clear previous event listeners
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+                // Yeni event listener ekle - Add new event listener
+                newConfirmBtn.addEventListener('click', function() {
+                    // Form oluştur ve gönder - Create and submit form
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '@Url.Action("CancelBooking", "Account")/' + bookingId;
+
+                    // Anti-forgery token ekle - Add anti-forgery token
+                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (tokenInput) {
+                        const token = document.createElement('input');
+                        token.type = 'hidden';
+                        token.name = '__RequestVerificationToken';
+                        token.value = tokenInput.value;
+                        form.appendChild(token);
+                    }
+
+                    // Formu sayfaya ekle ve gönder - Add form to page and submit
+                    document.body.appendChild(form);
+                    form.submit();
+                });
+            }
+
+            // Dil değişikliğini dinle - Listen for language change
+            updateCancelModalLanguage();
+        }
+
+        // İptal modal'ını kapat - Close cancel modal
+        function closeCancelBookingModal() {
+            const modal = document.getElementById('cancelBookingModal');
+            if (modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+            }
+        }
+
+        // Modal dil güncellemesi - Update modal language
+        function updateCancelModalLanguage() {
+            const currentLang = localStorage.getItem('language') || 'tr';
+            const modal = document.getElementById('cancelBookingModal');
+            if (!modal) return;
+
+            const title = document.getElementById('cancelBookingModalTitle');
+            const message = document.getElementById('cancelBookingMessage');
+            const subMessage = document.getElementById('cancelBookingSubMessage');
+            const confirmBtn = document.getElementById('confirmCancelBtn');
+            const cancelBtn = modal.querySelector('button[onclick="closeCancelBookingModal()"]');
+
+            if (currentLang === 'en') {
+                if (title) title.textContent = 'Cancel Reservation';
+                if (message) message.textContent = 'Are you sure you want to cancel this reservation?';
+                if (subMessage) subMessage.textContent = 'This action cannot be undone.';
+                if (confirmBtn) {
+                    const span = confirmBtn.querySelector('span');
+                    if (span) span.textContent = 'Yes, Cancel';
+                }
+                if (cancelBtn) {
+                    const span = cancelBtn.querySelector('span');
+                    if (span) span.textContent = 'No';
+                }
+            } else {
+                if (title) title.textContent = 'Rezervasyon İptali';
+                if (message) message.textContent = 'Bu rezervasyonu iptal etmek istediğinize emin misiniz?';
+                if (subMessage) subMessage.textContent = 'Bu işlem geri alınamaz.';
+                if (confirmBtn) {
+                    const span = confirmBtn.querySelector('span');
+                    if (span) span.textContent = 'Evet, İptal Et';
+                }
+                if (cancelBtn) {
+                    const span = cancelBtn.querySelector('span');
+                    if (span) span.textContent = 'Hayır';
+                }
+            }
+        }
+
+        // Sayfa yüklendiğinde dil güncellemesi - Update language on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dil değişikliğini dinle - Listen for language changes
+            window.addEventListener('languageChanged', updateCancelModalLanguage);
+            
+            // Modal dışına tıklandığında kapat - Close modal when clicking outside
+            const cancelModal = document.getElementById('cancelBookingModal');
+            if (cancelModal) {
+                cancelModal.addEventListener('click', function(e) {
+                    if (e.target === cancelModal) {
+                        closeCancelBookingModal();
+                    }
+                });
+            }
+        });
+    </script>
+}

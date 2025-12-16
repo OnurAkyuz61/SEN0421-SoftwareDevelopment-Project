@@ -144,10 +144,12 @@
     <Compile Include="Controllers\AdminSupport.cs" />
     <Compile Include="Controllers\AdminUsersController.cs" />
     <Compile Include="Controllers\BookingController.cs" />
+    <Compile Include="Controllers\CheckInController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\FlightsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\PaymentController.cs" />
+    <Compile Include="Controllers\SitemapController.cs" />
     <Compile Include="Controllers\SupportController.cs" />
     <Compile Include="Data\TAContext.cs" />
     <Compile Include="Global.asax.cs">
@@ -193,12 +195,16 @@
     <Compile Include="Migrations\202512120154270_RemovePriceFromFlight.Designer.cs">
       <DependentUpon>202512120154270_RemovePriceFromFlight.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202512170000000_AddMealTables.cs" />
+    <Compile Include="Migrations\202512170000001_AddCheckInColumns.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\Admin.cs" />
     <Compile Include="Models\Booking.cs" />
+    <Compile Include="Models\BookingMeal.cs" />
     <Compile Include="Models\Flight.cs" />
     <Compile Include="Models\FlightSeat.cs" />
+    <Compile Include="Models\Meal.cs" />
     <Compile Include="Models\PaymentViewModel.cs" />
     <Compile Include="Models\RecentBookingViewModel.cs" />
     <Compile Include="Models\RecentFlightViewModel.cs" />
@@ -270,6 +276,10 @@
     <Content Include="Views\AdminFlights\Edit.cshtml" />
     <Content Include="Views\Booking\SelectSeat.cshtml" />
     <Content Include="Views\Booking\BookingResult.cshtml" />
+    <Content Include="Views\Booking\MealSelection.cshtml" />
+    <Content Include="Views\CheckIn\Index.cshtml" />
+    <Content Include="Views\CheckIn\BookingDetails.cshtml" />
+    <Content Include="Views\CheckIn\BoardingPass.cshtml" />
     <Content Include="Views\Payment\Index.cshtml" />
     <Content Include="Views\Payment\success.cshtml" />
     <Content Include="Views\Payment\error.cshtml" />

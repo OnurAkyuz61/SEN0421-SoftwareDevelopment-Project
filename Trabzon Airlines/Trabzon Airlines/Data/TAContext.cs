@@ -41,5 +41,13 @@ namespace Trabzon_Airlines.Data
 
         //Destek talepleri tablosu-Ticketlar
         public DbSet<SupportRequest> SupportRequests { get; set; }
+
+        // Meals tablosu - Tüm yemek kayıtları
+        // Meals table - All meal records
+        public DbSet<Meal> Meals { get; set; }
+
+        // BookingMeals tablosu - Rezervasyon-yemek ilişki tablosu
+        // BookingMeals table - Booking-meal relationship table
+        public DbSet<BookingMeal> BookingMeals { get; set; }
     }
 }

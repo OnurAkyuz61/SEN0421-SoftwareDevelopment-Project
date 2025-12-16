@@ -1,0 +1,229 @@
+@{
+    ViewBag.Title = "Paketler";
+    ViewBag.TitleEn = "Packages";
+}
+
+<div class="page-content">
+
+    <!-- ================== HERO ================== -->
+    <section style="
+        background: linear-gradient(135deg, #e4002b, #c20025);
+        color: white;
+        padding: 3rem 1rem;
+        border-radius: 16px;
+        text-align: center;
+        margin-bottom: 3rem;
+    ">
+        <h1 style="font-size:2.5rem; margin-bottom:0.5rem;" data-tr="Paket Turlar" data-en="Package Tours">Paket Turlar</h1>
+        <p style="opacity:0.9; max-width:600px; margin:auto;" data-tr="Uçuş + Otel + Transfer dahil özel paket fırsatlarımızı keşfedin" data-en="Discover our special package deals including Flight + Hotel + Transfer">
+            Uçuş + Otel + Transfer dahil özel paket fırsatlarımızı keşfedin
+        </p>
+    </section>
+
+    <!-- ================== PAKETLER ================== -->
+    <section class="packages-section">
+
+        <div style="
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap:2rem;
+        ">
+
+            <!-- ANTALYA PAKET -->
+            <div class="package-card">
+                <div class="package-badge" data-tr="Popüler" data-en="Popular">Popüler</div>
+                <div class="package-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 200px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                    🏖️
+                </div>
+                <div class="package-content">
+                    <h3 data-tr="Antalya Paket Turu" data-en="Antalya Package Tour">Antalya Paket Turu</h3>
+                    <p class="package-duration" data-tr="3 Gece 4 Gün" data-en="3 Nights 4 Days">3 Gece 4 Gün</p>
+                    <ul class="package-features">
+                        <li data-tr="✈️ Uçuş dahil" data-en="✈️ Flight included">✈️ Uçuş dahil</li>
+                        <li data-tr="🏨 4 yıldızlı otel" data-en="🏨 4-star hotel">🏨 4 yıldızlı otel</li>
+                        <li data-tr="🚌 Havalimanı transferi" data-en="🚌 Airport transfer">🚌 Havalimanı transferi</li>
+                        <li data-tr="🍽️ Kahvaltı dahil" data-en="🍽️ Breakfast included">🍽️ Kahvaltı dahil</li>
+                    </ul>
+                    <div class="package-price">
+                        <span class="price-amount" data-tr="₺4.999" data-en="₺4.999">₺4.999</span>
+                        <span class="price-label" data-tr="kişi başı" data-en="per person">kişi başı</span>
+                    </div>
+                    <button class="package-btn" data-tr="Detayları Gör" data-en="View Details">Detayları Gör</button>
+                </div>
+            </div>
+
+            <!-- İSTANBUL PAKET -->
+            <div class="package-card">
+                <div class="package-badge" data-tr="Yeni" data-en="New">Yeni</div>
+                <div class="package-image" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); height: 200px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                    🏛️
+                </div>
+                <div class="package-content">
+                    <h3 data-tr="İstanbul Paket Turu" data-en="Istanbul Package Tour">İstanbul Paket Turu</h3>
+                    <p class="package-duration" data-tr="2 Gece 3 Gün" data-en="2 Nights 3 Days">2 Gece 3 Gün</p>
+                    <ul class="package-features">
+                        <li data-tr="✈️ Uçuş dahil" data-en="✈️ Flight included">✈️ Uçuş dahil</li>
+                        <li data-tr="🏨 Şehir merkezi otel" data-en="🏨 City center hotel">🏨 Şehir merkezi otel</li>
+                        <li data-tr="🚌 Havalimanı transferi" data-en="🚌 Airport transfer">🚌 Havalimanı transferi</li>
+                        <li data-tr="🎫 Boğaz turu dahil" data-en="🎫 Bosphorus tour included">🎫 Boğaz turu dahil</li>
+                    </ul>
+                    <div class="package-price">
+                        <span class="price-amount" data-tr="₺3.499" data-en="₺3.499">₺3.499</span>
+                        <span class="price-label" data-tr="kişi başı" data-en="per person">kişi başı</span>
+                    </div>
+                    <button class="package-btn" data-tr="Detayları Gör" data-en="View Details">Detayları Gör</button>
+                </div>
+            </div>
+
+            <!-- İZMİR PAKET -->
+            <div class="package-card">
+                <div class="package-badge" data-tr="Özel" data-en="Special">Özel</div>
+                <div class="package-image" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); height: 200px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                    🌊
+                </div>
+                <div class="package-content">
+                    <h3 data-tr="İzmir & Alaçatı Paket Turu" data-en="Izmir & Alaçatı Package Tour">İzmir & Alaçatı Paket Turu</h3>
+                    <p class="package-duration" data-tr="4 Gece 5 Gün" data-en="4 Nights 5 Days">4 Gece 5 Gün</p>
+                    <ul class="package-features">
+                        <li data-tr="✈️ Uçuş dahil" data-en="✈️ Flight included">✈️ Uçuş dahil</li>
+                        <li data-tr="🏨 Butik otel" data-en="🏨 Boutique hotel">🏨 Butik otel</li>
+                        <li data-tr="🚌 Havalimanı transferi" data-en="🚌 Airport transfer">🚌 Havalimanı transferi</li>
+                        <li data-tr="🏖️ Alaçatı turu dahil" data-en="🏖️ Alaçatı tour included">🏖️ Alaçatı turu dahil</li>
+                    </ul>
+                    <div class="package-price">
+                        <span class="price-amount" data-tr="₺5.999" data-en="₺5.999">₺5.999</span>
+                        <span class="price-label" data-tr="kişi başı" data-en="per person">kişi başı</span>
+                    </div>
+                    <button class="package-btn" data-tr="Detayları Gör" data-en="View Details">Detayları Gör</button>
+                </div>
+            </div>
+
+            <!-- TRABZON PAKET -->
+            <div class="package-card">
+                <div class="package-badge" data-tr="Favori" data-en="Favorite">Favori</div>
+                <div class="package-image" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); height: 200px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                    🏔️
+                </div>
+                <div class="package-content">
+                    <h3 data-tr="Trabzon Doğa Paket Turu" data-en="Trabzon Nature Package Tour">Trabzon Doğa Paket Turu</h3>
+                    <p class="package-duration" data-tr="3 Gece 4 Gün" data-en="3 Nights 4 Days">3 Gece 4 Gün</p>
+                    <ul class="package-features">
+                        <li data-tr="✈️ Uçuş dahil" data-en="✈️ Flight included">✈️ Uçuş dahil</li>
+                        <li data-tr="🏨 Doğa oteli" data-en="🏨 Nature hotel">🏨 Doğa oteli</li>
+                        <li data-tr="🚌 Havalimanı transferi" data-en="🚌 Airport transfer">🚌 Havalimanı transferi</li>
+                        <li data-tr="🌲 Uzungöl turu dahil" data-en="🌲 Uzungöl tour included">🌲 Uzungöl turu dahil</li>
+                    </ul>
+                    <div class="package-price">
+                        <span class="price-amount" data-tr="₺3.999" data-en="₺3.999">₺3.999</span>
+                        <span class="price-label" data-tr="kişi başı" data-en="per person">kişi başı</span>
+                    </div>
+                    <button class="package-btn" data-tr="Detayları Gör" data-en="View Details">Detayları Gör</button>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+<!-- ================== SAYFAYA ÖZEL CSS ================== -->
+<style>
+    .package-card {
+        position: relative;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: transform .3s, box-shadow .3s;
+        overflow: hidden;
+    }
+
+        .package-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.15);
+        }
+
+    .package-badge {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: #e4002b;
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        z-index: 10;
+    }
+
+    .package-content {
+        padding: 1.5rem;
+    }
+
+        .package-content h3 {
+            margin-bottom: 0.5rem;
+            color: #e4002b;
+            font-size: 1.3rem;
+        }
+
+    .package-duration {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        font-weight: 500;
+    }
+
+    .package-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem 0;
+    }
+
+        .package-features li {
+            padding: 0.5rem 0;
+            color: #555;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+            .package-features li:last-child {
+                border-bottom: none;
+            }
+
+    .package-price {
+        text-align: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .price-amount {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #e4002b;
+        display: block;
+    }
+
+    .price-label {
+        font-size: 0.85rem;
+        color: #888;
+    }
+
+    .package-btn {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        background: #e4002b;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .3s;
+    }
+
+        .package-btn:hover {
+            background: #c20025;
+        }
+</style>
+

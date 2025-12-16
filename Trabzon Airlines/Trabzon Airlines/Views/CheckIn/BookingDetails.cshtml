@@ -1,0 +1,304 @@
+@model Trabzon_Airlines.Models.Booking
+
+@{
+    ViewBag.Title = "Booking Details";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Details - Trabzon Airlines</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+            .header h1 {
+                font-size: 2rem;
+                margin-bottom: 10px;
+            }
+
+        .content {
+            padding: 40px;
+        }
+
+        .pnr-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .pnr-code {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+
+        .info-section {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+            .info-section h3 {
+                color: #667eea;
+                margin-bottom: 15px;
+                font-size: 1.3rem;
+            }
+
+        .info-row {
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+            .info-row:last-child {
+                border-bottom: none;
+            }
+
+        .info-label {
+            font-weight: bold;
+            color: #333;
+            display: inline-block;
+            width: 150px;
+        }
+
+        .info-value {
+            color: #666;
+        }
+
+        .meal-section {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .meal-list {
+            list-style: none;
+        }
+
+        .meal-item {
+            padding: 8px 0;
+            color: #856404;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+            }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+            .btn-secondary:hover {
+                background: #5a6268;
+            }
+
+        .action-buttons {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✈️ Booking Details</h1>
+            <p>Review your booking information</p>
+        </div>
+
+        <div class="content">
+            @if (TempData["Info"] != null)
+            {
+                <div class="alert alert-info">
+                    ℹ️ @TempData["Info"]
+                </div>
+            }
+
+            <div class="pnr-box">
+                <p style="margin-bottom: 10px;">Your PNR Code</p>
+                <div class="pnr-code">@Model.PNR</div>
+            </div>
+
+            <div class="info-section">
+                <h3>✈️ Flight Information</h3>
+                <div class="info-row">
+                    <span class="info-label">Flight Number:</span>
+                    <span class="info-value">@Model.Flight.FlightNumber</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Route:</span>
+                    <span class="info-value">@Model.Flight.FromCode → @Model.Flight.ToCode</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Departure:</span>
+                    <span class="info-value">@Model.Flight.DepartureTime.ToString("dd MMM yyyy HH:mm")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Arrival:</span>
+                    <span class="info-value">@Model.Flight.ArrivalTime.ToString("dd MMM yyyy HH:mm")</span>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>🪑 Passenger & Seat</h3>
+                <div class="info-row">
+                    <span class="info-label">Passenger:</span>
+                    <span class="info-value">@Model.PassengerName @Model.PassengerSurname</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Seat:</span>
+                    <span class="info-value">@Model.Seat.SeatNumber (@Model.Seat.CabinClass)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Booking Date:</span>
+                    <span class="info-value">@Model.BookingDate.ToString("dd MMM yyyy HH:mm")</span>
+                </div>
+            </div>
+
+            @if (Model.BookingMeals != null && Model.BookingMeals.Any())
+            {
+                <div class="meal-section">
+                    <h3>🍽️ Selected Meals</h3>
+                    <ul class="meal-list">
+                        @foreach (var bookingMeal in Model.BookingMeals)
+                        {
+                            <li class="meal-item">
+                                ✓ @bookingMeal.Meal.MealName
+                                @if (bookingMeal.Quantity > 1)
+                                {
+                                    <span> x @bookingMeal.Quantity</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="info-section">
+                <h3>📋 Check-In Status</h3>
+                @if (Model.CheckedIn)
+                {
+                    <span class="status-badge status-completed">✓ Checked In</span>
+                    <div class="info-row">
+                        <span class="info-label">Check-In Time:</span>
+                        <span class="info-value">@Model.CheckInTime?.ToString("dd MMM yyyy HH:mm")</span>
+                    </div>
+                }
+                else
+                {
+                    <span class="status-badge status-pending">⏳ Check-In Pending</span>
+                }
+            </div>
+
+            <div class="action-buttons">
+                @if (Model.CheckedIn)
+                {
+                    <a href="@Url.Action("BoardingPass", "CheckIn", new { bookingId = Model.BookingId })" class="btn btn-primary">
+                        View Boarding Pass
+                    </a>
+                }
+                else
+                {
+                    using (Html.BeginForm("DoCheckIn", "CheckIn", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("bookingId", Model.BookingId)
+                        <button type="submit" class="btn btn-primary">Complete Check-In</button>
+                    }
+                }
+
+                <a href="@Url.Action("Index", "CheckIn")" class="btn btn-secondary">Check Another Booking</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

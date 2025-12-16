@@ -43,6 +43,15 @@
 @* Horizontal line separator *@
 <hr />
 
+@* Hata mesajı gösterimi - Error message display *@
+@if (TempData["Error_tr"] != null || TempData["Error_en"] != null)
+{
+    <div class="alert alert-danger" role="alert" style="margin-bottom: 2rem; padding: 1rem; border-radius: 5px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+        <strong data-tr="Hata!" data-en="Error!">Hata!</strong>
+        <span>@(TempData["Error_tr"] ?? TempData["Error_en"])</span>
+    </div>
+}
+
 @* Koltuk seçim formu - POST metodu ile *@
 @* Seat selection form - With POST method *@
 @using (Html.BeginForm("SelectSeat", "Booking", FormMethod.Post, new { id = "seatSelectionForm" }))
@@ -101,13 +110,13 @@
                         @* Cabin class - First 4 rows business, others economy *@
                         string cabinClass = row <= 4 ? "business" : "economy";
 
-                        @* Koltuk etiketi - Radio button ile seçilebilir *@
-                        @* Seat label - Selectable with radio button *@
+                        @* Koltuk etiketi - Checkbox ile seçilebilir (çoklu seçim) *@
+                        @* Seat label - Selectable with checkbox (multiple selection) *@
                         <label class="seat-item @seatState @cabinClass" data-seat="@seatNumber">
-                            @* Radio button - Koltuk seçimi için *@
-                            @* Radio button - For seat selection *@
-                            <input type="radio"
-                                   name="SelectedSeatId"
+                            @* Checkbox - Koltuk seçimi için (çoklu seçim) *@
+                            @* Checkbox - For seat selection (multiple selection) *@
+                            <input type="checkbox"
+                                   name="SelectedSeatIds"
                                    value="@seat.SeatId"
                                    @(isReserved ? "disabled" : "") />
                             @* Koltuk numarası gösterimi *@
@@ -229,31 +238,83 @@
                      .addClass('seat-visible');
             });
             
-            // Radio button değiştiğinde seçili koltuk class'ını güncelle
-            // Update selected seat class when radio button changes
-            $('input[type="radio"][name="SelectedSeatId"]').on('change', function () {
-                // Tüm koltuklardan selected class'ını kaldır
-                // Remove selected class from all seats
-                $('.seat-item').removeClass('selected');
+            // Checkbox değiştiğinde seçili koltuk class'ını güncelle (çoklu seçim)
+            // Update selected seat class when checkbox changes (multiple selection)
+            $('input[type="checkbox"][name="SelectedSeatIds"]').on('change', function () {
+                const $seatItem = $(this).closest('.seat-item');
                 
-                // Seçili radio button'un parent label'ına selected class'ı ekle
-                // Add selected class to parent label of selected radio button
-                $(this).closest('.seat-item').addClass('selected');
+                if ($(this).is(':checked')) {
+                    // Checkbox seçildiyse selected class'ı ekle
+                    // If checkbox is checked, add selected class
+                    $seatItem.addClass('selected');
+                } else {
+                    // Checkbox seçimi kaldırıldıysa selected class'ını kaldır
+                    // If checkbox is unchecked, remove selected class
+                    $seatItem.removeClass('selected');
+                }
+                
+                // Seçili koltuk sayısını kontrol et ve yolcu sayısıyla karşılaştır
+                // Check selected seat count and compare with passenger count
+                const selectedCount = $('input[type="checkbox"][name="SelectedSeatIds"]:checked').length;
+                const totalPassengers = passengerCounts.adult + passengerCounts.child;
+                
+                if (selectedCount > totalPassengers) {
+                    // Seçili koltuk sayısı yolcu sayısından fazlaysa uyar
+                    // Warn if selected seat count exceeds passenger count
+                    alert('Seçtiğiniz koltuk sayısı yolcu sayısından fazla! Lütfen ' + totalPassengers + ' koltuk seçin.');
+                    $(this).prop('checked', false);
+                    $seatItem.removeClass('selected');
+                }
             });
             
             // Sayfa yüklendiğinde zaten seçili olan koltuk varsa class ekle
             // If a seat is already selected on page load, add class
-            $('input[type="radio"][name="SelectedSeatId"]:checked').each(function () {
+            $('input[type="checkbox"][name="SelectedSeatIds"]:checked').each(function () {
                 $(this).closest('.seat-item').addClass('selected');
             });
             
-            // Form submit edilmeden önce gizli alanları güncelle
-            // Update hidden fields before form submit
-            $('#seatSelectionForm').on('submit', function() {
+            // Form submit edilmeden önce gizli alanları güncelle ve koltuk sayısını kontrol et
+            // Update hidden fields before form submit and check seat count
+            $('#seatSelectionForm').on('submit', function(e) {
+                // Sadece checked ve disabled olmayan checkbox'ları say
+                // Count only checked and non-disabled checkboxes
+                const selectedCheckboxes = $('input[type="checkbox"][name="SelectedSeatIds"]:checked:not(:disabled)');
+                const selectedCount = selectedCheckboxes.length;
+                const totalPassengers = passengerCounts.adult + passengerCounts.child;
+                
+                console.log('Seçili koltuk sayısı:', selectedCount);
+                console.log('Toplam yolcu sayısı:', totalPassengers);
+                console.log('Seçili koltuk ID\'leri:', selectedCheckboxes.map(function() { return $(this).val(); }).get());
+                
+                // Disabled checkbox'ları geçici olarak enable et (submit edilebilmeleri için)
+                // Temporarily enable disabled checkboxes (so they can be submitted)
+                // Ama sadece checked olanları
+                // But only the checked ones
+                $('input[type="checkbox"][name="SelectedSeatIds"]:checked:disabled').each(function() {
+                    $(this).prop('disabled', false);
+                });
+                
+                if (selectedCount === 0) {
+                    e.preventDefault();
+                    alert('Lütfen en az bir koltuk seçin.');
+                    return false;
+                }
+                
+                if (selectedCount !== totalPassengers) {
+                    e.preventDefault();
+                    alert('Seçtiğiniz koltuk sayısı (' + selectedCount + ') yolcu sayısı (' + totalPassengers + ') ile eşleşmiyor. Lütfen ' + totalPassengers + ' koltuk seçin.');
+                    return false;
+                }
+                
+                // Gizli alanları güncelle
+                // Update hidden fields
                 $('#hiddenAdultCount').val(passengerCounts.adult);
                 $('#hiddenChildCount').val(passengerCounts.child);
                 $('#hiddenInfantCount').val(passengerCounts.infant);
                 $('#hiddenCabinClass').val(selectedCabinClass);
+                
+                console.log('Form gönderiliyor...');
+                return true;
             });
         });
     </script>

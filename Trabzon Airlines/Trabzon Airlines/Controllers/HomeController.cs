@@ -175,8 +175,11 @@ namespace Trabzon_Airlines.Controllers
         // Giriş sayfası - GET metodu
         // --------------------------
         [HttpGet] // HTTP GET isteği için
-        public ActionResult Login()
+        public ActionResult Login(string returnUrl)
         {
+            // returnUrl'i ViewBag'e ekle (giriş yaptıktan sonra yönlendirme için)
+            // Add returnUrl to ViewBag (for redirect after login)
+            ViewBag.ReturnUrl = returnUrl;
             // Giriş view'ını döndür
             // Return login view
             return View();
@@ -240,6 +243,34 @@ namespace Trabzon_Airlines.Controllers
             // Site haritası view'ını döndür
             // Return sitemap view
             return View();
+        }
+
+        // --------------------------
+        // FIRSATLAR - GET
+        // Fırsatlar sayfası - GET metodu
+        // --------------------------
+        [HttpGet] // HTTP GET isteği için
+        public ActionResult Fırsatlar()
+        {
+            ViewBag.Title = "Fırsatlar";
+            ViewBag.TitleEn = "Deals";
+            // Fırsatlar view'ını döndür (Deals.cshtml)
+            // Return deals view (Deals.cshtml)
+            return View("Deals");
+        }
+
+        // --------------------------
+        // PAKETLER - GET
+        // Paketler sayfası - GET metodu
+        // --------------------------
+        [HttpGet] // HTTP GET isteği için
+        public ActionResult Paketler()
+        {
+            ViewBag.Title = "Paketler";
+            ViewBag.TitleEn = "Packages";
+            // Paketler view'ını döndür (Packages.cshtml)
+            // Return packages view (Packages.cshtml)
+            return View("Packages");
         }
     }
 

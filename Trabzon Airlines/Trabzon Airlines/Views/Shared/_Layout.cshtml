@@ -151,7 +151,7 @@
 
             <!-- Paket turlar -->
             <li>
-                <a href="#" onclick="showComingSoonAlert('packages'); return false;">
+                <a href="@Url.Action("Paketler", "Home")">
                     <i class="fa-solid fa-suitcase-rolling"></i>
                     <span data-tr="Paketler" data-en="Packages">Paketler</span>
                 </a>
@@ -159,7 +159,7 @@
 
             <!-- Özel teklifler -->
             <li>
-                <a href="#" onclick="showComingSoonAlert('deals'); return false;">
+                <a href="@Url.Action("Fırsatlar", "Home")">
                     <i class="fa-solid fa-tag"></i>
                     <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span>
                 </a>
@@ -252,11 +252,11 @@
             <i class="fa-solid fa-plane"></i>
             <span data-tr="Uçuşlar" data-en="Flights">Uçuşlar</span>
         </a>
-        <a href="#" onclick="showComingSoonAlert('packages'); return false;" class="nav-item">
+        <a href="@Url.Action("Paketler", "Home")" class="nav-item">
             <i class="fa-solid fa-suitcase-rolling"></i>
             <span data-tr="Paketler" data-en="Packages">Paketler</span>
         </a>
-        <a href="#" onclick="showComingSoonAlert('deals'); return false;" class="nav-item">
+        <a href="@Url.Action("Fırsatlar", "Home")" class="nav-item">
             <i class="fa-solid fa-tag"></i>
             <span data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span>
         </a>
@@ -414,6 +414,39 @@
                 <div style="text-align: center; margin-top: 1.5rem;">
                     <button class="modal-confirm-btn" onclick="closeNoFlightModal()" style="max-width: 200px;">
                         <span data-tr="Tamam" data-en="OK">Tamam</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REZERVASYON İPTAL ONAY MODAL -->
+    <div class="airport-modal" id="cancelBookingModal" onclick="if(event.target === this) closeCancelBookingModal();">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="cancelBookingModalTitle" data-tr="Rezervasyon İptali" data-en="Cancel Reservation">
+                    Rezervasyon İptali
+                </h3>
+                <button class="modal-close" onclick="closeCancelBookingModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 2rem;">
+                    <i class="fa-solid fa-exclamation-triangle" style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;"></i>
+                    <p id="cancelBookingMessage" style="font-size: 1.1rem; color: #333; margin-bottom: 1rem;">
+                        Bu rezervasyonu iptal etmek istediğinize emin misiniz?
+                    </p>
+                    <p id="cancelBookingSubMessage" style="font-size: 0.9rem; color: #666;">
+                        Bu işlem geri alınamaz.
+                    </p>
+                </div>
+                <div style="text-align: center; margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
+                    <button class="modal-confirm-btn" id="confirmCancelBtn" style="max-width: 200px; background: #dc3545;">
+                        <span data-tr="Evet, İptal Et" data-en="Yes, Cancel">Evet, İptal Et</span>
+                    </button>
+                    <button class="modal-confirm-btn" onclick="closeCancelBookingModal()" style="max-width: 200px; background: #6c757d;">
+                        <span data-tr="Hayır" data-en="No">Hayır</span>
                     </button>
                 </div>
             </div>

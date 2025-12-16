@@ -50,6 +50,12 @@
           <!-- Giriş formu -->
           <form class="auth-form" id="loginForm" method="post" action="/Account/Login">
               @Html.AntiForgeryToken() <!-- CSRF koruması -->
+              
+              <!-- returnUrl hidden field (giriş yaptıktan sonra yönlendirme için) -->
+              @if (!string.IsNullOrEmpty(ViewBag.ReturnUrl as string))
+              {
+                  <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+              }
 
               <!-- E-posta -->
               <div class="form-group">
