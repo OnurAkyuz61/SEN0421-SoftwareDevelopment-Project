@@ -37,8 +37,19 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - **AJAX ile asenkron arama işlemi**
   - **Loading durumu göstergesi**
   - **Koltuk seçimi (SelectSeat)** - Uçuş sonrası koltuk seçimi
+  - **Yemek seçimi (MealSelection)** - Uçuş sırasında yemek siparişi
   - **Ödeme sistemi (Payment)** - Simüle edilmiş ödeme sistemi (gerçek ödeme yapılmaz)
   - **Kullanıcı giriş kontrolü** - Koltuk seçiminden sonra ödeme için giriş zorunluluğu
+
+- 🎫 **Online Check-In Sistemi** ✅
+  - **PNR ile rezervasyon arama** - PNR kodu ile rezervasyon bulma
+  - **Rezervasyon detayları** - Uçuş, yolcu, koltuk ve yemek bilgileri
+  - **Check-in işlemi** - 24 saat kuralı ile check-in yapma
+  - **Biniş kartı (Boarding Pass)** - Yazdırılabilir biniş kartı
+  - **Check-in durumu kontrolü** - Zaten check-in yapılmış mı kontrolü
+  - **Tarih validasyonu** - Geçmiş uçuşlar için check-in engelleme
+  - **Veritabanı bağlantı kontrolü** - Güvenli veritabanı bağlantı yönetimi
+  - **Hata yönetimi** - Kapsamlı hata yakalama ve kullanıcı bilgilendirme
 
 - 🌍 **Çok Dilli Destek** ✅
   - Türkçe ve İngilizce dil seçenekleri
@@ -114,6 +125,10 @@ Trabzon Airlines, ASP.NET MVC (.NET Framework) kullanılarak geliştirilmiş kap
   - **Güvenli Ödeme (Payment/Index)** - Simüle edilmiş ödeme sayfası (giriş zorunlu)
   - **Ödeme Başarı (Payment/success)** - Başarılı ödeme sonrası rezervasyon oluşturma
   - **Rezervasyon Sonucu (Booking/BookingResult)** - Rezervasyon onay sayfası
+  - **Yemek Seçimi (Booking/MealSelection)** - Uçuş yemekleri seçimi
+  - **Online Check-In (CheckIn/Index)** - PNR ile check-in sayfası
+  - **Rezervasyon Detayları (CheckIn/BookingDetails)** - Check-in için rezervasyon detayları
+  - **Biniş Kartı (CheckIn/BoardingPass)** - Yazdırılabilir biniş kartı
   - **404 Sayfa Bulunamadı (Error/NotFound)** - Özel 404 hata sayfası
 
 - 🔐 **Admin Sayfaları** ✅
@@ -210,10 +225,12 @@ web-prog-proj/
 │       │   ├── AdminController.cs  # Admin controller (Dashboard, Packages, Deals yönetimi, Settings)
 │       │   ├── FlightsController.cs # Uçuş controller (Index, Status, Search, SearchResults)
 │       │   ├── AdminFlightsController.cs # Admin uçuş yönetimi (CRUD işlemleri)
-│       │   ├── BookingController.cs # Rezervasyon controller (SelectSeat, BookingResult)
+│       │   ├── BookingController.cs # Rezervasyon controller (SelectSeat, BookingResult, MealSelection)
+│       │   ├── CheckInController.cs # Check-in controller (Index, SearchBooking, DoCheckIn, BoardingPass)
 │       │   ├── PaymentController.cs # Ödeme controller (Index, Pay, success, error - Simüle edilmiş ödeme)
 │       │   ├── AccountController.cs # Hesap yönetimi controller (Dashboard, Account)
 │       │   ├── SupportController.cs # Destek controller (Support form POST)
+│       │   ├── SitemapController.cs # Site haritası controller
 │       │   ├── AdminBookingsController.cs # Admin rezervasyon yönetimi
 │       │   ├── AdminUsersController.cs # Admin kullanıcı yönetimi
 │       │   ├── AdminAdminsController.cs # Admin admin yönetimi
@@ -225,12 +242,17 @@ web-prog-proj/
 │       │   ├── Flight.cs           # Uçuş modeli (FlightNumber, FromCode, ToCode, DepartureTime, ArrivalTime, Price, IsActive, WeatherCondition, DelayRisk)
 │       │   ├── Seat.cs             # Koltuk modeli
 │       │   ├── FlightSeat.cs       # Uçuş-Koltuk ilişki modeli
-│       │   ├── Booking.cs           # Rezervasyon modeli
+│       │   ├── Booking.cs           # Rezervasyon modeli (CheckedIn, CheckInTime alanları ile)
+│       │   ├── BookingMeal.cs       # Rezervasyon-Yemek ilişki modeli
+│       │   ├── Meal.cs              # Yemek modeli
 │       │   ├── Package.cs          # Paket modeli
 │       │   ├── Deal.cs             # Fırsat modeli
 │       │   ├── PackageReservation.cs # Paket rezervasyon modeli
 │       │   ├── DealReservation.cs  # Fırsat rezervasyon modeli
 │       │   ├── PaymentViewModel.cs # Ödeme formu modeli (Amount, CardHolderName, CardNumber, ExpireDate, Cvc)
+│       │   ├── AccountViewModels.cs # Hesap yönetimi view modelleri
+│       │   ├── RecentBookingViewModel.cs # Son rezervasyonlar view modeli
+│       │   ├── RecentFlightViewModel.cs # Son uçuşlar view modeli
 │       │   └── TAContext.cs        # Entity Framework DbContext
 │       ├── Attributes/
 │       │   └── AuthorizeAdminAttribute.cs # Admin yetkilendirme attribute'u
@@ -253,7 +275,13 @@ web-prog-proj/
 │       │   │   ├── Status.cshtml     # Uçuş durum sayfası
 │       │   │   └── SearchResults.cshtml # Uçuş arama sonuçları
 │       │   ├── Booking/
-│       │   │   └── SelectSeat.cshtml # Koltuk seçimi sayfası
+│       │   │   ├── SelectSeat.cshtml # Koltuk seçimi sayfası
+│       │   │   ├── MealSelection.cshtml # Yemek seçimi sayfası
+│       │   │   └── BookingResult.cshtml # Rezervasyon sonucu sayfası
+│       │   ├── CheckIn/
+│       │   │   ├── Index.cshtml # Check-in ana sayfası (PNR arama)
+│       │   │   ├── BookingDetails.cshtml # Rezervasyon detayları sayfası
+│       │   │   └── BoardingPass.cshtml # Biniş kartı sayfası
 │       │   ├── Payment/
 │       │   │   ├── Index.cshtml      # Güvenli ödeme sayfası (Iyzico entegrasyonu)
 │       │   │   ├── success.cshtml    # Ödeme başarı sayfası
@@ -574,7 +602,12 @@ web-prog-proj/
 - `/Flights/Search` - Uçuş arama (POST - JSON API)
 - `/Flights/SearchResults` - Uçuş arama sonuçları
 - `/Booking/SelectSeat` - Koltuk seçimi (giriş zorunlu)
+- `/Booking/MealSelection` - Yemek seçimi
 - `/Booking/BookingResult` - Rezervasyon sonucu
+- `/CheckIn` - Online check-in ana sayfası (PNR arama)
+- `/CheckIn/SearchBooking` - PNR ile rezervasyon arama (POST)
+- `/CheckIn/DoCheckIn` - Check-in işlemi (POST)
+- `/CheckIn/BoardingPass/{bookingId}` - Biniş kartı görüntüleme
 - `/Payment/Index` - Güvenli ödeme sayfası (simüle edilmiş ödeme, giriş zorunlu)
 - `/Payment/Pay` - Ödeme işlemi (POST - simüle edilmiş)
 - `/Payment/success` - Ödeme başarı sayfası (rezervasyon oluşturma)
@@ -615,6 +648,10 @@ web-prog-proj/
 - **Rezervasyon Sistemi:** Paket, fırsat ve uçuş rezervasyonları için model yapısı
 - **Ödeme Sistemi:** Simüle edilmiş ödeme sistemi (gerçek ödeme yapılmaz)
 - **Koltuk Rezervasyonu:** Uçuş sonrası koltuk seçimi ve rezervasyon sistemi
+- **Yemek Sistemi:** Uçuş sırasında yemek siparişi ve rezervasyon-yemek ilişkisi
+- **Online Check-In:** PNR ile rezervasyon arama, check-in işlemi ve biniş kartı oluşturma
+- **Check-In Validasyonu:** 24 saat kuralı, geçmiş uçuş kontrolü ve tarih validasyonu
+- **Biniş Kartı:** Yazdırılabilir biniş kartı ve QR kod desteği
 - **Kullanıcı Giriş Kontrolü:** Rezervasyon işlemleri için zorunlu giriş kontrolü
 - **ReturnUrl Desteği:** Giriş sonrası önceki sayfaya geri dönüş
 - **AJAX Entegrasyonu:** Asenkron uçuş arama işlemi
@@ -660,9 +697,14 @@ web-prog-proj/
 - **Yetkilendirme:** Admin paneli için özel yetkilendirme sistemi
 - **Ödeme Sistemi:** Simüle edilmiş ödeme sistemi (gerçek ödeme yapılmaz)
 - **Koltuk Seçimi:** Uçuş sonrası koltuk seçimi ve rezervasyon sistemi
+- **Yemek Seçimi:** Uçuş sırasında yemek siparişi ve rezervasyon-yemek ilişkisi
+- **Online Check-In:** PNR ile rezervasyon arama, check-in işlemi ve biniş kartı oluşturma
+- **Check-In Validasyonu:** 24 saat kuralı, geçmiş uçuş kontrolü ve tarih validasyonu
+- **Biniş Kartı:** Yazdırılabilir biniş kartı ve QR kod desteği
 - **Kullanıcı Giriş Kontrolü:** Rezervasyon işlemleri için zorunlu giriş kontrolü
 - **ReturnUrl Desteği:** Giriş sonrası önceki sayfaya geri dönüş
 - **Hata Yönetimi:** 404 sayfa bulunamadı ve genel hata sayfaları
+- **Veritabanı Bağlantı Yönetimi:** Güvenli veritabanı bağlantı kontrolü ve hata yakalama
 - **KVKK Uyumluluğu:** KVKK aydınlatma metni ve gizlilik politikası sayfaları
 - **Destek Sistemi:** Müşteri destek formu ve geçmiş talep görüntüleme
 - **Trip AI:** Akıllı seyahat planlayıcı ile örnek seyahat planları
@@ -695,7 +737,8 @@ web-prog-proj/
 - `AdminController.cs` - Admin paneli controller'ı (Dashboard, Settings, AdminAcounts)
 - `FlightsController.cs` - Uçuş controller (Index, Status, Search API, SearchResults)
 - `AdminFlightsController.cs` - Admin uçuş yönetimi controller'ı (CRUD işlemleri)
-- `BookingController.cs` - Rezervasyon controller'ı (SelectSeat - koltuk seçimi, BookingResult, giriş kontrolü)
+- `BookingController.cs` - Rezervasyon controller'ı (SelectSeat - koltuk seçimi, MealSelection - yemek seçimi, BookingResult, giriş kontrolü)
+- `CheckInController.cs` - Check-in controller'ı (Index - PNR arama, SearchBooking, DoCheckIn, BoardingPass - biniş kartı)
 - `PaymentController.cs` - Ödeme controller'ı (Index, Pay, success, error - simüle edilmiş ödeme)
 - `AccountController.cs` - Hesap yönetimi controller'ı (Dashboard, Account)
 - `SupportController.cs` - Destek controller'ı (Support form POST)
@@ -704,7 +747,7 @@ web-prog-proj/
 - `AdminUsersController.cs` - Admin kullanıcı yönetimi controller'ı
 - `AdminAdminsController.cs` - Admin admin yönetimi controller'ı
 - `AdminSupport.cs` - Admin destek talepleri controller'ı
-- `TAContext.cs` - Entity Framework veritabanı bağlamı (Flights, Seats, FlightSeats, Bookings, Users, Admins, SupportRequests)
+- `TAContext.cs` - Entity Framework veritabanı bağlamı (Flights, Seats, FlightSeats, Bookings, Users, Admins, SupportRequests, Meals, BookingMeals)
 - `AuthorizeAdminAttribute.cs` - Admin yetkilendirme attribute'u
 - `Web.config` - Web uygulaması yapılandırması (Connection String: TAConn, Custom Errors)
 - `Global.asax.cs` - Otomatik migration yapılandırması ve hata yönetimi
@@ -724,7 +767,9 @@ web-prog-proj/
 - **Flight:** Uçuş bilgileri (Sefer No, Kalkış/Varış havalimanı kodları, Kalkış/Varış zamanları, Economy/Business fiyatları, Aktif durumu, Hava durumu, Rötar riski)
 - **Seat:** Koltuk bilgileri (Koltuk numarası, Kabin sınıfı)
 - **FlightSeat:** Uçuş-Koltuk ilişki tablosu (Uçuş ID, Koltuk ID, Rezerve durumu)
-- **Booking:** Rezervasyon bilgileri (Uçuş ID, Koltuk ID, Yolcu bilgileri, PNR, Rezervasyon tarihi, Fiyat) - Ödeme simülasyonu sonrası otomatik oluşturulur
+- **Booking:** Rezervasyon bilgileri (Uçuş ID, Koltuk ID, Yolcu bilgileri, PNR, Rezervasyon tarihi, Fiyat, CheckedIn, CheckInTime) - Ödeme simülasyonu sonrası otomatik oluşturulur
+- **Meal:** Yemek bilgileri (Yemek adı, Açıklama, Fiyat, Kategori)
+- **BookingMeal:** Rezervasyon-Yemek ilişki tablosu (Rezervasyon ID, Yemek ID, Miktar)
 - **SupportRequest:** Destek talepleri (Ad Soyad, E-posta, Konu, PNR, Mesaj, Durum, Kullanıcı ID, Oluşturulma tarihi)
 - **Package:** Paket bilgileri (Başlık, Açıklama, Fiyat, İndirim, Kategori, vb.)
 - **Deal:** Fırsat bilgileri (Başlık, Açıklama, İndirim, Tarih aralığı, Kampanya kodu, vb.)
@@ -754,6 +799,9 @@ Assets klasörü (`Trabzon Airlines/Trabzon Airlines/assets/`) proje içinde bul
    - `AddFlightStatusFields.cs` - Hava durumu ve rötar riski alanları
    - `AddUsersTable.cs` - Kullanıcılar tablosu
    - `AddAdminsTable.cs` - Adminler tablosu
+   - `AddCheckInColumns.cs` - Check-in kolonları (CheckedIn, CheckInTime)
+   - `AddMealsTable.cs` - Yemekler tablosu
+   - `AddBookingMealsTable.cs` - Rezervasyon-Yemek ilişki tablosu
 8. İlk admin kullanıcısı oluşturmak için:
    - Veritabanına manuel olarak admin eklenmelidir
    - Şifre SHA256 ile hash'lenmelidir
