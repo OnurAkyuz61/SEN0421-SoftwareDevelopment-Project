@@ -72,27 +72,23 @@ else
                         <span class="route-code">@(Model.Flight.ToCode ?? "N/A")</span>
                     </div>
                     <div class="flight-times">
-                        @if (Model.Flight.DepartureTime != null)
+                        @if (Model.Flight != null)
                         {
                             <div class="time-item">
                                 <i class="fa-solid fa-plane-departure" style="color: #e4002b; margin-right: 0.5rem;"></i>
                                 <span class="time-label" data-tr="Kalkış:" data-en="Departure:">Kalkış:</span>
                                 <span class="time-value">@Model.Flight.DepartureTime.ToString("dd MMMM yyyy HH:mm", new System.Globalization.CultureInfo("tr-TR"))</span>
                             </div>
-                        }
-                        @if (Model.Flight.ArrivalTime != null)
-                        {
                             <div class="time-item">
                                 <i class="fa-solid fa-plane-arrival" style="color: #e4002b; margin-right: 0.5rem;"></i>
                                 <span class="time-label" data-tr="Varış:" data-en="Arrival:">Varış:</span>
                                 <span class="time-value">@Model.Flight.ArrivalTime.ToString("dd MMMM yyyy HH:mm", new System.Globalization.CultureInfo("tr-TR"))</span>
                             </div>
-                        }
-                        @if (Model.Flight.DepartureTime != null && Model.Flight.ArrivalTime != null)
-                        {
-                            var duration = Model.Flight.ArrivalTime - Model.Flight.DepartureTime;
-                            var hours = (int)duration.TotalHours;
-                            var minutes = duration.Minutes;
+                            @{
+                                var duration = Model.Flight.ArrivalTime - Model.Flight.DepartureTime;
+                                var hours = (int)duration.TotalHours;
+                                var minutes = duration.Minutes;
+                            }
                             <div class="time-item">
                                 <i class="fa-solid fa-clock" style="color: #e4002b; margin-right: 0.5rem;"></i>
                                 <span class="time-label" data-tr="Süre:" data-en="Duration:">Süre:</span>

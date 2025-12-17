@@ -399,13 +399,20 @@ namespace Trabzon_Airlines.Controllers
                     }
                 }
 
-                // Flight null kontrolü
-                // Flight null check
-                if (booking.Flight == null)
+                // Flight null kontrolü - Eğer null ise view'da gösterilmez ama hata vermez
+                // Flight null check - If null, won't be shown in view but won't cause error
+                if (booking.Flight == null && booking.FlightId > 0)
                 {
-                    TempData["Error"] = "Uçuş bilgisi bulunamadı. Lütfen daha sonra tekrar deneyin.";
-                    TempData["Error_en"] = "Flight information not found. Please try again later.";
-                    return RedirectToAction("Index", "Home");
+                    try
+                    {
+                        booking.Flight = db.Flights.Find(booking.FlightId);
+                    }
+                    catch
+                    {
+                        // Flight yüklenemezse devam et - View'da null kontrolü yapılacak
+                        // Continue if Flight cannot be loaded - Null check will be done in view
+                        System.Diagnostics.Debug.WriteLine($"Warning: Flight {booking.FlightId} could not be loaded for booking {bookingId}");
+                    }
                 }
 
                 // Seat'ı manuel olarak yükle (Include çalışmazsa)
@@ -418,18 +425,10 @@ namespace Trabzon_Airlines.Controllers
                     }
                     catch
                     {
-                        // Seat yüklenemezse devam et
-                        // Continue if Seat cannot be loaded
+                        // Seat yüklenemezse devam et - View'da null kontrolü yapılacak
+                        // Continue if Seat cannot be loaded - Null check will be done in view
+                        System.Diagnostics.Debug.WriteLine($"Warning: Seat {booking.SeatId} could not be loaded for booking {bookingId}");
                     }
-                }
-
-                // Seat null kontrolü
-                // Seat null check
-                if (booking.Seat == null)
-                {
-                    TempData["Error"] = "Koltuk bilgisi bulunamadı. Lütfen daha sonra tekrar deneyin.";
-                    TempData["Error_en"] = "Seat information not found. Please try again later.";
-                    return RedirectToAction("Index", "Home");
                 }
 
                 // BookingMeals'ı güvenli şekilde yükle
@@ -470,12 +469,25 @@ namespace Trabzon_Airlines.Controllers
             {
                 // Hata detaylarını logla
                 // Log error details
-                System.Diagnostics.Debug.WriteLine($"BookingResult Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"BookingResult Error for bookingId {bookingId}: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
                 if (ex.InnerException != null)
                 {
                     System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Inner Stack Trace: {ex.InnerException.StackTrace}");
                 }
+
+                // Eğer booking bulunduysa ama view render edilemediyse, booking bilgilerini logla
+                // If booking was found but view couldn't be rendered, log booking info
+                try
+                {
+                    var bookingCheck = db.Bookings.Find(bookingId);
+                    if (bookingCheck != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Booking found: FlightId={bookingCheck.FlightId}, SeatId={bookingCheck.SeatId}, Flight={bookingCheck.Flight != null}, Seat={bookingCheck.Seat != null}");
+                    }
+                }
+                catch { }
 
                 // Kullanıcıya genel hata mesajı göster
                 // Show general error message to user
