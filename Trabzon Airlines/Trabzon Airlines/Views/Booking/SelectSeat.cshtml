@@ -21,7 +21,7 @@
             @* Uçuş rotası - Kalkış ve varış havalimanları arasında uçak ikonu *@
             @* Flight route - Plane icon between departure and arrival airports *@
             <h4 style="margin: 0.5rem 0 0 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                @ViewBag.Flight.FromCode 
+                @ViewBag.Flight.FromCode
                 @* Uçak ikonu - FontAwesome'dan *@
                 @* Plane icon - From FontAwesome *@
                 <i class="fa-solid fa-plane" style="font-size: 1.2rem; color: var(--primary-color, #007bff);"></i>
@@ -62,7 +62,7 @@
     @* Gizli uçuş ID alanı - Form gönderiminde kullanılacak *@
     @* Hidden flight ID field - Will be used in form submission *@
     <input type="hidden" name="FlightId" value="@ViewBag.Flight.FlightId" />
-    
+
     @* Gizli yolcu sayıları ve kabin sınıfı alanları - JavaScript ile doldurulacak *@
     @* Hidden passenger counts and cabin class fields - Will be filled by JavaScript *@
     <input type="hidden" name="AdultCount" id="hiddenAdultCount" value="1" />
@@ -92,50 +92,77 @@
                     @* Create seat number - Row + Column (e.g., 1A, 2B) *@
                     var seatNumber = row + col;
 
-                    @* Model'den bu koltuk numarasına sahip koltuğu bul *@
-                    @* Find seat with this seat number from model *@
-                    var seat = Model.FirstOrDefault(s => s.Seat.SeatNumber == seatNumber);
+                    @* Model'den (FlightSeats) bu koltuk numarasına sahip koltuğu bul (veritabanından) *@
+                    @* Find seat with this seat number from model (FlightSeats) (from database) *@
+                    var flightSeat = Model?.FirstOrDefault(s => s != null && s.Seat != null && !string.IsNullOrEmpty(s.Seat.SeatNumber) && s.Seat.SeatNumber.Trim() == seatNumber);
 
-                    @* Eğer koltuk bulunduysa *@
-                    @* If seat is found *@
-                    if (seat != null)
+                    @* ViewBag.AllSeats'ten bu koltuk numarasına sahip koltuğu bul (trim ile) *@
+                    @* Find seat with this seat number from ViewBag.AllSeats (with trim) *@
+                    var allSeatsList = ViewBag.AllSeats as List<Trabzon_Airlines.Models.Seat>;
+                    var seatFromAll = allSeatsList?.FirstOrDefault(s => s != null && !string.IsNullOrEmpty(s.SeatNumber) && s.SeatNumber.Trim() == seatNumber);
+
+                    @* FlightSeat kaydı var mı kontrol et (veritabanından) *@
+                    @* Check if FlightSeat record exists (from database) *@
+                    bool hasFlightSeat = flightSeat != null && flightSeat.Seat != null;
+                    @* Koltuk rezerve edilmiş mi kontrol et (veritabanından) *@
+                    @* Check if seat is reserved (from database) *@
+                    bool isReserved = hasFlightSeat && flightSeat.IsReserved;
+                    @* Koltuk durumu - Rezerve ise "reserved", değilse "free" (gri yok) *@
+                    @* Seat state - "reserved" if reserved, "free" if not (no gray) *@
+                    string seatState = isReserved ? "reserved" : "free";
+                    
+                    @* Kabin sınıfı - Veritabanından çek, yoksa satır numarasına göre belirle *@
+                    @* Cabin class - Get from database, otherwise determine by row number *@
+                    string cabinClass = "economy"; // Varsayılan - Default
+                    if (hasFlightSeat && !string.IsNullOrEmpty(flightSeat.Seat.CabinClass))
                     {
-                        @* Koltuk rezerve edilmiş mi kontrol et *@
-                        @* Check if seat is reserved *@
-                        bool isReserved = seat.IsReserved;
-                        @* Koltuk durumu - Rezerve ise "reserved", değilse "free" *@
-                        @* Seat state - "reserved" if reserved, "free" if not *@
-                        string seatState = isReserved ? "reserved" : "free";
-                        @* Kabin sınıfı - İlk 4 satır business, diğerleri economy *@
-                        @* Cabin class - First 4 rows business, others economy *@
-                        string cabinClass = row <= 4 ? "business" : "economy";
-
-                        @* Koltuk etiketi - Checkbox ile seçilebilir (çoklu seçim) *@
-                        @* Seat label - Selectable with checkbox (multiple selection) *@
-                        <label class="seat-item @seatState @cabinClass" data-seat="@seatNumber" style="position: relative; z-index: 1;">
-                            @* Checkbox - Koltuk seçimi için (çoklu seçim) *@
-                            @* Checkbox - For seat selection (multiple selection) *@
-                            <input type="checkbox"
-                                   name="SelectedSeatIds"
-                                   value="@seat.SeatId"
-                                   @(isReserved ? "disabled" : "")
-                                   style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 2;" />
-                            @* Koltuk numarası gösterimi *@
-                            @* Seat number display *@
-                            <span style="position: relative; z-index: 1; pointer-events: none; user-select: none;">@seatNumber</span>
-                        </label>
+                        // Veritabanından kabin sınıfını al ve küçük harfe çevir - Get cabin class from database and convert to lowercase
+                        string dbCabinClass = flightSeat.Seat.CabinClass.ToLower();
+                        cabinClass = (dbCabinClass == "business") ? "business" : "economy";
+                    }
+                    else if (seatFromAll != null && !string.IsNullOrEmpty(seatFromAll.CabinClass))
+                    {
+                        // ViewBag.AllSeats'ten kabin sınıfını al - Get cabin class from ViewBag.AllSeats
+                        string dbCabinClass = seatFromAll.CabinClass.ToLower();
+                        cabinClass = (dbCabinClass == "business") ? "business" : "economy";
                     }
                     else
                     {
-                        @* Koltuk bulunamadıysa boş div göster *@
-                        @* If seat not found, show empty div *@
-                        <div class="seat-item empty"></div>
+                        // Veritabanında yoksa satır numarasına göre belirle - If not in database, determine by row number
+                        cabinClass = row <= 4 ? "business" : "economy";
                     }
+                    
+                    @* Koltuk numarasını göster - Her zaman göster *@
+                    @* Display seat number - Always show *@
+                    string displaySeatNumber = hasFlightSeat && !string.IsNullOrEmpty(flightSeat.Seat.SeatNumber) 
+                        ? flightSeat.Seat.SeatNumber 
+                        : seatNumber;
+                    
+                    @* SeatId - FlightSeat varsa onun SeatId'sini kullan, yoksa ViewBag.AllSeats'ten al *@
+                    @* SeatId - Use FlightSeat's SeatId if exists, otherwise from ViewBag.AllSeats *@
+                    int seatIdToUse = hasFlightSeat ? flightSeat.SeatId : (seatFromAll != null ? seatFromAll.SeatId : 0);
+                    @* SeatId 0 ise koltuk seçilemez - If SeatId is 0, seat cannot be selected *@
+                    bool canSelect = seatIdToUse > 0 && !isReserved;
+
+                    @* Her zaman koltuk göster - Veritabanından durum çek *@
+                    @* Always show seat - Get status from database *@
+                    <label class="seat-item @seatState @cabinClass" data-seat="@displaySeatNumber" style="position: relative;">
+                        @* Checkbox - Koltuk seçimi için (çoklu seçim) - Sadece dolu koltuklar ve SeatId 0 olanlar disabled *@
+                        @* Checkbox - For seat selection (multiple selection) - Only reserved seats and SeatId 0 disabled *@
+                        <input type="checkbox"
+                               name="SelectedSeatIds"
+                               value="@seatIdToUse"
+                               @(!canSelect ? "disabled" : "")
+                               style="position: absolute; top: 0; left: 0; opacity: 0; width: 100%; height: 100%; cursor: @(!canSelect ? "not-allowed" : "pointer"); z-index: 10; margin: 0; padding: 0;" />
+                        @* Koltuk numarası gösterimi - Her zaman göster *@
+                        @* Seat number display - Always show *@
+                        <span style="position: relative; z-index: 1; pointer-events: none; user-select: none; font-weight: 500; display: block; width: 100%; text-align: center;">@displaySeatNumber</span>
+                    </label>
 
                     @* B sütunundan sonra koridor ekle *@
                     @* Add aisle after column B *@
                     if (col == "B")
-                    { 
+                    {
                         <div class="aisle"></div>;
                     }
                 }
@@ -188,7 +215,7 @@
                 infant: 0
             };
             let selectedCabinClass = 'economy';
-            
+
             // localStorage'dan yolcu sayılarını yükle
             // Load passenger counts from localStorage
             try {
@@ -202,7 +229,7 @@
             } catch (e) {
                 console.error('Error loading passenger counts:', e);
             }
-            
+
             // localStorage'dan kabin sınıfını yükle
             // Load cabin class from localStorage
             try {
@@ -216,34 +243,34 @@
             } catch (e) {
                 console.error('❌ Error loading cabin class:', e);
             }
-            
+
             // Debug için konsola yazdır
             // Print to console for debugging
             console.log('📋 Yüklenen kabin sınıfı:', selectedCabinClass);
-            
+
             // Gizli input alanlarını güncelle
             // Update hidden input fields
             $('#hiddenAdultCount').val(passengerCounts.adult);
             $('#hiddenChildCount').val(passengerCounts.child);
             $('#hiddenInfantCount').val(passengerCounts.infant);
             $('#hiddenCabinClass').val(selectedCabinClass);
-            
+
             // Tüm koltukların görünür olduğundan emin ol (filtreleme kaldırıldı)
             // Ensure all seats are visible (filtering removed)
-            $('.seat-item:not(.empty)').each(function() {
+            $('.seat-item:not(.empty)').each(function () {
                 const $seat = $(this);
                 $seat.css('display', 'inline-flex')
-                     .css('visibility', 'visible')
-                     .css('opacity', '1')
-                     .removeClass('seat-hidden')
-                     .addClass('seat-visible');
+                    .css('visibility', 'visible')
+                    .css('opacity', '1')
+                    .removeClass('seat-hidden')
+                    .addClass('seat-visible');
             });
-            
+
             // Checkbox değiştiğinde seçili koltuk class'ını güncelle (çoklu seçim)
             // Update selected seat class when checkbox changes (multiple selection)
             $('input[type="checkbox"][name="SelectedSeatIds"]').on('change', function () {
                 const $seatItem = $(this).closest('.seat-item');
-                
+
                 if ($(this).is(':checked')) {
                     // Checkbox seçildiyse selected class'ı ekle
                     // If checkbox is checked, add selected class
@@ -253,12 +280,12 @@
                     // If checkbox is unchecked, remove selected class
                     $seatItem.removeClass('selected');
                 }
-                
+
                 // Seçili koltuk sayısını kontrol et ve yolcu sayısıyla karşılaştır
                 // Check selected seat count and compare with passenger count
                 const selectedCount = $('input[type="checkbox"][name="SelectedSeatIds"]:checked').length;
                 const totalPassengers = passengerCounts.adult + passengerCounts.child;
-                
+
                 if (selectedCount > totalPassengers) {
                     // Seçili koltuk sayısı yolcu sayısından fazlaysa uyar
                     // Warn if selected seat count exceeds passenger count
@@ -267,53 +294,53 @@
                     $seatItem.removeClass('selected');
                 }
             });
-            
+
             // Sayfa yüklendiğinde zaten seçili olan koltuk varsa class ekle
             // If a seat is already selected on page load, add class
             $('input[type="checkbox"][name="SelectedSeatIds"]:checked').each(function () {
                 $(this).closest('.seat-item').addClass('selected');
             });
-            
+
             // Form submit edilmeden önce gizli alanları güncelle ve koltuk sayısını kontrol et
             // Update hidden fields before form submit and check seat count
-            $('#seatSelectionForm').on('submit', function(e) {
+            $('#seatSelectionForm').on('submit', function (e) {
                 // Sadece checked ve disabled olmayan checkbox'ları say
                 // Count only checked and non-disabled checkboxes
                 const selectedCheckboxes = $('input[type="checkbox"][name="SelectedSeatIds"]:checked:not(:disabled)');
                 const selectedCount = selectedCheckboxes.length;
                 const totalPassengers = passengerCounts.adult + passengerCounts.child;
-                
+
                 console.log('Seçili koltuk sayısı:', selectedCount);
                 console.log('Toplam yolcu sayısı:', totalPassengers);
-                console.log('Seçili koltuk ID\'leri:', selectedCheckboxes.map(function() { return $(this).val(); }).get());
-                
+                console.log('Seçili koltuk ID\'leri:', selectedCheckboxes.map(function () { return $(this).val(); }).get());
+
                 // Disabled checkbox'ları geçici olarak enable et (submit edilebilmeleri için)
                 // Temporarily enable disabled checkboxes (so they can be submitted)
                 // Ama sadece checked olanları
                 // But only the checked ones
-                $('input[type="checkbox"][name="SelectedSeatIds"]:checked:disabled').each(function() {
+                $('input[type="checkbox"][name="SelectedSeatIds"]:checked:disabled').each(function () {
                     $(this).prop('disabled', false);
                 });
-                
+
                 if (selectedCount === 0) {
                     e.preventDefault();
                     alert('Lütfen en az bir koltuk seçin.');
                     return false;
                 }
-                
+
                 if (selectedCount !== totalPassengers) {
                     e.preventDefault();
                     alert('Seçtiğiniz koltuk sayısı (' + selectedCount + ') yolcu sayısı (' + totalPassengers + ') ile eşleşmiyor. Lütfen ' + totalPassengers + ' koltuk seçin.');
                     return false;
                 }
-                
+
                 // Gizli alanları güncelle
                 // Update hidden fields
                 $('#hiddenAdultCount').val(passengerCounts.adult);
                 $('#hiddenChildCount').val(passengerCounts.child);
                 $('#hiddenInfantCount').val(passengerCounts.infant);
                 $('#hiddenCabinClass').val(selectedCabinClass);
-                
+
                 console.log('Form gönderiliyor...');
                 return true;
             });

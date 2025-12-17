@@ -36,14 +36,57 @@ namespace Trabzon_Airlines.Controllers
 
             // Seçilen uçuş için koltukları getir
             // Get seats for selected flight
-            var seats = db.FlightSeats
+            var flightSeats = db.FlightSeats
+                          .Include(x => x.Seat) // Seat navigation property'sini yükle - Load Seat navigation property
                           .Where(x => x.FlightId == flightId) // Uçuş ID'sine göre filtrele
                           .OrderBy(x => x.Seat.SeatNumber) // Koltuk numarasına göre sırala
                           .ToList();
 
+            // Tüm koltukları getir (eksik koltukları göstermek için)
+            // Get all seats (to show missing seats)
+            var allSeats = db.Seats
+                          .OrderBy(x => x.SeatNumber)
+                          .ToList();
+            
+            // Eksik koltukları kontrol et ve oluştur (1-14 satır, A-D sütun)
+            // Check for missing seats and create them (rows 1-14, columns A-D)
+            var existingSeatNumbers = allSeats.Select(s => s.SeatNumber).ToHashSet();
+            bool hasNewSeats = false;
+            
+            for (int row = 1; row <= 14; row++)
+            {
+                string cabin = row <= 4 ? "Business" : "Economy";
+                foreach (var col in new[] { "A", "B", "C", "D" })
+                {
+                    string seatNumber = row + col;
+                    // Eğer bu koltuk numarası yoksa oluştur
+                    // If this seat number doesn't exist, create it
+                    if (!existingSeatNumbers.Contains(seatNumber))
+                    {
+                        db.Seats.Add(new Seat
+                        {
+                            SeatNumber = seatNumber,
+                            CabinClass = cabin
+                        });
+                        hasNewSeats = true;
+                    }
+                }
+            }
+            
+            // Yeni koltuklar varsa kaydet
+            // Save if there are new seats
+            if (hasNewSeats)
+            {
+                db.SaveChanges();
+                allSeats = db.Seats.OrderBy(x => x.SeatNumber).ToList();
+            }
+
             // ViewBag'e uçuş bilgisini ekle
             // Add flight information to ViewBag
             ViewBag.Flight = db.Flights.Find(flightId);
+            // ViewBag'e tüm koltukları ekle (eksik koltukları göstermek için)
+            // Add all seats to ViewBag (to show missing seats)
+            ViewBag.AllSeats = allSeats;
 
             // Yolcu sayıları ve kabin sınıfını Session'dan veya localStorage'dan al (JavaScript ile)
             // Get passenger counts and cabin class from Session or localStorage (via JavaScript)
@@ -52,7 +95,7 @@ namespace Trabzon_Airlines.Controllers
 
             // Koltuk seçim view'ını döndür
             // Return seat selection view
-            return View(seats);
+            return View(flightSeats);
         }
 
         // --------------------------
@@ -67,6 +110,7 @@ namespace Trabzon_Airlines.Controllers
             // Debug: Log form data
             System.Diagnostics.Debug.WriteLine($"SelectSeat POST - FlightId: {FlightId}");
             System.Diagnostics.Debug.WriteLine($"SelectSeat POST - SelectedSeatIds: {(SelectedSeatIds != null ? string.Join(", ", SelectedSeatIds) : "null")}");
+            System.Diagnostics.Debug.WriteLine($"SelectSeat POST - SelectedSeatIds Count: {(SelectedSeatIds != null ? SelectedSeatIds.Length : 0)}");
             
             // Kullanıcı giriş kontrolü
             if (Session["UserId"] == null)
@@ -136,16 +180,58 @@ namespace Trabzon_Airlines.Controllers
 
             foreach (var seatId in SelectedSeatIds)
             {
+                // SeatId 0 kontrolü - Geçersiz SeatId
+                // SeatId 0 check - Invalid SeatId
+                if (seatId == 0)
+                {
+                    TempData["Error_tr"] = $"Geçersiz koltuk seçildi (ID: 0). Lütfen geçerli bir koltuk seçin. Toplam seçilen koltuk sayısı: {SelectedSeatIds.Length}";
+                    TempData["Error_en"] = $"Invalid seat selected (ID: 0). Please select a valid seat. Total selected seats: {SelectedSeatIds.Length}";
+                    return RedirectToAction("SelectSeat", new { flightId = FlightId });
+                }
+
                 var fs = db.FlightSeats
                            .Include(x => x.Seat)
                            .Include(x => x.Flight)
                            .FirstOrDefault(x => x.FlightId == FlightId && x.SeatId == seatId);
 
+                // Eğer FlightSeat kaydı yoksa, Seat'i bul ve yeni FlightSeat kaydı oluştur
+                // If FlightSeat record doesn't exist, find Seat and create new FlightSeat record
                 if (fs == null)
                 {
-                    TempData["Error_tr"] = "Seçilen koltuklardan biri bulunamadı.";
-                    TempData["Error_en"] = "One of the selected seats was not found.";
-                    return RedirectToAction("SelectSeat", new { flightId = FlightId });
+                    // Seat'i bul
+                    // Find Seat
+                    var seat = db.Seats.Find(seatId);
+                    if (seat == null)
+                    {
+                        TempData["Error_tr"] = $"Seçilen koltuk (ID: {seatId}) bulunamadı. Toplam seçilen koltuk sayısı: {SelectedSeatIds.Length}";
+                        TempData["Error_en"] = $"Selected seat (ID: {seatId}) was not found. Total selected seats: {SelectedSeatIds.Length}";
+                        return RedirectToAction("SelectSeat", new { flightId = FlightId });
+                    }
+
+                    // Yeni FlightSeat kaydı oluştur
+                    // Create new FlightSeat record
+                    fs = new FlightSeat
+                    {
+                        FlightId = FlightId.Value,
+                        SeatId = seatId,
+                        IsReserved = false
+                    };
+                    db.FlightSeats.Add(fs);
+                    db.SaveChanges(); // Kaydı kaydet ki Include çalışsın
+                    
+                    // Include'ları tekrar yükle
+                    // Reload includes
+                    fs = db.FlightSeats
+                           .Include(x => x.Seat)
+                           .Include(x => x.Flight)
+                           .FirstOrDefault(x => x.FlightSeatId == fs.FlightSeatId);
+                    
+                    if (fs == null)
+                    {
+                        TempData["Error_tr"] = "Koltuk kaydı oluşturulamadı.";
+                        TempData["Error_en"] = "Seat record could not be created.";
+                        return RedirectToAction("SelectSeat", new { flightId = FlightId });
+                    }
                 }
 
                 // Koltuk daha önce alınmış mı
