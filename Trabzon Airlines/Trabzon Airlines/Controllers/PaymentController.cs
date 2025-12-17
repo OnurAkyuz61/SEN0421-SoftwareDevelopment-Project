@@ -733,19 +733,25 @@ namespace Trabzon_Airlines.Controllers
 
                                     db.Bookings.Add(booking);
                                     
-                                    // İlk booking ID'sini sakla (meal selection için)
-                                    // Save first booking ID (for meal selection)
+                                    // İlk booking ID'sini sakla (BookingResult için)
+                                    // Save first booking ID (for BookingResult)
                                     if (!firstBookingId.HasValue)
                                     {
                                         try
                                         {
                                             db.SaveChanges(); // İlk booking'i kaydet
-                                            firstBookingId = booking.BookingId;
+                                            // BookingId'nin 0'dan büyük olduğundan emin ol
+                                            // Ensure BookingId is greater than 0
+                                            if (booking.BookingId > 0)
+                                            {
+                                                firstBookingId = booking.BookingId;
+                                            }
                                         }
-                                        catch
+                                        catch (Exception saveEx)
                                         {
-                                            // Veritabanı kayıt hatası - devam et
-                                            // Database save error - continue
+                                            // Veritabanı kayıt hatası - logla ve devam et
+                                            // Database save error - log and continue
+                                            System.Diagnostics.Debug.WriteLine($"First booking save error: {saveEx.Message}");
                                         }
                                     }
                                 }
@@ -763,13 +769,41 @@ namespace Trabzon_Airlines.Controllers
                             {
                                 db.SaveChanges();
                             }
-                            catch
+                            catch (Exception saveAllEx)
                             {
-                                // Veritabanı kayıt hatası - devam et
-                                // Database save error - continue
+                                // Veritabanı kayıt hatası - logla
+                                // Database save error - log
+                                System.Diagnostics.Debug.WriteLine($"Save all bookings error: {saveAllEx.Message}");
                             }
                             
-                            bookingId = firstBookingId;
+                            // İlk booking ID'sini kontrol et ve ata
+                            // Check and assign first booking ID
+                            if (firstBookingId.HasValue && firstBookingId.Value > 0)
+                            {
+                                bookingId = firstBookingId;
+                            }
+                            else
+                            {
+                                // Eğer firstBookingId yoksa, kaydedilen ilk booking'i bul
+                                // If firstBookingId doesn't exist, find the first saved booking
+                                try
+                                {
+                                    var savedBooking = db.Bookings
+                                        .Where(b => b.FlightId == bookingFlightId && b.PNR == basePnr)
+                                        .OrderBy(b => b.BookingId)
+                                        .FirstOrDefault();
+                                    
+                                    if (savedBooking != null && savedBooking.BookingId > 0)
+                                    {
+                                        bookingId = savedBooking.BookingId;
+                                    }
+                                }
+                                catch
+                                {
+                                    // Booking bulunamazsa devam et
+                                    // Continue if booking cannot be found
+                                }
+                            }
                         }
                         else
                         {
@@ -821,12 +855,31 @@ namespace Trabzon_Airlines.Controllers
                             {
                                 db.Bookings.Add(booking);
                                 db.SaveChanges();
-                                bookingId = booking.BookingId;
+                                // BookingId'nin 0'dan büyük olduğundan emin ol
+                                // Ensure BookingId is greater than 0
+                                if (booking.BookingId > 0)
+                                {
+                                    bookingId = booking.BookingId;
+                                }
+                                else
+                                {
+                                    // BookingId 0 ise tekrar kaydetmeyi dene
+                                    // If BookingId is 0, try saving again
+                                    System.Diagnostics.Debug.WriteLine("Warning: BookingId is 0 after save, retrying...");
+                                    db.SaveChanges();
+                                    if (booking.BookingId > 0)
+                                    {
+                                        bookingId = booking.BookingId;
+                                    }
+                                }
                             }
-                            catch
+                            catch (Exception singleSaveEx)
                             {
-                                // Veritabanı kayıt hatası - bookingId null kalacak, success sayfasına gidecek
-                                // Database save error - bookingId will remain null, will go to success page
+                                // Veritabanı kayıt hatası - logla
+                                // Database save error - log
+                                System.Diagnostics.Debug.WriteLine($"Single booking save error: {singleSaveEx.Message}");
+                                // bookingId null kalacak, success sayfasına gidecek
+                                // bookingId will remain null, will go to success page
                             }
                         }
 
@@ -852,41 +905,158 @@ namespace Trabzon_Airlines.Controllers
                     }
                 }
 
-                // Ödeme başarılı - MealSelection sayfasına yönlendir
-                // Payment successful - Redirect to MealSelection page
-                if (bookingId.HasValue)
+                // Ödeme başarılı - Success sayfasına yönlendir
+                // Payment successful - Redirect to success page
+                string paymentId = "SIM-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+                
+                // TempData ile mesajları success sayfasına gönder
+                // Send messages to success page via TempData
+                TempData["Success"] = "Tebrikler! Ödeme Başarılı. Ref: " + paymentId;
+                TempData["Success_en"] = "Congratulations! Payment Successful. Ref: " + paymentId;
+                TempData["PaymentId"] = paymentId; // Ödeme referans numarası - Payment reference number
+                
+                // BookingId varsa TempData'ya ekle (success sayfasında BookingResult linki için)
+                // Add BookingId to TempData if exists (for BookingResult link in success page)
+                if (bookingId.HasValue && bookingId.Value > 0)
                 {
-                    // MealSelection sayfasına yönlendir
-                    // Redirect to MealSelection page
-                    return RedirectToAction("MealSelection", "Booking", new { bookingId = bookingId.Value });
+                    TempData["BookingId"] = bookingId.Value;
                 }
                 
-                // Eğer bookingId yoksa success sayfasına git
-                // If bookingId doesn't exist, go to success page
-                string paymentId = "SIM-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
-                ViewBag.Mesaj = "Tebrikler! Ödeme Başarılı. Ref: " + paymentId;
-                ViewBag.Message = "Congratulations! Payment Successful. Ref: " + paymentId;
-                ViewBag.PaymentId = paymentId; // Ödeme referans numarası - Payment reference number
-                ViewBag.BookingId = bookingId; // Rezervasyon ID'si (varsa) - Booking ID (if exists)
+                // Success sayfasına yönlendir
+                // Redirect to success page
+                return RedirectToAction("Success", "Payment");
+            }
+            catch (Exception ex)
+            {
+                // Genel hata yakalama - Error sayfasına yönlendir
+                // General error handling - Redirect to error page
+                System.Diagnostics.Debug.WriteLine($"Payment Pay Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+
+                // Hata mesajlarını TempData'ya ekle
+                // Add error messages to TempData
+                TempData["Error"] = "Ödeme işlemi sırasında bir hata oluştu: " + ex.Message;
+                TempData["Error_en"] = "An error occurred during payment: " + ex.Message;
+                
+                // Error sayfasına yönlendir
+                // Redirect to error page
+                return RedirectToAction("Error", "Payment");
+            }
+        }
+
+
+        // --------------------------
+        // SUCCESS - GET
+        // Ödeme başarılı sayfası - GET metodu
+        // --------------------------
+        [HttpGet] // HTTP GET isteği için
+        public ActionResult Success()
+        {
+            try
+            {
+                // TempData'dan mesajları ViewBag'e aktar
+                // Transfer messages from TempData to ViewBag
+                if (TempData["Success"] != null)
+                {
+                    ViewBag.Mesaj = TempData["Success"];
+                }
+                if (TempData["Success_en"] != null)
+                {
+                    ViewBag.Message = TempData["Success_en"];
+                }
+                if (TempData["Success_tr"] != null)
+                {
+                    ViewBag.Mesaj = TempData["Success_tr"];
+                }
+                
+                // PaymentId ve BookingId'yi TempData'dan al
+                // Get PaymentId and BookingId from TempData
+                if (TempData["PaymentId"] != null)
+                {
+                    ViewBag.PaymentId = TempData["PaymentId"];
+                }
+                if (TempData["BookingId"] != null)
+                {
+                    ViewBag.BookingId = TempData["BookingId"];
+                }
+
+                // ViewBag'den mesajları kontrol et
+                // Check messages from ViewBag
+                if (ViewBag.Mesaj == null && ViewBag.Message == null)
+                {
+                    // Eğer mesaj yoksa varsayılan mesaj ekle
+                    // If no message, add default message
+                    ViewBag.Mesaj = "Ödeme işleminiz başarıyla tamamlandı.";
+                    ViewBag.Message = "Your payment has been successfully completed.";
+                }
+
+                // Success view'ını döndür
+                // Return success view
                 return View("success");
             }
             catch (Exception ex)
             {
-                // Genel hata yakalama
-                // General error handling
-                ViewBag.Hata = "Sunucu Hatası: " + ex.Message;
-                ViewBag.Error = "Server Error: " + ex.Message;
-
-                // --- EKLENEN KISIM: Fiyatları tekrar gönder ---
-                ViewBag.PriceBaggage = PRICE_EXTRA_BAGGAGE;
-                ViewBag.PriceWifi = PRICE_WIFI;
-                ViewBag.PriceMeal = PRICE_MEAL;
-                ViewBag.PriceFastTrack = PRICE_FAST_TRACK;
-
-                return View("Index", model);
+                // Hata durumunda ana sayfaya yönlendir
+                // In case of error, redirect to home
+                System.Diagnostics.Debug.WriteLine($"Success page error: {ex.Message}");
+                TempData["Error"] = "Sayfa yüklenirken bir hata oluştu.";
+                TempData["Error_en"] = "An error occurred while loading the page.";
+                return RedirectToAction("Index", "Home");
             }
         }
 
+        // --------------------------
+        // ERROR - GET
+        // Ödeme hatası sayfası - GET metodu
+        // --------------------------
+        [HttpGet] // HTTP GET isteği için
+        public ActionResult Error()
+        {
+            try
+            {
+                // TempData'dan hata mesajlarını ViewBag'e aktar
+                // Transfer error messages from TempData to ViewBag
+                if (TempData["Error"] != null)
+                {
+                    ViewBag.Hata = TempData["Error"];
+                }
+                if (TempData["Error_en"] != null)
+                {
+                    ViewBag.Error = TempData["Error_en"];
+                }
+                if (TempData["Error_tr"] != null)
+                {
+                    ViewBag.Hata = TempData["Error_tr"];
+                }
+
+                // ViewBag'den hata mesajlarını kontrol et
+                // Check error messages from ViewBag
+                if (ViewBag.Hata == null && ViewBag.Error == null)
+                {
+                    // Eğer hata mesajı yoksa varsayılan mesaj ekle
+                    // If no error message, add default message
+                    ViewBag.Hata = "Ödeme işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin.";
+                    ViewBag.Error = "An error occurred during the payment process. Please try again.";
+                }
+
+                // Error view'ını döndür
+                // Return error view
+                return View("error");
+            }
+            catch (Exception ex)
+            {
+                // Hata durumunda ana sayfaya yönlendir
+                // In case of error, redirect to home
+                System.Diagnostics.Debug.WriteLine($"Error page error: {ex.Message}");
+                TempData["Error"] = "Sayfa yüklenirken bir hata oluştu.";
+                TempData["Error_en"] = "An error occurred while loading the page.";
+                return RedirectToAction("Index", "Home");
+            }
+        }
 
         // --------------------------
         // PNR ÜRETİCİ YARDIMCI FONKSİYON

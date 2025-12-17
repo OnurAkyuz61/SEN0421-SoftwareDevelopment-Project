@@ -30,10 +30,47 @@
     border: 2px solid transparent; /* Kenarlık: 2px solid şeffaf - Border: 2px solid transparent */
     position: relative; /* Konum: göreceli - Position: relative */
     transition: all 0.3s ease; /* Geçiş: tüm özellikler 0.3s yumuşak - Transition: all properties 0.3s ease */
+    min-width: 45px; /* Minimum genişlik: 45px - Minimum width: 45px */
+    min-height: 45px; /* Minimum yükseklik: 45px - Minimum height: 45px */
+    overflow: visible; /* Taşan içerik: görünür - Overflow: visible */
 }
 
-    .seat-item input {
-        display: none; /* Görünüm: yok (gizli) - Display: none (hidden) */
+.seat-item:not(.empty):not(.reserved) {
+    cursor: pointer !important; /* İmleç tipi: pointer (önemli) - Cursor: pointer (important) */
+}
+
+.seat-item.empty {
+    background: transparent !important; /* Arka plan: şeffaf (önemli) - Background: transparent (important) */
+    border: none !important; /* Kenarlık: yok (önemli) - Border: none (important) */
+    cursor: default !important; /* İmleç tipi: varsayılan (önemli) - Cursor: default (important) */
+    pointer-events: none !important; /* Pointer olayları: yok (önemli) - Pointer events: none (important) */
+}
+
+    .seat-item input[type="checkbox"] {
+        position: absolute; /* Konum: mutlak - Position: absolute */
+        opacity: 0; /* Opaklık: 0 (görünmez ama tıklanabilir) - Opacity: 0 (invisible but clickable) */
+        width: 100%; /* Genişlik: %100 - Width: 100% */
+        height: 100%; /* Yükseklik: %100 - Height: 100% */
+        cursor: pointer; /* İmleç tipi: pointer - Cursor: pointer */
+        z-index: 2; /* Z-index: 2 (üstte) - Z-index: 2 (on top) */
+        margin: 0; /* Margin: 0 - Margin: 0 */
+        padding: 0; /* Padding: 0 - Padding: 0 */
+    }
+    
+    .seat-item label {
+        position: relative; /* Konum: göreceli - Position: relative */
+        width: 100%; /* Genişlik: %100 - Width: 100% */
+        height: 100%; /* Yükseklik: %100 - Height: 100% */
+        display: flex; /* Görünüm: flex - Display: flex */
+        align-items: center; /* Dikey hizalama: orta - Vertical alignment: center */
+        justify-content: center; /* Yatay hizalama: orta - Horizontal alignment: center */
+    }
+    
+    .seat-item span {
+        position: relative; /* Konum: göreceli - Position: relative */
+        z-index: 1; /* Z-index: 1 (checkbox'ın altında) - Z-index: 1 (below checkbox) */
+        pointer-events: none; /* Pointer olayları: yok (tıklamalar checkbox'a gider) - Pointer events: none (clicks go to checkbox) */
+        user-select: none; /* Kullanıcı seçimi: yok - User select: none */
     }
 
     .seat-item:hover {

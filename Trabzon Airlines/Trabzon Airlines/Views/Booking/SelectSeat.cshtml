@@ -112,16 +112,17 @@
 
                         @* Koltuk etiketi - Checkbox ile seçilebilir (çoklu seçim) *@
                         @* Seat label - Selectable with checkbox (multiple selection) *@
-                        <label class="seat-item @seatState @cabinClass" data-seat="@seatNumber">
+                        <label class="seat-item @seatState @cabinClass" data-seat="@seatNumber" style="position: relative; z-index: 1;">
                             @* Checkbox - Koltuk seçimi için (çoklu seçim) *@
                             @* Checkbox - For seat selection (multiple selection) *@
                             <input type="checkbox"
                                    name="SelectedSeatIds"
                                    value="@seat.SeatId"
-                                   @(isReserved ? "disabled" : "") />
+                                   @(isReserved ? "disabled" : "")
+                                   style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 2;" />
                             @* Koltuk numarası gösterimi *@
                             @* Seat number display *@
-                            @seatNumber
+                            <span style="position: relative; z-index: 1; pointer-events: none; user-select: none;">@seatNumber</span>
                         </label>
                     }
                     else

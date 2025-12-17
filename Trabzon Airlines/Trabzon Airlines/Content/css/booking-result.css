@@ -229,6 +229,18 @@ body.booking-result-page .page-content {
     box-shadow: 0 5px 15px rgba(228, 0, 43, 0.3); /* Hover gölge efekti - Hover box shadow effect */
 }
 
+.btn-print-action {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important; /* Arka plan gradient: yeşil tonları - Background gradient: green tones */
+    color: white !important; /* Metin rengi: beyaz - Text color: white */
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3) !important; /* Gölge efekti - Box shadow effect */
+}
+
+.btn-print-action:hover {
+    transform: translateY(-2px) !important; /* Hover dönüşüm: yukarı 2px - Hover transform: translate up 2px */
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4) !important; /* Hover gölge: daha güçlü - Hover box shadow: stronger */
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%) !important; /* Hover gradient: daha koyu - Hover gradient: darker */
+}
+
 /* Uçuş Rotası - Flight Route */
 .flight-route {
     display: flex; /* Görünüm: flex - Display: flex */

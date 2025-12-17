@@ -3,6 +3,14 @@
 @{
     ViewBag.Title = "Ödeme Hatası";
     ViewBag.TitleEn = "Payment Error";
+    
+    // Varsayılan hata mesajları - Eğer ViewBag'de yoksa
+    // Default error messages - If not in ViewBag
+    if (ViewBag.Hata == null && ViewBag.Error == null)
+    {
+        ViewBag.Hata = "Ödeme işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin.";
+        ViewBag.Error = "An error occurred during the payment process. Please try again.";
+    }
 }
 
 @* Ana başlık - Çeviri desteği ile *@
@@ -18,15 +26,19 @@
         Ödeme Başarısız!
     </h2>
     
-    @* Hata mesajı *@
-    @* Error message *@
-    @if (ViewBag.Hata != null || ViewBag.Error != null)
+    @* Hata mesajı - ViewBag veya TempData'dan *@
+    @* Error message - From ViewBag or TempData *@
+    @{
+        var errorMessage = ViewBag.Hata ?? ViewBag.Error ?? TempData["Error"] ?? TempData["Error_tr"];
+        var errorMessageEn = ViewBag.Error ?? TempData["Error_en"];
+    }
+    @if (errorMessage != null || errorMessageEn != null)
     {
         <div class="alert alert-danger" role="alert">
             <h4 class="alert-heading" data-tr="Üzgünüz!" data-en="Sorry!">
                 <i class="fa-solid fa-exclamation-triangle"></i> Üzgünüz!
             </h4>
-            <p>@(ViewBag.Hata ?? ViewBag.Error)</p>
+            <p>@(errorMessage ?? errorMessageEn)</p>
         </div>
     }
     else

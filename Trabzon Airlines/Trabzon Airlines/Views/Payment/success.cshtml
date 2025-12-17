@@ -3,6 +3,14 @@
 @{
     ViewBag.Title = "Ödeme Başarılı";
     ViewBag.TitleEn = "Payment Successful";
+    
+    // Varsayılan mesajlar - Eğer ViewBag'de yoksa
+    // Default messages - If not in ViewBag
+    if (ViewBag.Mesaj == null && ViewBag.Message == null)
+    {
+        ViewBag.Mesaj = "Ödeme işleminiz başarıyla tamamlandı.";
+        ViewBag.Message = "Your payment has been successfully completed.";
+    }
 }
 
 @* Ana başlık - Çeviri desteği ile *@
@@ -13,20 +21,24 @@
     <div class="mb-4">
         <i class="fa-solid fa-circle-check" style="font-size: 5rem; color: #28a745;"></i>
     </div>
-    
+
     <h2 class="text-success mb-3" data-tr="Ödeme Başarılı!" data-en="Payment Successful!">
         Ödeme Başarılı!
     </h2>
-    
-    @* Başarı mesajı *@
-    @* Success message *@
-    @if (ViewBag.Mesaj != null || ViewBag.Message != null)
+
+    @* Başarı mesajı - ViewBag veya TempData'dan *@
+    @* Success message - From ViewBag or TempData *@
+    @{
+        var successMessage = ViewBag.Mesaj ?? ViewBag.Message ?? TempData["Success"] ?? TempData["Success_tr"];
+        var successMessageEn = ViewBag.Message ?? TempData["Success_en"];
+    }
+    @if (successMessage != null || successMessageEn != null)
     {
         <div class="alert alert-success" role="alert">
             <h4 class="alert-heading" data-tr="Tebrikler!" data-en="Congratulations!">
                 <i class="fa-solid fa-check-circle"></i> Tebrikler!
             </h4>
-            <p>@(ViewBag.Mesaj ?? ViewBag.Message)</p>
+            <p>@(successMessage ?? successMessageEn)</p>
             @if (ViewBag.PaymentId != null)
             {
                 <hr>
@@ -69,4 +81,3 @@
         </a>
     </div>
 </div>
-

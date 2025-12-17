@@ -193,6 +193,58 @@
                         @* Right arrow icon *@
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
+                    @* Fırsatlar linki *@
+                    @* Deals link *@
+                    <a href="@Url.Action("Fırsatlar", "Home")" class="sitemap-item">
+                        @* Link metni - Çeviri desteği ile *@
+                        @* Link text - With translation support *@
+                        <span class="item-name" data-tr="Fırsatlar" data-en="Deals">Fırsatlar</span>
+                        @* Sağ ok ikonu *@
+                        @* Right arrow icon *@
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    @* Paketler linki *@
+                    @* Packages link *@
+                    <a href="@Url.Action("Paketler", "Home")" class="sitemap-item">
+                        @* Link metni - Çeviri desteği ile *@
+                        @* Link text - With translation support *@
+                        <span class="item-name" data-tr="Paketler" data-en="Packages">Paketler</span>
+                        @* Sağ ok ikonu *@
+                        @* Right arrow icon *@
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Check-In Pages -->
+            <!-- Check-In Sayfaları -->
+            <section class="sitemap-section">
+                @* Bölüm başlığı - Çeviri desteği ile *@
+                @* Section title - With translation support *@
+                <h2 class="section-category" data-tr="Check-In Sayfaları" data-en="Check-In Pages">Check-In Sayfaları</h2>
+                @* Sitemap liste container'ı *@
+                @* Sitemap list container *@
+                <div class="sitemap-list">
+                    @* Rezervasyon Detayları linki *@
+                    @* Booking Details link *@
+                    <a href="@Url.Action("Index", "CheckIn")" class="sitemap-item">
+                        @* Link metni - Çeviri desteği ile *@
+                        @* Link text - With translation support *@
+                        <span class="item-name" data-tr="Rezervasyon Arama" data-en="Booking Search">Rezervasyon Arama</span>
+                        @* Sağ ok ikonu *@
+                        @* Right arrow icon *@
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    @* Boarding Pass linki *@
+                    @* Boarding Pass link *@
+                    <a href="@Url.Action("BoardingPass", "CheckIn", new { bookingId = 1 })" class="sitemap-item">
+                        @* Link metni - Çeviri desteği ile *@
+                        @* Link text - With translation support *@
+                        <span class="item-name" data-tr="Biniş Kartı" data-en="Boarding Pass">Biniş Kartı</span>
+                        @* Sağ ok ikonu *@
+                        @* Right arrow icon *@
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
                 </div>
             </section>
 
@@ -445,6 +497,38 @@
                         @* Link metni - Çeviri desteği ile *@
                         @* Link text - With translation support *@
                         <span class="item-name" data-tr="Destek Talepleri" data-en="Support Tickets">Destek Talepleri</span>
+                        @* Sağ ok ikonu *@
+                        @* Right arrow icon *@
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Error Pages -->
+            <!-- Hata Sayfaları -->
+            <section class="sitemap-section">
+                @* Bölüm başlığı - Çeviri desteği ile *@
+                @* Section title - With translation support *@
+                <h2 class="section-category" data-tr="Hata Sayfaları" data-en="Error Pages">Hata Sayfaları</h2>
+                @* Sitemap liste container'ı *@
+                @* Sitemap list container *@
+                <div class="sitemap-list">
+                    @* 404 Sayfa Bulunamadı linki *@
+                    @* 404 Page Not Found link *@
+                    <a href="@Url.Action("NotFound", "Error")" class="sitemap-item">
+                        @* Link metni - Çeviri desteği ile *@
+                        @* Link text - With translation support *@
+                        <span class="item-name" data-tr="404 - Sayfa Bulunamadı" data-en="404 - Page Not Found">404 - Sayfa Bulunamadı</span>
+                        @* Sağ ok ikonu *@
+                        @* Right arrow icon *@
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    @* Genel Hata linki *@
+                    @* General Error link *@
+                    <a href="@Url.Action("Index", "Error")" class="sitemap-item">
+                        @* Link metni - Çeviri desteği ile *@
+                        @* Link text - With translation support *@
+                        <span class="item-name" data-tr="Genel Hata" data-en="General Error">Genel Hata</span>
                         @* Sağ ok ikonu *@
                         @* Right arrow icon *@
                         <i class="fa-solid fa-chevron-right"></i>

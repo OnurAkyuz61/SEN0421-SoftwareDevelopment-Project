@@ -1,438 +1,227 @@
-@model IEnumerable<Trabzon_Airlines.Models.Meal>
+@* Sayfa başlığı - ViewBag.Title ayarı *@
+@* Page title - ViewBag.Title setting *@
 @{
     ViewBag.Title = "Yemek Seçimi";
     ViewBag.TitleEn = "Meal Selection";
-    var booking = ViewBag.Booking as Trabzon_Airlines.Models.Booking;
-    if (booking == null)
-    {
-        booking = null; // Explicit null check
-    }
 }
 
+@* Styles bölümü - CSS dosyası ekleme *@
+@* Styles section - Adding CSS file *@
 @section styles {
-    <style>
-        .meal-selection-page {
-            padding: 2rem 0;
-            min-height: calc(100vh - 200px);
-        }
-
-        .page-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: linear-gradient(135deg, #e4002b 0%, #c20025 100%);
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .page-header h1 {
-            color: white;
-            margin-bottom: 1rem;
-            font-size: 2rem;
-        }
-
-        .flight-info-box {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .flight-info-box p {
-            margin: 0.25rem 0;
-            font-size: 1rem;
-        }
-
-        .info-alert {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 1rem 1.5rem;
-            margin-bottom: 2rem;
-            border-radius: 8px;
-        }
-
-        .info-alert p {
-            margin: 0.5rem 0;
-            color: #333;
-        }
-
-        .category-section {
-            margin-bottom: 3rem;
-        }
-
-        .category-title {
-            font-size: 1.5rem;
-            color: #e4002b;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid #e4002b;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .meal-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .meal-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 0;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .meal-card:hover {
-            border-color: #e4002b;
-            box-shadow: 0 4px 15px rgba(228, 0, 43, 0.2);
-            transform: translateY(-5px);
-        }
-
-        .meal-card.selected {
-            border-color: #e4002b;
-            background: linear-gradient(135deg, rgba(228, 0, 43, 0.05) 0%, rgba(194, 0, 37, 0.05) 100%);
-            box-shadow: 0 0 0 3px rgba(228, 0, 43, 0.1);
-        }
-
-        .meal-card input[type="checkbox"] {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            z-index: 10;
-            accent-color: #e4002b;
-        }
-
-        .meal-image {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            display: block;
-            background: #f5f5f5;
-        }
-
-        .meal-content {
-            padding: 1.25rem;
-        }
-
-        .meal-name {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-
-        .meal-description {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-            line-height: 1.5;
-            min-height: 40px;
-        }
-
-        .meal-free-badge {
-            display: inline-block;
-            background: #4caf50;
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-top: 0.5rem;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 2px solid #e0e0e0;
-        }
-
-        .btn-meal {
-            padding: 1rem 2.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-meal-primary {
-            background: #e4002b;
-            color: white;
-        }
-
-        .btn-meal-primary:hover {
-            background: #c20025;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(228, 0, 43, 0.3);
-        }
-
-        .btn-meal-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-meal-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
-
-        .error-alert {
-            background: #ffebee;
-            border-left: 4px solid #c62828;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-        }
-
-        .error-alert p {
-            margin: 0.5rem 0;
-            color: #c62828;
-        }
-
-        @media (max-width: 768px) {
-            .meal-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .flight-info-box {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .btn-meal {
-                width: 100%;
-            }
-        }
-    </style>
+    <link href="~/Content/css/meal-selection.css" rel="stylesheet" />
 }
 
+@* Ana container *@
+@* Main container *@
 <div class="meal-selection-page">
     <div class="container">
+        @* Sayfa başlığı *@
+        @* Page header *@
         <div class="page-header">
             <h1>
                 <i class="fa-solid fa-utensils"></i>
-                <span data-tr="Uçuş Yemeği Seçimi" data-en="Select Your In-Flight Meal">Uçuş Yemeği Seçimi</span>
+                <span data-tr="🍽️ Uçuş Yemeği Seçimi" data-en="🍽️ Select Your In-Flight Meal">🍽️ Select Your In-Flight Meal</span>
             </h1>
-            @if (booking != null)
+            
+            @* Uçuş bilgileri (ViewBag'den) *@
+            @* Flight information (from ViewBag) *@
+            @if (ViewBag.FlightNumber != null)
             {
                 <div class="flight-info-box">
-                    @if (booking.Flight != null)
-                    {
-                        <p><strong data-tr="Uçuş:" data-en="Flight:">Uçuş:</strong> @(booking.Flight.FlightNumber ?? "N/A")</p>
-                        <p><strong data-tr="Rota:" data-en="Route:">Rota:</strong> @(booking.Flight.FromCode ?? "") → @(booking.Flight.ToCode ?? "")</p>
-                    }
-                    @if (booking.Seat != null)
-                    {
-                        <p><strong data-tr="Koltuk:" data-en="Seat:">Koltuk:</strong> @(booking.Seat.SeatNumber ?? "N/A")</p>
-                    }
-                    @if (!string.IsNullOrEmpty(booking.PNR))
-                    {
-                        <p><strong data-tr="PNR:" data-en="PNR:">PNR:</strong> @booking.PNR</p>
-                    }
+                    <p>
+                        <strong data-tr="Uçuş:" data-en="Flight:">Uçuş:</strong> 
+                        @(ViewBag.FlightNumber ?? "N/A")
+                    </p>
+                    <p>
+                        <strong data-tr="Rota:" data-en="Route:">Rota:</strong> 
+                        @(ViewBag.FromCode ?? "") → @(ViewBag.ToCode ?? "")
+                    </p>
+                    <p>
+                        <strong data-tr="Kabin Sınıfı:" data-en="Cabin Class:">Kabin Sınıfı:</strong> 
+                        @(ViewBag.CabinClass ?? "N/A")
+                    </p>
                 </div>
             }
         </div>
 
+        @* Bilgi kutusu *@
+        @* Information box *@
         <div class="info-alert">
-            <p><strong data-tr="Bilgi:" data-en="Information:">Bilgi:</strong></p>
-            <p data-tr="Uçuşunuz için tercih ettiğiniz yemekleri seçebilirsiniz. Tüm yemekler ücretsizdir." data-en="Select your preferred meals for your flight. All meals are free.">
-                Uçuşunuz için tercih ettiğiniz yemekleri seçebilirsiniz. Tüm yemekler ücretsizdir.
+            <p>
+                <strong data-tr="ℹ️ Bilgi:" data-en="ℹ️ Information:">ℹ️ Information:</strong>
             </p>
-            <p data-tr="Yemek seçmek istemiyorsanız, 'Yemek Seçimini Atla' butonuna tıklayarak devam edebilirsiniz." data-en="If you prefer not to order any meals, click 'Skip Meal Selection' to continue.">
-                Yemek seçmek istemiyorsanız, 'Yemek Seçimini Atla' butonuna tıklayarak devam edebilirsiniz.
+            <p data-tr="Uçuşunuz için tercih ettiğiniz yemekleri seçebilirsiniz. Tüm yemekler ücretsizdir." data-en="You can select your preferred meals for your flight. All meals are free.">
+                You can select your preferred meals for your flight. All meals are free.
+            </p>
+            <p data-tr="Birden fazla yemek seçebilirsiniz. Yemek seçmek istemiyorsanız, 'Yemek Seçimini Atla' butonuna tıklayarak devam edebilirsiniz." data-en="You can select multiple meals. If you prefer not to order any meals, click 'Skip Meal Selection' to continue.">
+                You can select multiple meals. If you prefer not to order any meals, click 'Skip Meal Selection' to continue.
             </p>
         </div>
 
-        @* Statik yemek seçimi - booking null olsa bile gösterilir *@
-        @* Static meal selection - shown even if booking is null *@
+        @* Yemek seçim formu *@
+        @* Meal selection form *@
         @using (Html.BeginForm("MealSelection", "Booking", FormMethod.Post))
         {
             @Html.AntiForgeryToken()
-            @* BookingId varsa form'a ekle (ViewBag'den al) *@
-            @* Add bookingId to form if exists (get from ViewBag) *@
-            @if (ViewBag.BookingId != null)
-            {
-                @Html.Hidden("bookingId", ViewBag.BookingId)
-            }
-
-                @* Ana Yemekler - Main Courses *@
-                <div class="category-section">
-                    <h2 class="category-title">
-                        <i class="fa-solid fa-drumstick-bite"></i>
-                        <span data-tr="Ana Yemekler" data-en="Main Courses">Ana Yemekler</span>
-                    </h2>
-                    <div class="meal-grid">
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="1" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/tavuklupilav.jpg")" alt="Tavuklu Pilav" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Tavuklu Pilav</div>
-                                <div class="meal-description">Lezzetli tavuk eti ve özel baharatlı pilav</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
+            
+            @* Ana Yemekler - Main Courses *@
+            <div class="category-section">
+                <h2 class="category-title">
+                    <i class="fa-solid fa-drumstick-bite"></i>
+                    <span data-tr="🍖 Ana Yemekler" data-en="🍖 Main Courses">🍖 Main Courses</span>
+                </h2>
+                <div class="meal-grid">
+                    @* Tavuklu Pilav - Chicken Rice *@
+                    <div class="meal-card" onclick="toggleMeal(this)">
+                        <input type="checkbox" name="selectedMeals" value="1" onclick="event.stopPropagation();" />
+                        <img src="@Url.Content("~/assets/images/meals/chickenrice.jpg")" alt="Tavuklu Pilav" class="meal-image" onerror="this.style.display='none';" />
+                        <div class="meal-content">
+                            <div class="meal-name" data-tr="Tavuklu Pilav" data-en="Chicken Rice">Chicken Rice</div>
+                            <div class="meal-description" data-tr="Lezzetli tavuk eti ve özel baharatlı pilav" data-en="Delicious chicken and special spiced rice">Delicious chicken and special spiced rice</div>
+                            <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">FREE</span>
                         </div>
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="2" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/kofte.jpg")" alt="Köfte" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Köfte</div>
-                                <div class="meal-description">Geleneksel Türk köftesi, patates ve salata ile</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
+                    </div>
+                    
+                    @* Köfte - Meatball *@
+                    <div class="meal-card" onclick="toggleMeal(this)">
+                        <input type="checkbox" name="selectedMeals" value="2" onclick="event.stopPropagation();" />
+                        <img src="@Url.Content("~/assets/images/meals/meatballpasta.jpg")" alt="Köfte" class="meal-image" onerror="this.style.display='none';" />
+                        <div class="meal-content">
+                            <div class="meal-name" data-tr="Köfte" data-en="Meatball">Meatball</div>
+                            <div class="meal-description" data-tr="Geleneksel Türk köftesi, patates ve salata ile" data-en="Traditional Turkish meatball with potatoes and salad">Traditional Turkish meatball with potatoes and salad</div>
+                            <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">FREE</span>
                         </div>
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="3" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/makarna.jpg")" alt="Makarna" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Makarna</div>
-                                <div class="meal-description">İtalyan usulü makarna, domates sosu ile</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
+                    </div>
+                    
+                    @* Makarna - Pasta *@
+                    <div class="meal-card" onclick="toggleMeal(this)">
+                        <input type="checkbox" name="selectedMeals" value="3" onclick="event.stopPropagation();" />
+                        <img src="@Url.Content("~/assets/images/meals/meatballpasta.jpg")" alt="Makarna" class="meal-image" onerror="this.style.display='none';" />
+                        <div class="meal-content">
+                            <div class="meal-name" data-tr="Makarna" data-en="Pasta">Pasta</div>
+                            <div class="meal-description" data-tr="İtalyan usulü makarna, domates sosu ile" data-en="Italian style pasta with tomato sauce">Italian style pasta with tomato sauce</div>
+                            <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">FREE</span>
                         </div>
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="4" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/balik.jpg")" alt="Balık" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Balık</div>
-                                <div class="meal-description">Taze balık, sebze garnitürü ile</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
+                    </div>
+                    
+                    @* Balık - Fish *@
+                    <div class="meal-card" onclick="toggleMeal(this)">
+                        <input type="checkbox" name="selectedMeals" value="4" onclick="event.stopPropagation();" />
+                        <img src="@Url.Content("~/assets/images/meals/fish.jpg")" alt="Balık" class="meal-image" onerror="this.style.display='none';" />
+                        <div class="meal-content">
+                            <div class="meal-name" data-tr="Balık" data-en="Fish">Fish</div>
+                            <div class="meal-description" data-tr="Taze balık, sebze garnitürü ile" data-en="Fresh fish with vegetable garnish">Fresh fish with vegetable garnish</div>
+                            <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">FREE</span>
+                        </div>
+                    </div>
+                    
+                    @* Vejetaryen Menü - Vegetarian Menu *@
+                    <div class="meal-card" onclick="toggleMeal(this)">
+                        <input type="checkbox" name="selectedMeals" value="5" onclick="event.stopPropagation();" />
+                        <img src="@Url.Content("~/assets/images/meals/vegeterianmenu.jpg")" alt="Vejetaryen Menü" class="meal-image" onerror="this.style.display='none';" />
+                        <div class="meal-content">
+                            <div class="meal-name" data-tr="Vejetaryen Menü" data-en="Vegetarian Menu">Vegetarian Menu</div>
+                            <div class="meal-description" data-tr="Taze sebzeler ve tahıl bazlı yemekler" data-en="Fresh vegetables and grain-based dishes">Fresh vegetables and grain-based dishes</div>
+                            <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">FREE</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                @* İçecekler - Beverages *@
-                <div class="category-section">
-                    <h2 class="category-title">
-                        <i class="fa-solid fa-glass-water"></i>
-                        <span data-tr="İçecekler" data-en="Beverages">İçecekler</span>
-                    </h2>
-                    <div class="meal-grid">
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="5" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/su.jpg")" alt="Su" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Su</div>
-                                <div class="meal-description">Doğal kaynak suyu</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
+            @* İçecekler - Beverages *@
+            <div class="category-section">
+                <h2 class="category-title">
+                    <i class="fa-solid fa-glass-water"></i>
+                    <span data-tr="🥤 İçecekler" data-en="🥤 Beverages">🥤 Beverages</span>
+                </h2>
+                <div class="meal-grid">
+                    @* Su - Water *@
+                    <div class="meal-card" onclick="toggleMeal(this)">
+                        <input type="checkbox" name="selectedMeals" value="6" onclick="event.stopPropagation();" />
+                        <img src="@Url.Content("~/assets/images/meals/su.jpg")" alt="Su" class="meal-image" onerror="this.style.display='none';" />
+                        <div class="meal-content">
+                            <div class="meal-name" data-tr="Su" data-en="Water">Water</div>
+                            <div class="meal-description" data-tr="Doğal kaynak suyu" data-en="Natural spring water">Natural spring water</div>
+                            <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">FREE</span>
                         </div>
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="6" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/kola.jpg")" alt="Kola" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Kola</div>
-                                <div class="meal-description">Soğuk kola</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
+                    </div>
+                    
+                    @* Çay - Tea *@
+                    <div class="meal-card" onclick="toggleMeal(this)">
+                        <input type="checkbox" name="selectedMeals" value="7" onclick="event.stopPropagation();" />
+                        <img src="@Url.Content("~/assets/images/meals/cay.jpg")" alt="Çay" class="meal-image" onerror="this.style.display='none';" />
+                        <div class="meal-content">
+                            <div class="meal-name" data-tr="Çay" data-en="Tea">Tea</div>
+                            <div class="meal-description" data-tr="Sıcak Türk çayı" data-en="Hot Turkish tea">Hot Turkish tea</div>
+                            <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">FREE</span>
                         </div>
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="7" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/meyvesuyu.jpg")" alt="Meyve Suyu" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Meyve Suyu</div>
-                                <div class="meal-description">Taze sıkılmış meyve suyu</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
-                        </div>
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="8" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/kahve.jpg")" alt="Kahve" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Kahve</div>
-                                <div class="meal-description">Sıcak Türk kahvesi</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
-                        </div>
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="9" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/cay.jpg")" alt="Çay" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Çay</div>
-                                <div class="meal-description">Sıcak Türk çayı</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
+                    </div>
+                    
+                    @* Türk Kahvesi - Turkish Coffee *@
+                    <div class="meal-card" onclick="toggleMeal(this)">
+                        <input type="checkbox" name="selectedMeals" value="8" onclick="event.stopPropagation();" />
+                        <img src="@Url.Content("~/assets/images/meals/turkkahvesi.jpg")" alt="Türk Kahvesi" class="meal-image" onerror="this.style.display='none';" />
+                        <div class="meal-content">
+                            <div class="meal-name" data-tr="Türk Kahvesi" data-en="Turkish Coffee">Turkish Coffee</div>
+                            <div class="meal-description" data-tr="Geleneksel Türk kahvesi" data-en="Traditional Turkish coffee">Traditional Turkish coffee</div>
+                            <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">FREE</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                @* Tatlılar - Desserts *@
-                <div class="category-section">
-                    <h2 class="category-title">
-                        <i class="fa-solid fa-ice-cream"></i>
-                        <span data-tr="Tatlılar" data-en="Desserts">Tatlılar</span>
-                    </h2>
-                    <div class="meal-grid">
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="10" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/baklava.jpg")" alt="Baklava" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Baklava</div>
-                                <div class="meal-description">Geleneksel Türk baklavası</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
+            @* Tatlılar - Desserts *@
+            <div class="category-section">
+                <h2 class="category-title">
+                    <i class="fa-solid fa-ice-cream"></i>
+                    <span data-tr="🍰 Tatlılar" data-en="🍰 Desserts">🍰 Desserts</span>
+                </h2>
+                <div class="meal-grid">
+                    @* Baklava - Baklava *@
+                    <div class="meal-card" onclick="toggleMeal(this)">
+                        <input type="checkbox" name="selectedMeals" value="9" onclick="event.stopPropagation();" />
+                        <img src="@Url.Content("~/assets/images/meals/baklava.jpg")" alt="Baklava" class="meal-image" onerror="this.style.display='none';" />
+                        <div class="meal-content">
+                            <div class="meal-name" data-tr="Baklava" data-en="Baklava">Baklava</div>
+                            <div class="meal-description" data-tr="Geleneksel Türk baklavası" data-en="Traditional Turkish baklava">Traditional Turkish baklava</div>
+                            <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">FREE</span>
                         </div>
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="11" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/sutlac.jpg")" alt="Sütlaç" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Sütlaç</div>
-                                <div class="meal-description">Ev yapımı sütlaç</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
-                        </div>
-                        <div class="meal-card" onclick="toggleMeal(this)">
-                            <input type="checkbox" name="selectedMeals" value="12" onclick="event.stopPropagation();" />
-                            <img src="@Url.Content("~/assets/images/meals/dondurma.jpg")" alt="Dondurma" class="meal-image" onerror="this.style.display='none';" />
-                            <div class="meal-content">
-                                <div class="meal-name">Dondurma</div>
-                                <div class="meal-description">Vanilyalı dondurma</div>
-                                <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">ÜCRETSİZ</span>
-                            </div>
+                    </div>
+                    
+                    @* Sütlaç - Rice Pudding *@
+                    <div class="meal-card" onclick="toggleMeal(this)">
+                        <input type="checkbox" name="selectedMeals" value="10" onclick="event.stopPropagation();" />
+                        <img src="@Url.Content("~/assets/images/meals/sutlac.jpg")" alt="Sütlaç" class="meal-image" onerror="this.style.display='none';" />
+                        <div class="meal-content">
+                            <div class="meal-name" data-tr="Sütlaç" data-en="Rice Pudding">Rice Pudding</div>
+                            <div class="meal-description" data-tr="Ev yapımı sütlaç" data-en="Homemade rice pudding">Homemade rice pudding</div>
+                            <span class="meal-free-badge" data-tr="ÜCRETSİZ" data-en="FREE">FREE</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="action-buttons">
-                    <button type="submit" class="btn-meal btn-meal-secondary" data-tr="Yemek Seçimini Atla" data-en="Skip Meal Selection">
-                        Yemek Seçimini Atla
-                    </button>
-                    <button type="submit" class="btn-meal btn-meal-primary" data-tr="Seçimi Onayla" data-en="Confirm Selection">
-                        Seçimi Onayla
-                    </button>
-                </div>
+            @* Aksiyon butonları *@
+            @* Action buttons *@
+            <div class="action-buttons">
+                <button type="submit" class="btn-meal btn-meal-secondary" data-tr="Yemek Seçimini Atla" data-en="Skip Meal Selection">
+                    Skip Meal Selection
+                </button>
+                <button type="submit" class="btn-meal btn-meal-primary" data-tr="Seçimi Onayla ve Devam Et" data-en="Confirm and Continue">
+                    Confirm and Continue
+                </button>
+            </div>
         }
     </div>
 </div>
 
+@* Scripts bölümü - JavaScript kodları *@
+@* Scripts section - JavaScript code *@
 @section scripts {
+    <script src="~/js/language.js"></script>
     <script>
+        @* Yemek kartı toggle fonksiyonu *@
+        @* Meal card toggle function *@
         function toggleMeal(card) {
             var checkbox = card.querySelector('input[type="checkbox"]');
             checkbox.checked = !checkbox.checked;
@@ -444,6 +233,16 @@
             }
         }
 
+        @* Sayfa yüklendiğinde dil ayarlarını uygula *@
+        @* Apply language settings when page loads *@
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof updatePageLanguage === 'function') {
+                updatePageLanguage();
+            }
+        });
+
+        @* Sayfa yüklendiğinde seçili yemekleri göster *@
+        @* Show selected meals when page loads *@
         window.onload = function () {
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(function(checkbox) {
                 checkbox.closest('.meal-card').classList.add('selected');

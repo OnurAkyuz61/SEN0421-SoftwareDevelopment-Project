@@ -205,8 +205,9 @@ namespace Trabzon_Airlines.Controllers
                 TotalPrice = totalPrice
             };
 
-            // Ödeme sayfasına yönlendir
-            return RedirectToAction("Index", "Payment", new { amount = totalPrice });
+            // Yemek seçim sayfasına yönlendir (ödemeden önce)
+            // Redirect to meal selection page (before payment)
+            return RedirectToAction("MealSelection", "Booking");
         }
 
         // --------------------------
@@ -223,6 +224,78 @@ namespace Trabzon_Airlines.Controllers
             // Send bookingId to ViewBag (can be used in view but not required)
             ViewBag.BookingId = bookingId;
             ViewBag.Booking = null; // Her zaman null - statik sayfa
+            
+            // Session'dan PendingBooking bilgilerini güvenli şekilde ViewBag'e ekle
+            // Safely add PendingBooking information from Session to ViewBag
+            if (Session["PendingBooking"] != null)
+            {
+                try
+                {
+                    dynamic pendingBooking = Session["PendingBooking"];
+                    
+                    // FlightNumber'ı güvenli şekilde al
+                    // Safely get FlightNumber
+                    try
+                    {
+                        ViewBag.FlightNumber = pendingBooking.FlightNumber ?? "N/A";
+                    }
+                    catch
+                    {
+                        ViewBag.FlightNumber = "N/A";
+                    }
+                    
+                    // FromCode'u güvenli şekilde al
+                    // Safely get FromCode
+                    try
+                    {
+                        ViewBag.FromCode = pendingBooking.FromCode ?? "";
+                    }
+                    catch
+                    {
+                        ViewBag.FromCode = "";
+                    }
+                    
+                    // ToCode'u güvenli şekilde al
+                    // Safely get ToCode
+                    try
+                    {
+                        ViewBag.ToCode = pendingBooking.ToCode ?? "";
+                    }
+                    catch
+                    {
+                        ViewBag.ToCode = "";
+                    }
+                    
+                    // CabinClass'ı güvenli şekilde al
+                    // Safely get CabinClass
+                    try
+                    {
+                        ViewBag.CabinClass = pendingBooking.CabinClass ?? "N/A";
+                    }
+                    catch
+                    {
+                        ViewBag.CabinClass = "N/A";
+                    }
+                }
+                catch
+                {
+                    // Hata durumunda varsayılan değerler
+                    // Default values in case of error
+                    ViewBag.FlightNumber = "N/A";
+                    ViewBag.FromCode = "";
+                    ViewBag.ToCode = "";
+                    ViewBag.CabinClass = "N/A";
+                }
+            }
+            else
+            {
+                // Session'da PendingBooking yoksa varsayılan değerler
+                // Default values if PendingBooking doesn't exist in Session
+                ViewBag.FlightNumber = "N/A";
+                ViewBag.FromCode = "";
+                ViewBag.ToCode = "";
+                ViewBag.CabinClass = "N/A";
+            }
             
             // Boş model gönder (view'da statik yemek listesi var)
             // Send empty model (view has static meal list)
@@ -252,32 +325,29 @@ namespace Trabzon_Airlines.Controllers
                 }
             }
             
-            // bookingId varsa BookingResult sayfasına yönlendir
-            // If bookingId exists, redirect to BookingResult page
-            if (bookingId.HasValue && bookingId.Value > 0)
+            // Seçilen yemekleri Session'a kaydet (Payment sayfasında kullanılabilir)
+            // Save selected meals to Session (can be used in Payment page)
+            if (selectedMeals != null && selectedMeals.Length > 0)
             {
-                try
-                {
-                    // Booking var mı kontrol et
-                    // Check if booking exists
-                    var booking = db.Bookings.FirstOrDefault(b => b.BookingId == bookingId.Value);
-                    if (booking != null)
-                    {
-                        return RedirectToAction("BookingResult", new { bookingId = bookingId.Value });
-                    }
-                }
-                catch
-                {
-                    // Hata durumunda ana sayfaya yönlendir
-                    // In case of error, redirect to home
-                }
+                Session["SelectedMeals"] = selectedMeals;
+            }
+            else
+            {
+                Session["SelectedMeals"] = null;
             }
             
-            // bookingId yoksa veya booking bulunamadıysa ana sayfaya yönlendir
-            // If bookingId doesn't exist or booking not found, redirect to home
-            TempData["Success_tr"] = "Yemek seçiminiz alındı. Teşekkür ederiz!";
-            TempData["Success_en"] = "Your meal selection has been received. Thank you!";
-            return RedirectToAction("Index", "Home");
+            // PendingBooking Session'dan toplam fiyatı al
+            // Get total price from PendingBooking Session
+            decimal totalPrice = 0;
+            if (Session["PendingBooking"] != null)
+            {
+                dynamic pendingBooking = Session["PendingBooking"];
+                totalPrice = pendingBooking.TotalPrice;
+            }
+            
+            // Ödeme sayfasına yönlendir
+            // Redirect to payment page
+            return RedirectToAction("Index", "Payment", new { amount = totalPrice });
         }
 
         // --------------------------
@@ -287,22 +357,132 @@ namespace Trabzon_Airlines.Controllers
         [HttpGet] // HTTP GET isteği için
         public ActionResult BookingResult(int bookingId)
         {
-            // Rezervasyon bilgisini veritabanından getir (uçuş ve koltuk bilgileri ile)
-            // Get booking information from database (with flight and seat information)
-            var booking = db.Bookings
-                            .Include(b => b.Flight) // Uçuş bilgisini dahil et
-                            .Include(b => b.Seat) // Koltuk bilgisini dahil et
-                            .Include(b => b.BookingMeals.Select(bm => bm.Meal)) // Yemek bilgilerini dahil et
-                            .FirstOrDefault(b => b.BookingId == bookingId);
+            try
+            {
+                // BookingId kontrolü
+                // BookingId check
+                if (bookingId <= 0)
+                {
+                    TempData["Error"] = "Geçersiz rezervasyon numarası.";
+                    TempData["Error_en"] = "Invalid booking number.";
+                    return RedirectToAction("Index", "Home");
+                }
 
-            // Rezervasyon bulunamadıysa 404 hatası döndür
-            // If booking not found, return 404 error
-            if (booking == null)
-                return HttpNotFound();
+                // Rezervasyon bilgisini veritabanından getir (uçuş ve koltuk bilgileri ile)
+                // Get booking information from database (with flight and seat information)
+                var booking = db.Bookings
+                                .Include(b => b.Flight) // Uçuş bilgisini dahil et
+                                .Include(b => b.Seat) // Koltuk bilgisini dahil et
+                                .FirstOrDefault(b => b.BookingId == bookingId);
 
-            // Rezervasyon sonuç view'ını döndür
-            // Return booking result view
-            return View(booking);
+                // Rezervasyon bulunamadıysa hata mesajı göster
+                // If booking not found, show error message
+                if (booking == null)
+                {
+                    TempData["Error"] = "Rezervasyon bulunamadı. Lütfen rezervasyon numaranızı kontrol edin.";
+                    TempData["Error_en"] = "Booking not found. Please check your booking number.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // Flight'ı manuel olarak yükle (Include çalışmazsa)
+                // Manually load Flight (if Include doesn't work)
+                if (booking.Flight == null && booking.FlightId > 0)
+                {
+                    try
+                    {
+                        booking.Flight = db.Flights.Find(booking.FlightId);
+                    }
+                    catch
+                    {
+                        // Flight yüklenemezse devam et
+                        // Continue if Flight cannot be loaded
+                    }
+                }
+
+                // Flight null kontrolü
+                // Flight null check
+                if (booking.Flight == null)
+                {
+                    TempData["Error"] = "Uçuş bilgisi bulunamadı. Lütfen daha sonra tekrar deneyin.";
+                    TempData["Error_en"] = "Flight information not found. Please try again later.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // Seat'ı manuel olarak yükle (Include çalışmazsa)
+                // Manually load Seat (if Include doesn't work)
+                if (booking.Seat == null && booking.SeatId > 0)
+                {
+                    try
+                    {
+                        booking.Seat = db.Seats.Find(booking.SeatId);
+                    }
+                    catch
+                    {
+                        // Seat yüklenemezse devam et
+                        // Continue if Seat cannot be loaded
+                    }
+                }
+
+                // Seat null kontrolü
+                // Seat null check
+                if (booking.Seat == null)
+                {
+                    TempData["Error"] = "Koltuk bilgisi bulunamadı. Lütfen daha sonra tekrar deneyin.";
+                    TempData["Error_en"] = "Seat information not found. Please try again later.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // BookingMeals'ı güvenli şekilde yükle
+                // Safely load BookingMeals
+                try
+                {
+                    db.Entry(booking).Collection(b => b.BookingMeals).Load();
+                    if (booking.BookingMeals != null && booking.BookingMeals.Count > 0)
+                    {
+                        foreach (var bookingMeal in booking.BookingMeals.ToList())
+                        {
+                            if (bookingMeal != null)
+                            {
+                                try
+                                {
+                                    db.Entry(bookingMeal).Reference(bm => bm.Meal).Load();
+                                }
+                                catch
+                                {
+                                    // Meal yüklenemezse devam et
+                                    // Continue if meal cannot be loaded
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // BookingMeals yüklenemezse devam et (zorunlu değil)
+                    // Continue if BookingMeals cannot be loaded (not required)
+                }
+
+                // Rezervasyon sonuç view'ını döndür
+                // Return booking result view
+                return View(booking);
+            }
+            catch (Exception ex)
+            {
+                // Hata detaylarını logla
+                // Log error details
+                System.Diagnostics.Debug.WriteLine($"BookingResult Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+
+                // Kullanıcıya genel hata mesajı göster
+                // Show general error message to user
+                TempData["Error"] = "Rezervasyon bilgileri yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+                TempData["Error_en"] = "An error occurred while loading booking information. Please try again later.";
+                return RedirectToAction("Index", "Home");
+            }
         }
 
         // --------------------------
