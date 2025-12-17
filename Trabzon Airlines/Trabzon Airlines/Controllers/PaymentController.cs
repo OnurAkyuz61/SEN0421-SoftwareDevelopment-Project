@@ -973,8 +973,8 @@ namespace Trabzon_Airlines.Controllers
                     ViewBag.Mesaj = TempData["Success_tr"];
                 }
                 
-                // PaymentId ve BookingId'yi TempData'dan al
-                // Get PaymentId and BookingId from TempData
+                // PaymentId ve BookingId'yi TempData'dan al (Rezervasyon Detayları butonu için)
+                // Get PaymentId and BookingId from TempData (for Booking Details button)
                 if (TempData["PaymentId"] != null)
                 {
                     ViewBag.PaymentId = TempData["PaymentId"];

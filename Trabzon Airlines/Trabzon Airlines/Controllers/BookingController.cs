@@ -470,6 +470,10 @@ namespace Trabzon_Airlines.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
+                // NOT: Daha önce burada aynı PNR'ye sahip tüm booking'leri çekip
+                // çoklu koltuk desteği eklemiştik. Şu an için sade ve stabil
+                // olması adına sadece tek booking (Model) üzerinden devam ediyoruz.
+
                 // Flight'ı manuel olarak yükle (Include çalışmazsa)
                 // Manually load Flight (if Include doesn't work)
                 if (booking.Flight == null && booking.FlightId > 0)
