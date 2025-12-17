@@ -59,6 +59,19 @@ namespace Trabzon_Airlines
             // Son hatayı al
             // Get last error
             Exception exception = Server.GetLastError(); // Son hatayı al
+            
+            // Hata loglama - Debug için
+            // Error logging - For debugging
+            if (exception != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"Application Error: {exception.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {exception.StackTrace}");
+                if (exception.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner Exception: {exception.InnerException.Message}");
+                }
+            }
+            
             HttpException httpException = exception as HttpException; // HTTP exception'a çevir
 
             // HTTP hatası kontrolü
@@ -92,6 +105,40 @@ namespace Trabzon_Airlines
                     var rc = new RequestContext(new HttpContextWrapper(Context), routeData); // Request context oluştur
                     errorController.Execute(rc); // Controller'ı çalıştır
                 }
+                else
+                {
+                    // Diğer HTTP hataları için genel error sayfası
+                    // General error page for other HTTP errors
+                    Response.Clear();
+                    Server.ClearError();
+                    Response.StatusCode = httpCode;
+                    Response.TrySkipIisCustomErrors = true;
+                    
+                    var routeData = new RouteData();
+                    routeData.Values["controller"] = "Error";
+                    routeData.Values["action"] = "Index";
+                    
+                    IController errorController = new ErrorController();
+                    var rc = new RequestContext(new HttpContextWrapper(Context), routeData);
+                    errorController.Execute(rc);
+                }
+            }
+            else if (exception != null)
+            {
+                // Genel exception için error sayfası
+                // Error page for general exceptions
+                Response.Clear();
+                Server.ClearError();
+                Response.StatusCode = 500;
+                Response.TrySkipIisCustomErrors = true;
+                
+                var routeData = new RouteData();
+                routeData.Values["controller"] = "Error";
+                routeData.Values["action"] = "Index";
+                
+                IController errorController = new ErrorController();
+                var rc = new RequestContext(new HttpContextWrapper(Context), routeData);
+                errorController.Execute(rc);
             }
         }
     }

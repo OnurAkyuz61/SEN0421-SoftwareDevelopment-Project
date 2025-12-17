@@ -50,12 +50,12 @@
       <div class="date-row">
         <div class="date-col">
           <label data-tr="Gidiş tarihi" data-en="Departure date">Gidiş tarihi</label>
-          <input type="date" id="departureDate">
+          <input type="date" id="departureDate" min="@DateTime.Now.ToString("yyyy-MM-dd")">
         </div>
 
         <div class="date-col return-date">
           <label data-tr="Dönüş tarihi" data-en="Return date">Dönüş tarihi</label>
-          <input type="date" id="returnDate">
+          <input type="date" id="returnDate" min="@DateTime.Now.ToString("yyyy-MM-dd")">
         </div>
       </div>
     </div>

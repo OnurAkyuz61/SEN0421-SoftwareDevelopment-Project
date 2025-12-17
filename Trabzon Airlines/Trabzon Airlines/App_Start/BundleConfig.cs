@@ -36,6 +36,9 @@ namespace Trabzon_Airlines
             bundles.Add(new StyleBundle("~/Content/contact").Include(
                       "~/Content/css/contact.css"));
 
+            bundles.Add(new StyleBundle("~/Content/checkin").Include(
+                      "~/Content/css/checkin.css"));
+
             // Trabzon Airlines JavaScript bundles
             // ScriptBundle yerine Bundle kullanarak minification'ı devre dışı bırakıyoruz
             bundles.Add(new Bundle("~/bundles/trabzonairlines").Include(

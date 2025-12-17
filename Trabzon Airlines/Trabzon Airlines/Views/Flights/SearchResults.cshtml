@@ -126,17 +126,8 @@
             
             // Veri kontrolü
             if (!searchResults || !searchResults.hasResults || !searchResults.departureFlights || !Array.isArray(searchResults.departureFlights) || searchResults.departureFlights.length === 0) {
-                // Sonuç yoksa
-                container.html(`
-                    <div style="text-align: center; padding: 3rem;">
-                        <i class="fa-solid fa-plane-slash" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
-                        <h3>${currentLang === 'tr' ? 'Uçuş Bulunamadı' : 'No Flights Found'}</h3>
-                        <p>${currentLang === 'tr' ? 'Seçtiğiniz kriterlere uygun uçuş bulunamadı.' : 'No flights found matching your search criteria.'}</p>
-                        <a href="/" class="btn btn-primary" style="margin-top: 1rem;">
-                            ${currentLang === 'tr' ? 'Yeni Arama Yap' : 'New Search'}
-                        </a>
-                    </div>
-                `);
+                // Sonuç yoksa popup göster
+                showNoFlightModal();
                 return;
             }
             

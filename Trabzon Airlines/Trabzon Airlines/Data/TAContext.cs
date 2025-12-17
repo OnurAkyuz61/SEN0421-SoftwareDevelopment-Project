@@ -13,7 +13,18 @@ namespace Trabzon_Airlines.Data
     {
         // Constructor - Veritabanı bağlantı adını belirt
         // Constructor - Specify database connection name
-        public TAContext() : base("TAConn") { } // Web.config'deki connection string adı
+        public TAContext() : base("TAConn") 
+        {
+            // Veritabanı bağlantı ayarları
+            // Database connection settings
+            this.Configuration.LazyLoadingEnabled = true;
+            this.Configuration.ProxyCreationEnabled = true;
+            this.Configuration.AutoDetectChangesEnabled = true;
+            
+            // Connection timeout artırıldı
+            // Connection timeout increased
+            this.Database.CommandTimeout = 60;
+        }
 
         // Uçuşlar tablosu - Tüm uçuş kayıtları
         // Flights table - All flight records

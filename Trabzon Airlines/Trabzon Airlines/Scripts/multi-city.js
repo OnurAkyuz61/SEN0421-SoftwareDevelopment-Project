@@ -102,7 +102,7 @@ function createFlightSegmentHtml(segment, segmentNumber) {
       
       <div class="segment-date">
         <label data-tr="Tarih" data-en="Date">Tarih</label>
-        <input type="date" id="segment-${segment.id}-date" class="segment-date-input" onchange="validateSegmentDates(${segment.id})">
+        <input type="date" id="segment-${segment.id}-date" class="segment-date-input" min="${new Date().toISOString().split('T')[0]}" onchange="validateSegmentDates(${segment.id})">
       </div>
     </div>
   `;

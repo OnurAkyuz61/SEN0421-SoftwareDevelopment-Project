@@ -197,6 +197,10 @@
     </Compile>
     <Compile Include="Migrations\202512170000000_AddMealTables.cs" />
     <Compile Include="Migrations\202512170000001_AddCheckInColumns.cs" />
+    <Compile Include="Migrations\202512171011195_onurdenemedb.cs" />
+    <Compile Include="Migrations\202512171011195_onurdenemedb.Designer.cs">
+      <DependentUpon>202512171011195_onurdenemedb.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\Admin.cs" />
@@ -231,7 +235,7 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\SeatMap.css" />
-    <Content Include="Content\Trip.css" />
+    <Content Include="Content\css\checkin.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
@@ -364,6 +368,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202512120154270_RemovePriceFromFlight.resx">
       <DependentUpon>202512120154270_RemovePriceFromFlight.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512171011195_onurdenemedb.resx">
+      <DependentUpon>202512171011195_onurdenemedb.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -1,7 +1,9 @@
 @model Trabzon_Airlines.Models.Booking
+@using System.Linq
 
 @{
     ViewBag.Title = "Boarding Pass";
+    ViewBag.TitleEn = "Boarding Pass";
 }
 
 <!DOCTYPE html>
@@ -9,288 +11,62 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boarding Pass - Trabzon Airlines</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-            .header h1 {
-                font-size: 2rem;
-                margin-bottom: 10px;
-            }
-
-        .success-icon {
-            font-size: 4rem;
-            margin-bottom: 15px;
-        }
-
-        .boarding-pass {
-            margin: 30px;
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            overflow: hidden;
-        }
-
-        .bp-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .airline-name {
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .bp-content {
-            padding: 30px;
-            background: white;
-        }
-
-        .route-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-
-        .city {
-            text-align: center;
-            flex: 1;
-        }
-
-        .city-code {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .city-name {
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .arrow {
-            font-size: 2rem;
-            color: #667eea;
-            margin: 0 20px;
-        }
-
-        .details-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .detail-box {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-
-        .detail-label {
-            font-size: 0.85rem;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-        }
-
-        .detail-value {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .qr-section {
-            text-align: center;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .qr-code {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 15px;
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-        }
-
-        .pnr-large {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-            letter-spacing: 5px;
-            margin-top: 10px;
-        }
-
-        .important-info {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px 20px;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-
-            .important-info p {
-                color: #856404;
-                margin: 5px 0;
-            }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-            }
-
-        .btn-secondary {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-            .btn-secondary:hover {
-                background: #f8f9fa;
-            }
-
-        .status-badge {
-            background: #d4edda;
-            color: #155724;
-            padding: 10px 20px;
-            border-radius: 20px;
-            display: inline-block;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-
-        @@media print {
-            body {
-                background: white;
-            }
-
-            .action-buttons {
-                display: none;
-            }
-        }
-    </style>
+    <title data-tr="Biniş Kartı - Trabzon Airlines" data-en="Boarding Pass - Trabzon Airlines">Boarding Pass - Trabzon Airlines</title>
+    <link href="~/Content/css/checkin-boarding-pass.css" rel="stylesheet" />
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="success-icon">✅</div>
-            <h1>Check-In Successful!</h1>
-            <p>Your boarding pass is ready</p>
+            <h1 data-tr="Check-In Başarılı!" data-en="Check-In Successful!">Check-In Successful!</h1>
+            <p data-tr="Biniş kartınız hazır" data-en="Your boarding pass is ready">Your boarding pass is ready</p>
             <div class="status-badge">
-                ✓ Checked In - @Model.CheckInTime?.ToString("dd MMM yyyy HH:mm")
+                <span data-tr="✓ Check-In Yapıldı - " data-en="✓ Checked In - ">✓ Checked In - </span>@Model.CheckInTime?.ToString("dd MMM yyyy HH:mm")
             </div>
         </div>
 
         <div class="boarding-pass">
             <div class="bp-header">
                 <div class="airline-name">🛫 TRABZON AIRLINES</div>
-                <p>Boarding Pass</p>
+                <p data-tr="Biniş Kartı" data-en="Boarding Pass">Boarding Pass</p>
             </div>
 
             <div class="bp-content">
                 <div class="route-section">
                     <div class="city">
                         <div class="city-code">@Model.Flight.FromCode</div>
-                        <div class="city-name">Departure</div>
+                        <div class="city-name" data-tr="Kalkış" data-en="Departure">Departure</div>
                     </div>
                     <div class="arrow">✈️</div>
                     <div class="city">
                         <div class="city-code">@Model.Flight.ToCode</div>
-                        <div class="city-name">Arrival</div>
+                        <div class="city-name" data-tr="Varış" data-en="Arrival">Arrival</div>
                     </div>
                 </div>
 
                 <div class="details-grid">
                     <div class="detail-box">
-                        <div class="detail-label">Passenger</div>
+                        <div class="detail-label" data-tr="Yolcu" data-en="Passenger">Passenger</div>
                         <div class="detail-value">@Model.PassengerName @Model.PassengerSurname</div>
                     </div>
                     <div class="detail-box">
-                        <div class="detail-label">Flight</div>
+                        <div class="detail-label" data-tr="Uçuş" data-en="Flight">Flight</div>
                         <div class="detail-value">@Model.Flight.FlightNumber</div>
                     </div>
                     <div class="detail-box">
-                        <div class="detail-label">Departure</div>
+                        <div class="detail-label" data-tr="Kalkış" data-en="Departure">Departure</div>
                         <div class="detail-value">@Model.Flight.DepartureTime.ToString("dd MMM HH:mm")</div>
                     </div>
                     <div class="detail-box">
-                        <div class="detail-label">Arrival</div>
+                        <div class="detail-label" data-tr="Varış" data-en="Arrival">Arrival</div>
                         <div class="detail-value">@Model.Flight.ArrivalTime.ToString("dd MMM HH:mm")</div>
                     </div>
                     <div class="detail-box">
-                        <div class="detail-label">Seat</div>
+                        <div class="detail-label" data-tr="Koltuk" data-en="Seat">Seat</div>
                         <div class="detail-value">@Model.Seat.SeatNumber</div>
                     </div>
                     <div class="detail-box">
-                        <div class="detail-label">Class</div>
+                        <div class="detail-label" data-tr="Sınıf" data-en="Class">Class</div>
                         <div class="detail-value">@Model.Seat.CabinClass</div>
                     </div>
                 </div>
@@ -299,28 +75,64 @@
                     <div class="qr-code">
                         📱
                     </div>
-                    <p style="color: #666; margin-bottom: 10px;">Scan at boarding gate</p>
+                    <p style="color: #666; margin-bottom: 10px;" data-tr="Biniş kapısında taratın" data-en="Scan at boarding gate">Scan at boarding gate</p>
                     <div class="pnr-large">@Model.PNR</div>
                 </div>
 
                 <div class="important-info">
-                    <p><strong>⚠️ Important Information:</strong></p>
-                    <p>• Please arrive at the gate 30 minutes before departure</p>
-                    <p>• Boarding closes 15 minutes before departure</p>
-                    <p>• Keep this boarding pass with you at all times</p>
+                    <p><strong data-tr="⚠️ Önemli Bilgiler:" data-en="⚠️ Important Information:">⚠️ Important Information:</strong></p>
+                    <p data-tr="• Lütfen kalkıştan 30 dakika önce kapıda olun" data-en="• Please arrive at the gate 30 minutes before departure">• Please arrive at the gate 30 minutes before departure</p>
+                    <p data-tr="• Biniş kalkıştan 15 dakika önce kapanır" data-en="• Boarding closes 15 minutes before departure">• Boarding closes 15 minutes before departure</p>
+                    <p data-tr="• Bu biniş kartını her zaman yanınızda bulundurun" data-en="• Keep this boarding pass with you at all times">• Keep this boarding pass with you at all times</p>
                     @if (Model.BookingMeals != null && Model.BookingMeals.Any())
                     {
-                        <p>• Your in-flight meals have been pre-ordered</p>
+                        <p data-tr="• Uçuş yemekleriniz önceden sipariş edilmiştir" data-en="• Your in-flight meals have been pre-ordered">• Your in-flight meals have been pre-ordered</p>
                     }
                 </div>
             </div>
         </div>
 
         <div class="action-buttons" style="margin: 0 30px 30px 30px;">
-            <button onclick="window.print()" class="btn btn-primary">🖨️ Print Boarding Pass</button>
-            <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">🏠 Back to Home</a>
+            <button onclick="window.print()" class="btn btn-primary" data-tr="🖨️ Biniş Kartını Yazdır" data-en="🖨️ Print Boarding Pass">🖨️ Print Boarding Pass</button>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-secondary" data-tr="🏠 Ana Sayfaya Dön" data-en="🏠 Back to Home">🏠 Back to Home</a>
         </div>
     </div>
+
+    <script src="~/js/language.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePageLanguage();
+            
+            // TempData mesajlarını kontrol et
+            @if (TempData["Success"] != null || TempData["Success_en"] != null)
+            {
+                <text>
+                var currentLang = localStorage.getItem('language') || 'tr';
+                var message = currentLang === 'en' && '@TempData["Success_en"]' ? '@TempData["Success_en"]' : '@TempData["Success"]';
+                if (message && message !== '') {
+                    var alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success';
+                    alertDiv.innerHTML = '✓ ' + message;
+                    document.querySelector('.content')?.insertBefore(alertDiv, document.querySelector('.content').firstChild);
+                }
+                </text>
+            }
+            
+            @if (TempData["Error"] != null || TempData["Error_en"] != null)
+            {
+                <text>
+                var currentLang = localStorage.getItem('language') || 'tr';
+                var message = currentLang === 'en' && '@TempData["Error_en"]' ? '@TempData["Error_en"]' : '@TempData["Error"]';
+                if (message && message !== '') {
+                    var alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-error';
+                    alertDiv.innerHTML = '⚠️ ' + message;
+                    document.querySelector('.content')?.insertBefore(alertDiv, document.querySelector('.content').firstChild);
+                }
+                </text>
+            }
+        });
+    </script>
 </body>
 </html>
 

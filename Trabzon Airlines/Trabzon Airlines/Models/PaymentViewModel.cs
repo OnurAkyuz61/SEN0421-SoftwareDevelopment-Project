@@ -44,6 +44,28 @@ namespace Trabzon_Airlines.Models
         // 3D Secure kullanımı (şu an kullanılmıyor ama gelecekte kullanılabilir)
         // 3D Secure usage (not currently used but can be used in the future)
         public bool Use3DSecure { get; set; }
+
+        // Ekstra Bagaj Hizmeti (+250 TL)
+        // Extra Baggage Service (+250 TL)
+        public bool HasExtraBaggage { get; set; }
+
+        // Uçak İçi Wi-Fi Hizmeti (+150 TL)
+        // In-flight Wi-Fi Service (+150 TL)
+        public bool HasWifi { get; set; }
+
+        // Özel Yemek Seçimi (+200 TL)
+        // Special Meal Selection (+200 TL)
+        public bool HasMeal { get; set; }
+
+        // Hızlı Geçiş / Fast Track (+300 TL)
+        // Fast Track Service (+300 TL)
+        public bool HasFastTrack { get; set; }
+
+        // ---------------------------------------------------------
+
+        // 3D Secure kullanımı (3D sistemi kaldırıldığı için false gelebilir ama modelde tutuyoruz)
+        // 3D Secure usage (Currently removed but kept in model for future use)
+        
     }
 }
 

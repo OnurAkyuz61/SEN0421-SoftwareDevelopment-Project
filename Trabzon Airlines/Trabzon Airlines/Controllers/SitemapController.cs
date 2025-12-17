@@ -40,6 +40,10 @@ namespace Trabzon_Airlines.Controllers
                     CreateUrlElement(baseUrl + "/Booking/SelectSeat", DateTime.Now, "0.7", "weekly"),
                     CreateUrlElement(baseUrl + "/Booking/MealSelection", DateTime.Now, "0.7", "weekly"),
                     
+                    // Payment Controller Sayfaları
+                    CreateUrlElement(baseUrl + "/Payment", DateTime.Now, "0.8", "weekly"),
+                    CreateUrlElement(baseUrl + "/Payment/Index", DateTime.Now, "0.8", "weekly"),
+                    
                     // Admin Login (public erişilebilir)
                     CreateUrlElement(baseUrl + "/Admin/Login", DateTime.Now, "0.5", "monthly")
                 )

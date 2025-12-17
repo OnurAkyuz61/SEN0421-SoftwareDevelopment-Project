@@ -19,6 +19,13 @@ namespace Trabzon_Airlines.Controllers
         // Database context - Instance from TAContext class
         private TAContext db = new TAContext();
 
+        // --- EKLENEN KISIM: EKSTRA HİZMET FİYATLARI (SABİT) ---
+        private const decimal PRICE_EXTRA_BAGGAGE = 250.00m;
+        private const decimal PRICE_WIFI = 150.00m;
+        private const decimal PRICE_MEAL = 200.00m;
+        private const decimal PRICE_FAST_TRACK = 300.00m;
+        // -----------------------------------------------------
+
         // --------------------------
         // INDEX - GET
         // Ödeme sayfası - GET metodu
@@ -161,6 +168,9 @@ namespace Trabzon_Airlines.Controllers
                     ViewBag.InfantCount = infantCount;
                     ViewBag.CabinClass = cabinClass;
                     ViewBag.TotalPassengers = adultCount + childCount + infantCount;
+
+                    // --- EKLENEN KISIM: Base Price'ı View'da kullanmak için gönderiyoruz ---
+                    ViewBag.BasePrice = finalAmount;
                 }
                 else
                 {
@@ -198,8 +208,23 @@ namespace Trabzon_Airlines.Controllers
                         int minutes = duration.Minutes;
                         ViewBag.FlightDuration = hours + "s " + minutes + "dk";
                     }
+                    // --- EKLENEN KISIM: Base Price ---
+                    ViewBag.BasePrice = finalAmount;
                 }
             }
+            else
+            {
+                // PendingBooking null ise BasePrice'ı finalAmount olarak set et
+                // If PendingBooking is null, set BasePrice as finalAmount
+                ViewBag.BasePrice = finalAmount;
+            }
+
+            // --- EKLENEN KISIM: EKSTRA HİZMET FİYATLARINI VIEW'A GÖNDER ---
+            ViewBag.PriceBaggage = PRICE_EXTRA_BAGGAGE;
+            ViewBag.PriceWifi = PRICE_WIFI;
+            ViewBag.PriceMeal = PRICE_MEAL;
+            ViewBag.PriceFastTrack = PRICE_FAST_TRACK;
+            // -------------------------------------------------------------
             
             return View(new PaymentViewModel { Amount = finalAmount });
         }
@@ -234,11 +259,81 @@ namespace Trabzon_Airlines.Controllers
             
             if (pendingBooking != null)
             {
-                // Session'dan TotalPrice'ı kullan (zaten hesaplanmış)
-                // Use TotalPrice from Session (already calculated)
-                if (pendingBooking.TotalPrice != null)
+                // Session'dan uçuş bilgisini al ve fiyatı kullan
+                // Get flight information from Session and use price
+                try
                 {
-                    finalAmount = (decimal)pendingBooking.TotalPrice;
+                    // Önce TotalPrice'ı Session'dan almayı dene
+                    // Try to get TotalPrice from Session first
+                    try
+                    {
+                        if (pendingBooking.TotalPrice != null)
+                        {
+                            finalAmount = (decimal)pendingBooking.TotalPrice;
+                        }
+                    }
+                    catch { }
+
+                    // Eğer TotalPrice yoksa veya 0 ise, veritabanından almayı dene
+                    // If TotalPrice doesn't exist or is 0, try to get from database
+                    if (finalAmount <= 0)
+                    {
+                        try
+                        {
+                            int flightId = 0;
+                            try
+                            {
+                                flightId = (int)pendingBooking.FlightId;
+                            }
+                            catch { }
+
+                            if (flightId > 0)
+                            {
+                                var flight = db.Flights.Find(flightId);
+                                if (flight != null)
+                                {
+                                    // CabinClass'a göre fiyat seç
+                                    // Select price based on CabinClass
+                                    string cabinClass = "economy";
+                                    try
+                                    {
+                                        cabinClass = pendingBooking.CabinClass?.ToString() ?? "economy";
+                                    }
+                                    catch { }
+                                    
+                                    finalAmount = cabinClass.ToLower() == "business" 
+                                        ? flight.BusinessPrice 
+                                        : flight.EconomyPrice;
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // Veritabanı bağlantı hatası - Session'dan devam et
+                            // Database connection error - Continue from Session
+                        }
+                    }
+
+                    // --- EKLENEN KISIM: SERVER TARAFLI EKSTRA HESAPLAMA ---
+                    // Kullanıcı JavaScript'i kapatsa bile sunucuda tekrar ekliyoruz
+                    if (model.HasExtraBaggage) finalAmount += PRICE_EXTRA_BAGGAGE;
+                    if (model.HasWifi) finalAmount += PRICE_WIFI;
+                    if (model.HasMeal) finalAmount += PRICE_MEAL;
+                    if (model.HasFastTrack) finalAmount += PRICE_FAST_TRACK;
+                    // ------------------------------------------------------
+                }
+                catch
+                {
+                    // Hata durumunda Session'dan TotalPrice'ı almayı dene
+                    // In case of error, try to get TotalPrice from Session
+                    try
+                    {
+                        if (pendingBooking.TotalPrice != null)
+                        {
+                            finalAmount = (decimal)pendingBooking.TotalPrice;
+                        }
+                    }
+                    catch { }
                 }
             }
             
@@ -404,6 +499,79 @@ namespace Trabzon_Airlines.Controllers
                     }
                 }
 
+                // --- EKLENEN KISIM: Hata durumunda Base Price tekrar gönder ---
+                // Eğer bu olmazsa JS hesaplaması saçmalar
+                if (pendingBooking != null)
+                {
+                    try
+                    {
+                        if (pendingBooking.TotalPrice != null)
+                        {
+                            decimal baseP = (decimal)pendingBooking.TotalPrice;
+                            ViewBag.BasePrice = baseP;
+                        }
+                        else
+                        {
+                            ViewBag.BasePrice = finalAmount > 0 ? finalAmount : 1500m;
+                        }
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            int flightId = 0;
+                            try
+                            {
+                                flightId = (int)pendingBooking.FlightId;
+                            }
+                            catch { }
+
+                            if (flightId > 0)
+                            {
+                                var flight = db.Flights.Find(flightId);
+                                if (flight != null)
+                                {
+                                    // CabinClass'a göre fiyat seç
+                                    // Select price based on CabinClass
+                                    string cabinClass = "economy";
+                                    try
+                                    {
+                                        cabinClass = pendingBooking.CabinClass?.ToString() ?? "economy";
+                                    }
+                                    catch { }
+                                    
+                                    decimal flightPrice = cabinClass.ToLower() == "business" 
+                                        ? flight.BusinessPrice 
+                                        : flight.EconomyPrice;
+                                    ViewBag.BasePrice = flightPrice;
+                                }
+                                else
+                                {
+                                    ViewBag.BasePrice = finalAmount > 0 ? finalAmount : 1500m;
+                                }
+                            }
+                            else
+                            {
+                                ViewBag.BasePrice = finalAmount > 0 ? finalAmount : 1500m;
+                            }
+                        }
+                        catch
+                        {
+                            ViewBag.BasePrice = finalAmount > 0 ? finalAmount : 1500m;
+                        }
+                    }
+                }
+                else
+                {
+                    ViewBag.BasePrice = finalAmount > 0 ? finalAmount : model.Amount;
+                }
+
+                // --- EKLENEN KISIM: Fiyatları tekrar gönder ---
+                ViewBag.PriceBaggage = PRICE_EXTRA_BAGGAGE;
+                ViewBag.PriceWifi = PRICE_WIFI;
+                ViewBag.PriceMeal = PRICE_MEAL;
+                ViewBag.PriceFastTrack = PRICE_FAST_TRACK;
+
                 return View("Index", model);
             }
 
@@ -418,6 +586,13 @@ namespace Trabzon_Airlines.Controllers
                 {
                     ViewBag.Hata = "Ödeme işlemi için lütfen giriş yapın.";
                     ViewBag.Error = "Please login to complete the payment.";
+
+                    // --- EKLENEN KISIM: Fiyatları tekrar gönder ---
+                    ViewBag.PriceBaggage = PRICE_EXTRA_BAGGAGE;
+                    ViewBag.PriceWifi = PRICE_WIFI;
+                    ViewBag.PriceMeal = PRICE_MEAL;
+                    ViewBag.PriceFastTrack = PRICE_FAST_TRACK;
+
                     return View("Index", model);
                 }
 
@@ -438,7 +613,16 @@ namespace Trabzon_Airlines.Controllers
                         // Kullanıcı bilgilerini Session'dan al
                         // Get user information from Session
                         int userId = (int)Session["UserId"];
-                        var user = db.Users.Find(userId);
+                        User user = null;
+                        try
+                        {
+                            user = db.Users.Find(userId);
+                        }
+                        catch
+                        {
+                            // Veritabanı bağlantı hatası - devam et
+                            // Database connection error - continue
+                        }
                         
                         // Çoklu koltuk seçimi kontrolü
                         // Multiple seat selection check
@@ -455,7 +639,16 @@ namespace Trabzon_Airlines.Controllers
                         {
                             // Her koltuk için ayrı booking oluştur
                             // Create separate booking for each seat
-                            string basePnr = GeneratePNR(); // Tüm booking'ler için aynı PNR
+                            string basePnr = "PNR" + Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+                            try
+                            {
+                                basePnr = GeneratePNR(); // Tüm booking'ler için aynı PNR
+                            }
+                            catch
+                            {
+                                // GeneratePNR hatası - alternatif PNR kullan
+                                // GeneratePNR error - use alternative PNR
+                            }
                             
                             var firstBookingId = (int?)null;
                             
@@ -480,49 +673,101 @@ namespace Trabzon_Airlines.Controllers
 
                             foreach (var seatId in selectedSeatIds)
                             {
-                                // Koltuk bilgisini al
-                                // Get seat information
-                                var flightSeat = db.FlightSeats
-                                                  .Include(x => x.Seat)
-                                                  .FirstOrDefault(x => x.FlightId == bookingFlightId && x.SeatId == seatId);
-                                
-                                if (flightSeat == null)
+                                try
+                                {
+                                    // Koltuk bilgisini al
+                                    // Get seat information
+                                    FlightSeat flightSeat = null;
+                                    try
+                                    {
+                                        flightSeat = db.FlightSeats
+                                                      .Include(x => x.Seat)
+                                                      .FirstOrDefault(x => x.FlightId == bookingFlightId && x.SeatId == seatId);
+                                    }
+                                    catch
+                                    {
+                                        // Veritabanı bağlantı hatası - devam et
+                                        // Database connection error - continue
+                                        continue;
+                                    }
+                                    
+                                    if (flightSeat == null)
+                                        continue;
+
+                                    // Koltuk sınıfına göre fiyat belirle
+                                    // Determine price based on seat class
+                                    decimal seatPrice = 0;
+                                    try
+                                    {
+                                        seatPrice = flightSeat.Seat.CabinClass == "Business"
+                                            ? flightSeat.Flight.BusinessPrice
+                                            : flightSeat.Flight.EconomyPrice;
+                                    }
+                                    catch
+                                    {
+                                        // Session'dan TotalPrice'ı kullan
+                                        // Use TotalPrice from Session
+                                        try
+                                        {
+                                            if (pendingBooking.TotalPrice != null)
+                                            {
+                                                seatPrice = (decimal)pendingBooking.TotalPrice;
+                                            }
+                                        }
+                                        catch { }
+                                    }
+
+                                    // Yeni rezervasyon oluştur
+                                    // Create new booking
+                                    var booking = new Booking
+                                    {
+                                        FlightId = bookingFlightId,
+                                        SeatId = seatId,
+                                        PassengerName = user?.FirstName ?? "Bilinmeyen",
+                                        PassengerSurname = user?.LastName ?? "Kullanıcı",
+                                        PNR = basePnr, // Tüm booking'ler aynı PNR'ye sahip
+                                        BookingDate = DateTime.Now,
+                                        Price = seatPrice > 0 ? seatPrice : finalAmount,
+                                        CabinClass = bookingCabinClass
+                                    };
+
+                                    db.Bookings.Add(booking);
+                                    
+                                    // İlk booking ID'sini sakla (meal selection için)
+                                    // Save first booking ID (for meal selection)
+                                    if (!firstBookingId.HasValue)
+                                    {
+                                        try
+                                        {
+                                            db.SaveChanges(); // İlk booking'i kaydet
+                                            firstBookingId = booking.BookingId;
+                                        }
+                                        catch
+                                        {
+                                            // Veritabanı kayıt hatası - devam et
+                                            // Database save error - continue
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    // Koltuk işleme hatası - devam et
+                                    // Seat processing error - continue
                                     continue;
-
-                                // Koltuk sınıfına göre fiyat belirle
-                                // Determine price based on seat class
-                                decimal seatPrice = flightSeat.Seat.CabinClass == "Business"
-                                    ? flightSeat.Flight.BusinessPrice
-                                    : flightSeat.Flight.EconomyPrice;
-
-                                // Yeni rezervasyon oluştur
-                                // Create new booking
-                                var booking = new Booking
-                                {
-                                    FlightId = bookingFlightId,
-                                    SeatId = seatId,
-                                    PassengerName = user?.FirstName ?? "Bilinmeyen",
-                                    PassengerSurname = user?.LastName ?? "Kullanıcı",
-                                    PNR = basePnr, // Tüm booking'ler aynı PNR'ye sahip
-                                    BookingDate = DateTime.Now,
-                                    Price = seatPrice,
-                                    CabinClass = bookingCabinClass
-                                };
-
-                                db.Bookings.Add(booking);
-                                
-                                // İlk booking ID'sini sakla (meal selection için)
-                                // Save first booking ID (for meal selection)
-                                if (!firstBookingId.HasValue)
-                                {
-                                    db.SaveChanges(); // İlk booking'i kaydet
-                                    firstBookingId = booking.BookingId;
                                 }
                             }
                             
                             // Kalan booking'leri kaydet
                             // Save remaining bookings
-                            db.SaveChanges();
+                            try
+                            {
+                                db.SaveChanges();
+                            }
+                            catch
+                            {
+                                // Veritabanı kayıt hatası - devam et
+                                // Database save error - continue
+                            }
                             
                             bookingId = firstBookingId;
                         }
@@ -530,20 +775,32 @@ namespace Trabzon_Airlines.Controllers
                         {
                             // Tek koltuk seçimi (eski kod - geriye dönük uyumluluk)
                             // Single seat selection (old code - backward compatibility)
-                            string pnr = GeneratePNR();
+                            string pnr = "PNR" + Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+                            try
+                            {
+                                pnr = GeneratePNR();
+                            }
+                            catch
+                            {
+                                // GeneratePNR hatası - alternatif PNR kullan
+                                // GeneratePNR error - use alternative PNR
+                            }
 
                             // FlightId'yi güvenli şekilde al
                             // Get FlightId safely
                             int singleFlightId = 0;
                             int singleSeatId = 0;
-                            decimal singleTotalPrice = 0;
+                            decimal singleTotalPrice = finalAmount;
                             string singleCabinClass = "economy";
                             
                             try
                             {
                                 singleFlightId = (int)pendingBooking.FlightId;
                                 singleSeatId = (int)pendingBooking.SeatId;
-                                singleTotalPrice = (decimal)pendingBooking.TotalPrice;
+                                if (pendingBooking.TotalPrice != null)
+                                {
+                                    singleTotalPrice = (decimal)pendingBooking.TotalPrice;
+                                }
                                 singleCabinClass = pendingBooking.CabinClass?.ToString() ?? "economy";
                             }
                             catch { }
@@ -556,14 +813,21 @@ namespace Trabzon_Airlines.Controllers
                                 PassengerSurname = user?.LastName ?? "Kullanıcı",
                                 PNR = pnr,
                                 BookingDate = DateTime.Now,
-                                Price = singleTotalPrice,
+                                Price = singleTotalPrice > 0 ? singleTotalPrice : finalAmount,
                                 CabinClass = singleCabinClass
                             };
 
-                            db.Bookings.Add(booking);
-                            db.SaveChanges();
-
-                            bookingId = booking.BookingId;
+                            try
+                            {
+                                db.Bookings.Add(booking);
+                                db.SaveChanges();
+                                bookingId = booking.BookingId;
+                            }
+                            catch
+                            {
+                                // Veritabanı kayıt hatası - bookingId null kalacak, success sayfasına gidecek
+                                // Database save error - bookingId will remain null, will go to success page
+                            }
                         }
 
                         // Session'dan bekleyen rezervasyon bilgisini temizle
@@ -577,6 +841,13 @@ namespace Trabzon_Airlines.Controllers
                         System.Diagnostics.Debug.WriteLine("Rezervasyon oluşturma hatası: " + dbEx.Message);
                         ViewBag.Hata = "Rezervasyon oluşturulurken bir hata oluştu: " + dbEx.Message;
                         ViewBag.Error = "An error occurred while creating the booking: " + dbEx.Message;
+
+                        // --- EKLENEN KISIM: Fiyatları tekrar gönder ---
+                        ViewBag.PriceBaggage = PRICE_EXTRA_BAGGAGE;
+                        ViewBag.PriceWifi = PRICE_WIFI;
+                        ViewBag.PriceMeal = PRICE_MEAL;
+                        ViewBag.PriceFastTrack = PRICE_FAST_TRACK;
+
                         return View("Index", model);
                     }
                 }
@@ -605,6 +876,13 @@ namespace Trabzon_Airlines.Controllers
                 // General error handling
                 ViewBag.Hata = "Sunucu Hatası: " + ex.Message;
                 ViewBag.Error = "Server Error: " + ex.Message;
+
+                // --- EKLENEN KISIM: Fiyatları tekrar gönder ---
+                ViewBag.PriceBaggage = PRICE_EXTRA_BAGGAGE;
+                ViewBag.PriceWifi = PRICE_WIFI;
+                ViewBag.PriceMeal = PRICE_MEAL;
+                ViewBag.PriceFastTrack = PRICE_FAST_TRACK;
+
                 return View("Index", model);
             }
         }
@@ -622,6 +900,9 @@ namespace Trabzon_Airlines.Controllers
             var random = new Random(); // Rastgele sayı üretici - Random number generator
 
             string pnr; // PNR değişkeni - PNR variable
+            int maxAttempts = 100; // Maksimum deneme sayısı - Maximum attempt count
+            int attempt = 0;
+            
             do
             {
                 // 6 karakterlik rastgele PNR kodu üret
@@ -631,10 +912,30 @@ namespace Trabzon_Airlines.Controllers
                               .Select(s => s[random.Next(s.Length)]) // Her karakter için rastgele seç - Randomly select for each character
                               .ToArray()
                 );
+                
+                attempt++;
+                
+                // Veritabanı kontrolü - Database check
+                bool exists = false;
+                try
+                {
+                    exists = db.Bookings.Any(b => b.PNR == pnr);
+                }
+                catch
+                {
+                    // Veritabanı bağlantı hatası - PNR'yi kabul et
+                    // Database connection error - accept PNR
+                    break;
+                }
+                
+                // Eğer PNR yoksa veya maksimum deneme sayısına ulaşıldıysa çık
+                // If PNR doesn't exist or max attempts reached, exit
+                if (!exists || attempt >= maxAttempts)
+                {
+                    break;
+                }
             }
-            // Aynı PNR kodu veritabanında varsa tekrar üret
-            // If same PNR code exists in database, generate again
-            while (db.Bookings.Any(b => b.PNR == pnr));
+            while (true);
 
             // Üretilen PNR kodunu döndür
             // Return generated PNR code

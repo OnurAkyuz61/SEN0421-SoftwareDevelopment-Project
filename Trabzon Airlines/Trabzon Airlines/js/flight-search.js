@@ -268,13 +268,6 @@ function openPassengerModal() {
   updatePassengerCountsInModal();
   modal.classList.add('show');
   modal.style.display = 'flex';
-  
-  // Passenger butonundan active class'ını kaldır (mavi olmamalı)
-  // Remove active class from passenger button (should not be blue)
-  const passengerButton = document.querySelector('button[onclick="openPassengerModal()"]');
-  if (passengerButton) {
-    passengerButton.classList.remove('active');
-  }
 }
 
 // Yolcu modal'ını kapat
@@ -282,6 +275,46 @@ function closePassengerModal() {
   const modal = document.getElementById('passengerModal');
   modal.classList.remove('show');
   modal.style.display = 'none';
+}
+
+// Uçuş bulunamadı modal'ını göster
+function showNoFlightModal() {
+  const modal = document.getElementById('noFlightModal');
+  const currentLang = typeof currentLanguage !== 'undefined' ? currentLanguage : (localStorage.getItem('language') || 'tr');
+  
+  if (modal) {
+    // Modal içeriğini dil ayarına göre güncelle
+    const title = modal.querySelector('#noFlightModalTitle');
+    const message = modal.querySelector('#noFlightMessage');
+    const subMessage = modal.querySelector('#noFlightSubMessage');
+    
+    if (title) {
+      title.textContent = currentLang === 'tr' ? 'Uçuş Bulunamadı' : 'No Flights Found';
+    }
+    if (message) {
+      message.textContent = currentLang === 'tr' ? 
+        'Seçtiğiniz kriterlere uygun uçuş bulunamadı.' : 
+        'No flights found matching your search criteria.';
+    }
+    if (subMessage) {
+      subMessage.textContent = currentLang === 'tr' ? 
+        'Lütfen farklı tarih veya havalimanı seçerek tekrar deneyin.' : 
+        'Please try again with different dates or airports.';
+    }
+    
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+  }
+}
+
+// Uçuş bulunamadı modal'ını kapat (ana sayfada kal)
+function closeNoFlightModal() {
+  const modal = document.getElementById('noFlightModal');
+  if (modal) {
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+    // Ana sayfada kal, yönlendirme yapma
+  }
 }
 
 // Yolcu sayısını değiştir
@@ -365,17 +398,6 @@ function confirmPassengerSelection() {
   const cabinClass = cabinClassInput ? cabinClassInput.value : null;
   if (cabinClass) {
     selectedCabinClass = cabinClass;
-    // Kabin sınıfını localStorage'a kaydet
-    // Save cabin class to localStorage
-    localStorage.setItem('selectedCabinClass', selectedCabinClass);
-    
-    // Custom event trigger et (aynı sekmede değişiklik için)
-    // Trigger custom event (for same tab changes)
-    const event = new CustomEvent('cabinClassChanged', {
-      detail: { cabinClass: selectedCabinClass }
-    });
-    window.dispatchEvent(event);
-    console.log('✅ Kabin sınıfı değişti ve event tetiklendi:', selectedCabinClass);
   }
   
   // Yolcu sayılarını kaydet
@@ -421,11 +443,23 @@ function setupDateValidation() {
   const returnInput = document.getElementById('returnDate');
   
   if (departureInput && returnInput) {
+    // Bugünün tarihini al (YYYY-MM-DD formatında)
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    
+    // Minimum tarihi bugün olarak ayarla (geçmiş tarihler seçilemesin)
+    departureInput.min = todayString;
+    returnInput.min = todayString;
+    
     // Gidiş tarihi değiştiğinde
     departureInput.addEventListener('change', function() {
       validateDates();
-      // Dönüş tarihi minimum değerini güncelle
-      returnInput.min = this.value;
+      // Dönüş tarihi minimum değerini güncelle (gidiş tarihinden önce olamaz)
+      if (this.value) {
+        returnInput.min = this.value;
+      } else {
+        returnInput.min = todayString;
+      }
     });
     
     // Dönüş tarihi değiştiğinde
@@ -568,6 +602,85 @@ function selectDestination() {
   console.log('Varış noktası seçimi açılacak');
 }
 
+// Custom alert fonksiyonu - Uçuş arama için
+function showFlightAlert(type, message) {
+  // Mevcut alert'i kaldır
+  const existingAlert = document.getElementById('flightAlert');
+  if (existingAlert) {
+    existingAlert.remove();
+  }
+  
+  // Tip'e göre stil belirle
+  let bgColor, textColor, borderColor;
+  if (type === 'error') {
+    bgColor = 'linear-gradient(135deg, #fff5f5 0%, #ffeaea 100%)';
+    textColor = '#c53030';
+    borderColor = '#c53030';
+  } else if (type === 'info') {
+    bgColor = 'linear-gradient(135deg, #f0f7ff 0%, #e8f4ff 100%)';
+    textColor = '#0066cc';
+    borderColor = '#0066cc';
+  } else {
+    bgColor = 'linear-gradient(135deg, #f0fff4 0%, #e6f9ed 100%)';
+    textColor = '#22543d';
+    borderColor = '#28a745';
+  }
+  
+  // Yeni alert oluştur
+  const alert = document.createElement('div');
+  alert.id = 'flightAlert';
+  alert.style.cssText = `
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: ${bgColor};
+    color: ${textColor};
+    padding: 16px 24px;
+    border-radius: 12px;
+    border-left: 5px solid ${borderColor};
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    font-size: 1rem;
+    font-weight: 500;
+    max-width: 500px;
+    text-align: center;
+    animation: slideDown 0.3s ease;
+  `;
+  alert.textContent = message;
+  
+  // CSS animasyonu ekle
+  if (!document.getElementById('flightAlertStyle')) {
+    const style = document.createElement('style');
+    style.id = 'flightAlertStyle';
+    style.textContent = `
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  document.body.appendChild(alert);
+  
+  // 4 saniye sonra kaldır
+  setTimeout(() => {
+    alert.style.animation = 'slideDown 0.3s ease reverse';
+    setTimeout(() => {
+      if (alert.parentNode) {
+        alert.remove();
+      }
+    }, 300);
+  }, 4000);
+}
+
 // Uçuş arama
 function searchFlights() {
   const departureDateEl = document.getElementById('departureDate');
@@ -590,34 +703,33 @@ function searchFlights() {
   }
   
   if (!destinationCode || destinationCode === '?') {
-    alert(currentLang === 'tr' ? 'Lütfen varış havalimanı seçin!' : 'Please select destination airport!');
+    showFlightAlert('error', currentLang === 'tr' ? 'Lütfen varış havalimanı seçin!' : 'Please select destination airport!');
     return;
   }
   
   // Aynı havalimanı kontrolü
   if (departureCode === destinationCode) {
-    alert(currentLang === 'tr' ? 
+    showFlightAlert('error', currentLang === 'tr' ? 
       'Gidiş ve dönüş için aynı havalimanını seçemezsiniz!' : 
       'You cannot select the same airport for departure and destination!');
     return;
   }
   
   if (!departureDate) {
-    alert(currentLang === 'tr' ? 'Lütfen gidiş tarihi seçin!' : 'Please select departure date!');
+    showFlightAlert('error', currentLang === 'tr' ? 'Lütfen gidiş tarihi seçin!' : 'Please select departure date!');
     return;
   }
   
   // Dönüş tarihi kontrolü - sadece gidiş-dönüş seçiliyse
   const activeButton = document.querySelector('.top-opt.active');
   const isRoundTrip = activeButton && activeButton.dataset.type === 'roundtrip';
-  const tripType = activeButton ? activeButton.dataset.type : 'roundtrip';
   
   if (isRoundTrip && returnDate) {
     const depDate = new Date(departureDate);
     const retDate = new Date(returnDate);
     
     if (retDate < depDate) {
-      alert(currentLang === 'tr' ? 
+      showFlightAlert('error', currentLang === 'tr' ? 
         'Dönüş tarihi gidiş tarihinden önce olamaz!' : 
         'Return date cannot be earlier than departure date!');
       return;
@@ -626,21 +738,25 @@ function searchFlights() {
   
   // Dönüş tarihi zorunlu kontrolü (gidiş-dönüş için)
   if (isRoundTrip && !returnDate) {
-    alert(currentLang === 'tr' ? 
+    showFlightAlert('error', currentLang === 'tr' ? 
       'Gidiş-dönüş seçimi için dönüş tarihi gereklidir!' : 
       'Return date is required for round trip!');
     return;
   }
   
-  // Arama butonunu devre dışı bırak ve loading göster
-  const searchBtn = document.querySelector('.search-btn');
-  const originalBtnText = searchBtn.innerHTML;
-  searchBtn.disabled = true;
-  searchBtn.innerHTML = currentLang === 'tr' ? 
-    '<span>Arıyor...</span> <i class="fa-solid fa-spinner fa-spin"></i>' : 
-    '<span>Searching...</span> <i class="fa-solid fa-spinner fa-spin"></i>';
+  console.log('Uçuş aranıyor...', {
+    departureDate,
+    returnDate,
+    promoCode
+  });
   
-  // AJAX isteği ile backend'e bağlan
+  // API çağrısı yaparak uçuş ara
+  const tripType = isRoundTrip ? 'roundtrip' : 'oneway';
+  
+  // Loading göster
+  showFlightAlert('info', currentLang === 'tr' ? 'Uçuşlar aranıyor...' : 'Searching flights...');
+  
+  // AJAX çağrısı
   $.ajax({
     url: '/Flights/Search',
     type: 'POST',
@@ -652,94 +768,48 @@ function searchFlights() {
       tripType: tripType
     },
     success: function(response) {
-      // Butonu tekrar aktif et
-      searchBtn.disabled = false;
-      searchBtn.innerHTML = originalBtnText;
+      // Loading mesajını kaldır
+      const existingAlert = document.getElementById('flightAlert');
+      if (existingAlert) {
+        existingAlert.remove();
+      }
       
-      if (response.success) {
-        if (response.hasResults) {
-          // Uçuş bulundu - sonuçları göster
-          // Uçuş sonuçlarını sessionStorage'a kaydet
-          sessionStorage.setItem('searchResults', JSON.stringify(response));
-          sessionStorage.setItem('searchParams', JSON.stringify({
-            fromCode: departureCode,
-            toCode: destinationCode,
-            departureDate: departureDate,
-            returnDate: returnDate,
-            tripType: tripType
-          }));
-          
-          // Uçuş sonuçları sayfasına yönlendir
-          window.location.href = '/Flights/SearchResults';
-        } else {
-          // Uçuş bulunamadı - popup göster
-          showNoFlightModal();
-        }
+      if (response && response.success && response.hasResults && 
+          response.departureFlights && response.departureFlights.length > 0) {
+        // Uçuş bulundu, sonuçları kaydet ve SearchResults sayfasına yönlendir
+        const searchParams = {
+          departureCode: departureCode,
+          destinationCode: destinationCode,
+          departureDate: departureDate,
+          returnDate: returnDate,
+          promoCode: promoCode,
+          isRoundTrip: isRoundTrip
+        };
+        
+        sessionStorage.setItem('searchParams', JSON.stringify(searchParams));
+        sessionStorage.setItem('searchResults', JSON.stringify(response));
+        
+        // Uçuş arama sayfasına yönlendir
+        window.location.href = '/Flights/SearchResults';
       } else {
-        // Hata durumu
-        alert(response.message || (currentLang === 'tr' ? 'Bir hata oluştu!' : 'An error occurred!'));
+        // Uçuş bulunamadı, popup göster ve ana sayfada kal
+        showNoFlightModal();
       }
     },
     error: function(xhr, status, error) {
-      // Butonu tekrar aktif et
-      searchBtn.disabled = false;
-      searchBtn.innerHTML = originalBtnText;
+      // Loading mesajını kaldır
+      const existingAlert = document.getElementById('flightAlert');
+      if (existingAlert) {
+        existingAlert.remove();
+      }
       
-      // Hata mesajı göster
-      alert(currentLang === 'tr' ? 
-        'Arama sırasında bir hata oluştu. Lütfen tekrar deneyin.' : 
-        'An error occurred during search. Please try again.');
-      console.error('Search error:', error);
+      console.error('Uçuş arama hatası:', error);
+      showFlightAlert('error', currentLang === 'tr' ? 
+        'Uçuş arama sırasında bir hata oluştu. Lütfen tekrar deneyin.' : 
+        'An error occurred while searching flights. Please try again.');
     }
   });
 }
-
-// Uçuş bulunamadı modal'ını göster
-function showNoFlightModal() {
-  const modal = document.getElementById('noFlightModal');
-  const currentLang = typeof currentLanguage !== 'undefined' ? currentLanguage : (localStorage.getItem('language') || 'tr');
-  
-  // Modal içeriğini dile göre güncelle
-  const title = document.getElementById('noFlightModalTitle');
-  const message = document.getElementById('noFlightMessage');
-  const subMessage = document.getElementById('noFlightSubMessage');
-  
-  if (currentLang === 'tr') {
-    if (title) title.textContent = 'Uçuş Bulunamadı';
-    if (message) message.textContent = 'Seçtiğiniz kriterlere uygun uçuş bulunamadı.';
-    if (subMessage) subMessage.textContent = 'Lütfen farklı tarih veya havalimanı seçerek tekrar deneyin.';
-  } else {
-    if (title) title.textContent = 'No Flights Found';
-    if (message) message.textContent = 'No flights found matching your search criteria.';
-    if (subMessage) subMessage.textContent = 'Please try again with different dates or airports.';
-  }
-  
-  if (modal) {
-    modal.classList.add('show');
-    modal.style.display = 'flex';
-  }
-}
-
-// Uçuş bulunamadı modal'ını kapat
-function closeNoFlightModal() {
-  const modal = document.getElementById('noFlightModal');
-  if (modal) {
-    modal.classList.remove('show');
-    modal.style.display = 'none';
-  }
-}
-
-// Modal dışına tıklandığında kapat
-document.addEventListener('DOMContentLoaded', function() {
-  const noFlightModal = document.getElementById('noFlightModal');
-  if (noFlightModal) {
-    noFlightModal.addEventListener('click', function(e) {
-      if (e.target === noFlightModal) {
-        closeNoFlightModal();
-      }
-    });
-  }
-});
 
 // Teklif rezervasyonu
 function bookFlight(destination) {
@@ -747,4 +817,3 @@ function bookFlight(destination) {
   console.log(`${destination} için rezervasyon yapılacak`);
   alert(currentLang === 'tr' ? `${destination} uçuşu için rezervasyon sayfasına yönlendiriliyorsunuz...` : `Redirecting to booking page for ${destination}...`);
 }
-

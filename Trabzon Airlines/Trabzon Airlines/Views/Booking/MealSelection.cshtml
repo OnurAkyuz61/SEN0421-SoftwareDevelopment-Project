@@ -3,6 +3,10 @@
     ViewBag.Title = "Yemek Seçimi";
     ViewBag.TitleEn = "Meal Selection";
     var booking = ViewBag.Booking as Trabzon_Airlines.Models.Booking;
+    if (booking == null)
+    {
+        booking = null; // Explicit null check
+    }
 }
 
 @section styles {
@@ -235,13 +239,22 @@
                 <i class="fa-solid fa-utensils"></i>
                 <span data-tr="Uçuş Yemeği Seçimi" data-en="Select Your In-Flight Meal">Uçuş Yemeği Seçimi</span>
             </h1>
-            @if (booking != null && booking.Flight != null && booking.Seat != null)
+            @if (booking != null)
             {
                 <div class="flight-info-box">
-                    <p><strong data-tr="Uçuş:" data-en="Flight:">Uçuş:</strong> @booking.Flight.FlightNumber</p>
-                    <p><strong data-tr="Rota:" data-en="Route:">Rota:</strong> @booking.Flight.FromCode → @booking.Flight.ToCode</p>
-                    <p><strong data-tr="Koltuk:" data-en="Seat:">Koltuk:</strong> @booking.Seat.SeatNumber</p>
-                    <p><strong data-tr="PNR:" data-en="PNR:">PNR:</strong> @booking.PNR</p>
+                    @if (booking.Flight != null)
+                    {
+                        <p><strong data-tr="Uçuş:" data-en="Flight:">Uçuş:</strong> @(booking.Flight.FlightNumber ?? "N/A")</p>
+                        <p><strong data-tr="Rota:" data-en="Route:">Rota:</strong> @(booking.Flight.FromCode ?? "") → @(booking.Flight.ToCode ?? "")</p>
+                    }
+                    @if (booking.Seat != null)
+                    {
+                        <p><strong data-tr="Koltuk:" data-en="Seat:">Koltuk:</strong> @(booking.Seat.SeatNumber ?? "N/A")</p>
+                    }
+                    @if (!string.IsNullOrEmpty(booking.PNR))
+                    {
+                        <p><strong data-tr="PNR:" data-en="PNR:">PNR:</strong> @booking.PNR</p>
+                    }
                 </div>
             }
         </div>

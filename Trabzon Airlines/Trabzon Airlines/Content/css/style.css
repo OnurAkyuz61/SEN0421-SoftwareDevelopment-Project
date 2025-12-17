@@ -85,14 +85,23 @@ a:hover {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* Site wrapper */
 .site {
-  min-height: calc(100vh - var(--header-height));
-  display: flex;
-  flex-direction: column;
+  margin-left: var(--sidebar-width);
+  transition: margin-left var(--transition-normal) ease;
+}
+
+/* Sidebar collapsed olduğunda site margin'i */
+body.sidebar-collapsed .site {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+.page-content {
+  /* Normal content flow */
 }
 
 /* ================== HEADER STYLES ================== */
@@ -366,8 +375,9 @@ body.sidebar-collapsed .toggle-btn-outside i {
 .page-content {
   flex: 1;
   margin-left: var(--sidebar-width);
-  padding: 2rem 1rem;
+  padding: 2rem;
   transition: margin-left var(--transition-normal) ease;
+  box-sizing: border-box;
 }
 
 body.sidebar-collapsed .page-content {
