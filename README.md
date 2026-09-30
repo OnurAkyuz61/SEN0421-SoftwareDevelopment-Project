@@ -40,6 +40,7 @@ Bu proje **henüz tamamlanmamıştır**; geliştirme ve iyileştirme çalışmal
 | 2100005226 | Emirhan Mollahüseyinoğlu |
 | 2200005590 | Onur Akyüz |
 | 2300006496 | Rana Neslihan Kurt |
+| 2300007578 | Zeynep Avcı |
 
 ## 🎯 Proje Açıklaması
 
@@ -756,7 +757,7 @@ Bu proje eğitim amaçlı geliştirilmiştir ve İstanbul Kültür Üniversitesi
 
 **Proje Durumu:** 🚧 **DEVAM EDİYOR** (henüz tamamlanmadı / teslim edilmedi)  
 **Ders:** SEN0421 - Software Development with Standards  
-**Ekip:** Emirhan Mollahüseyinoğlu, Onur Akyüz, Rana Neslihan Kurt
+**Ekip:** Emirhan Mollahüseyinoğlu, Onur Akyüz, Rana Neslihan Kurt, Zeynep Avcı
 
 ### 📊 Proje İstatistikleri (güncel)
 - **View sayısı:** ~51
