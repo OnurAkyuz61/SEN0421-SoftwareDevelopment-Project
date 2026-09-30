@@ -1,0 +1,203 @@
+﻿@model List<Trabzon_Airlines.Models.UserMessage>
+@{
+    ViewBag.Title = "Mesajlarım";
+    ViewBag.TitleEn = "My Messages";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var watched = ViewBag.Watched as List<Trabzon_Airlines.Models.FlightView> ?? new List<Trabzon_Airlines.Models.FlightView>();
+    int unread = Model.Count(m => !m.IsRead);
+    var tr = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/Content/css/messages.css?v=2" />
+}
+
+<form id="msgToken" style="display:none">@Html.AntiForgeryToken()</form>
+
+<div class="msg-page">
+
+    <div class="msg-head">
+        <div>
+            <h1>
+                <i class="fa-regular fa-envelope"></i>
+                <span data-tr="Mesajlarım" data-en="My Messages">Mesajlarım</span>
+            </h1>
+            <p>
+                <span id="msgUnreadText" data-count="@unread">
+                    @if (unread > 0)
+                    {
+                        <span data-tr="@unread okunmamış mesajınız var" data-en="You have @unread unread messages">@unread okunmamış mesajınız var</span>
+                    }
+                    else
+                    {
+                        <span data-tr="Tüm mesajlar okundu" data-en="All caught up">Tüm mesajlar okundu</span>
+                    }
+                </span>
+            </p>
+        </div>
+        @if (unread > 0)
+        {
+            <button type="button" class="msg-btn-ghost" id="msgReadAll">
+                <i class="fa-solid fa-check-double"></i>
+                <span data-tr="Tümünü okundu yap" data-en="Mark all as read">Tümünü okundu yap</span>
+            </button>
+        }
+    </div>
+
+    <div class="msg-layout">
+
+        <!-- MESAJ LİSTESİ -->
+        <section class="msg-list" id="msgList">
+            @if (!Model.Any())
+            {
+                <div class="msg-empty">
+                    <i class="fa-regular fa-bell"></i>
+                    <h3 data-tr="Henüz mesajınız yok" data-en="No messages yet">Henüz mesajınız yok</h3>
+                    <p data-tr="Bir uçuşa @ViewBag.MinViews veya daha fazla kez baktığınızda fiyatını takip ederiz. Fiyat düşerse size burada haber veririz."
+                       data-en="When you view a flight @ViewBag.MinViews or more times, we watch its price. If it drops, you'll be notified here.">
+                        Bir uçuşa @ViewBag.MinViews veya daha fazla kez baktığınızda fiyatını takip ederiz. Fiyat düşerse size burada haber veririz.
+                    </p>
+                </div>
+            }
+
+            @foreach (var m in Model)
+            {
+                <article class="msg-card @(m.IsRead ? "" : "unread")" data-id="@m.UserMessageId">
+                    <div class="msg-icon @(m.Type == "PriceDrop" ? "drop" : m.Type == "WeatherAlert" ? "weather" : "")">
+                        <i class="fa-solid @(m.Type == "PriceDrop" ? "fa-arrow-trend-down" : m.Type == "WeatherAlert" ? "fa-cloud-bolt" : "fa-circle-info")"></i>
+                    </div>
+
+                    <div class="msg-content">
+                        <div class="msg-top">
+                            <h3 data-tr="@m.TitleTr" data-en="@(m.TitleEn ?? m.TitleTr)">@m.TitleTr</h3>
+                            <time>@m.CreatedAt.ToString("dd MMM yyyy HH:mm", tr)</time>
+                        </div>
+
+                        <p data-tr="@m.BodyTr" data-en="@(m.BodyEn ?? m.BodyTr)">@m.BodyTr</p>
+
+                        @if (m.Type == "PriceDrop" && m.OldPrice.HasValue && m.NewPrice.HasValue)
+                        {
+                            <div class="msg-price">
+                                <span class="old">@m.OldPrice.Value.ToString("N0", tr) ₺</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                                <span class="new">@m.NewPrice.Value.ToString("N0", tr) ₺</span>
+                                <span class="tag">@m.CabinClass</span>
+                            </div>
+                        }
+
+                        <div class="msg-actions">
+                            @if (m.Type == "WeatherAlert")
+                            {
+                                <a class="msg-btn-primary" href="@Url.Action("Status", "Flights")">
+                                    <span data-tr="Uçuş durumunu gör" data-en="View flight status">Uçuş durumunu gör</span>
+                                </a>
+                            }
+                            @if (m.Type == "PriceDrop")
+                            {
+                                <a class="msg-btn-primary" href="@Url.Action("Index", "Home")">
+                                    <span data-tr="Uçuşu ara" data-en="Search flight">Uçuşu ara</span>
+                                </a>
+                            }
+                            @if (!m.IsRead)
+                            {
+                                <button type="button" class="msg-btn-ghost js-read">
+                                    <span data-tr="Okundu" data-en="Mark read">Okundu</span>
+                                </button>
+                            }
+                            <button type="button" class="msg-btn-ghost danger js-del" aria-label="Sil">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            }
+        </section>
+
+        <!-- İLGİLENDİĞİNİZ UÇUŞLAR -->
+        <aside class="msg-side">
+            <h4>
+                <i class="fa-regular fa-eye"></i>
+                <span data-tr="Fiyatını takip ettiğimiz uçuşlar" data-en="Flights we're watching">Fiyatını takip ettiğimiz uçuşlar</span>
+            </h4>
+
+            @if (!watched.Any())
+            {
+                <p class="msg-side-empty" data-tr="Henüz baktığınız bir uçuş yok." data-en="You haven't viewed any flights yet.">Henüz baktığınız bir uçuş yok.</p>
+            }
+
+            @foreach (var w in watched)
+            {
+                bool active = w.ViewCount >= (int)ViewBag.MinViews;
+                <div class="watch-item">
+                    <div>
+                        <strong>@w.Flight.FromCode → @w.Flight.ToCode</strong>
+                        <small>@w.Flight.FlightNumber · @w.Flight.DepartureTime.ToString("dd MMM HH:mm", tr)</small>
+                    </div>
+                    <div class="watch-right">
+                        <span class="watch-price">@w.Flight.EconomyPrice.ToString("N0", tr) ₺</span>
+                        <small class="@(active ? "on" : "")">
+                            <span>@w.ViewCount</span>
+                            <span data-tr="kez bakıldı" data-en="views">kez bakıldı</span>
+                        </small>
+                    </div>
+                </div>
+            }
+        </aside>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        (function () {
+            function token() {
+                var el = document.querySelector('#msgToken input[name="__RequestVerificationToken"]');
+                return el ? el.value : "";
+            }
+            function post(url, data) {
+                var p = new URLSearchParams(data || {});
+                p.append("__RequestVerificationToken", token());
+                return fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+                    body: p.toString(),
+                    credentials: "same-origin"
+                }).then(function (r) { return r.json(); });
+            }
+            function setBadge(n) {
+                if (window.taSetMsgBadge) window.taSetMsgBadge(n);
+            }
+
+            document.getElementById("msgList").addEventListener("click", function (e) {
+                var card = e.target.closest(".msg-card");
+                if (!card) return;
+                var id = card.getAttribute("data-id");
+
+                if (e.target.closest(".js-read")) {
+                    post("@Url.Action("Read", "Messages")", { id: id }).then(function (r) {
+                        card.classList.remove("unread");
+                        var b = card.querySelector(".js-read"); if (b) b.remove();
+                        setBadge(r.unread);
+                    });
+                } else if (e.target.closest(".js-del")) {
+                    post("@Url.Action("Delete", "Messages")", { id: id }).then(function (r) {
+                        card.style.opacity = "0";
+                        setTimeout(function () { card.remove(); }, 200);
+                        setBadge(r.unread);
+                    });
+                }
+            });
+
+            var all = document.getElementById("msgReadAll");
+            if (all) all.addEventListener("click", function () {
+                post("@Url.Action("ReadAll", "Messages")").then(function () {
+                    document.querySelectorAll(".msg-card.unread").forEach(function (c) {
+                        c.classList.remove("unread");
+                        var b = c.querySelector(".js-read"); if (b) b.remove();
+                    });
+                    all.remove();
+                    setBadge(0);
+                });
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,208 @@
+/* =========================================================
+   Mesajlarım sayfası + header mesaj ikonu
+   ========================================================= */
+
+.msg-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+  color: #1c1c1e;
+}
+
+.msg-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.msg-head h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.msg-head h1 i { color: var(--primary-color, #e4002b); font-size: 22px; }
+.msg-head p { margin: 0; color: #8a8a8e; font-size: 14px; }
+
+.msg-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ---------- Kart ---------- */
+.msg-list { display: flex; flex-direction: column; gap: 12px; }
+
+.msg-card {
+  display: flex;
+  gap: 14px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 14px;
+  transition: opacity .2s, box-shadow .2s;
+  position: relative;
+}
+.msg-card:hover { box-shadow: 0 4px 16px rgba(0, 0, 0, .05); }
+.msg-card.unread { border-color: rgba(228, 0, 43, .25); background: #fffafb; }
+.msg-card.unread::before {
+  content: "";
+  position: absolute;
+  top: 22px;
+  right: 18px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--primary-color, #e4002b);
+}
+
+.msg-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  background: #f2f2f4;
+  color: #6b6b70;
+}
+.msg-icon.drop { background: rgba(52, 199, 89, .12); color: #1f9d49; }
+
+.msg-content { flex: 1; min-width: 0; }
+.msg-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  padding-right: 18px;
+}
+.msg-top h3 { font-size: 15.5px; font-weight: 600; margin: 0; }
+.msg-top time { font-size: 12px; color: #a0a0a5; white-space: nowrap; }
+.msg-content p { font-size: 14px; line-height: 1.55; color: #4a4a4f; margin: 6px 0 0; }
+
+.msg-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: #f7f7f8;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.msg-price .old { color: #a0a0a5; text-decoration: line-through; }
+.msg-price .new { color: #1f9d49; font-weight: 700; font-size: 16px; }
+.msg-price i { color: #c4c4c8; font-size: 11px; }
+.msg-price .tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #e6e6e8;
+  color: #6b6b70;
+}
+
+.msg-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+.msg-btn-primary,
+.msg-btn-ghost {
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 9px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.msg-btn-primary { background: var(--primary-color, #e4002b); color: #fff; border: 1px solid transparent; }
+.msg-btn-primary:hover { background: var(--primary-dark, #c20025); color: #fff; }
+.msg-btn-ghost { background: #fff; color: #3a3a3f; border: 1px solid #e3e3e6; }
+.msg-btn-ghost:hover { border-color: #c9c9ce; }
+.msg-btn-ghost.danger:hover { color: #d70015; border-color: #f2c4c9; }
+
+/* ---------- Boş durum ---------- */
+.msg-empty {
+  text-align: center;
+  padding: 56px 24px;
+  background: #fff;
+  border: 1px dashed #e0e0e3;
+  border-radius: 14px;
+}
+.msg-empty i { font-size: 32px; color: #c4c4c8; }
+.msg-empty h3 { font-size: 17px; margin: 14px 0 6px; }
+.msg-empty p { font-size: 14px; color: #8a8a8e; max-width: 420px; margin: 0 auto; line-height: 1.55; }
+
+/* ---------- Yan panel ---------- */
+.msg-side {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 14px;
+  padding: 18px;
+  position: sticky;
+  top: calc(var(--header-height, 70px) + 20px);
+}
+.msg-side h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.msg-side h4 i { color: #8a8a8e; }
+.msg-side-empty { font-size: 13px; color: #8a8a8e; margin: 0; }
+
+.watch-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid #f1f1f3;
+  font-size: 13.5px;
+}
+.watch-item strong { display: block; font-weight: 600; }
+.watch-item small { color: #8a8a8e; font-size: 12px; }
+.watch-right { text-align: right; white-space: nowrap; }
+.watch-price { display: block; font-weight: 600; }
+.watch-right small.on { color: var(--primary-color, #e4002b); }
+
+@media (max-width: 900px) {
+  .msg-layout { grid-template-columns: 1fr; }
+  .msg-side { position: static; }
+}
+
+/* ---------- Header mesaj ikonu ---------- */
+.header-msg-btn {
+  position: relative;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .25);
+  background: transparent;
+  color: #fff;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  margin-right: 6px;
+  text-decoration: none;
+  transition: background .15s;
+}
+.header-msg-btn:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+.header-msg-badge {
+  position: absolute;
+  top: -3px; right: -3px;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--primary-color, #e4002b);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid #000;
+  display: none;
+}
+.header-msg-badge.show { display: block; }
+.msg-icon.weather { background: rgba(255, 149, 0, .14); color: #c26a00; }

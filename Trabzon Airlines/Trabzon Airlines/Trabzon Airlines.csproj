@@ -137,6 +137,15 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\ChatController.cs" />
+    <Compile Include="Services\AiChatService.cs" />
+    <Compile Include="Services\PriceWatchService.cs" />
+    <Compile Include="Services\WeatherService.cs" />
+    <Compile Include="Models\FlightWeather.cs" />
+    <Compile Include="Controllers\MessagesController.cs" />
+    <Compile Include="Models\FlightView.cs" />
+    <Compile Include="Models\RouteSearch.cs" />
+    <Compile Include="Models\UserMessage.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\AdminAdminsController.cs" />
     <Compile Include="Controllers\AdminBookingsController.cs" />
@@ -269,6 +278,11 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\NotFound.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Shared\_ChatWidget.cshtml" />
+    <Content Include="Content\css\chatbot.css" />
+    <Content Include="js\chatbot.js" />
+    <Content Include="Views\Messages\Index.cshtml" />
+    <Content Include="Content\css\messages.css" />
     <Content Include="Views\Shared\_AdminLayout.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />

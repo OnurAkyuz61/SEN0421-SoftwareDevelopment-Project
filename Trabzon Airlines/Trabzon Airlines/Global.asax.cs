@@ -10,6 +10,7 @@ using System.Web.Routing; // Routing için
 using Trabzon_Airlines.Data; // Veritabanı bağlamı için
 using Trabzon_Airlines.Migrations; // Migration'lar için
 using Trabzon_Airlines.Controllers; // Controller sınıfları için
+using Trabzon_Airlines.Services; // Hava durumu zamanlayıcısı için
 
 namespace Trabzon_Airlines
 {
@@ -40,6 +41,10 @@ namespace Trabzon_Airlines
             // Bundle'ları kaydet
             // Register bundles
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            // Hava durumu kontrolünü arka planda periyodik başlat (varsayılan 3 saatte bir)
+            // Start periodic weather check in background (default every 3 hours)
+            WeatherScheduler.Start();
         }
 
         // Her istek başlangıcında çalışır - Encoding ayarları

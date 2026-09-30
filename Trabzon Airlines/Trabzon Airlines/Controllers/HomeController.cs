@@ -1,5 +1,6 @@
 ﻿using System; // DateTime için
 using System.Collections.Generic; // Koleksiyonlar için
+using System.Configuration; // AppSettings / User Secrets için
 using System.Linq; // LINQ sorguları için
 using System.Web; // HTTP context için
 using System.Web.Mvc; // MVC framework için
@@ -74,10 +75,26 @@ namespace Trabzon_Airlines.Controllers
 
             try
             {
+                var smtpUser = ConfigurationManager.AppSettings["Smtp:UserName"];
+                var smtpPass = ConfigurationManager.AppSettings["Smtp:Password"];
+                var fromEmail = ConfigurationManager.AppSettings["Smtp:FromEmail"] ?? smtpUser;
+                var fromName = ConfigurationManager.AppSettings["Smtp:FromName"] ?? "Trabzon Airlines";
+                var toEmail = ConfigurationManager.AppSettings["Smtp:ToEmail"] ?? fromEmail;
+                var smtpHost = ConfigurationManager.AppSettings["Smtp:Host"] ?? "smtp.gmail.com";
+                var smtpPort = int.TryParse(ConfigurationManager.AppSettings["Smtp:Port"], out var port) ? port : 587;
+                var enableSsl = !string.Equals(ConfigurationManager.AppSettings["Smtp:EnableSsl"], "false", StringComparison.OrdinalIgnoreCase);
+
+                if (string.IsNullOrWhiteSpace(smtpUser) || string.IsNullOrWhiteSpace(smtpPass))
+                {
+                    TempData["ContactError_tr"] = "E-posta servisi yapılandırılmamış. Lütfen daha sonra tekrar deneyin.";
+                    TempData["ContactError_en"] = "Email service is not configured. Please try again later.";
+                    return RedirectToAction("Contact");
+                }
+
                 // E-posta gönderimi - Email sending
                 System.Net.Mail.MailMessage mail = new System.Net.Mail.MailMessage();
-                mail.From = new System.Net.Mail.MailAddress("trabzonairlines@gmail.com", "Trabzon Airlines İletişim Formu");
-                mail.To.Add("trabzonairlines@gmail.com");
+                mail.From = new System.Net.Mail.MailAddress(fromEmail, fromName);
+                mail.To.Add(toEmail);
                 mail.Subject = $"İletişim Formu - {subject}";
                 mail.IsBodyHtml = true;
                 mail.Body = $@"
@@ -93,11 +110,11 @@ namespace Trabzon_Airlines.Controllers
                     <p><small>Bu mesaj {DateTime.Now:dd.MM.yyyy HH:mm} tarihinde web sitesi üzerinden gönderilmiştir.</small></p>
                 ";
 
-                // SMTP ayarları - SMTP settings (Manuel ayarlar - Manual settings)
-                System.Net.Mail.SmtpClient smtp = new System.Net.Mail.SmtpClient("smtp.gmail.com", 587);
-                smtp.EnableSsl = true;
+                // SMTP ayarları - AppSettings / User Secrets
+                System.Net.Mail.SmtpClient smtp = new System.Net.Mail.SmtpClient(smtpHost, smtpPort);
+                smtp.EnableSsl = enableSsl;
                 smtp.UseDefaultCredentials = false;
-                smtp.Credentials = new System.Net.NetworkCredential("trabzonairlines@gmail.com", "xnzrqqjippyamtsn");
+                smtp.Credentials = new System.Net.NetworkCredential(smtpUser, smtpPass);
                 smtp.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;
                 smtp.Timeout = 30000; // 30 saniye timeout - 30 second timeout
 

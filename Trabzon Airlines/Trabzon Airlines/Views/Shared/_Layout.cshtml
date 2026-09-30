@@ -17,6 +17,8 @@
 
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+    <link rel="stylesheet" href="~/Content/css/chatbot.css" />
+    <link rel="stylesheet" href="~/Content/css/messages.css" />
     @RenderSection("styles", required: false)
 </head>
 
@@ -110,6 +112,12 @@
                 }
                 else
                 {
+                    @* Mesajlar - okunmamış rozeti chatbot.js doldurur *@
+                    <a class="header-msg-btn" href="@Url.Action("Index", "Messages")" title="Mesajlarım" aria-label="Mesajlarım">
+                        <i class="fa-regular fa-envelope"></i>
+                        <span class="header-msg-badge" id="headerMsgBadge">0</span>
+                    </a>
+
                     <button class="join-btn"
                             onclick="window.location.href='@Url.Action("Dashboard", "Account")'"
                             data-tr="Rezervasyonlarım" data-en="My Trips">
@@ -230,6 +238,17 @@
                     <span data-tr="Trip AI" data-en="Trip AI">Trip AI</span>
                 </a>
             </li>
+
+            @* Mesajlarım - sadece giriş yapmış kullanıcılar *@
+            @if (Session["UserId"] != null)
+            {
+                <li>
+                    <a href="@Url.Action("Index", "Messages")">
+                        <i class="fa-regular fa-envelope"></i>
+                        <span data-tr="Mesajlarım" data-en="My Messages">Mesajlarım</span>
+                    </a>
+                </li>
+            }
 
         </ul>
 
@@ -532,6 +551,13 @@
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/trabzonairlines")
     @RenderSection("scripts", required: false)
+
+    @* AI Sohbet Kutusu - Admin sayfalarında gösterilmez *@
+    @if (!isAdminPage && ViewBag.IsAdminPage != true)
+    {
+        @Html.Partial("_ChatWidget")
+        <script src="~/js/chatbot.js"></script>
+    }
 
 </body>
 </html>

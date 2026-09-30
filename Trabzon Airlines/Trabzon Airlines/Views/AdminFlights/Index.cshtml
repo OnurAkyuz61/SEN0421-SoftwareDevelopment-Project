@@ -24,12 +24,27 @@
             <i class="fa-solid fa-plane"></i>
             <span data-tr="Uçuş Yönetimi" data-en="Flight Management">Uçuş Yönetimi</span>
         </h1>
-        <a href="@Url.Action("Create", "AdminFlights")" class="btn-primary-action">
-            <i class="fa-solid fa-plus"></i>
-            <span data-tr="Yeni Uçuş Ekle" data-en="Add New Flight">Yeni Uçuş Ekle</span>
-        </a>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            @* Hava durumunu internetten çek, riskleri güncelle *@
+            <a href="@Url.Action("RefreshWeather", "AdminFlights")" class="btn-primary-action" style="background:#fff; color:#1c1c1e; border:1px solid #e3e3e6;">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+                <span data-tr="Hava Durumunu Güncelle" data-en="Refresh Weather">Hava Durumunu Güncelle</span>
+            </a>
+            <a href="@Url.Action("Create", "AdminFlights")" class="btn-primary-action">
+                <i class="fa-solid fa-plus"></i>
+                <span data-tr="Yeni Uçuş Ekle" data-en="Add New Flight">Yeni Uçuş Ekle</span>
+            </a>
+        </div>
     </div>
 </div>
+
+@if (TempData["WeatherInfo_tr"] != null)
+{
+    <div class="alert alert-info" style="margin:0 0 16px; padding:12px 16px; border-radius:10px; background:#eef6ff; border:1px solid #cfe3fb; color:#0b4a8b;">
+        <i class="fa-solid fa-cloud-sun"></i>
+        <span data-tr="@TempData["WeatherInfo_tr"]" data-en="@TempData["WeatherInfo_en"]">@TempData["WeatherInfo_tr"]</span>
+    </div>
+}
 
 @* Uçuş Listesi Kartı *@
 @* Flight List Card *@
@@ -168,6 +183,9 @@
                                         </a>
                                         <a href="@Url.Action("Seats", "AdminFlights", new { flightId = flight.FlightId })" class="btn-action btn-view" title="Koltukları Yönet" data-tr-title="Koltukları Yönet" data-en-title="Manage Seats">
                                             <i class="fa-solid fa-chair"></i>
+                                        </a>
+                                        <a href="@Url.Action("SimulateWeather", "AdminFlights", new { id = flight.FlightId })" class="btn-action btn-view" title="Kötü hava simüle et (test)" data-tr-title="Kötü hava simüle et (test)" data-en-title="Simulate bad weather (test)" onclick="return confirm('Bu uçuş için TEST amaçlı fırtına simüle edilecek ve bileti olan yolculara uyarı mesajı gidecek. Devam edilsin mi?');">
+                                            <i class="fa-solid fa-cloud-bolt"></i>
                                         </a>
                                         <a href="@Url.Action("Delete", "AdminFlights", new { id = flight.FlightId })" class="btn-action btn-delete" title="Sil" data-tr-title="Sil" data-en-title="Delete" onclick="return confirm('Bu uçuşu silmek istediğinizden emin misiniz?');">
                                             <i class="fa-solid fa-trash"></i>

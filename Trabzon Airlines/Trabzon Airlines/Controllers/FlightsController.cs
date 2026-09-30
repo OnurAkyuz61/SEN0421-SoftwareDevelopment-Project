@@ -6,6 +6,7 @@ using System.Web.Mvc; // MVC controller için
 using Trabzon_Airlines.Data; // Veritabanı bağlamı için
 using Trabzon_Airlines.Models; // Model sınıfları için
 using Newtonsoft.Json; // JSON serialization için
+using Trabzon_Airlines.Services; // Fiyat takibi için
 
 namespace Trabzon_Airlines.Controllers
 {
@@ -108,6 +109,23 @@ namespace Trabzon_Airlines.Controllers
                                         f.DepartureTime <= retDateEnd)
                             .OrderBy(f => f.DepartureTime)
                             .ToList();
+                    }
+                }
+
+                // Giriş yapmış kullanıcı için arama ve görüntülenen uçuşları kaydet (fiyat takibi)
+                // Track route search and viewed flights for logged-in user (price watch)
+                int trackUserId;
+                if (Session["UserId"] != null && int.TryParse(Session["UserId"].ToString(), out trackUserId))
+                {
+                    try
+                    {
+                        var shown = departureFlights.Concat(returnFlights ?? new List<Flight>()).ToList();
+                        PriceWatchService.TrackSearch(db, trackUserId, fromCode, toCode, shown);
+                    }
+                    catch (Exception trackEx)
+                    {
+                        // Takip hatası aramayı bozmasın
+                        System.Diagnostics.Debug.WriteLine("[PriceWatch] " + trackEx.Message);
                     }
                 }
 

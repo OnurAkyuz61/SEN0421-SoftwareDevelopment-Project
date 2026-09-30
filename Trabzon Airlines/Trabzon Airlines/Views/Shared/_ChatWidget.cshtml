@@ -1,0 +1,64 @@
+﻿@* Yapay zeka sohbet kutusu - sağ alt köşe *@
+@* AI chat box - bottom right corner *@
+<div class="ta-chat" id="taChat"
+     data-endpoint="@Url.Action("Send", "Chat")"
+     data-unread="@Url.Action("UnreadCount", "Messages")"
+     data-messages="@Url.Action("Index", "Messages")"
+     data-user-id="@(Session["UserId"] ?? "")"
+     data-user-name="@(Session["UserName"] ?? "")">
+    <form id="taChatToken" style="display:none">@Html.AntiForgeryToken()</form>
+
+    <!-- Sohbet paneli -->
+    <section class="ta-chat-panel" id="taChatPanel" role="dialog" aria-label="Trabzon Asistan" aria-hidden="true">
+        <header class="ta-chat-header">
+            <div class="ta-chat-avatar"><i class="fa-solid fa-plane-up"></i></div>
+            <div class="ta-chat-title">
+                <strong>Trabzon Asistan</strong>
+                <span><i class="ta-dot"></i><span data-tr="Çevrimiçi" data-en="Online">Çevrimiçi</span></span>
+            </div>
+            <button type="button" class="ta-chat-icon-btn" id="taChatReset" title="Yeni sohbet" aria-label="Yeni sohbet">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <button type="button" class="ta-chat-icon-btn" id="taChatClose" title="Kapat" aria-label="Kapat">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+
+        <div class="ta-chat-body" id="taChatBody" aria-live="polite"></div>
+
+        <div class="ta-chat-suggestions" id="taChatSuggestions">
+            @if (Session["UserId"] != null)
+            {
+                <button type="button" data-tr="Yaklaşan uçuşum ne zaman?" data-en="When is my next flight?">Yaklaşan uçuşum ne zaman?</button>
+                <button type="button" data-tr="Takip ettiğim uçuşlarda fiyat düştü mü?" data-en="Did any watched flight get cheaper?">Takip ettiğim uçuşlarda fiyat düştü mü?</button>
+                <button type="button" data-tr="Check-in yapabilir miyim?" data-en="Can I check in now?">Check-in yapabilir miyim?</button>
+            }
+            else
+            {
+                <button type="button" data-tr="Online check-in nasıl yapılır?" data-en="How do I check in online?">Online check-in nasıl yapılır?</button>
+                <button type="button" data-tr="Yaklaşan uçuşlar neler?" data-en="What flights are coming up?">Yaklaşan uçuşlar neler?</button>
+                <button type="button" data-tr="Bagaj hakkım ne kadar?" data-en="What is my baggage allowance?">Bagaj hakkım ne kadar?</button>
+            }
+        </div>
+
+        <form class="ta-chat-input" id="taChatForm" autocomplete="off">
+            <textarea id="taChatText" rows="1" maxlength="1000"
+                      placeholder="Mesajınızı yazın..."
+                      data-placeholder-tr="Mesajınızı yazın..."
+                      data-placeholder-en="Type your message..."></textarea>
+            <button type="submit" id="taChatSend" aria-label="Gönder" disabled>
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+        <div class="ta-chat-foot" data-tr="Yapay zeka hata yapabilir, önemli bilgileri doğrulayın." data-en="AI can make mistakes. Please verify important info.">
+            Yapay zeka hata yapabilir, önemli bilgileri doğrulayın.
+        </div>
+    </section>
+
+    <!-- Aç/kapat butonu -->
+    <button type="button" class="ta-chat-launcher" id="taChatLauncher" aria-label="Asistanı aç" aria-expanded="false">
+        <i class="fa-regular fa-comment-dots ta-ico-open"></i>
+        <i class="fa-solid fa-chevron-down ta-ico-close"></i>
+        <span class="ta-launch-dot" id="taLaunchDot"></span>
+    </button>
+</div>

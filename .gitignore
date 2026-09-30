@@ -328,3 +328,51 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+# ------------------------------------------------------------
+# Project / OS / secrets (Trabzon Airlines)
+# ------------------------------------------------------------
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editors / IDEs
+.idea/
+*.swp
+*.swo
+*~
+
+# Local ASP.NET / SQL LocalDB data
+**/App_Data/*.mdf
+**/App_Data/*.ldf
+**/App_Data/*.ndf
+**/App_Data/*.bak
+
+# Secrets & local env (never commit real keys)
+.env
+.env.*
+!.env.example
+secrets.json
+**/secrets.xml
+**/Secrets/Secrets.xml
+
+# Visual Studio / deploy local overrides
+*.pubxml.user
+**/Properties/PublishProfiles/*.pubxml.user
+**/Properties/serviceDependencies.local.json
+**/Properties/serviceDependencies.local.json.user
+
+# Logs & temp
+*.tmp
+*.temp
+

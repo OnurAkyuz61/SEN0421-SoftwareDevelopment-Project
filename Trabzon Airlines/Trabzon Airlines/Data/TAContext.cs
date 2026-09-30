@@ -60,5 +60,17 @@ namespace Trabzon_Airlines.Data
         // BookingMeals tablosu - Rezervasyon-yemek ilişki tablosu
         // BookingMeals table - Booking-meal relationship table
         public DbSet<BookingMeal> BookingMeals { get; set; }
+
+        // Fiyat takibi: kullanıcının baktığı uçuşlar ve aradığı rotalar
+        // Price watch: flights viewed and routes searched by the user
+        public DbSet<FlightView> FlightViews { get; set; }
+        public DbSet<RouteSearch> RouteSearches { get; set; }
+
+        // Kullanıcı mesajları (fiyat düştü vb.)
+        public DbSet<UserMessage> UserMessages { get; set; }
+
+        // Uçuş hava durumu tahmini ve rötar riski
+        // Flight weather forecast and delay risk
+        public DbSet<FlightWeather> FlightWeathers { get; set; }
     }
 }

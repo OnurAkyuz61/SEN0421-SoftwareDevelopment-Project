@@ -7,6 +7,7 @@ using System.Web; // HTTP context için
 using System.Web.Mvc; // MVC controller için
 using Trabzon_Airlines.Data; // Veritabanı bağlamı için
 using Trabzon_Airlines.Models; // Model sınıfları için
+using Trabzon_Airlines.Services; // Fiyat takibi için
 
 namespace Trabzon_Airlines.Controllers
 {
@@ -236,6 +237,22 @@ namespace Trabzon_Airlines.Controllers
             db.Entry(model).State = EntityState.Modified; // Entity state'i Modified olarak işaretle
             db.SaveChanges(); // Değişiklikleri kaydet
 
+            // Fiyat düştüyse bu uçuşu takip eden kullanıcılara mesaj gönder
+            // If price dropped, notify users watching this flight
+            try
+            {
+                int notified = PriceWatchService.CheckFlight(db, model.FlightId);
+                if (notified > 0)
+                {
+                    TempData["AdminSuccess_tr"] = notified + " kullanıcıya fiyat düştü bildirimi gönderildi.";
+                    TempData["AdminSuccess_en"] = "Price drop alert sent to " + notified + " user(s).";
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[PriceWatch] " + ex.Message);
+            }
+
             // Uçuş listesine yönlendir
             // Redirect to flight list
             return RedirectToAction("Index");
@@ -416,6 +433,49 @@ namespace Trabzon_Airlines.Controllers
         // POPULATE FLIGHT STATUS VIEWBAGS - PRIVATE
         // Hava durumu seçeneklerini ViewBag'e ekle - Özel metod
         // --------------------------
+        // --------------------------
+        // REFRESH WEATHER - GET
+        // Tüm yaklaşan uçuşların hava durumunu internetten çek ve riskleri güncelle
+        // --------------------------
+        [HttpGet]
+        public ActionResult RefreshWeather()
+        {
+            if (Session["AdminId"] == null) return RedirectToAction("Login", "Admin");
+
+            var r = WeatherScheduler.RunNow();
+            if (r == null)
+            {
+                TempData["WeatherInfo_tr"] = "Güncelleme zaten çalışıyor veya hata oluştu. Output penceresinde [Weather] satırlarına bakın.";
+                TempData["WeatherInfo_en"] = "Update already running or failed. Check [Weather] lines in the Output window.";
+            }
+            else
+            {
+                TempData["WeatherInfo_tr"] = string.Format("Hava durumu güncellendi: {0} uçuş, {1} yolcuya uyarı gönderildi{2}.",
+                    r.Updated, r.Alerts, r.Failed > 0 ? ", " + r.Failed + " uçuşta hata" : "");
+                TempData["WeatherInfo_en"] = string.Format("Weather updated: {0} flights, {1} passenger alerts sent{2}.",
+                    r.Updated, r.Alerts, r.Failed > 0 ? ", " + r.Failed + " failed" : "");
+            }
+            return RedirectToAction("Index");
+        }
+
+        // --------------------------
+        // SIMULATE WEATHER - GET (TEST)
+        // Seçilen uçuş için fırtına simüle eder ve yolculara uyarı gönderir
+        // --------------------------
+        [HttpGet]
+        public ActionResult SimulateWeather(int id)
+        {
+            if (Session["AdminId"] == null) return RedirectToAction("Login", "Admin");
+
+            var flight = db.Flights.Find(id);
+            if (flight == null) return HttpNotFound();
+
+            int sent = WeatherService.Simulate(db, flight);
+            TempData["WeatherInfo_tr"] = string.Format("{0} için TEST fırtınası simüle edildi. Rötar riski: Yüksek. {1} yolcuya uyarı mesajı gönderildi.", flight.FlightNumber, sent);
+            TempData["WeatherInfo_en"] = string.Format("TEST storm simulated for {0}. Delay risk: High. {1} passenger alerts sent.", flight.FlightNumber, sent);
+            return RedirectToAction("Index");
+        }
+
         private void PopulateFlightStatusViewBags()
         {
             // Hava durumu seçenekleri - Dropdown list için
@@ -426,6 +486,13 @@ namespace Trabzon_Airlines.Controllers
                 new SelectListItem { Text = "Güneşli", Value = "Güneşli" }, // Güneşli hava
                 new SelectListItem { Text = "Yağmurlu", Value = "Yağmurlu" }, // Yağmurlu hava
                 new SelectListItem { Text = "Karlı", Value = "Karlı" }, // Karlı hava
+                // Otomatik hava durumu servisinin kullandığı ek etiketler
+                new SelectListItem { Text = "Açık", Value = "Açık" },
+                new SelectListItem { Text = "Parçalı Bulutlu", Value = "Parçalı Bulutlu" },
+                new SelectListItem { Text = "Bulutlu", Value = "Bulutlu" },
+                new SelectListItem { Text = "Sisli", Value = "Sisli" },
+                new SelectListItem { Text = "Rüzgarlı", Value = "Rüzgarlı" },
+                new SelectListItem { Text = "Fırtınalı", Value = "Fırtınalı" },
             };
 
             // Rötar riski seçenekleri - Dropdown list için
