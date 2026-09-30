@@ -4,7 +4,7 @@
 
 **Üniversite:** İstanbul Kültür Üniversitesi  
 **Ders:** SEN0421 - Software Development with Standards  
-**Dönem:** 2025-2026 Güz Dönemi  
+**Dönem:** 2026-2027 Bahar Dönemi  
 **Proje Konusu:** Airline Reservation System (Havayolu Rezervasyon Sistemi)  
 **Teknoloji:** ASP.NET MVC (.NET Framework)  
 **Proje Durumu:** 🚧 **DEVAM EDİYOR** (henüz tamamlanmadı)
