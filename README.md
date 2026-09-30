@@ -787,7 +787,7 @@ Proje hakkında sorularınız için:
 
 ---
 
-**© 2025–2026 Trabzon Airlines | İstanbul Kültür Üniversitesi — SEN0421**
+**© 2025–2027 Trabzon Airlines | İstanbul Kültür Üniversitesi — SEN0421**
 
 *Bu proje eğitim amaçlı geliştirilmiştir ve gerçek bir havayolu şirketi değildir.*
 
