@@ -7,7 +7,8 @@
 **Dönem:** 2026-2027 Bahar Dönemi  
 **Proje Konusu:** Airline Reservation System (Havayolu Rezervasyon Sistemi)  
 **Teknoloji:** ASP.NET MVC (.NET Framework)  
-**Proje Durumu:** 🚧 **DEVAM EDİYOR** (henüz tamamlanmadı)
+**Proje Durumu:** 🚧 **DEVAM EDİYOR** (henüz tamamlanmadı)  
+**Task Manager:** [SEN0421 Project Management & Effort Tracker](https://docs.google.com/spreadsheets/d/12s66pasKcXvweL7JilKvezp6jXVdAZZhSq2FmvtDq34/edit?gid=0#gid=0) (Business Analyst — Google Sheets)
 
 ---
 
