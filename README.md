@@ -7,7 +7,8 @@
 **Dönem:** 2026-2027 Bahar Dönemi  
 **Proje Konusu:** Airline Reservation System (Havayolu Rezervasyon Sistemi)  
 **Teknoloji:** ASP.NET MVC (.NET Framework)  
-**Proje Durumu:** 🚧 **DEVAM EDİYOR** (henüz tamamlanmadı)
+**Proje Durumu:** 🚧 **DEVAM EDİYOR** (henüz tamamlanmadı)  
+**Task Manager:** [SEN0421 Project Management & Effort Tracker](https://docs.google.com/spreadsheets/d/12s66pasKcXvweL7JilKvezp6jXVdAZZhSq2FmvtDq34/edit?gid=0#gid=0) (Business Analyst — Google Sheets)
 
 ---
 
@@ -787,7 +788,7 @@ Proje hakkında sorularınız için:
 
 ---
 
-**© 2025–2026 Trabzon Airlines | İstanbul Kültür Üniversitesi — SEN0421**
+**© 2025–2027 Trabzon Airlines | İstanbul Kültür Üniversitesi — SEN0421**
 
 *Bu proje eğitim amaçlı geliştirilmiştir ve gerçek bir havayolu şirketi değildir.*
 
