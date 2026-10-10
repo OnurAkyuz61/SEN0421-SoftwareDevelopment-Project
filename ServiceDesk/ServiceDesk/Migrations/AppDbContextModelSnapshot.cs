@@ -35,10 +35,15 @@ namespace ServiceDesk.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -50,9 +55,15 @@ namespace ServiceDesk.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("PhoneNumber")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -62,9 +73,31 @@ namespace ServiceDesk.Migrations
                         {
                             Id = 1,
                             Email = "admin@servicedesk.local",
-                            FullName = "Demo Kullanıcı",
+                            FirstName = "Demo",
+                            LastName = "Yönetici",
                             Password = "admin123",
-                            PhoneNumber = "05321234567"
+                            PhoneNumber = "05321234567",
+                            Role = 2
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Email = "agent@servicedesk.local",
+                            FirstName = "Ayşe",
+                            LastName = "Destek",
+                            Password = "agent123",
+                            PhoneNumber = "05329876543",
+                            Role = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Email = "user@servicedesk.local",
+                            FirstName = "Mehmet",
+                            LastName = "Kullanıcı",
+                            Password = "user123",
+                            PhoneNumber = "05321112233",
+                            Role = 0
                         });
                 });
 

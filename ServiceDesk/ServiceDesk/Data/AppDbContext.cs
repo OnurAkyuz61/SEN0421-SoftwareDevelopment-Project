@@ -22,6 +22,8 @@ public class AppDbContext : DbContext
 
         mb.Entity<SlaPolicy>().HasIndex(s => s.Priority).IsUnique();
         mb.Entity<AppUser>().HasIndex(u => u.Email).IsUnique();
+        mb.Entity<AppUser>().HasIndex(u => u.PhoneNumber).IsUnique();
+        mb.Entity<AppUser>().Ignore(u => u.FullName);
 
         // Başlangıç verisi (migration ile tabloya yazılır)
         mb.Entity<SlaPolicy>().HasData(
@@ -34,10 +36,32 @@ public class AppDbContext : DbContext
             new AppUser
             {
                 Id = 1,
-                FullName = "Demo Kullanıcı",
+                FirstName = "Demo",
+                LastName = "Yönetici",
                 Email = "admin@servicedesk.local",
                 Password = "admin123",
-                PhoneNumber = "05321234567"
+                PhoneNumber = "05321234567",
+                Role = UserRole.Admin
+            },
+            new AppUser
+            {
+                Id = 2,
+                FirstName = "Ayşe",
+                LastName = "Destek",
+                Email = "agent@servicedesk.local",
+                Password = "agent123",
+                PhoneNumber = "05329876543",
+                Role = UserRole.Agent
+            },
+            new AppUser
+            {
+                Id = 3,
+                FirstName = "Mehmet",
+                LastName = "Kullanıcı",
+                Email = "user@servicedesk.local",
+                Password = "user123",
+                PhoneNumber = "05321112233",
+                Role = UserRole.User
             });
     }
 }

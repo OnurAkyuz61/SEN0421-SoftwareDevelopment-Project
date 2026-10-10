@@ -67,22 +67,38 @@ public class Feedback
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 }
 
+public enum UserRole
+{
+    [Display(Name = "Kullanıcı")] User = 0,
+    [Display(Name = "Destek")] Agent = 1,
+    [Display(Name = "Yönetici")] Admin = 2
+}
+
 // Giriş + OTP için kullanıcı
 public class AppUser
 {
     public int Id { get; set; }
 
-    [Required, StringLength(100)]
-    public string FullName { get; set; } = "";
+    [Required, StringLength(50), Display(Name = "Ad")]
+    public string FirstName { get; set; } = "";
 
-    [Required, StringLength(150), EmailAddress]
-    public string Email { get; set; } = "";
-
-    [Required, StringLength(100)]
-    public string Password { get; set; } = "";
+    [Required, StringLength(50), Display(Name = "Soyad")]
+    public string LastName { get; set; } = "";
 
     [Required, StringLength(20), Display(Name = "Telefon")]
     public string PhoneNumber { get; set; } = "";
+
+    [Required, StringLength(150), EmailAddress, Display(Name = "E-posta")]
+    public string Email { get; set; } = "";
+
+    [Required, StringLength(100), Display(Name = "Şifre")]
+    public string Password { get; set; } = "";
+
+    [Display(Name = "Rol")]
+    public UserRole Role { get; set; } = UserRole.User;
+
+    [Display(Name = "Ad Soyad")]
+    public string FullName => $"{FirstName} {LastName}".Trim();
 }
 
 public enum OtpDeliveryChannel { Sms, WhatsApp }
