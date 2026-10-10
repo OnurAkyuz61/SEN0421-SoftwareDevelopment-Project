@@ -1,0 +1,68 @@
+@model OtpChannelVm
+@{
+    Layout = null;
+    ViewData["Title"] = "Doğrulama yöntemi";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ServiceDesk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;550;650;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/otp.css" asp-append-version="true" />
+</head>
+<body class="otp-body">
+    <div class="otp-shell">
+        <div class="otp-brand">
+            <i class="bi bi-shield-lock"></i>
+            <span>ServiceDesk</span>
+        </div>
+
+        <div class="otp-card">
+            <h1>Nasıl doğrulayalım?</h1>
+            <p class="lead">Girişinizi tamamlamak için kayıtlı telefonunuza tek kullanımlık kod göndereceğiz.</p>
+
+            <div class="otp-phone">
+                <i class="bi bi-phone"></i>
+                @Model.MaskedPhone
+            </div>
+
+            <form asp-action="OtpChannel" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="otp-channels" role="radiogroup" aria-label="Doğrulama kanalı">
+                    <label class="otp-channel sms">
+                        <input type="radio" name="Channel" value="Sms" @(Model.Channel == OtpDeliveryChannel.Sms ? "checked" : null) />
+                        <span class="icon"><i class="bi bi-chat-dots-fill"></i></span>
+                        <span class="txt">
+                            <strong>SMS</strong>
+                            <small>6 haneli kod kısa mesaj olarak gelir</small>
+                        </span>
+                        <span class="tick"><i class="bi bi-check-lg"></i></span>
+                    </label>
+
+                    <label class="otp-channel wa">
+                        <input type="radio" name="Channel" value="WhatsApp" @(Model.Channel == OtpDeliveryChannel.WhatsApp ? "checked" : null) />
+                        <span class="icon"><i class="bi bi-whatsapp"></i></span>
+                        <span class="txt">
+                            <strong>WhatsApp</strong>
+                            <small>Aynı kod WhatsApp üzerinden iletilir</small>
+                        </span>
+                        <span class="tick"><i class="bi bi-check-lg"></i></span>
+                    </label>
+                </div>
+
+                <span asp-validation-for="Channel" class="otp-alert error" style="display:block"></span>
+
+                <button type="submit" class="otp-btn">Kodu gönder</button>
+            </form>
+
+            <a class="otp-link" asp-action="Login">← Girişe dön</a>
+        </div>
+    </div>
+</body>
+</html>

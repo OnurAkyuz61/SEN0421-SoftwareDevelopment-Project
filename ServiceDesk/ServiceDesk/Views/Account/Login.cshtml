@@ -1,1 +1,58 @@
-@{ ViewData["Title"] = "Giriş"; }
+@model LoginVm
+@{
+    Layout = null;
+    ViewData["Title"] = "Giriş";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ServiceDesk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;550;650;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/otp.css" asp-append-version="true" />
+    <style>
+        .otp-field { margin-bottom: 1rem; }
+        .otp-field label { display: block; font-size: .82rem; font-weight: 650; margin-bottom: .35rem; color: var(--otp-muted); }
+        .otp-field input {
+            width: 100%; border: 1.5px solid var(--otp-line); border-radius: .85rem;
+            padding: .75rem .9rem; font-family: inherit; font-size: .95rem; background: #fff; outline: none;
+        }
+        .otp-field input:focus { border-color: var(--otp-accent); box-shadow: 0 0 0 3px var(--otp-glow); }
+    </style>
+</head>
+<body class="otp-body">
+    <div class="otp-shell">
+        <div class="otp-brand">
+            <i class="bi bi-headset"></i>
+            <span>ServiceDesk</span>
+        </div>
+        <div class="otp-card">
+            <h1>Giriş yap</h1>
+            <p class="lead">Hesabınıza giriş sonrası telefon doğrulaması istenir.</p>
+
+            <form asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="otp-alert error"></div>
+
+                <div class="otp-field">
+                    <label asp-for="Email">E-posta</label>
+                    <input asp-for="Email" autocomplete="username" placeholder="admin@servicedesk.local" />
+                    <span asp-validation-for="Email" class="otp-alert error" style="display:block;margin-top:.4rem"></span>
+                </div>
+                <div class="otp-field">
+                    <label asp-for="Password">Şifre</label>
+                    <input asp-for="Password" autocomplete="current-password" placeholder="••••••••" />
+                    <span asp-validation-for="Password" class="otp-alert error" style="display:block;margin-top:.4rem"></span>
+                </div>
+
+                <button type="submit" class="otp-btn">Devam et</button>
+            </form>
+            <p class="otp-link" style="cursor:default">Demo: admin@servicedesk.local / admin123</p>
+        </div>
+    </div>
+</body>
+</html>

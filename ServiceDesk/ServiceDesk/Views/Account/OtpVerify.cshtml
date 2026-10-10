@@ -1,0 +1,112 @@
+@model OtpVerifyVm
+@{
+    Layout = null;
+    ViewData["Title"] = "Kod doğrulama";
+    var channelLabel = Model.Channel == OtpDeliveryChannel.WhatsApp ? "WhatsApp" : "SMS";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ServiceDesk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;550;650;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/otp.css" asp-append-version="true" />
+</head>
+<body class="otp-body">
+    <div class="otp-shell">
+        <div class="otp-brand">
+            <i class="bi bi-shield-check"></i>
+            <span>ServiceDesk</span>
+        </div>
+
+        <div class="otp-card">
+            <h1>Kodu girin</h1>
+            <p class="lead">@channelLabel ile <strong>@Model.MaskedPhone</strong> numarasına gönderilen 6 haneli kodu yazın.</p>
+
+            @if (TempData["OtpSentInfo"] is string info)
+            {
+                <div class="otp-alert info">@info</div>
+            }
+
+            @if (TempData["OtpDemoCode"] is string demo)
+            {
+                <div class="otp-alert demo">Demo kod (API bağlanınca kalkacak): @demo</div>
+            }
+
+            <form asp-action="OtpVerify" method="post" id="otpForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Code" id="Code" />
+
+                <div class="otp-digits" id="otpDigits">
+                    @for (var i = 0; i < 6; i++)
+                    {
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code"
+                               aria-label="Kod hanesi @(i + 1)" class="otp-digit" />
+                    }
+                </div>
+
+                @foreach (var err in ViewData.ModelState[nameof(Model.Code)]?.Errors ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.ModelBinding.ModelError>())
+                {
+                    <div class="otp-alert error">@err.ErrorMessage</div>
+                }
+
+                <button type="submit" class="otp-btn">Doğrula ve devam et</button>
+            </form>
+
+            <div class="otp-meta">
+                <span>Kod 5 dakika geçerli</span>
+                <form asp-action="ResendOtp" method="post" style="margin:0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit">Tekrar gönder</button>
+                </form>
+            </div>
+
+            <a class="otp-link" asp-action="OtpChannel">← Kanal değiştir</a>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const inputs = [...document.querySelectorAll('.otp-digit')];
+            const hidden = document.getElementById('Code');
+            const form = document.getElementById('otpForm');
+
+            function sync() {
+                hidden.value = inputs.map(i => i.value.replace(/\D/g, '')).join('');
+            }
+
+            inputs.forEach((input, idx) => {
+                input.addEventListener('input', (e) => {
+                    const v = e.target.value.replace(/\D/g, '').slice(-1);
+                    e.target.value = v;
+                    if (v && idx < inputs.length - 1) inputs[idx + 1].focus();
+                    sync();
+                    if (hidden.value.length === 6) form.requestSubmit();
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+                        inputs[idx - 1].focus();
+                    }
+                });
+
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+                    text.split('').forEach((ch, i) => { if (inputs[i]) inputs[i].value = ch; });
+                    sync();
+                    const focusIdx = Math.min(text.length, inputs.length - 1);
+                    inputs[focusIdx].focus();
+                    if (hidden.value.length === 6) form.requestSubmit();
+                });
+            });
+
+            if (inputs[0]) inputs[0].focus();
+        })();
+    </script>
+</body>
+</html>
