@@ -1,0 +1,22 @@
+@model List<ServiceDesk.Services.NotificationItem>
+@{ ViewData["Title"] = "Bildirimler"; }
+
+@if (!Model.Any())
+{
+    <div class="alert alert-success"><i class="bi bi-check-circle"></i> Bildirim yok, her şey yolunda.</div>
+}
+
+<div class="list-group shadow-sm">
+    @foreach (var n in Model)
+    {
+        <a class="list-group-item list-group-item-action d-flex gap-3 align-items-center border-start border-4 border-@n.Color"
+           asp-controller="Tickets" asp-action="Details" asp-route-id="@n.TicketId">
+            <i class="bi @n.Icon text-@n.Color fs-4"></i>
+            <div class="flex-grow-1">
+                <div class="fw-semibold">@n.Title</div>
+                <div class="small text-muted">@n.Message</div>
+            </div>
+            <small class="text-muted">@n.Time.ToString("dd.MM.yyyy HH:mm")</small>
+        </a>
+    }
+</div>

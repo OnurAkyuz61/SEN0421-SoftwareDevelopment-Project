@@ -1,0 +1,77 @@
+@model List<Ticket>
+@{ ViewData["Title"] = "Destek Talepleri"; }
+
+<!-- FİLTRE -->
+<form method="get" class="card-soft p-3 mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small text-muted mb-1">Ara</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input name="q" value="@ViewBag.Q" class="form-control" placeholder="Başlık, talep eden, atanan..." />
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <label class="form-label small text-muted mb-1">Durum</label>
+            <select name="status" class="form-select">
+                <option value="">Tümü</option>
+                @foreach (var s in Enum.GetValues<TicketStatus>()) { <option value="@s" selected="@(ViewBag.Status == s)">@Ui.StatusText(s)</option> }
+            </select>
+        </div>
+        <div class="col-md-2 col-4">
+            <label class="form-label small text-muted mb-1">Öncelik</label>
+            <select name="priority" class="form-select">
+                <option value="">Tümü</option>
+                @foreach (var p in Enum.GetValues<Priority>()) { <option value="@p" selected="@(ViewBag.Priority == p)">@Ui.PriorityText(p)</option> }
+            </select>
+        </div>
+        <div class="col-md-2 col-4">
+            <label class="form-label small text-muted mb-1">Tür</label>
+            <select name="type" class="form-select">
+                <option value="">Tümü</option>
+                @foreach (var t in Enum.GetValues<TicketType>()) { <option value="@t" selected="@(ViewBag.Type == t)">@Ui.TypeText(t)</option> }
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button class="btn btn-primary flex-fill"><i class="bi bi-funnel"></i> Filtrele</button>
+            <a asp-action="Index" class="btn btn-outline-secondary" title="Temizle"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </div>
+</form>
+
+<!-- TABLO -->
+<div class="card-soft p-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small">@Model.Count kayıt</span>
+        <a class="btn btn-success btn-sm" asp-action="Create"><i class="bi bi-plus-lg"></i> Yeni Talep</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>#</th><th>Başlık</th><th>Tür</th><th>Öncelik</th><th>Durum</th><th>Atanan</th><th>SLA Bitiş</th><th>SLA</th></tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-4">Kayıt bulunamadı</td></tr>
+                }
+                @foreach (var t in Model)
+                {
+                    <tr>
+                        <td class="text-muted">@t.Id</td>
+                        <td><a class="fw-semibold text-decoration-none" asp-action="Details" asp-route-id="@t.Id">@t.Title</a></td>
+                        <td><i class="bi @(t.Type == TicketType.Incident ? "bi-bug text-danger" : "bi-arrow-repeat text-primary")"></i> @Ui.TypeText(t.Type)</td>
+                        <td><span class="badge @Ui.PriorityBadge(t.Priority)">@Ui.PriorityText(t.Priority)</span></td>
+                        <td><span class="badge @Ui.StatusBadge(t.Status)">@Ui.StatusText(t.Status)</span></td>
+                        <td>@(t.AssignedTo ?? "-")</td>
+                        <td>@t.SlaDueAt.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>
+                            @if (t.IsSlaBreached) { <span class="badge bg-white text-danger border border-danger"><i class="bi bi-x-circle"></i> İhlal@(t.IsEscalated ? " · Eskale" : "")</span> }
+                            else { <span class="badge bg-white text-success border border-success"><i class="bi bi-check-circle"></i> OK</span> }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

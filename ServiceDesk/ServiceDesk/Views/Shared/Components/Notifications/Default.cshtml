@@ -1,0 +1,29 @@
+@model List<ServiceDesk.Services.NotificationItem>
+
+<div class="dropdown">
+    <button class="btn btn-light position-relative rounded-circle bell" data-bs-toggle="dropdown" title="Bildirimler">
+        <i class="bi bi-bell-fill"></i>
+        @if (Model.Any())
+        {
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">@Model.Count</span>
+        }
+    </button>
+    <div class="dropdown-menu dropdown-menu-end shadow p-0 notif-menu">
+        <div class="px-3 py-2 fw-semibold border-bottom">Bildirimler</div>
+        @if (!Model.Any())
+        {
+            <div class="px-3 py-4 text-center text-muted small">Yeni bildirim yok</div>
+        }
+        @foreach (var n in Model.Take(5))
+        {
+            <a class="dropdown-item d-flex gap-2 py-2 border-bottom" asp-controller="Tickets" asp-action="Details" asp-route-id="@n.TicketId">
+                <i class="bi @n.Icon text-@n.Color fs-5"></i>
+                <div class="text-wrap">
+                    <div class="small fw-semibold">@n.Title</div>
+                    <div class="small text-muted">@n.Message</div>
+                </div>
+            </a>
+        }
+        <a class="dropdown-item text-center small text-primary py-2" asp-controller="Notifications" asp-action="Index">Tümünü gör</a>
+    </div>
+</div>

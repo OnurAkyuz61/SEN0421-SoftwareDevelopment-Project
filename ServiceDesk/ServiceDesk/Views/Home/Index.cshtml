@@ -1,0 +1,28 @@
+@{
+    Layout = null; // Karşılama sayfasında menü (veri linkleri) görünmesin
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoş Geldiniz - ServiceDesk</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+</head>
+<body style="background:linear-gradient(135deg,#1e1b4b,#4338ca 60%,#7c3aed)" class="text-white d-flex align-items-center justify-content-center vh-100">
+    <div class="text-center px-3" style="max-width:600px">
+        <i class="bi bi-headset" style="font-size:4rem;color:#c7d2fe"></i>
+        <h1 class="fw-bold mb-3">IT ServiceDesk</h1>
+        <p class="lead mb-1">ISO 9001 Kalite Yönetim Standardına Uygun</p>
+        <p class="lead mb-4">IT Servis Masası ve Süreç Takip Sistemi</p>
+
+        <a class="btn btn-primary btn-lg me-2" asp-controller="Account" asp-action="Login">Giriş Yap</a>
+
+        @* GEÇİCİ: Login tamamlanınca bu buton kaldırılacak *@
+        <a class="btn btn-outline-light btn-lg" asp-controller="Dashboard" asp-action="Index">Devam Et</a>
+
+        <p class="small mt-5 mb-0" style="color:#a5b4fc">SDS-07 · Software Development with Standards</p>
+    </div>
+</body>
+</html>

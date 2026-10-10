@@ -1,0 +1,32 @@
+@* CHATBOT (şimdilik sadece tasarım, mesaj göndermez) *@
+<button class="chat-fab" type="button" data-bs-toggle="collapse" data-bs-target="#chatPanel" title="Destek Asistanı">
+    <i class="bi bi-chat-dots-fill"></i>
+</button>
+
+<div class="collapse chat-panel shadow-lg" id="chatPanel">
+    <div class="chat-head d-flex align-items-center gap-2">
+        <i class="bi bi-robot fs-4"></i>
+        <div class="flex-grow-1">
+            <div class="fw-semibold">Destek Asistanı</div>
+            <div class="small opacity-75">Yakında aktif olacak</div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-toggle="collapse" data-bs-target="#chatPanel"></button>
+    </div>
+
+    <div class="chat-body">
+        <div class="msg bot">Merhaba! 👋 Size nasıl yardımcı olabilirim?</div>
+        <div class="msg user">VPN bağlantım kopuyor.</div>
+        <div class="msg bot">Anladım. İsterseniz sizin için bir arıza talebi oluşturabilirim.</div>
+        <div class="d-flex flex-wrap gap-1 mt-2">
+            <span class="badge rounded-pill bg-white text-secondary border">Talep oluştur</span>
+            <span class="badge rounded-pill bg-white text-secondary border">Talebim ne durumda?</span>
+            <span class="badge rounded-pill bg-white text-secondary border">SLA süreleri</span>
+        </div>
+    </div>
+
+    <div class="chat-foot d-flex gap-2">
+        <button class="btn btn-light btn-sm" disabled title="Dosya ekle"><i class="bi bi-paperclip"></i></button>
+        <input class="form-control form-control-sm" placeholder="Mesajınızı yazın..." disabled />
+        <button class="btn btn-primary btn-sm" disabled><i class="bi bi-send-fill"></i></button>
+    </div>
+</div>

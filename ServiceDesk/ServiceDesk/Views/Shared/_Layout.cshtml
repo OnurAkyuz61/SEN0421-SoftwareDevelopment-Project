@@ -1,0 +1,55 @@
+@{
+    var c = ViewContext.RouteData.Values["controller"]?.ToString();
+    var a = ViewContext.RouteData.Values["action"]?.ToString();
+    string Act(string ctrl, string act = "") => c == ctrl && (act == "" || a == act) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ServiceDesk</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="d-flex">
+        <!-- SIDEBAR -->
+        <aside class="sidebar d-flex flex-column">
+            <a class="brand" asp-controller="Dashboard" asp-action="Index">
+                <i class="bi bi-headset"></i><span>ServiceDesk</span>
+            </a>
+            <nav class="nav flex-column mt-3">
+                <a class="nav-link @Act("Dashboard")" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-speedometer2"></i><span>KPI Paneli</span></a>
+                <a class="nav-link @(Act("Tickets") != "" && a != "Create" ? "active" : "")" asp-controller="Tickets" asp-action="Index"><i class="bi bi-ticket-detailed"></i><span>Talepler</span></a>
+                <a class="nav-link @Act("Tickets", "Create")" asp-controller="Tickets" asp-action="Create"><i class="bi bi-plus-circle"></i><span>Yeni Talep</span></a>
+                <a class="nav-link @Act("Notifications")" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell"></i><span>Bildirimler</span></a>
+            </nav>
+            <div class="mt-auto p-3 small sidebar-foot"><span>ISO 9001 · SDS-07</span></div>
+        </aside>
+
+        <!-- İÇERİK -->
+        <div class="flex-grow-1 min-vh-100 main">
+            <header class="topbar d-flex align-items-center px-4">
+                <h5 class="mb-0 fw-semibold">@ViewData["Title"]</h5>
+                <div class="ms-auto d-flex align-items-center gap-3">
+                    @await Component.InvokeAsync("Notifications")
+                    <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                </div>
+            </header>
+            <main class="p-4">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <partial name="_ChatbotPartial" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

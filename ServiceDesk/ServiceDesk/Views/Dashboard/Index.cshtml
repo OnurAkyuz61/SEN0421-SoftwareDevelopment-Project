@@ -1,0 +1,36 @@
+@model List<Ticket>
+@{ ViewData["Title"] = "KPI Paneli"; }
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-blue d-flex justify-content-between"><div><small>Toplam Talep</small><h3>@ViewBag.Total</h3></div><i class="bi bi-ticket-detailed"></i></div></div>
+    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-cyan d-flex justify-content-between"><div><small>Açık Talep</small><h3>@ViewBag.Open</h3></div><i class="bi bi-folder2-open"></i></div></div>
+    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-red d-flex justify-content-between"><div><small>SLA İhlali</small><h3>@ViewBag.Breached</h3></div><i class="bi bi-exclamation-triangle"></i></div></div>
+    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-green d-flex justify-content-between"><div><small>SLA Uyum %</small><h3>@ViewBag.SlaRate</h3></div><i class="bi bi-shield-check"></i></div></div>
+    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-orange d-flex justify-content-between"><div><small>MTTR (saat)</small><h3>@ViewBag.Mttr</h3></div><i class="bi bi-stopwatch"></i></div></div>
+    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-purple d-flex justify-content-between"><div><small>CSAT (/5)</small><h3>@ViewBag.Csat</h3></div><i class="bi bi-emoji-smile"></i></div></div>
+</div>
+
+<div class="card-soft p-4">
+    <h6 class="fw-semibold mb-3"><i class="bi bi-arrow-up-right-circle text-danger"></i> Eskalasyon Bekleyen Talepler</h6>
+    @if (!Model.Any())
+    {
+        <div class="alert alert-success mb-0"><i class="bi bi-check-circle"></i> SLA süresi aşılan açık talep yok.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>#</th><th>Başlık</th><th>Öncelik</th><th>SLA Bitiş</th><th></th></tr></thead>
+            @foreach (var t in Model)
+            {
+                <tr>
+                    <td>@t.Id</td><td>@t.Title</td>
+                    <td><span class="badge @Ui.PriorityBadge(t.Priority)">@Ui.PriorityText(t.Priority)</span></td>
+                    <td class="text-danger">@t.SlaDueAt.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td><a class="btn btn-sm btn-outline-primary" asp-controller="Tickets" asp-action="Details" asp-route-id="@t.Id">Aç</a></td>
+                </tr>
+            }
+        </table>
+        </div>
+    }
+</div>
