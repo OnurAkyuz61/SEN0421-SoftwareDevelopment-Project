@@ -101,6 +101,45 @@ namespace ServiceDesk.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.Attachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("Attachments");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.Feedback", b =>
                 {
                     b.Property<int>("Id")
@@ -186,9 +225,22 @@ namespace ServiceDesk.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("ApprovalDecidedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ApprovalNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ApprovalStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("AssignedTo")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -201,6 +253,9 @@ namespace ServiceDesk.Migrations
                         .HasColumnType("bit");
 
                     b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RequesterId")
                         .HasColumnType("int");
 
                     b.Property<string>("RequesterName")
@@ -227,7 +282,20 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RequesterId");
+
                     b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Attachment", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
+                        .WithMany("Attachments")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ticket");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Feedback", b =>
@@ -243,6 +311,18 @@ namespace ServiceDesk.Migrations
 
             modelBuilder.Entity("ServiceDesk.Models.Ticket", b =>
                 {
+                    b.HasOne("ServiceDesk.Models.AppUser", "Requester")
+                        .WithMany()
+                        .HasForeignKey("RequesterId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Requester");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Ticket", b =>
+                {
+                    b.Navigation("Attachments");
+
                     b.Navigation("Feedback");
                 });
 #pragma warning restore 612, 618

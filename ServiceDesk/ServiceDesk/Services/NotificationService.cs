@@ -23,6 +23,9 @@ public static class NotificationService
             else if (t.SlaDueAt < now.AddHours(2))
                 list.Add(new(t.Id, $"SLA yaklaşıyor: #{t.Id} {t.Title}", $"Kalan süre: {(t.SlaDueAt - now).TotalMinutes:0} dk", "warning", "bi-hourglass-split", t.SlaDueAt));
 
+            if (t.ApprovalStatus == ApprovalStatus.Pending)
+                list.Add(new(t.Id, $"Onay bekliyor: #{t.Id} {t.Title}", $"{t.RequesterName} bir değişiklik talep etti.", "warning", "bi-patch-question", t.CreatedAt));
+
             if (t.CreatedAt > now.AddHours(-24))
                 list.Add(new(t.Id, $"Yeni talep: #{t.Id} {t.Title}", $"{t.RequesterName} tarafından açıldı.", "primary", "bi-plus-circle", t.CreatedAt));
         }

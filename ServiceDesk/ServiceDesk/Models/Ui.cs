@@ -1,6 +1,6 @@
 namespace ServiceDesk.Models;
 
-// Arayüzde renk (badge) ve Türkçe metinler için küçük yardımcı
+// Arayüzde etiket renkleri (site.css .tag-*) ve Türkçe metinler
 public static class Ui
 {
     public static string PriorityText(Priority p) => p switch
@@ -8,10 +8,9 @@ public static class Ui
         Priority.Critical => "Kritik", Priority.High => "Yüksek", Priority.Medium => "Orta", _ => "Düşük"
     };
 
-    public static string PriorityBadge(Priority p) => p switch
+    public static string PriorityTag(Priority p) => p switch
     {
-        Priority.Critical => "bg-danger", Priority.High => "bg-warning text-dark",
-        Priority.Medium => "bg-info text-dark", _ => "bg-secondary"
+        Priority.Critical => "tag-red", Priority.High => "tag-amber", Priority.Medium => "tag-blue", _ => "tag-gray"
     };
 
     public static string StatusText(TicketStatus s) => s switch
@@ -20,11 +19,33 @@ public static class Ui
         TicketStatus.Resolved => "Çözüldü", _ => "Kapandı"
     };
 
-    public static string StatusBadge(TicketStatus s) => s switch
+    public static string StatusTag(TicketStatus s) => s switch
     {
-        TicketStatus.New => "bg-primary", TicketStatus.InProgress => "bg-warning text-dark",
-        TicketStatus.Resolved => "bg-success", _ => "bg-dark"
+        TicketStatus.New => "tag-blue", TicketStatus.InProgress => "tag-amber",
+        TicketStatus.Resolved => "tag-green", _ => "tag-gray"
     };
 
     public static string TypeText(TicketType t) => t == TicketType.Incident ? "Arıza" : "Değişiklik";
+
+    public static string CategoryText(TicketCategory c) => c switch
+    {
+        TicketCategory.Hardware => "Donanım", TicketCategory.Software => "Yazılım",
+        TicketCategory.Network => "Ağ / İnternet", TicketCategory.Access => "Hesap / Erişim",
+        TicketCategory.Email => "E-posta", _ => "Diğer"
+    };
+
+    public static string ApprovalText(ApprovalStatus a) => a switch
+    {
+        ApprovalStatus.Pending => "Onay bekliyor", ApprovalStatus.Approved => "Onaylandı",
+        ApprovalStatus.Rejected => "Reddedildi", _ => "-"
+    };
+
+    public static string ApprovalTag(ApprovalStatus a) => a switch
+    {
+        ApprovalStatus.Pending => "tag-amber", ApprovalStatus.Approved => "tag-green",
+        ApprovalStatus.Rejected => "tag-red", _ => "tag-gray"
+    };
+
+    public static string FileSize(long bytes) =>
+        bytes < 1024 * 1024 ? $"{Math.Max(1, bytes / 1024.0):0.#} KB" : $"{bytes / 1024.0 / 1024.0:0.#} MB";
 }

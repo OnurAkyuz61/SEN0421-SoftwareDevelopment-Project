@@ -1,0 +1,30 @@
+@model List<Attachment>
+@* Talep ekleri: resimler küçük önizleme, diğerleri dosya ikonu *@
+@if (!Model.Any())
+{
+    <div class="text-muted small">Ek dosya yok.</div>
+}
+else
+{
+    <div class="attach-grid">
+        @foreach (var f in Model)
+        {
+            <a class="attach" asp-controller="Attachments" asp-action="Get" asp-route-id="@f.Id" target="_blank" title="@f.FileName">
+                <div class="thumb">
+                    @if (f.IsImage)
+                    {
+                        <img src="@Url.Action("Get", "Attachments", new { id = f.Id })" alt="@f.FileName" loading="lazy" />
+                    }
+                    else
+                    {
+                        <i class="bi @(f.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? "bi-file-earmark-pdf" : "bi-file-earmark")"></i>
+                    }
+                </div>
+                <div class="meta">
+                    <div class="fw-semibold">@f.FileName</div>
+                    <div class="text-muted">@Ui.FileSize(f.Size)</div>
+                </div>
+            </a>
+        }
+    </div>
+}

@@ -1,0 +1,55 @@
+@model List<Feedback>
+@{
+    ViewData["Title"] = "Anketler";
+    var dist = (int[])ViewBag.Dist;
+    var max = Math.Max(1, dist.Max());
+}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="stat">
+            <div class="label">Ortalama memnuniyet (CSAT)</div>
+            <div class="value">@ViewBag.Avg <small class="fs-6 text-muted">/ 5</small></div>
+            <div class="hint">@Model.Count değerlendirme</div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="stat">
+            <div class="label mb-2">Puan dağılımı</div>
+            @for (int s = 5; s >= 1; s--)
+            {
+                var n = dist[s - 1];
+                <div class="d-flex align-items-center gap-2 small mb-1" title="@s puan: @n">
+                    <span style="width:14px">@s</span>
+                    <div class="flex-fill" style="background:#f2f3f5;border-radius:4px;height:10px">
+                        <div style="width:@(n * 100 / max)%;background:#2a78d6;height:10px;border-radius:4px"></div>
+                    </div>
+                    <span class="text-muted" style="width:24px;text-align:right">@n</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">Tüm değerlendirmeler</div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>Puan</th><th>Yorum</th><th>Talep</th><th>Tarih</th></tr></thead>
+            <tbody>
+                @if (!Model.Any()) { <tr><td colspan="4" class="text-center text-muted py-5">Henüz değerlendirme yok</td></tr> }
+                @foreach (var f in Model)
+                {
+                    <tr>
+                        <td class="text-nowrap">
+                            @for (int i = 1; i <= 5; i++) { <i class="bi @(i <= f.Score ? "bi-star-fill text-warning" : "bi-star text-muted")"></i> }
+                        </td>
+                        <td>@(f.Comment ?? "-")</td>
+                        <td><a asp-controller="Tickets" asp-action="Details" asp-route-id="@f.TicketId" class="text-decoration-none">#@f.TicketId @f.Ticket?.Title</a></td>
+                        <td class="small text-muted">@f.CreatedAt.ToString("dd.MM.yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -482,3 +482,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Kullanıcıların yüklediği talep ekleri
+Uploads/

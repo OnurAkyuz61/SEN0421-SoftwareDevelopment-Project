@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
     public DbSet<SlaPolicy> SlaPolicies => Set<SlaPolicy>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<Attachment> Attachments => Set<Attachment>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -19,6 +20,21 @@ public class AppDbContext : DbContext
           .HasOne(t => t.Feedback)
           .WithOne(f => f.Ticket)
           .HasForeignKey<Feedback>(f => f.TicketId);
+
+        // Ticket 1 - N Attachment (talep silinirse ekleri de silinir)
+        mb.Entity<Attachment>()
+          .HasOne(a => a.Ticket)
+          .WithMany(t => t.Attachments)
+          .HasForeignKey(a => a.TicketId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<Attachment>().Ignore(a => a.IsImage);
+
+        // Ticket N - 0..1 AppUser (talep eden)
+        mb.Entity<Ticket>()
+          .HasOne(t => t.Requester)
+          .WithMany()
+          .HasForeignKey(t => t.RequesterId)
+          .OnDelete(DeleteBehavior.SetNull);
 
         mb.Entity<SlaPolicy>().HasIndex(s => s.Priority).IsUnique();
         mb.Entity<AppUser>().HasIndex(u => u.Email).IsUnique();

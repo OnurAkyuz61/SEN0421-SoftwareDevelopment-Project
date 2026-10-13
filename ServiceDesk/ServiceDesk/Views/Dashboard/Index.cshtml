@@ -1,36 +1,157 @@
-@model List<Ticket>
-@{ ViewData["Title"] = "KPI Paneli"; }
+@model DashboardVm
+@{ ViewData["Title"] = "Genel Bakış"; }
 
-<div class="row g-3 mb-4">
-    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-blue d-flex justify-content-between"><div><small>Toplam Talep</small><h3>@ViewBag.Total</h3></div><i class="bi bi-ticket-detailed"></i></div></div>
-    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-cyan d-flex justify-content-between"><div><small>Açık Talep</small><h3>@ViewBag.Open</h3></div><i class="bi bi-folder2-open"></i></div></div>
-    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-red d-flex justify-content-between"><div><small>SLA İhlali</small><h3>@ViewBag.Breached</h3></div><i class="bi bi-exclamation-triangle"></i></div></div>
-    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-green d-flex justify-content-between"><div><small>SLA Uyum %</small><h3>@ViewBag.SlaRate</h3></div><i class="bi bi-shield-check"></i></div></div>
-    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-orange d-flex justify-content-between"><div><small>MTTR (saat)</small><h3>@ViewBag.Mttr</h3></div><i class="bi bi-stopwatch"></i></div></div>
-    <div class="col-xl-2 col-md-4 col-6"><div class="kpi kpi-purple d-flex justify-content-between"><div><small>CSAT (/5)</small><h3>@ViewBag.Csat</h3></div><i class="bi bi-emoji-smile"></i></div></div>
+<!-- KPI -->
+<div class="row g-3 mb-3">
+    <div class="col-xl-3 col-sm-6"><div class="stat"><div class="label"><i class="bi bi-inbox"></i> Açık talep</div><div class="value">@Model.Open</div><div class="hint">Toplam @Model.Total talep</div></div></div>
+    <div class="col-xl-3 col-sm-6"><div class="stat @(Model.Unassigned > 0 ? "warn" : "")"><div class="label"><i class="bi bi-person-dash"></i> Atama bekleyen</div><div class="value">@Model.Unassigned</div><div class="hint">Henüz kimseye atanmamış</div></div></div>
+    <div class="col-xl-3 col-sm-6"><div class="stat @(Model.PendingApproval > 0 ? "warn" : "")"><div class="label"><i class="bi bi-check2-square"></i> Onay bekleyen</div><div class="value">@Model.PendingApproval</div><div class="hint">Değişiklik talepleri</div></div></div>
+    <div class="col-xl-3 col-sm-6"><div class="stat @(Model.Breached > 0 ? "bad" : "")"><div class="label"><i class="bi bi-exclamation-triangle"></i> SLA ihlali</div><div class="value">@Model.Breached</div><div class="hint">Süresi geçmiş açık talep</div></div></div>
+    <div class="col-xl-4 col-sm-4"><div class="stat"><div class="label">SLA uyum oranı</div><div class="value">%@Model.SlaRate</div></div></div>
+    <div class="col-xl-4 col-sm-4"><div class="stat"><div class="label">Ortalama çözüm süresi (MTTR)</div><div class="value">@Model.Mttr <small class="fs-6 text-muted">saat</small></div></div></div>
+    <div class="col-xl-4 col-sm-4"><div class="stat"><div class="label">Müşteri memnuniyeti (CSAT)</div><div class="value">@Model.Csat <small class="fs-6 text-muted">/ 5</small></div></div></div>
 </div>
 
-<div class="card-soft p-4">
-    <h6 class="fw-semibold mb-3"><i class="bi bi-arrow-up-right-circle text-danger"></i> Eskalasyon Bekleyen Talepler</h6>
-    @if (!Model.Any())
-    {
-        <div class="alert alert-success mb-0"><i class="bi bi-check-circle"></i> SLA süresi aşılan açık talep yok.</div>
-    }
-    else
-    {
-        <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead><tr><th>#</th><th>Başlık</th><th>Öncelik</th><th>SLA Bitiş</th><th></th></tr></thead>
-            @foreach (var t in Model)
-            {
-                <tr>
-                    <td>@t.Id</td><td>@t.Title</td>
-                    <td><span class="badge @Ui.PriorityBadge(t.Priority)">@Ui.PriorityText(t.Priority)</span></td>
-                    <td class="text-danger">@t.SlaDueAt.ToString("dd.MM.yyyy HH:mm")</td>
-                    <td><a class="btn btn-sm btn-outline-primary" asp-controller="Tickets" asp-action="Details" asp-route-id="@t.Id">Aç</a></td>
-                </tr>
-            }
-        </table>
+<!-- GRAFİKLER -->
+<div class="row g-3 mb-3">
+    <div class="col-xl-6">
+        <div class="panel h-100">
+            <div class="panel-head">Son 14 gün <span class="small text-muted fw-normal">açılan ve çözülen talepler</span></div>
+            <div class="panel-body"><div class="chart-box"><canvas id="chartDays" aria-label="Son 14 günde açılan ve çözülen talep sayıları"></canvas></div></div>
         </div>
-    }
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="panel h-100">
+            <div class="panel-head">Duruma göre</div>
+            <div class="panel-body"><div class="chart-box"><canvas id="chartStatus" aria-label="Duruma göre talep sayıları"></canvas></div></div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="panel h-100">
+            <div class="panel-head">Kategoriye göre</div>
+            <div class="panel-body"><div class="chart-box"><canvas id="chartCategory" aria-label="Kategoriye göre talep sayıları"></canvas></div></div>
+        </div>
+    </div>
 </div>
+
+<!-- BEKLEYEN İŞLER -->
+<div class="row g-3">
+    <div class="col-xl-6">
+        <div class="panel h-100">
+            <div class="panel-head">Onay bekleyen değişiklikler <a asp-controller="Approvals" asp-action="Index" class="small fw-normal">Tümü</a></div>
+            <div class="table-responsive">
+                <table class="table">
+                    @if (!Model.Approvals.Any()) { <tr><td class="text-muted text-center py-4">Onay bekleyen talep yok</td></tr> }
+                    @foreach (var t in Model.Approvals)
+                    {
+                        <tr>
+                            <td><a asp-controller="Tickets" asp-action="Details" asp-route-id="@t.Id" class="text-decoration-none fw-semibold">#@t.Id @t.Title</a><div class="small text-muted">@t.RequesterName · @t.CreatedAt.ToString("dd.MM HH:mm")</div></td>
+                            <td class="text-end text-nowrap">
+                                <form asp-controller="Approvals" asp-action="Approve" asp-route-id="@t.Id" asp-route-returnUrl="/Dashboard" method="post" class="d-inline">
+                                    <button class="btn btn-sm btn-outline-success" title="Onayla"><i class="bi bi-check-lg"></i></button>
+                                </form>
+                                <form asp-controller="Approvals" asp-action="Reject" asp-route-id="@t.Id" asp-route-returnUrl="/Dashboard" method="post" class="d-inline">
+                                    <button class="btn btn-sm btn-outline-danger" title="Reddet"><i class="bi bi-x-lg"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="panel h-100">
+            <div class="panel-head">Atama bekleyen talepler <a asp-controller="Tickets" asp-action="Index" asp-route-status="New" class="small fw-normal">Tümü</a></div>
+            <div class="table-responsive">
+                <table class="table">
+                    @if (!Model.UnassignedList.Any()) { <tr><td class="text-muted text-center py-4">Atama bekleyen talep yok</td></tr> }
+                    @foreach (var t in Model.UnassignedList)
+                    {
+                        <tr>
+                            <td><a asp-controller="Tickets" asp-action="Details" asp-route-id="@t.Id" class="text-decoration-none fw-semibold">#@t.Id @t.Title</a><div class="small text-muted">@Ui.CategoryText(t.Category) · @t.RequesterName</div></td>
+                            <td><span class="tag @Ui.PriorityTag(t.Priority)">@Ui.PriorityText(t.Priority)</span></td>
+                            <td class="text-end small @(t.IsSlaBreached ? "text-danger fw-semibold" : "text-muted")">@t.SlaDueAt.ToString("dd.MM HH:mm")</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="panel h-100">
+            <div class="panel-head">SLA ihlalleri</div>
+            <div class="table-responsive">
+                <table class="table">
+                    @if (!Model.BreachedList.Any()) { <tr><td class="text-muted text-center py-4">SLA süresi geçmiş açık talep yok</td></tr> }
+                    @foreach (var t in Model.BreachedList)
+                    {
+                        <tr>
+                            <td><a asp-controller="Tickets" asp-action="Details" asp-route-id="@t.Id" class="text-decoration-none fw-semibold">#@t.Id @t.Title</a><div class="small text-muted">@(t.AssignedTo ?? "Atanmadı")</div></td>
+                            <td><span class="tag @Ui.PriorityTag(t.Priority)">@Ui.PriorityText(t.Priority)</span></td>
+                            <td class="text-end small text-danger fw-semibold">@t.SlaDueAt.ToString("dd.MM HH:mm")</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="panel h-100">
+            <div class="panel-head">Son değerlendirmeler <a asp-controller="Surveys" asp-action="Index" class="small fw-normal">Tümü</a></div>
+            <div class="table-responsive">
+                <table class="table">
+                    @if (!Model.LatestFeedback.Any()) { <tr><td class="text-muted text-center py-4">Henüz değerlendirme yok</td></tr> }
+                    @foreach (var f in Model.LatestFeedback)
+                    {
+                        <tr>
+                            <td><span class="fw-semibold">@f.Score / 5</span></td>
+                            <td><div>@(f.Comment ?? "-")</div><div class="small text-muted">#@f.TicketId @f.Ticket?.Title</div></td>
+                            <td class="text-end small text-muted">@f.CreatedAt.ToString("dd.MM")</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/chart.umd.min.js"></script>
+    <script>
+        // Sade grafik ayarları: ince çizgiler, silik ızgara, tek eksen
+        Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+        Chart.defaults.color = '#6b7079';
+        Chart.defaults.plugins.legend.display = false;
+        const grid = { color: '#eceef1' };
+        const blue = '#2a78d6', orange = '#eb6834';
+        const intAxis = { beginAtZero: true, ticks: { precision: 0 }, grid: grid };
+
+        new Chart(document.getElementById('chartDays'), {
+            type: 'line',
+            data: {
+                labels: @Json.Serialize(Model.DayLabels),
+                datasets: [
+                    { label: 'Açılan', data: @Json.Serialize(Model.DayCreated), borderColor: blue, backgroundColor: blue, borderWidth: 2, pointRadius: 3, pointHoverRadius: 5, tension: .25 },
+                    { label: 'Çözülen', data: @Json.Serialize(Model.DayResolved), borderColor: orange, backgroundColor: orange, borderWidth: 2, pointRadius: 3, pointHoverRadius: 5, tension: .25 }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true } } },
+                scales: { y: intAxis, x: { grid: { display: false } } }
+            }
+        });
+
+        function hbar(id, labels, data) {
+            new Chart(document.getElementById(id), {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Talep', data: data, backgroundColor: blue, borderRadius: 4, maxBarThickness: 16 }] },
+                options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: intAxis, y: { grid: { display: false } } } }
+            });
+        }
+        hbar('chartStatus', @Json.Serialize(Model.StatusLabels), @Json.Serialize(Model.StatusCounts));
+        hbar('chartCategory', @Json.Serialize(Model.CategoryLabels), @Json.Serialize(Model.CategoryCounts));
+    </script>
+}

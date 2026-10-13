@@ -1,32 +1,72 @@
-@* CHATBOT (şimdilik sadece tasarım, mesaj göndermez) *@
-<button class="chat-fab" type="button" data-bs-toggle="collapse" data-bs-target="#chatPanel" title="Destek Asistanı">
-    <i class="bi bi-chat-dots-fill"></i>
+@* CHATBOT – ŞİMDİLİK SADECE TASARIM
+   Mesaj gönderme, dosya ekleme ve hızlı yanıtlar çalışmaz (hepsi disabled).
+   Aktifleştirirken: input/butonlardaki "disabled" kaldırılacak, mesajlar bir API'ye gönderilecek. *@
+<button class="chat-fab" type="button" data-bs-toggle="collapse" data-bs-target="#chatPanel"
+        aria-controls="chatPanel" aria-expanded="false" title="Destek Asistanı">
+    <i class="bi bi-chat-dots"></i><span class="d-none d-sm-inline">Destek Asistanı</span>
 </button>
 
-<div class="collapse chat-panel shadow-lg" id="chatPanel">
-    <div class="chat-head d-flex align-items-center gap-2">
-        <i class="bi bi-robot fs-4"></i>
-        <div class="flex-grow-1">
+<div class="collapse chat-panel" id="chatPanel">
+    <div class="chat-head">
+        <span class="chat-avatar"><i class="bi bi-robot"></i></span>
+        <div class="flex-grow-1 lh-sm">
             <div class="fw-semibold">Destek Asistanı</div>
-            <div class="small opacity-75">Yakında aktif olacak</div>
+            <div class="small text-muted"><span class="status-dot"></span>Yakında aktif olacak</div>
         </div>
-        <button type="button" class="btn-close btn-close-white" data-bs-toggle="collapse" data-bs-target="#chatPanel"></button>
+        <button type="button" class="btn btn-sm btn-light border" disabled title="Yeni sohbet"><i class="bi bi-arrow-clockwise"></i></button>
+        <button type="button" class="btn-close ms-1" data-bs-toggle="collapse" data-bs-target="#chatPanel" aria-label="Kapat"></button>
     </div>
+
+    <div class="chat-notice"><i class="bi bi-info-circle"></i> Bu bölüm önizlemedir, mesaj gönderilemez.</div>
 
     <div class="chat-body">
-        <div class="msg bot">Merhaba! 👋 Size nasıl yardımcı olabilirim?</div>
-        <div class="msg user">VPN bağlantım kopuyor.</div>
-        <div class="msg bot">Anladım. İsterseniz sizin için bir arıza talebi oluşturabilirim.</div>
-        <div class="d-flex flex-wrap gap-1 mt-2">
-            <span class="badge rounded-pill bg-white text-secondary border">Talep oluştur</span>
-            <span class="badge rounded-pill bg-white text-secondary border">Talebim ne durumda?</span>
-            <span class="badge rounded-pill bg-white text-secondary border">SLA süreleri</span>
+        <div class="chat-day">Bugün</div>
+
+        <div class="msg-row">
+            <span class="chat-avatar sm"><i class="bi bi-robot"></i></span>
+            <div>
+                <div class="msg bot">Merhaba! Ben ServiceDesk asistanıyım. Size nasıl yardımcı olabilirim?</div>
+                <div class="msg-time">09:41</div>
+            </div>
+        </div>
+
+        <div class="msg-row me">
+            <div>
+                <div class="msg user">VPN bağlantım sürekli kopuyor.</div>
+                <div class="msg-time text-end">09:42</div>
+            </div>
+        </div>
+
+        <div class="msg-row">
+            <span class="chat-avatar sm"><i class="bi bi-robot"></i></span>
+            <div>
+                <div class="msg bot">
+                    Anladım. Önce şunları deneyebilirsiniz:
+                    <ol class="mb-1 mt-1 ps-3">
+                        <li>VPN uygulamasını kapatıp açın</li>
+                        <li>Farklı bir ağa bağlanın</li>
+                    </ol>
+                    Sorun devam ederse sizin için bir arıza talebi oluşturabilirim.
+                </div>
+                <div class="msg-time">09:42</div>
+            </div>
+        </div>
+
+        <div class="msg-row">
+            <span class="chat-avatar sm"><i class="bi bi-robot"></i></span>
+            <div class="msg bot typing"><span></span><span></span><span></span></div>
         </div>
     </div>
 
-    <div class="chat-foot d-flex gap-2">
-        <button class="btn btn-light btn-sm" disabled title="Dosya ekle"><i class="bi bi-paperclip"></i></button>
+    <div class="chat-quick">
+        <button type="button" class="chip" disabled><i class="bi bi-plus-circle"></i> Talep oluştur</button>
+        <button type="button" class="chip" disabled><i class="bi bi-search"></i> Talebim ne durumda?</button>
+        <button type="button" class="chip" disabled><i class="bi bi-clock"></i> SLA süreleri</button>
+    </div>
+
+    <div class="chat-foot">
+        <button type="button" class="btn btn-light border btn-sm" disabled title="Dosya ekle"><i class="bi bi-paperclip"></i></button>
         <input class="form-control form-control-sm" placeholder="Mesajınızı yazın..." disabled />
-        <button class="btn btn-primary btn-sm" disabled><i class="bi bi-send-fill"></i></button>
+        <button type="button" class="btn btn-primary btn-sm" disabled title="Gönder"><i class="bi bi-send"></i></button>
     </div>
 </div>

@@ -1,0 +1,111 @@
+@model Ticket
+@{
+    ViewData["Title"] = "Talep #" + Model.Id;
+    var closed = Model.Status is TicketStatus.Resolved or TicketStatus.Closed;
+    // Basit süreç adımları: Alındı → İşlemde → Çözüldü
+    var step = Model.Status switch { TicketStatus.New => 1, TicketStatus.InProgress => 2, _ => 3 };
+}
+
+<a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Taleplerim</a>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mt-2 mb-4">
+    <h4 class="fw-bold mb-0 me-auto">#@Model.Id · @Model.Title</h4>
+    <span class="tag @Ui.StatusTag(Model.Status)">@Ui.StatusText(Model.Status)</span>
+    @if (Model.ApprovalStatus != ApprovalStatus.NotRequired)
+    {
+        <span class="tag @Ui.ApprovalTag(Model.ApprovalStatus)">@Ui.ApprovalText(Model.ApprovalStatus)</span>
+    }
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="panel mb-3">
+            <div class="panel-head">Durum</div>
+            <div class="panel-body">
+                <div class="d-flex justify-content-between text-center small">
+                    @foreach (var (i, name) in new[] { (1, "Alındı"), (2, "İşlemde"), (3, "Çözüldü") })
+                    {
+                        <div class="flex-fill">
+                            <i class="bi @(i <= step ? "bi-check-circle-fill text-success" : "bi-circle text-muted") fs-4"></i>
+                            <div class="@(i <= step ? "fw-semibold" : "text-muted")">@name</div>
+                        </div>
+                    }
+                </div>
+                @if (Model.ApprovalStatus == ApprovalStatus.Pending)
+                {
+                    <div class="alert alert-warning small mt-3 mb-0">Bu bir değişiklik talebi; işleme alınmadan önce yönetici onayı bekleniyor.</div>
+                }
+                @if (Model.ApprovalStatus == ApprovalStatus.Rejected)
+                {
+                    <div class="alert alert-danger small mt-3 mb-0">Talebiniz reddedildi. @(Model.ApprovalNote)</div>
+                }
+            </div>
+        </div>
+
+        <div class="panel mb-3">
+            <div class="panel-head">Açıklama</div>
+            <div class="panel-body" style="white-space:pre-line">@Model.Description</div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head">Ekler <span class="text-muted small fw-normal">@Model.Attachments.Count dosya</span></div>
+            <div class="panel-body">
+                <partial name="_AttachmentList" model="Model.Attachments" />
+
+                @if (!closed)
+                {
+                    <form asp-action="AddFiles" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="mt-3">
+                        <partial name="_UploadField" />
+                        <button class="btn btn-outline-primary btn-sm mt-2">Dosyaları Ekle</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="panel mb-3">
+            <div class="panel-head">Bilgiler</div>
+            <table class="table table-sm mb-0">
+                <tr><td class="text-muted">Tür</td><td>@Ui.TypeText(Model.Type)</td></tr>
+                <tr><td class="text-muted">Kategori</td><td>@Ui.CategoryText(Model.Category)</td></tr>
+                <tr><td class="text-muted">Öncelik</td><td><span class="tag @Ui.PriorityTag(Model.Priority)">@Ui.PriorityText(Model.Priority)</span></td></tr>
+                <tr><td class="text-muted">Açılış</td><td>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                <tr><td class="text-muted">Hedef çözüm</td><td>@Model.SlaDueAt.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                <tr><td class="text-muted">İlgilenen</td><td>@(Model.AssignedTo ?? "Atanmadı")</td></tr>
+            </table>
+        </div>
+
+        @if (Model.Feedback != null)
+        {
+            <div class="panel">
+                <div class="panel-head">Değerlendirmeniz</div>
+                <div class="panel-body">
+                    <div class="fs-5 text-warning">
+                        @for (int i = 1; i <= 5; i++) { <i class="bi @(i <= Model.Feedback.Score ? "bi-star-fill" : "bi-star")"></i> }
+                    </div>
+                    <div class="text-muted small">@Model.Feedback.Comment</div>
+                </div>
+            </div>
+        }
+        else if (closed)
+        {
+            <form asp-action="Feedback" asp-route-id="@Model.Id" method="post" class="panel">
+                <div class="panel-head">Hizmeti değerlendirin</div>
+                <div class="panel-body">
+                    <select name="score" class="form-select mb-2">
+                        <option value="5">5 - Çok memnunum</option>
+                        <option value="4">4 - Memnunum</option>
+                        <option value="3">3 - Orta</option>
+                        <option value="2">2 - Memnun değilim</option>
+                        <option value="1">1 - Hiç memnun değilim</option>
+                    </select>
+                    <textarea name="comment" class="form-control mb-2" rows="2" placeholder="Yorumunuz (isteğe bağlı)"></textarea>
+                    <button class="btn btn-primary w-100">Gönder</button>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+@section Scripts { <script src="~/js/upload.js" asp-append-version="true"></script> }

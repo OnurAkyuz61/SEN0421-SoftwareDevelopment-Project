@@ -1,0 +1,65 @@
+@model Ticket
+@{ ViewData["Title"] = "Yeni Talep"; }
+
+<div class="mb-4">
+    <h4 class="fw-bold mb-1">Yeni destek talebi</h4>
+    <div class="text-muted">Sorununuzu ya da isteğinizi anlatın, varsa dosya veya ekran görüntüsü ekleyin.</div>
+</div>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="panel">
+    <div class="panel-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+        <span class="text-danger d-block mb-2">@Html.ValidationMessage("files")</span>
+
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label asp-for="Title" class="form-label fw-semibold">Konu</label>
+                <input asp-for="Title" class="form-control" placeholder="Örn: Yazıcı çıktı vermiyor" />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="RequesterName" class="form-label fw-semibold">Ad Soyad</label>
+                @* TODO (login): oturumdaki kullanıcının adı otomatik gelecek *@
+                <input asp-for="RequesterName" class="form-control" />
+                <span asp-validation-for="RequesterName" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="Type" class="form-label fw-semibold">Talep türü</label>
+                <select asp-for="Type" class="form-select">
+                    <option value="@TicketType.Incident">Sorun / Arıza bildirimi</option>
+                    <option value="@TicketType.Change">Değişiklik / İstek (onay gerekir)</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Category" class="form-label fw-semibold">Kategori</label>
+                <select asp-for="Category" asp-items="Html.GetEnumSelectList<TicketCategory>()" class="form-select"></select>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Priority" class="form-label fw-semibold">Öncelik</label>
+                <select asp-for="Priority" asp-items="Html.GetEnumSelectList<Priority>()" class="form-select"></select>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Description" class="form-label fw-semibold">Açıklama</label>
+                <textarea asp-for="Description" class="form-control" rows="5"
+                          placeholder="Ne oldu? Ne zaman başladı? Hata mesajı var mı?"></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-semibold">Ekler</label>
+                <partial name="_UploadField" />
+            </div>
+        </div>
+    </div>
+    <div class="panel-head border-top border-bottom-0 justify-content-end">
+        <a asp-action="Index" class="btn btn-light border">Vazgeç</a>
+        <button class="btn btn-primary px-4">Talebi Gönder</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/upload.js" asp-append-version="true"></script>
+}

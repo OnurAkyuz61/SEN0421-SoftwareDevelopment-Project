@@ -1,46 +1,58 @@
+@* YÖNETİM PANELİ LAYOUT'U (sidebar) *@
+@inject ServiceDesk.Data.AppDbContext Db
 @{
     var c = ViewContext.RouteData.Values["controller"]?.ToString();
-    var a = ViewContext.RouteData.Values["action"]?.ToString();
-    string Act(string ctrl, string act = "") => c == ctrl && (act == "" || a == act) ? "active" : "";
+    string Act(string ctrl) => c == ctrl ? "active" : "";
+    var pendingCount = Db.Tickets.Count(t => t.ApprovalStatus == ApprovalStatus.Pending);
 }
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ServiceDesk</title>
+    <title>@ViewData["Title"] - ServiceDesk Yönetim</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <div class="d-flex">
-        <!-- SIDEBAR -->
         <aside class="sidebar d-flex flex-column">
             <a class="brand" asp-controller="Dashboard" asp-action="Index">
-                <i class="bi bi-headset"></i><span>ServiceDesk</span>
+                <span class="brand-mark"><i class="bi bi-headset"></i></span><span>ServiceDesk</span>
             </a>
-            <nav class="nav flex-column mt-3">
-                <a class="nav-link @Act("Dashboard")" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-speedometer2"></i><span>KPI Paneli</span></a>
-                <a class="nav-link @(Act("Tickets") != "" && a != "Create" ? "active" : "")" asp-controller="Tickets" asp-action="Index"><i class="bi bi-ticket-detailed"></i><span>Talepler</span></a>
-                <a class="nav-link @Act("Tickets", "Create")" asp-controller="Tickets" asp-action="Create"><i class="bi bi-plus-circle"></i><span>Yeni Talep</span></a>
+
+            <div class="side-label">YÖNETİM</div>
+            <nav class="nav flex-column">
+                <a class="nav-link @Act("Dashboard")" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid"></i><span>Genel Bakış</span></a>
+                <a class="nav-link @Act("Tickets")" asp-controller="Tickets" asp-action="Index"><i class="bi bi-inbox"></i><span>Talepler</span></a>
+                <a class="nav-link @Act("Approvals")" asp-controller="Approvals" asp-action="Index">
+                    <i class="bi bi-check2-square"></i><span>Onaylar</span>
+                    @if (pendingCount > 0) { <span class="nav-count">@pendingCount</span> }
+                </a>
+                <a class="nav-link @Act("Surveys")" asp-controller="Surveys" asp-action="Index"><i class="bi bi-chat-square-heart"></i><span>Anketler</span></a>
+                <a class="nav-link @Act("Users")" asp-controller="Users" asp-action="Index"><i class="bi bi-people"></i><span>Kullanıcılar</span></a>
                 <a class="nav-link @Act("Notifications")" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell"></i><span>Bildirimler</span></a>
             </nav>
+
             <div class="mt-auto p-3 small sidebar-foot"><span>ISO 9001 · SDS-07</span></div>
         </aside>
 
-        <!-- İÇERİK -->
         <div class="flex-grow-1 min-vh-100 main">
-            <header class="topbar d-flex align-items-center px-4">
+            <header class="topbar d-flex align-items-center px-4 gap-3">
                 <h5 class="mb-0 fw-semibold">@ViewData["Title"]</h5>
-                <div class="ms-auto d-flex align-items-center gap-3">
+                <div class="ms-auto d-flex align-items-center gap-2">
                     @await Component.InvokeAsync("Notifications")
+                    <a class="btn btn-outline-secondary btn-sm d-none d-md-inline-block" asp-controller="Portal" asp-action="Index">
+                        <i class="bi bi-box-arrow-up-right"></i> Kullanıcı Portalı
+                    </a>
                     <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login">
                         <i class="bi bi-box-arrow-in-right"></i> Login
                     </a>
                 </div>
             </header>
             <main class="p-4">
+                <partial name="_Alerts" />
                 @RenderBody()
             </main>
         </div>

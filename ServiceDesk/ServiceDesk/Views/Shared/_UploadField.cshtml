@@ -1,0 +1,18 @@
+@* Dosya / ekran görüntüsü yükleme alanı (wwwroot/js/upload.js ile çalışır) *@
+<div data-upload>
+    <input type="file" name="files" multiple class="d-none" id="fileInput"
+           accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.log,.zip" />
+    <input type="file" accept="image/*" class="d-none" id="shotInput" data-image-picker />
+
+    <div class="dropzone">
+        <i class="bi bi-cloud-arrow-up fs-2 text-muted"></i>
+        <div class="fw-semibold mt-1">Dosyaları buraya sürükleyin</div>
+        <div class="small text-muted mb-3">veya ekran görüntüsünü <kbd>Ctrl</kbd> + <kbd>V</kbd> ile yapıştırın</div>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <label for="fileInput" class="btn btn-outline-secondary btn-sm mb-0"><i class="bi bi-paperclip"></i> Dosya Seç</label>
+            <label for="shotInput" class="btn btn-outline-secondary btn-sm mb-0"><i class="bi bi-camera"></i> Ekran Görüntüsü</label>
+        </div>
+        <div class="small text-muted mt-3">PNG, JPG, PDF, Word, Excel, TXT, ZIP · en fazla 5 dosya · dosya başına 10 MB</div>
+        <ul class="file-list"></ul>
+    </div>
+</div>

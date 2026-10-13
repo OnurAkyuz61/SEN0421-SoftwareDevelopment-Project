@@ -1,0 +1,57 @@
+@model List<Ticket>
+@{
+    ViewData["Title"] = "Onaylar";
+    var history = (List<Ticket>)ViewBag.History;
+}
+
+<div class="panel mb-3">
+    <div class="panel-head">Onay bekleyen değişiklik talepleri <span class="tag tag-amber">@Model.Count</span></div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>No</th><th>Talep</th><th>Öncelik</th><th style="width:340px">Karar</th></tr></thead>
+            <tbody>
+                @if (!Model.Any()) { <tr><td colspan="4" class="text-center text-muted py-5">Onay bekleyen talep yok</td></tr> }
+                @foreach (var t in Model)
+                {
+                    <tr>
+                        <td class="text-muted">#@t.Id</td>
+                        <td>
+                            <a asp-controller="Tickets" asp-action="Details" asp-route-id="@t.Id" class="fw-semibold text-decoration-none">@t.Title</a>
+                            <div class="small text-muted">@t.RequesterName · @Ui.CategoryText(t.Category) · @t.CreatedAt.ToString("dd.MM.yyyy HH:mm")</div>
+                        </td>
+                        <td><span class="tag @Ui.PriorityTag(t.Priority)">@Ui.PriorityText(t.Priority)</span></td>
+                        <td>
+                            <form method="post" class="d-flex gap-2">
+                                <input name="note" class="form-control form-control-sm" placeholder="Not (isteğe bağlı)" />
+                                <button class="btn btn-sm btn-success" asp-action="Approve" asp-route-id="@t.Id">Onayla</button>
+                                <button class="btn btn-sm btn-outline-danger" asp-action="Reject" asp-route-id="@t.Id">Reddet</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">Son kararlar</div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>No</th><th>Talep</th><th>Karar</th><th>Not</th><th>Tarih</th></tr></thead>
+            <tbody>
+                @if (!history.Any()) { <tr><td colspan="5" class="text-center text-muted py-4">Henüz karar verilmedi</td></tr> }
+                @foreach (var t in history)
+                {
+                    <tr>
+                        <td class="text-muted">#@t.Id</td>
+                        <td><a asp-controller="Tickets" asp-action="Details" asp-route-id="@t.Id" class="text-decoration-none">@t.Title</a></td>
+                        <td><span class="tag @Ui.ApprovalTag(t.ApprovalStatus)">@Ui.ApprovalText(t.ApprovalStatus)</span></td>
+                        <td class="small">@(t.ApprovalNote ?? "-")</td>
+                        <td class="small text-muted">@t.ApprovalDecidedAt?.ToString("dd.MM.yyyy HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

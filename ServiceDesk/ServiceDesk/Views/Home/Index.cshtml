@@ -9,20 +9,44 @@
     <title>Hoş Geldiniz - ServiceDesk</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        .entry { display: block; text-decoration: none; color: var(--text); transition: border-color .15s; }
+        .entry:hover { border-color: var(--accent); color: var(--text); }
+        .entry i { font-size: 1.6rem; }
+    </style>
 </head>
-<body style="background:linear-gradient(135deg,#1e1b4b,#4338ca 60%,#7c3aed)" class="text-white d-flex align-items-center justify-content-center vh-100">
-    <div class="text-center px-3" style="max-width:600px">
-        <i class="bi bi-headset" style="font-size:4rem;color:#c7d2fe"></i>
-        <h1 class="fw-bold mb-3">IT ServiceDesk</h1>
-        <p class="lead mb-1">ISO 9001 Kalite Yönetim Standardına Uygun</p>
-        <p class="lead mb-4">IT Servis Masası ve Süreç Takip Sistemi</p>
+<body class="d-flex flex-column min-vh-100">
+    <header class="portal-nav">
+        <div class="container h-100 d-flex align-items-center" style="max-width:880px">
+            <span class="d-flex align-items-center gap-2 fw-bold"><span class="brand-mark"><i class="bi bi-headset"></i></span>ServiceDesk</span>
+            <a class="btn btn-primary btn-sm ms-auto" asp-controller="Account" asp-action="Login"><i class="bi bi-box-arrow-in-right"></i> Giriş Yap</a>
+        </div>
+    </header>
 
-        <a class="btn btn-primary btn-lg me-2" asp-controller="Account" asp-action="Login">Giriş Yap</a>
+    <main class="container flex-grow-1 d-flex flex-column justify-content-center py-5" style="max-width:880px">
+        <h1 class="fw-bold mb-2">IT Servis Masası</h1>
+        <p class="text-muted fs-5 mb-5">ISO 9001 Kalite Yönetim Standardına uygun destek talebi ve süreç takip sistemi.</p>
 
-        @* GEÇİCİ: Login tamamlanınca bu buton kaldırılacak *@
-        <a class="btn btn-outline-light btn-lg" asp-controller="Dashboard" asp-action="Index">Devam Et</a>
+        @* GEÇİCİ: Login bağlanınca kullanıcı rolüne göre otomatik yönlendirilecek *@
+        <div class="row g-3">
+            <div class="col-md-6">
+                <a class="panel panel-body entry h-100" asp-controller="Portal" asp-action="Index">
+                    <i class="bi bi-person"></i>
+                    <div class="fw-semibold fs-5 mt-2">Kullanıcı Portalı</div>
+                    <div class="text-muted">Sorun bildirin, dosya veya ekran görüntüsü ekleyin, taleplerinizi takip edin.</div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a class="panel panel-body entry h-100" asp-controller="Dashboard" asp-action="Index">
+                    <i class="bi bi-grid"></i>
+                    <div class="fw-semibold fs-5 mt-2">Yönetim Paneli</div>
+                    <div class="text-muted">Grafikler, onay bekleyen değişiklikler, atama bekleyen talepler ve SLA takibi.</div>
+                </a>
+            </div>
+        </div>
+    </main>
 
-        <p class="small mt-5 mb-0" style="color:#a5b4fc">SDS-07 · Software Development with Standards</p>
-    </div>
+    <footer class="text-center small text-muted py-3">SDS-07 · Software Development with Standards</footer>
 </body>
 </html>

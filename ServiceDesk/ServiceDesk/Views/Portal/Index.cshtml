@@ -1,0 +1,56 @@
+@model List<Ticket>
+@{
+    ViewData["Title"] = "Taleplerim";
+    var open = Model.Count(t => t.Status is TicketStatus.New or TicketStatus.InProgress);
+}
+
+<div class="d-flex flex-wrap align-items-end gap-3 mb-4">
+    <div class="me-auto">
+        <h4 class="fw-bold mb-1">Taleplerim</h4>
+        <div class="text-muted">Açtığınız taleplerin durumunu buradan takip edebilirsiniz.</div>
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni Talep</a>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-4"><div class="stat"><div class="label">Toplam</div><div class="value">@Model.Count</div></div></div>
+    <div class="col-4"><div class="stat"><div class="label">Açık</div><div class="value">@open</div></div></div>
+    <div class="col-4"><div class="stat"><div class="label">Çözülen</div><div class="value">@(Model.Count - open)</div></div></div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <span>Talepler</span>
+        @* TODO (login): bu filtre kalkacak, liste oturumdaki kullanıcıya göre gelecek *@
+        <form method="get" class="d-flex gap-2">
+            <input name="name" value="@ViewBag.Name" class="form-control form-control-sm" placeholder="Ad soyad ile ara" style="max-width:200px" />
+            <button class="btn btn-sm btn-light border"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>No</th><th>Konu</th><th>Kategori</th><th>Durum</th><th>Tarih</th></tr></thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-5">
+                        Henüz talep yok. <a asp-action="Create">İlk talebinizi oluşturun</a>
+                    </td></tr>
+                }
+                @foreach (var t in Model)
+                {
+                    <tr>
+                        <td class="text-muted">#@t.Id</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@t.Id" class="fw-semibold text-decoration-none">@t.Title</a>
+                            @if (t.ApprovalStatus == ApprovalStatus.Pending) { <span class="tag tag-amber ms-1">Onay bekliyor</span> }
+                        </td>
+                        <td>@Ui.CategoryText(t.Category)</td>
+                        <td><span class="tag @Ui.StatusTag(t.Status)">@Ui.StatusText(t.Status)</span></td>
+                        <td class="text-muted">@t.CreatedAt.ToString("dd.MM.yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

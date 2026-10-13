@@ -1,78 +1,201 @@
+/* ServiceDesk - sade, nötr tema */
 :root {
-    --side-bg: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
-    --accent: #6366f1;
-    --page-bg: #f1f5f9;
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --border: #e4e6ea;
+    --text: #16181d;
+    --muted: #6b7079;
+    --accent: #2a78d6;
+    --accent-dark: #1c5cab;
+    --accent-soft: #eef4fc;
 }
 
-body { background: var(--page-bg); font-size: 15px; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+}
+a { color: var(--accent); }
+a:hover { color: var(--accent-dark); }
+.text-muted { color: var(--muted) !important; }
 
-/* ---------- Sidebar ---------- */
+/* Bootstrap ana butonunu tema rengine çek */
+.btn-primary { background: var(--accent); border-color: var(--accent); }
+.btn-primary:hover, .btn-primary:focus { background: var(--accent-dark); border-color: var(--accent-dark); }
+.btn-outline-primary { color: var(--accent); border-color: var(--accent); }
+.btn-outline-primary:hover { background: var(--accent); border-color: var(--accent); }
+
+/* ---------- Yönetim: sidebar ---------- */
 .sidebar {
-    width: 240px; min-height: 100vh; background: var(--side-bg);
-    position: sticky; top: 0; flex-shrink: 0;
+    width: 232px; min-height: 100vh; flex-shrink: 0;
+    position: sticky; top: 0;
+    background: var(--surface); border-right: 1px solid var(--border);
 }
 .sidebar .brand {
-    display: flex; align-items: center; gap: .6rem; padding: 1.2rem 1.4rem;
-    color: #fff; font-size: 1.25rem; font-weight: 700; text-decoration: none;
-    border-bottom: 1px solid rgba(255,255,255,.1);
+    display: flex; align-items: center; gap: .6rem;
+    height: 60px; padding: 0 1.25rem;
+    color: var(--text); font-weight: 700; font-size: 1.05rem; text-decoration: none;
+    border-bottom: 1px solid var(--border);
 }
-.sidebar .brand i { color: #a5b4fc; font-size: 1.5rem; }
+.brand-mark {
+    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+    display: grid; place-items: center;
+    background: var(--text); color: #fff; font-size: .95rem;
+}
+.side-label { padding: 1.1rem 1.25rem .4rem; font-size: .7rem; font-weight: 600; letter-spacing: .06em; color: var(--muted); }
 .sidebar .nav-link {
-    color: #c7d2fe; margin: .15rem .8rem; padding: .65rem 1rem; border-radius: .5rem;
-    display: flex; align-items: center; gap: .75rem;
+    display: flex; align-items: center; gap: .7rem;
+    margin: 1px .6rem; padding: .55rem .75rem; border-radius: 6px;
+    color: #3d424a;
 }
-.sidebar .nav-link:hover { background: rgba(255,255,255,.08); color: #fff; }
-.sidebar .nav-link.active { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,.4); }
-.sidebar-foot { color: #818cf8; }
+.sidebar .nav-link i { font-size: 1.05rem; color: var(--muted); }
+.sidebar .nav-link:hover { background: #f2f3f5; color: var(--text); }
+.sidebar .nav-link.active { background: var(--accent-soft); color: var(--accent-dark); font-weight: 600; }
+.sidebar .nav-link.active i { color: var(--accent); }
+.nav-count { margin-left: auto; font-size: .72rem; font-weight: 600; padding: .05rem .45rem; border-radius: 999px; background: #fff4e0; color: #8a5a00; }
+.sidebar-foot { color: var(--muted); border-top: 1px solid var(--border); }
 
-/* Dar ekranda sidebar sadece ikon gösterir */
 @media (max-width: 768px) {
-    .sidebar { width: 64px; }
-    .sidebar span { display: none; }
-    .sidebar .nav-link { justify-content: center; margin: .15rem .4rem; }
-    .sidebar .brand { justify-content: center; padding: 1.2rem .5rem; }
+    .sidebar { width: 60px; }
+    .sidebar span, .side-label, .nav-count { display: none; }
+    .sidebar .brand { justify-content: center; padding: 0; }
+    .sidebar .nav-link { justify-content: center; margin: 1px .4rem; }
 }
 
-.main { min-width: 0; } /* içerik taşmasın */
+.main { min-width: 0; }
 
 /* ---------- Üst bar ---------- */
-.topbar { height: 64px; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
-.bell { width: 40px; height: 40px; }
+.topbar {
+    height: 60px; background: var(--surface); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+}
+.bell { width: 38px; height: 38px; border: 1px solid var(--border); background: var(--surface); }
 .notif-menu { width: 340px; max-height: 420px; overflow-y: auto; }
 
-/* ---------- KPI kartları ---------- */
-.kpi { border: 0; border-radius: .9rem; color: #fff; padding: 1.1rem 1.2rem; box-shadow: 0 6px 16px rgba(0,0,0,.08); }
-.kpi small { opacity: .85; }
-.kpi h3 { margin: .2rem 0 0; font-weight: 700; }
-.kpi i { font-size: 2rem; opacity: .35; }
-.kpi-blue   { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-.kpi-cyan   { background: linear-gradient(135deg, #06b6d4, #0e7490); }
-.kpi-red    { background: linear-gradient(135deg, #f43f5e, #be123c); }
-.kpi-green  { background: linear-gradient(135deg, #22c55e, #15803d); }
-.kpi-orange { background: linear-gradient(135deg, #f59e0b, #c2410c); }
-.kpi-purple { background: linear-gradient(135deg, #a855f7, #6d28d9); }
+/* ---------- Kartlar ---------- */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+.panel-head {
+    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+    padding: .85rem 1.1rem; border-bottom: 1px solid var(--border);
+    font-weight: 600;
+}
+.panel-body { padding: 1.1rem; }
 
-/* ---------- Kart & tablo ---------- */
-.card-soft { border: 0; border-radius: .9rem; box-shadow: 0 2px 10px rgba(15,23,42,.06); background: #fff; }
-.table thead th { background: #eef2ff; color: #3730a3; font-weight: 600; border-bottom: 0; }
-.table td, .table th { vertical-align: middle; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; height: 100%; }
+.stat .label { font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; }
+.stat .value { font-size: 1.6rem; font-weight: 700; margin-top: .2rem; line-height: 1.2; }
+.stat .hint { font-size: .75rem; color: var(--muted); }
+.stat.warn { border-left: 3px solid #d08700; }
+.stat.bad { border-left: 3px solid #d03b3b; }
 
-/* ---------- Dosya ekleme alanı ---------- */
-.dropzone { border: 2px dashed #a5b4fc; border-radius: .9rem; background: #f5f7ff; }
+/* ---------- Tablo ---------- */
+.table { margin-bottom: 0; }
+.table thead th {
+    font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--muted); background: #fafbfc; border-bottom: 1px solid var(--border);
+}
+.table td, .table th { vertical-align: middle; padding: .65rem .9rem; }
+.table-hover tbody tr:hover { background: #fafbfc; }
 
-/* ---------- Chatbot ---------- */
+/* ---------- Etiketler (durum, öncelik vb.) ---------- */
+.tag {
+    display: inline-block; padding: .12rem .55rem; border-radius: 999px;
+    font-size: .74rem; font-weight: 600; border: 1px solid; white-space: nowrap;
+}
+.tag-red   { background: #fdecec; color: #b42318; border-color: #f6caca; }
+.tag-amber { background: #fff4e0; color: #8a5a00; border-color: #f3dcae; }
+.tag-green { background: #e8f5e9; color: #1e6b2a; border-color: #c4e3c8; }
+.tag-blue  { background: #e8f1fc; color: #1c5cab; border-color: #c6dbf5; }
+.tag-gray  { background: #f1f2f4; color: #4b5058; border-color: #dfe1e5; }
+
+/* ---------- Dosya yükleme ---------- */
+.dropzone {
+    border: 1.5px dashed #c3c7ce; border-radius: 10px; background: #fafbfc;
+    padding: 1.5rem; text-align: center; transition: border-color .15s, background .15s;
+}
+.dropzone.drag { border-color: var(--accent); background: var(--accent-soft); }
+.file-list { list-style: none; padding: 0; margin: .75rem 0 0; text-align: left; }
+.file-list li {
+    display: flex; align-items: center; gap: .5rem; padding: .4rem .6rem; margin-bottom: .3rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: .85rem;
+}
+.attach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .6rem; }
+.attach {
+    display: block; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    text-decoration: none; color: var(--text); background: var(--surface);
+}
+.attach:hover { border-color: var(--accent); }
+.attach .thumb { height: 90px; display: grid; place-items: center; background: #f2f3f5; overflow: hidden; }
+.attach .thumb img { width: 100%; height: 100%; object-fit: cover; }
+.attach .thumb i { font-size: 2rem; color: var(--muted); }
+.attach .meta { padding: .4rem .55rem; font-size: .78rem; }
+.attach .meta div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- Kullanıcı portalı ---------- */
+.portal-nav { height: 60px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.portal-nav .nav-link { color: #3d424a; font-weight: 500; padding: .4rem .8rem; border-radius: 6px; }
+.portal-nav .nav-link.active, .portal-nav .nav-link:hover { background: #f2f3f5; color: var(--text); }
+.portal-wrap { max-width: 1000px; }
+
+/* ---------- Grafik ---------- */
+.chart-box { position: relative; height: 240px; }
+
+/* ---------- Chatbot (şimdilik sadece tasarım) ---------- */
 .chat-fab {
-    position: fixed; right: 24px; bottom: 24px; z-index: 1050;
-    width: 58px; height: 58px; border: 0; border-radius: 50%; color: #fff; font-size: 1.5rem;
-    background: linear-gradient(135deg, #6366f1, #7c3aed); box-shadow: 0 8px 20px rgba(99,102,241,.45);
+    position: fixed; right: 22px; bottom: 22px; z-index: 1050;
+    display: flex; align-items: center; gap: .5rem;
+    height: 48px; padding: 0 1.1rem; border: 0; border-radius: 999px;
+    background: var(--text); color: #fff; font-size: .92rem; font-weight: 600;
+    box-shadow: 0 4px 14px rgba(0,0,0,.18);
 }
+.chat-fab i { font-size: 1.2rem; }
+.chat-fab:hover { background: #2b2f36; }
+
 .chat-panel {
-    position: fixed; right: 24px; bottom: 96px; z-index: 1050;
-    width: 340px; max-width: calc(100vw - 32px); background: #fff; border-radius: 1rem; overflow: hidden;
+    position: fixed; right: 22px; bottom: 82px; z-index: 1050;
+    width: 360px; max-width: calc(100vw - 32px);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,.12);
 }
-.chat-head { padding: .9rem 1rem; color: #fff; background: linear-gradient(135deg, #4338ca, #7c3aed); }
-.chat-body { height: 280px; overflow-y: auto; padding: 1rem; background: #f8fafc; }
-.chat-foot { padding: .6rem; border-top: 1px solid #e2e8f0; }
-.msg { max-width: 80%; padding: .5rem .8rem; border-radius: .9rem; margin-bottom: .5rem; font-size: .9rem; }
-.msg.bot  { background: #eef2ff; color: #3730a3; border-bottom-left-radius: .2rem; }
-.msg.user { background: #6366f1; color: #fff; margin-left: auto; border-bottom-right-radius: .2rem; }
+.chat-panel.show, .chat-panel.collapsing { display: flex; flex-direction: column; }
+.chat-panel.collapsing { height: auto !important; transition: none; }
+
+.chat-head { display: flex; align-items: center; gap: .6rem; padding: .75rem .9rem; border-bottom: 1px solid var(--border); }
+.chat-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-dark);
+}
+.chat-avatar.sm { width: 26px; height: 26px; font-size: .8rem; }
+.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #b8bcc3; margin-right: .35rem; vertical-align: middle; }
+.chat-notice { padding: .4rem .9rem; font-size: .76rem; color: #8a5a00; background: #fff8eb; border-bottom: 1px solid #f3dcae; }
+
+.chat-body { height: 300px; overflow-y: auto; padding: .9rem; background: var(--bg); }
+.chat-day { text-align: center; font-size: .7rem; color: var(--muted); margin-bottom: .6rem; }
+.msg-row { display: flex; align-items: flex-end; gap: .45rem; margin-bottom: .6rem; }
+.msg-row > div { max-width: 82%; }
+.msg-row.me { justify-content: flex-end; }
+.msg { padding: .5rem .75rem; border-radius: 12px; font-size: .86rem; line-height: 1.4; }
+.msg.bot { background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.msg.user { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+.msg-time { font-size: .68rem; color: var(--muted); margin-top: .15rem; }
+
+.typing { display: flex; gap: 4px; padding: .65rem .8rem; }
+.typing span { width: 6px; height: 6px; border-radius: 50%; background: #b8bcc3; animation: blink 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay: .2s; }
+.typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .3; } 40% { opacity: 1; } }
+
+.chat-quick { display: flex; flex-wrap: wrap; gap: .35rem; padding: .55rem .7rem; border-top: 1px solid var(--border); }
+.chip {
+    flex-shrink: 0; font-size: .75rem; padding: .25rem .65rem; white-space: nowrap;
+    border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: #3d424a;
+}
+.chip:disabled { opacity: 1; cursor: not-allowed; }
+.chat-foot { display: flex; gap: .4rem; padding: .6rem .7rem; border-top: 1px solid var(--border); }
+
+@media (max-width: 576px) {
+    .chat-fab { right: 16px; bottom: 16px; width: 48px; padding: 0; justify-content: center; }
+    .chat-panel { right: 16px; bottom: 74px; }
+    .chat-body { height: 260px; }
+}

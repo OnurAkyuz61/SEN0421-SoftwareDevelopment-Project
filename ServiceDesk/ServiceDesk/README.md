@@ -19,23 +19,44 @@ dotnet run
 ```
 > Sadece .NET 9 kuruluysa önce: `set DOTNET_ROLL_FORWARD=Major`
 
+## Uygulama bölümleri
+| Bölüm | Adres | Kim kullanır |
+|---|---|---|
+| Karşılama | `/` | Herkes (giriş noktası) |
+| Giriş + OTP | `/Account/Login` | Herkes |
+| Kullanıcı Portalı | `/Portal` | Son kullanıcı: talep açar, dosya / ekran görüntüsü yükler, takip eder, anket doldurur |
+| Yönetim Paneli | `/Dashboard` | Yönetici / Destek: grafikler, onaylar, atama, SLA, anketler, kullanıcılar |
+
 ## Klasör yapısı
-| Klasör | İçerik |
+| Dosya | İçerik |
 |---|---|
-| `Models/Entities.cs` | Ticket, SlaPolicy, Feedback varlıkları + enum'lar |
-| `Models/Ui.cs` | Badge renkleri ve Türkçe etiketler |
-| `Data/AppDbContext.cs` | DbContext, ilişkiler, SLA seed verisi |
-| `Controllers/HomeController.cs` | Ön karşılama sayfası (`/`) |
-| `Controllers/DashboardController.cs` | KPI paneli (SLA uyum %, MTTR, CSAT) |
-| `Controllers/TicketsController.cs` | Talep listesi + filtre, SLA hesaplama, eskalasyon, anket |
-| `Controllers/NotificationsController.cs` | Bildirimler sayfası |
-| `Controllers/AccountController.cs` | Login (boş, geliştirilecek) |
-| `Services/NotificationService.cs` | SLA ihlali / yaklaşan / yeni talep bildirimleri |
-| `ViewComponents/` | Üst bardaki bildirim zili |
-| `Views/` | Razor arayüzü (sidebar layout) |
-| `Migrations/` | `dotnet ef migrations add` ile oluşur |
+| `Models/Entities.cs` | Ticket, Attachment, SlaPolicy, Feedback, AppUser + enum'lar |
+| `Models/DashboardVm.cs` | Yönetim paneli KPI ve grafik verisi |
+| `Models/Ui.cs` | Etiket renkleri ve Türkçe metinler |
+| `Data/AppDbContext.cs` | DbContext, ilişkiler, seed verisi |
+| `Services/FileStorage.cs` | Dosya yükleme (Uploads/ klasörü, uzantı + boyut kontrolü) |
+| `Services/NotificationService.cs` | SLA / onay / yeni talep bildirimleri |
+| `Controllers/PortalController.cs` | Kullanıcı portalı |
+| `Controllers/AttachmentsController.cs` | Ek dosyayı açma / indirme |
+| `Controllers/DashboardController.cs` | Yönetim: genel bakış (KPI + grafikler) |
+| `Controllers/TicketsController.cs` | Yönetim: talep listesi, atama, durum |
+| `Controllers/ApprovalsController.cs` | Yönetim: değişiklik onay / red |
+| `Controllers/SurveysController.cs` | Yönetim: memnuniyet anketleri |
+| `Controllers/UsersController.cs` | Yönetim: kullanıcı listesi |
+| `Controllers/AccountController.cs` | Giriş + OTP doğrulama |
+| `Views/Shared/_Layout.cshtml` | Yönetim paneli düzeni (sidebar) |
+| `Views/Shared/_PortalLayout.cshtml` | Kullanıcı portalı düzeni (üst menü + chatbot) |
+| `wwwroot/js/upload.js` | Sürükle-bırak, Ctrl+V ile ekran görüntüsü yapıştırma |
+| `Uploads/` | Yüklenen dosyalar (git'e eklenmez) |
+
+## Login bağlanırken yapılacaklar
+- OTP sonrası role göre yönlendirme: `Admin/Agent` → `Dashboard`, `User` → `Portal`
+- `PortalController`: listeyi oturumdaki kullanıcıya göre filtrele, `RequesterId` / `RequesterName` alanlarını oturumdan doldur
+- Yönetim controller'larına (Dashboard, Tickets, Approvals, Surveys, Users, Notifications) sadece Admin/Agent erişsin
+- Karşılama sayfasındaki ve menülerdeki `GEÇİCİ` linkler kaldırılacak
 
 ## Paketler
+- Chart.js 4.4.1 (`wwwroot/lib/chartjs`, yerel)
 - Microsoft.EntityFrameworkCore.SqlServer 8.0.10
 - Microsoft.EntityFrameworkCore.Design 8.0.10
 - Microsoft.EntityFrameworkCore.Tools 8.0.10

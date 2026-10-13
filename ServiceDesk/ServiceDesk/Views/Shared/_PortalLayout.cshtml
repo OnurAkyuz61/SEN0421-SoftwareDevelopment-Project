@@ -1,0 +1,44 @@
+@* KULLANICI PORTALI LAYOUT'U (üst menü) *@
+@{
+    var a = ViewContext.RouteData.Values["action"]?.ToString();
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ServiceDesk</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="portal-nav">
+        <div class="container portal-wrap h-100 d-flex align-items-center gap-3">
+            <a class="d-flex align-items-center gap-2 fw-bold text-decoration-none text-dark me-2" asp-controller="Portal" asp-action="Index">
+                <span class="brand-mark"><i class="bi bi-headset"></i></span><span class="d-none d-sm-inline">ServiceDesk</span>
+            </a>
+            <nav class="nav">
+                <a class="nav-link @(a == "Index" ? "active" : "")" asp-controller="Portal" asp-action="Index">Taleplerim</a>
+                <a class="nav-link @(a == "Create" ? "active" : "")" asp-controller="Portal" asp-action="Create">Yeni Talep</a>
+            </nav>
+            <div class="ms-auto d-flex gap-2">
+                @* GEÇİCİ: login bağlanınca sadece Yönetici/Destek rolü görecek *@
+                <a class="btn btn-outline-secondary btn-sm d-none d-md-inline-block" asp-controller="Dashboard" asp-action="Index">Yönetim Paneli</a>
+                <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login"><i class="bi bi-box-arrow-in-right"></i> Login</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container portal-wrap py-4">
+        <partial name="_Alerts" />
+        @RenderBody()
+    </main>
+
+    <partial name="_ChatbotPartial" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
