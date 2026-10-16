@@ -29,6 +29,8 @@ public class AppDbContext : DbContext
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<Team> Teams => Set<Team>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<ChangeDetail> ChangeDetails => Set<ChangeDetail>();
+    public DbSet<ChangeApproval> ChangeApprovals => Set<ChangeApproval>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -188,6 +190,53 @@ public class AppDbContext : DbContext
 
         mb.Entity<Ticket>().HasIndex(t => t.CategoryId);
         mb.Entity<Category>().HasIndex(c => new { c.IsActive, c.SortOrder });
+
+        // ── Talep numarası ve yumuşak silme ──────────────────────────────
+        mb.Entity<Ticket>().HasIndex(t => t.Number).IsUnique()
+          .HasFilter("[Number] IS NOT NULL");
+
+        mb.Entity<Ticket>()
+          .HasOne(t => t.DeletedBy).WithMany()
+          .HasForeignKey(t => t.DeletedById)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        // Silinmiş talep hiçbir sorguya düşmez. Bağımlı tabloların da aynı
+        // filtreyi taşıması gerekiyor; aksi halde zorunlu ilişki ile filtre
+        // çakışır ve EF uyarı verir.
+        // ── Değişiklik yönetimi ──────────────────────────────────────────
+        // Plan talebe bire bir bağlı; birincil anahtar talebin kendisi
+        mb.Entity<ChangeDetail>().HasKey(d => d.TicketId);
+        mb.Entity<ChangeDetail>()
+          .HasOne(d => d.Ticket).WithOne(t => t.ChangeDetail)
+          .HasForeignKey<ChangeDetail>(d => d.TicketId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+        mb.Entity<ChangeDetail>()
+          .HasOne(d => d.UpdatedBy).WithMany()
+          .HasForeignKey(d => d.UpdatedById)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<ChangeApproval>()
+          .HasOne(a => a.Ticket).WithMany(t => t.Approvals)
+          .HasForeignKey(a => a.TicketId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+        mb.Entity<ChangeApproval>()
+          .HasOne(a => a.Approver).WithMany()
+          .HasForeignKey(a => a.ApproverId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        // Aynı kişi aynı adımda iki kez karar veremez
+        mb.Entity<ChangeApproval>().HasIndex(a => new { a.TicketId, a.Step, a.ApproverId }).IsUnique();
+
+        mb.Entity<Ticket>().HasQueryFilter(t => !t.IsDeleted);
+        mb.Entity<ChangeDetail>().HasQueryFilter(d => !d.Ticket!.IsDeleted);
+        mb.Entity<ChangeApproval>().HasQueryFilter(a => !a.Ticket!.IsDeleted);
+        mb.Entity<Attachment>().HasQueryFilter(a => !a.Ticket!.IsDeleted);
+        mb.Entity<Feedback>().HasQueryFilter(f => !f.Ticket!.IsDeleted);
+        mb.Entity<TicketComment>().HasQueryFilter(c => !c.Ticket!.IsDeleted);
+        mb.Entity<TicketHistory>().HasQueryFilter(h => !h.Ticket!.IsDeleted);
+        mb.Entity<EscalationRecord>().HasQueryFilter(e => !e.Ticket!.IsDeleted);
 
         // Ticket N - 1 AppUser (talep eden). Talebi olan kullanıcı silinemez;
         // ayrılan personel IsActive = false ile pasifleştirilir.

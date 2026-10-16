@@ -30,6 +30,23 @@ public static class Ui
     // Kategori artık enum değil tablo; ad doğrudan kayıttan gelir
     public static string CategoryText(Category? c) => c?.Name ?? "-";
 
+    public static string RiskText(RiskLevel r) => r switch
+    {
+        RiskLevel.High => "Yüksek", RiskLevel.Medium => "Orta", _ => "Düşük"
+    };
+
+    public static string RoleText(UserRole r) => r switch
+    {
+        UserRole.Admin => "Yönetici", UserRole.Agent => "Destek", _ => "Kullanıcı"
+    };
+
+    // INC-2026-00042 / CHG-2026-00007. Id benzersiz olduğu için numara da benzersizdir.
+    public static string BuildTicketNumber(Ticket t) =>
+        $"{(t.Type == TicketType.Change ? "CHG" : "INC")}-{Services.AppTime.ToLocal(t.CreatedAt):yyyy}-{t.Id:D5}";
+
+    // Numarası henüz üretilmemiş eski kayıtlar için geri düşüş
+    public static string TicketNo(Ticket t) => t.Number ?? $"#{t.Id}";
+
     public static string ApprovalText(ApprovalStatus a) => a switch
     {
         ApprovalStatus.Pending => "Onay bekliyor", ApprovalStatus.Approved => "Onaylandı",

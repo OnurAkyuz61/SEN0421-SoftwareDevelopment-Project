@@ -35,7 +35,7 @@
                 @foreach (var t in Model)
                 {
                     <tr>
-                        <td class="text-muted">#@t.Id</td>
+                        <td class="text-muted small">@Ui.TicketNo(t)</td>
                         <td>
                             <a asp-action="Details" asp-route-id="@t.Id" class="fw-semibold text-decoration-none">@t.Title</a>
                             @if (t.ApprovalStatus == ApprovalStatus.Pending) { <span class="tag tag-amber ms-1">Onay bekliyor</span> }

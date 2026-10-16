@@ -62,10 +62,76 @@ public class Category
 // Değişiklik (Change) talepleri yönetici onayından geçer
 public enum ApprovalStatus { NotRequired = 0, Pending = 1, Approved = 2, Rejected = 3 }
 
+// Değişikliğin taşıdığı risk; onay adımı sayısını belirler
+public enum RiskLevel
+{
+    [Display(Name = "Düşük")] Low = 0,
+    [Display(Name = "Orta")] Medium = 1,
+    [Display(Name = "Yüksek")] High = 2
+}
+
+// Değişiklik talebinin planı. Change'i Incident'tan ayıran bilgi burada:
+// risk, ne zaman uygulanacağı, nasıl uygulanacağı ve ters giderse nasıl geri alınacağı.
+// Talep ile bire bir; birincil anahtar talebin kendisidir.
+public class ChangeDetail
+{
+    public int TicketId { get; set; }
+    public Ticket? Ticket { get; set; }
+
+    [Display(Name = "Risk")]
+    public RiskLevel Risk { get; set; } = RiskLevel.Low;
+
+    [Display(Name = "Planlanan başlangıç")]
+    public DateTime? PlannedStart { get; set; }
+
+    [Display(Name = "Planlanan bitiş")]
+    public DateTime? PlannedEnd { get; set; }
+
+    [StringLength(4000), Display(Name = "Uygulama planı")]
+    public string? ImplementationPlan { get; set; }
+
+    [StringLength(4000), Display(Name = "Geri alma planı")]
+    public string? RollbackPlan { get; set; }
+
+    [StringLength(4000), Display(Name = "Etki analizi")]
+    public string? ImpactAnalysis { get; set; }
+
+    public DateTime UpdatedAt { get; set; } = AppTime.UtcNow;
+    public int? UpdatedById { get; set; }
+    public AppUser? UpdatedBy { get; set; }
+}
+
+// Onay zincirindeki her karar bir satır: kim, hangi adımda, ne zaman, ne dedi.
+// Yüksek riskli değişiklikler iki adımdan geçer (önce destek, sonra yönetici).
+public class ChangeApproval
+{
+    public int Id { get; set; }
+
+    public int TicketId { get; set; }
+    public Ticket? Ticket { get; set; }
+
+    [Display(Name = "Adım")]
+    public int Step { get; set; }
+
+    public int ApproverId { get; set; }
+    public AppUser? Approver { get; set; }
+
+    public ApprovalStatus Decision { get; set; }
+    public DateTime DecidedAt { get; set; } = AppTime.UtcNow;
+
+    [StringLength(500), Display(Name = "Not")]
+    public string? Note { get; set; }
+}
+
 // Destek talebi (Incident / Change)
 public class Ticket
 {
     public int Id { get; set; }
+
+    // Kullanıcıya ve yazışmalara gösterilen numara: INC-2026-00042 / CHG-2026-00007.
+    // Kayıt oluştuktan sonra Id'den türetilir, bu yüzden ilk anda boş olabilir.
+    [StringLength(20), Display(Name = "Talep No")]
+    public string? Number { get; set; }
 
     [Required, StringLength(150), Display(Name = "Başlık")]
     public string Title { get; set; } = "";
@@ -143,6 +209,13 @@ public class Ticket
     public bool IsEscalated { get; set; }
     public int EscalationLevel { get; set; }
 
+    // Kayıt silinmez, pasifleştirilir (ISO 9001 md. 7.5: kayıtların korunması).
+    // Global query filter sayesinde silinmiş talep sorgulara hiç düşmez.
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedById { get; set; }
+    public AppUser? DeletedBy { get; set; }
+
     // Aynı talebi iki kişi aynı anda güncellerse ikincisi uyarı alır
     [Timestamp]
     public byte[]? RowVersion { get; set; }
@@ -152,6 +225,14 @@ public class Ticket
     public List<TicketComment> Comments { get; set; } = new();
     public List<TicketHistory> History { get; set; } = new();
     public List<EscalationRecord> Escalations { get; set; } = new();
+
+    // Yalnızca Değişiklik taleplerinde dolu olur
+    public ChangeDetail? ChangeDetail { get; set; }
+    public List<ChangeApproval> Approvals { get; set; } = new();
+
+    // Yüksek riskli değişiklik iki onaydan geçer, diğerleri birden
+    public int RequiredApprovalSteps =>
+        Type == TicketType.Change && ChangeDetail?.Risk == RiskLevel.High ? 2 : 1;
 
     // Henüz çözülmemiş ve süresi dolmuş mu (ekranda anlık uyarı için).
     // Kalıcı ihlal bilgisi IsSlaBreached kolonunda.

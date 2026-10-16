@@ -1,6 +1,6 @@
 @model Ticket
 @{
-    ViewData["Title"] = "Talep #" + Model.Id;
+    ViewData["Title"] = "Talep " + Ui.TicketNo(Model);
     var closed = Model.Status is TicketStatus.Resolved or TicketStatus.Closed;
     // Basit süreç adımları: Alındı → İşlemde → Çözüldü
     var step = Model.Status switch { TicketStatus.New => 1, TicketStatus.InProgress => 2, _ => 3 };
@@ -9,7 +9,7 @@
 <a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Taleplerim</a>
 
 <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mb-4">
-    <h4 class="fw-bold mb-0 me-auto">#@Model.Id · @Model.Title</h4>
+    <h4 class="fw-bold mb-0 me-auto">@Ui.TicketNo(Model) · @Model.Title</h4>
     <span class="tag @Ui.StatusTag(Model.Status)">@Ui.StatusText(Model.Status)</span>
     @if (Model.ApprovalStatus != ApprovalStatus.NotRequired)
     {

@@ -19,12 +19,15 @@ public class AccountController : Controller
     private readonly AppDbContext _db;
     private readonly IPasswordHasher<AppUser> _hasher;
     private readonly CurrentUser _current;
+    private readonly IWebHostEnvironment _env;
 
-    public AccountController(AppDbContext db, IPasswordHasher<AppUser> hasher, CurrentUser current)
+    public AccountController(AppDbContext db, IPasswordHasher<AppUser> hasher,
+                             CurrentUser current, IWebHostEnvironment env)
     {
         _db = db;
         _hasher = hasher;
         _current = current;
+        _env = env;
     }
 
     [HttpGet]
@@ -69,6 +72,38 @@ public class AccountController : Controller
         HttpContext.Session.Remove(SessExpires);
 
         return RedirectToAction(nameof(OtpChannel));
+    }
+
+    // ───── GELİŞTİRME KOLAYLIĞI ──────────────────────────────────────────
+    // Test hesabına şifre ve OTP adımı olmadan girer. Giriş formu üzerinden
+    // gitmediği için tarayıcının "bu şifre bir veri sızıntısında bulundu"
+    // uyarısı da çıkmaz.
+    //
+    // İKİ KAT KİLİTLİ: yalnızca Development ortamında ve yalnızca seed
+    // hesapları için çalışır. Canlıya çıkmadan önce bu action ve giriş
+    // sayfasındaki dev bloğu silinecek.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DevLogin(string? email)
+    {
+        if (!_env.IsDevelopment()) return NotFound();
+
+        string[] izinli =
+        {
+            "admin@servicedesk.local",
+            "agent@servicedesk.local",
+            "user@servicedesk.local"
+        };
+        if (email == null || !izinli.Contains(email)) return NotFound();
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
+        if (user == null) return NotFound();
+
+        HttpContext.Session.Clear();
+        HttpContext.Session.SetInt32(SessAuthed, user.Id);
+
+        TempData["Ok"] = $"Geliştirme girişi: {user.FullName} ({Ui.RoleText(user.Role)})";
+        return RedirectToHome(user.Role);
     }
 
     [HttpPost]

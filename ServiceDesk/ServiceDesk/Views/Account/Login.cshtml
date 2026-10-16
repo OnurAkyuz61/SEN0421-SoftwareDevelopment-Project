@@ -63,35 +63,26 @@
 
                 <button type="submit" class="otp-btn">Devam et</button>
 
-                @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────
-                   Test hesaplarını tek tıkla doldurup gönderir. Yalnızca
-                   Development ortamında görünür. Canlıya çıkmadan önce bu
-                   blok ve yukarıdaki .dev-fill stilleri silinecek. *@
-                @if (Env.IsDevelopment())
-                {
-                    <div class="dev-fill">
-                        <div class="dev-label">Geliştirme · hızlı giriş</div>
-                        <div class="dev-row">
-                            <button type="button" data-login="admin@servicedesk.local|admin123">Yönetici</button>
-                            <button type="button" data-login="agent@servicedesk.local|agent123">Destek</button>
-                            <button type="button" data-login="user@servicedesk.local|user123">Kullanıcı</button>
-                        </div>
-                    </div>
-                }
             </form>
 
+            @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────────
+               Test hesabına şifre ve OTP olmadan girer. Giriş formundan ayrı
+               bir form olduğu için tarayıcı parola gönderimi algılamaz;
+               "bu şifre bir veri sızıntısında bulundu" uyarısı çıkmaz.
+               Yalnızca Development'ta görünür, sunucu tarafında da ayrıca
+               kilitli. Canlıya çıkmadan önce bu blok, yukarıdaki .dev-fill
+               stilleri ve AccountController.DevLogin silinecek. *@
             @if (Env.IsDevelopment())
             {
-                <script>
-                    document.querySelectorAll('[data-login]').forEach(b => {
-                        b.addEventListener('click', () => {
-                            const [mail, pass] = b.dataset.login.split('|');
-                            document.getElementById('Email').value = mail;
-                            document.getElementById('Password').value = pass;
-                            b.closest('form').submit();
-                        });
-                    });
-                </script>
+                <form asp-action="DevLogin" method="post" class="dev-fill">
+                    @Html.AntiForgeryToken()
+                    <div class="dev-label">Geliştirme · şifresiz hızlı giriş</div>
+                    <div class="dev-row">
+                        <button type="submit" name="email" value="admin@servicedesk.local">Yönetici</button>
+                        <button type="submit" name="email" value="agent@servicedesk.local">Destek</button>
+                        <button type="submit" name="email" value="user@servicedesk.local">Kullanıcı</button>
+                    </div>
+                </form>
             }
         </div>
     </div>

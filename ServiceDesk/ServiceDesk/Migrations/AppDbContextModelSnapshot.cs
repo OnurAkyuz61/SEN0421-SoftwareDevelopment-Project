@@ -300,6 +300,82 @@ namespace ServiceDesk.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.ChangeApproval", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApproverId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DecidedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Decision")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Step")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApproverId");
+
+                    b.HasIndex("TicketId", "Step", "ApproverId")
+                        .IsUnique();
+
+                    b.ToTable("ChangeApprovals", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.ChangeDetail", b =>
+                {
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImpactAnalysis")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("ImplementationPlan")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime?>("PlannedEnd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("PlannedStart")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Risk")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RollbackPlan")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedById")
+                        .HasColumnType("int");
+
+                    b.HasKey("TicketId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("ChangeDetails", (string)null);
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.Department", b =>
                 {
                     b.Property<int>("Id")
@@ -769,6 +845,12 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedById")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -782,11 +864,18 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime?>("FirstResponseDueAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsEscalated")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsSlaBreached")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Number")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("Priority")
                         .HasColumnType("int");
@@ -844,6 +933,12 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("CreatedAt");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasFilter("[Number] IS NOT NULL");
 
                     b.HasIndex("RequesterId");
 
@@ -991,6 +1086,43 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.ChangeApproval", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "Approver")
+                        .WithMany()
+                        .HasForeignKey("ApproverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
+                        .WithMany("Approvals")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Approver");
+
+                    b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.ChangeDetail", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
+                        .WithOne("ChangeDetail")
+                        .HasForeignKey("ServiceDesk.Models.ChangeDetail", "TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.AppUser", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Ticket");
+
+                    b.Navigation("UpdatedBy");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.EscalationRecord", b =>
                 {
                     b.HasOne("ServiceDesk.Models.AppUser", "EscalatedTo")
@@ -1095,6 +1227,11 @@ namespace ServiceDesk.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ServiceDesk.Models.AppUser", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.AppUser", "Requester")
                         .WithMany()
                         .HasForeignKey("RequesterId")
@@ -1111,6 +1248,8 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Assignee");
 
                     b.Navigation("Category");
+
+                    b.Navigation("DeletedBy");
 
                     b.Navigation("Requester");
 
@@ -1171,7 +1310,11 @@ namespace ServiceDesk.Migrations
 
             modelBuilder.Entity("ServiceDesk.Models.Ticket", b =>
                 {
+                    b.Navigation("Approvals");
+
                     b.Navigation("Attachments");
+
+                    b.Navigation("ChangeDetail");
 
                     b.Navigation("Comments");
 

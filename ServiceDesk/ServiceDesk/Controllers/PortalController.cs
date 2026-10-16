@@ -94,6 +94,10 @@ public class PortalController : Controller
         _db.Tickets.Add(ticket);
         await _db.SaveChangesAsync();
 
+        // Numara Id'den türetilir, bu yüzden ilk kayıttan sonra yazılır
+        ticket.Number = Ui.BuildTicketNumber(ticket);
+        await _db.SaveChangesAsync();
+
         // Değişiklik talebi onay bekliyor: yöneticiler haberdar edilir
         if (ticket.ApprovalStatus == ApprovalStatus.Pending)
         {
@@ -109,7 +113,7 @@ public class PortalController : Controller
         }
         await _db.SaveChangesAsync();
 
-        TempData["Ok"] = $"Talebiniz alındı. Talep numaranız: #{ticket.Id}";
+        TempData["Ok"] = $"Talebiniz alındı. Talep numaranız: {Ui.TicketNo(ticket)}";
         return RedirectToAction(nameof(Details), new { id = ticket.Id });
     }
 

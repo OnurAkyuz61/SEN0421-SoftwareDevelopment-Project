@@ -59,7 +59,7 @@
                 @foreach (var t in Model)
                 {
                     <tr>
-                        <td class="text-muted">#@t.Id</td>
+                        <td class="text-muted small">@Ui.TicketNo(t)</td>
                         <td>
                             <a class="fw-semibold text-decoration-none" asp-action="Details" asp-route-id="@t.Id">@t.Title</a>
                             <div class="small text-muted">

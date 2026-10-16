@@ -63,6 +63,8 @@ public class TicketsController : Controller
             .Include(t => t.SlaPolicy)
             .Include(t => t.Category)
             .Include(t => t.AssignedTeam)
+            .Include(t => t.ChangeDetail)
+            .Include(t => t.Approvals).ThenInclude(a => a.Approver)
             .FirstOrDefaultAsync(t => t.Id == id);
         if (ticket == null) return NotFound();
 
@@ -149,6 +151,74 @@ public class TicketsController : Controller
         }
 
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    // Değişiklik talebinin planını kaydeder. Risk "Yüksek" seçilirse onay
+    // zinciri iki adıma çıkar, bu yüzden plan onaydan önce doldurulmalıdır.
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateChangeDetail(
+        int id, RiskLevel risk, DateTime? plannedStart, DateTime? plannedEnd,
+        string? implementationPlan, string? rollbackPlan, string? impactAnalysis)
+    {
+        var ticket = await _db.Tickets.Include(t => t.ChangeDetail).FirstOrDefaultAsync(t => t.Id == id);
+        if (ticket == null) return NotFound();
+
+        if (ticket.Type != TicketType.Change)
+        {
+            TempData["Err"] = "Değişiklik planı yalnızca Değişiklik taleplerinde tutulur.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var detail = ticket.ChangeDetail;
+        if (detail == null)
+        {
+            detail = new ChangeDetail { TicketId = ticket.Id };
+            _db.ChangeDetails.Add(detail);
+        }
+
+        detail.Risk = risk;
+        // Form yerel saat gönderir, veritabanı UTC saklar
+        detail.PlannedStart = plannedStart == null ? null : AppTime.ToUtc(plannedStart.Value);
+        detail.PlannedEnd = plannedEnd == null ? null : AppTime.ToUtc(plannedEnd.Value);
+        detail.ImplementationPlan = implementationPlan;
+        detail.RollbackPlan = rollbackPlan;
+        detail.ImpactAnalysis = impactAnalysis;
+        detail.UpdatedAt = AppTime.UtcNow;
+        detail.UpdatedById = _current.User!.Id;
+
+        await _db.SaveChangesAsync();
+
+        TempData["Ok"] = "Değişiklik planı kaydedildi.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    // Talebi kalıcı silmek yerine pasifleştirir: kayıt veritabanında kalır,
+    // sorgulara düşmez. Yalnızca yönetici yapabilir (ISO 9001 md. 7.5).
+    [HttpPost, ValidateAntiForgeryToken]
+    [AuthorizeRole(UserRole.Admin)]
+    public async Task<IActionResult> SoftDelete(int id, string? reason)
+    {
+        var ticket = await _db.Tickets.FindAsync(id);
+        if (ticket == null) return NotFound();
+
+        ticket.IsDeleted = true;
+        ticket.DeletedAt = AppTime.UtcNow;
+        ticket.DeletedById = _current.User!.Id;
+
+        _db.TicketHistories.Add(new TicketHistory
+        {
+            TicketId = ticket.Id,
+            Field = "Kayıt",
+            OldValue = "Aktif",
+            NewValue = "Arşivlendi",
+            ChangedById = _current.User!.Id,
+            ChangedAt = AppTime.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+
+        TempData["Ok"] = $"{Ui.TicketNo(ticket)} arşivlendi. Kayıt silinmedi, listelerde görünmüyor.";
+        return RedirectToAction(nameof(Index));
     }
 
     // Destek personelinin yazışması. İç not işaretlenirse kullanıcı göremez.
