@@ -214,9 +214,16 @@
                 {
                     <tr><td class="text-muted">Yeniden açılma</td><td><span class="tag tag-amber">@Model.ReopenCount kez</span></td></tr>
                 }
-                @if (Model.Feedback != null)
+                @if (Model.Survey != null)
                 {
-                    <tr><td class="text-muted">Memnuniyet</td><td>@Model.Feedback.Score / 5 <span class="text-muted">@Model.Feedback.Comment</span></td></tr>
+                    var ort = Model.Survey.Answers.Count == 0 ? 0 : Model.Survey.Answers.Average(a => a.Score);
+                    <tr>
+                        <td class="text-muted">Memnuniyet</td>
+                        <td>
+                            <span class="tag @(ort >= 4 ? "tag-green" : ort >= 3 ? "tag-amber" : "tag-red")">@ort.ToString("0.0") / 5</span>
+                            <span class="text-muted small ms-1">@Model.Survey.Comment</span>
+                        </td>
+                    </tr>
                 }
             </table>
         </div>
@@ -274,6 +281,24 @@
                 <button class="btn btn-primary w-100">Kaydet</button>
             </div>
         </form>
+
+        @* Talebi çözen bilgi bankası makalesi *@
+        <div class="panel mt-3">
+            <div class="panel-head">Çözüm makalesi</div>
+            <div class="panel-body">
+                <form asp-controller="Knowledge" asp-action="LinkToTicket" method="post">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
+                    <select name="articleId" class="form-select form-select-sm mb-2">
+                        <option value="">Bağlı değil</option>
+                        @foreach (var art in (List<KnowledgeArticle>)ViewBag.Articles)
+                        {
+                            <option value="@art.Id" selected="@(art.Id == Model.ResolvedByArticleId)">@art.Title</option>
+                        }
+                    </select>
+                    <button class="btn btn-outline-primary btn-sm w-100">Bağla</button>
+                </form>
+            </div>
+        </div>
 
         @* Kalıcı silme yok: kayıt arşivlenir, veritabanında kalır *@
         @if (Me.Role == UserRole.Admin)

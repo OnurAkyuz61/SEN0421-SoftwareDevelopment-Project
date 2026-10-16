@@ -1,0 +1,51 @@
+@model KnowledgeArticle
+@{
+    var yeni = Model.Id == 0;
+    ViewData["Title"] = yeni ? "Yeni Makale" : "Makaleyi Düzenle";
+    var kategoriler = (List<Category>)ViewBag.Categories;
+}
+
+<a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Bilgi Bankası</a>
+<h4 class="fw-bold mt-2 mb-3">@ViewData["Title"]</h4>
+
+<form asp-action="Edit" method="post" class="panel">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <div class="panel-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label class="form-label fw-semibold">Başlık</label>
+                <input name="title" value="@Model.Title" class="form-control" required
+                       placeholder="Örn: Yazıcı kağıt sıkışması giderme" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Kategori</label>
+                <select name="categoryId" class="form-select">
+                    <option value="">Kategorisiz</option>
+                    @foreach (var c in kategoriler)
+                    {
+                        <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">İçerik</label>
+                <textarea name="body" rows="14" class="form-control" required
+                          placeholder="Adım adım çözümü yazın.">@Model.Body</textarea>
+                <div class="form-text">Satır sonları olduğu gibi gösterilir; adımları alt alta yazabilirsiniz.</div>
+            </div>
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="isPublished" value="true"
+                           id="isPublished" checked="@(yeni || Model.IsPublished)" />
+                    <label class="form-check-label" for="isPublished">
+                        Yayımla <span class="text-muted small">(işaretli değilse yalnızca destek ekibi görür)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-primary">Kaydet</button>
+            <a class="btn btn-light border" asp-action="Index">Vazgeç</a>
+        </div>
+    </div>
+</form>

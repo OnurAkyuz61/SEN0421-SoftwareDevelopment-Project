@@ -5,6 +5,7 @@
     var c = ViewContext.RouteData.Values["controller"]?.ToString();
     string Act(string ctrl) => c == ctrl ? "active" : "";
     var pendingCount = Db.Tickets.Count(t => t.ApprovalStatus == ApprovalStatus.Pending);
+    var ncCount = Db.Nonconformities.Count(n => n.Status != NonconformityStatus.Closed);
 }
 <!DOCTYPE html>
 <html lang="tr">
@@ -32,7 +33,16 @@
                     @if (pendingCount > 0) { <span class="nav-count">@pendingCount</span> }
                 </a>
                 <a class="nav-link @Act("Surveys")" asp-controller="Surveys" asp-action="Index"><i class="bi bi-chat-square-heart"></i><span>Anketler</span></a>
+                <a class="nav-link @Act("Nonconformities")" asp-controller="Nonconformities" asp-action="Index">
+                    <i class="bi bi-clipboard2-x"></i><span>Uygunsuzluklar</span>
+                    @if (ncCount > 0) { <span class="nav-count">@ncCount</span> }
+                </a>
+                <a class="nav-link @Act("Knowledge")" asp-controller="Knowledge" asp-action="Index"><i class="bi bi-journal-text"></i><span>Bilgi Bankası</span></a>
                 <a class="nav-link @Act("Users")" asp-controller="Users" asp-action="Index"><i class="bi bi-people"></i><span>Kullanıcılar</span></a>
+                @if (Me.Role == UserRole.Admin)
+                {
+                    <a class="nav-link @Act("Catalog")" asp-controller="Catalog" asp-action="Index"><i class="bi bi-tags"></i><span>Katalog</span></a>
+                }
                 <a class="nav-link @Act("Notifications")" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell"></i><span>Bildirimler</span></a>
             </nav>
 

@@ -59,6 +59,7 @@ public class SlaMonitorService : BackgroundService
         using var scope = _scopes.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var notify = scope.ServiceProvider.GetRequiredService<NotificationService>();
+        var nc = scope.ServiceProvider.GetRequiredService<NonconformityService>();
 
         var now = AppTime.UtcNow;
         var warnThreshold = now.AddMinutes(WarningMinutesBefore);
@@ -102,8 +103,11 @@ public class SlaMonitorService : BackgroundService
                 t.IsEscalated = true;
 
                 await NotifyOwnersAsync(db, notify, t, NotificationType.SlaBreach,
-                    $"SLA ihlali: #{t.Id} {t.Title}",
+                    $"SLA ihlali: {Ui.TicketNo(t)} {t.Title}",
                     "Çözüm süresi aşıldı, talep eskalasyona alındı.");
+
+                // İhlal bir kalite kaydı doğurur (ISO 9001 md. 10.2)
+                await nc.QueueForSlaBreachAsync(t);
 
                 changed = true;
             }

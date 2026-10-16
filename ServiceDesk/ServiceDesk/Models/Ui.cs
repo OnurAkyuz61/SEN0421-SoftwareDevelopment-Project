@@ -30,9 +30,33 @@ public static class Ui
     // Kategori artık enum değil tablo; ad doğrudan kayıttan gelir
     public static string CategoryText(Category? c) => c?.Name ?? "-";
 
+    public static string NonconformityStatusText(NonconformityStatus s) => s switch
+    {
+        NonconformityStatus.Closed => "Kapalı", NonconformityStatus.InProgress => "İşlemde", _ => "Açık"
+    };
+
+    public static string NonconformitySourceText(NonconformitySource s) => s switch
+    {
+        NonconformitySource.SlaBreach => "SLA ihlali",
+        NonconformitySource.LowSatisfaction => "Düşük memnuniyet",
+        NonconformitySource.Audit => "İç denetim",
+        _ => "Elle açıldı"
+    };
+
     public static string RiskText(RiskLevel r) => r switch
     {
         RiskLevel.High => "Yüksek", RiskLevel.Medium => "Orta", _ => "Düşük"
+    };
+
+    public static string LoginResultText(LoginResult r) => r switch
+    {
+        LoginResult.Success => "Başarılı",
+        LoginResult.WrongPassword => "Şifre hatalı",
+        LoginResult.UnknownEmail => "Hesap yok",
+        LoginResult.NoPhone => "Telefon tanımsız",
+        LoginResult.OtpFailed => "OTP hatalı",
+        LoginResult.OtpExpired => "OTP süresi doldu",
+        _ => "Çok fazla deneme"
     };
 
     public static string RoleText(UserRole r) => r switch

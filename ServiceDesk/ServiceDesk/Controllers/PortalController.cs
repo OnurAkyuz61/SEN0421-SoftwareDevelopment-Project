@@ -18,15 +18,18 @@ public class PortalController : Controller
     private readonly CurrentUser _current;
     private readonly TicketSlaService _sla;
     private readonly NotificationService _notify;
+    private readonly NonconformityService _nonconformity;
 
     public PortalController(AppDbContext db, FileStorage files, CurrentUser current,
-                            TicketSlaService sla, NotificationService notify)
+                            TicketSlaService sla, NotificationService notify,
+                            NonconformityService nonconformity)
     {
         _db = db;
         _files = files;
         _current = current;
         _sla = sla;
         _notify = notify;
+        _nonconformity = nonconformity;
     }
 
     public async Task<IActionResult> Index()
@@ -68,7 +71,7 @@ public class PortalController : Controller
         ticket.RequesterName = me.FullName;
         ModelState.Remove(nameof(Ticket.RequesterName));
 
-        var category = await _db.Categories.FirstOrDefaultAsync(c => c.Id == ticket.CategoryId && c.IsActive);
+        var category = await _db.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == ticket.CategoryId && c.IsActive);
         if (category == null) ModelState.AddModelError(nameof(Ticket.CategoryId), "Geçerli bir kategori seçin.");
 
         var fileError = FileStorage.Validate(files);
@@ -120,15 +123,26 @@ public class PortalController : Controller
     public async Task<IActionResult> Details(int id)
     {
         var ticket = await _db.Tickets
-            .Include(t => t.Feedback)
+            .Include(t => t.Survey)!.ThenInclude(r => r!.Answers).ThenInclude(a => a.Question)
             .Include(t => t.Attachments)
             .Include(t => t.Assignee)
             .Include(t => t.Comments).ThenInclude(c => c.Author)
             .Include(t => t.Comments).ThenInclude(c => c.Attachments)
             .Include(t => t.Category)
+            .AsNoTracking()
+            // Birden fazla koleksiyon include ediliyor: tek sorgu kartezyen
+            // çarpım üretir, ayrı sorgulara bölünür
+            .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
 
         if (ticket == null) return NotFound();
+
+        // Anket soruları: talep kapandığında form bunlardan üretilir
+        ViewBag.SurveyQuestions = await _db.SurveyQuestions
+            .AsNoTracking()
+            .Where(q => q.IsActive && q.Template!.IsActive)
+            .OrderBy(q => q.SortOrder)
+            .ToListAsync();
 
         // İç notlar kullanıcıya gösterilmez
         ticket.Comments = ticket.Comments
@@ -217,21 +231,63 @@ public class PortalController : Controller
         return RedirectToAction(nameof(Details), new { id });
     }
 
+    // Çok soruluk memnuniyet anketi. Puanlar form üzerinde "q{soruId}" adıyla gelir.
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Feedback(int id, int score, string? comment)
+    public async Task<IActionResult> Feedback(int id, string? comment)
     {
         var ticket = await _db.Tickets
             .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
         if (ticket == null) return NotFound();
 
-        var exists = await _db.Feedbacks.AnyAsync(f => f.TicketId == id);
-        if (!exists && score is >= 1 and <= 5
-            && ticket.Status is TicketStatus.Resolved or TicketStatus.Closed)
+        if (ticket.Status is not (TicketStatus.Resolved or TicketStatus.Closed))
         {
-            _db.Feedbacks.Add(new Feedback { TicketId = id, Score = score, Comment = comment });
-            await _db.SaveChangesAsync();
-            TempData["Ok"] = "Değerlendirmeniz için teşekkürler.";
+            TempData["Err"] = "Talep kapanmadan değerlendirme yapılamaz.";
+            return RedirectToAction(nameof(Details), new { id });
         }
+
+        if (await _db.SurveyResponses.AnyAsync(r => r.TicketId == id))
+        {
+            TempData["Err"] = "Bu talebi zaten değerlendirdiniz.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var template = await _db.SurveyTemplates
+            .Include(t => t.Questions.Where(q => q.IsActive))
+            .FirstOrDefaultAsync(t => t.IsActive);
+        if (template == null) return NotFound();
+
+        var response = new SurveyResponse
+        {
+            TicketId = id,
+            TemplateId = template.Id,
+            SubmittedById = _current.User!.Id,
+            Comment = comment
+        };
+
+        foreach (var q in template.Questions)
+        {
+            if (!int.TryParse(Request.Form[$"q{q.Id}"], out var score)) continue;
+            if (score is < 1 or > 5) continue;
+            response.Answers.Add(new SurveyAnswer { QuestionId = q.Id, Score = score });
+        }
+
+        if (response.Answers.Count == 0)
+        {
+            TempData["Err"] = "Lütfen en az bir soruyu puanlayın.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        _db.SurveyResponses.Add(response);
+
+        // Eşik altı memnuniyet kalite kaydı doğurur (ISO 9001 md. 10.2)
+        var ortalama = response.Answers.Average(a => a.Score);
+        var acildi = await _nonconformity.QueueForLowSatisfactionAsync(ticket, ortalama, comment);
+
+        await _db.SaveChangesAsync();
+
+        TempData["Ok"] = acildi
+            ? "Değerlendirmeniz alındı. Memnuniyetsizliğiniz kalite kaydı olarak açıldı, ekibimiz inceleyecek."
+            : "Değerlendirmeniz için teşekkürler.";
         return RedirectToAction(nameof(Details), new { id });
     }
 }

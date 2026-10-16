@@ -1,0 +1,172 @@
+@model List<Category>
+@{
+    ViewData["Title"] = "Katalog Yönetimi";
+    var birimler = (List<Department>)ViewBag.Departments;
+    var ekipler = (List<Team>)ViewBag.Teams;
+    var sayilar = (Dictionary<int, int>)ViewBag.TicketCounts;
+}
+
+<div class="mb-4">
+    <h4 class="fw-bold mb-1">Katalog yönetimi</h4>
+    <div class="text-muted">
+        Kategori, birim ve ekipler veritabanında tutulur; buradan yönetilir.
+        Kayıtlar silinmez, pasifleştirilir — geçmiş talepler bağlı kalır.
+    </div>
+</div>
+
+@* ── Kategoriler ──────────────────────────────────────────────────────── *@
+<div class="panel mb-4">
+    <div class="panel-head">Kategoriler <span class="text-muted small fw-normal">@Model.Count kayıt</span></div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr><th style="width:28%">Ad</th><th style="width:24%">Varsayılan ekip</th>
+                    <th style="width:12%">Sıra</th><th style="width:12%">Durum</th>
+                    <th style="width:12%">Talep</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <form asp-action="SaveCategory" method="post">
+                            <input type="hidden" name="id" value="@c.Id" />
+                            <td><input name="name" value="@c.Name" class="form-control form-control-sm" required /></td>
+                            <td>
+                                <select name="defaultTeamId" class="form-select form-select-sm">
+                                    <option value="">-</option>
+                                    @foreach (var t in ekipler)
+                                    {
+                                        <option value="@t.Id" selected="@(t.Id == c.DefaultTeamId)">@t.Name</option>
+                                    }
+                                </select>
+                            </td>
+                            <td><input name="sortOrder" type="number" value="@c.SortOrder" class="form-control form-control-sm" /></td>
+                            <td>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" name="isActive" value="true"
+                                           id="cat@(c.Id)" checked="@c.IsActive" />
+                                    <label class="form-check-label small" for="cat@(c.Id)">Aktif</label>
+                                </div>
+                            </td>
+                            <td class="small text-muted">@(sayilar.TryGetValue(c.Id, out var n) ? n : 0)</td>
+                            <td class="text-end"><button class="btn btn-sm btn-outline-primary">Kaydet</button></td>
+                        </form>
+                    </tr>
+                }
+                <tr class="table-light">
+                    <form asp-action="SaveCategory" method="post">
+                        <input type="hidden" name="id" value="0" />
+                        <td><input name="name" class="form-control form-control-sm" placeholder="Yeni kategori" required /></td>
+                        <td>
+                            <select name="defaultTeamId" class="form-select form-select-sm">
+                                <option value="">-</option>
+                                @foreach (var t in ekipler) { <option value="@t.Id">@t.Name</option> }
+                            </select>
+                        </td>
+                        <td><input name="sortOrder" type="number" value="60" class="form-control form-control-sm" /></td>
+                        <td><input type="hidden" name="isActive" value="true" /><span class="small text-muted">Aktif</span></td>
+                        <td></td>
+                        <td class="text-end"><button class="btn btn-sm btn-primary">Ekle</button></td>
+                    </form>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-3">
+    @* ── Birimler ────────────────────────────────────────────────────── *@
+    <div class="col-lg-5">
+        <div class="panel h-100">
+            <div class="panel-head">Birimler</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 align-middle">
+                    <tbody>
+                        @foreach (var d in birimler)
+                        {
+                            <tr>
+                                <form asp-action="SaveDepartment" method="post">
+                                    <input type="hidden" name="id" value="@d.Id" />
+                                    <td><input name="name" value="@d.Name" class="form-control form-control-sm" required /></td>
+                                    <td style="width:90px">
+                                        <div class="form-check mb-0">
+                                            <input class="form-check-input" type="checkbox" name="isActive" value="true"
+                                                   id="dep@(d.Id)" checked="@d.IsActive" />
+                                            <label class="form-check-label small" for="dep@(d.Id)">Aktif</label>
+                                        </div>
+                                    </td>
+                                    <td class="text-end" style="width:90px">
+                                        <button class="btn btn-sm btn-outline-primary">Kaydet</button>
+                                    </td>
+                                </form>
+                            </tr>
+                        }
+                        <tr class="table-light">
+                            <form asp-action="SaveDepartment" method="post">
+                                <input type="hidden" name="id" value="0" />
+                                <input type="hidden" name="isActive" value="true" />
+                                <td><input name="name" class="form-control form-control-sm" placeholder="Yeni birim" required /></td>
+                                <td></td>
+                                <td class="text-end"><button class="btn btn-sm btn-primary">Ekle</button></td>
+                            </form>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* ── Ekipler ─────────────────────────────────────────────────────── *@
+    <div class="col-lg-7">
+        <div class="panel h-100">
+            <div class="panel-head">Ekipler</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 align-middle">
+                    <tbody>
+                        @foreach (var t in ekipler)
+                        {
+                            <tr>
+                                <form asp-action="SaveTeam" method="post">
+                                    <input type="hidden" name="id" value="@t.Id" />
+                                    <td><input name="name" value="@t.Name" class="form-control form-control-sm" required /></td>
+                                    <td style="width:170px">
+                                        <select name="departmentId" class="form-select form-select-sm">
+                                            @foreach (var d in birimler)
+                                            {
+                                                <option value="@d.Id" selected="@(d.Id == t.DepartmentId)">@d.Name</option>
+                                            }
+                                        </select>
+                                    </td>
+                                    <td style="width:90px">
+                                        <div class="form-check mb-0">
+                                            <input class="form-check-input" type="checkbox" name="isActive" value="true"
+                                                   id="team@(t.Id)" checked="@t.IsActive" />
+                                            <label class="form-check-label small" for="team@(t.Id)">Aktif</label>
+                                        </div>
+                                    </td>
+                                    <td class="text-end" style="width:90px">
+                                        <button class="btn btn-sm btn-outline-primary">Kaydet</button>
+                                    </td>
+                                </form>
+                            </tr>
+                        }
+                        <tr class="table-light">
+                            <form asp-action="SaveTeam" method="post">
+                                <input type="hidden" name="id" value="0" />
+                                <input type="hidden" name="isActive" value="true" />
+                                <td><input name="name" class="form-control form-control-sm" placeholder="Yeni ekip" required /></td>
+                                <td>
+                                    <select name="departmentId" class="form-select form-select-sm">
+                                        @foreach (var d in birimler) { <option value="@d.Id">@d.Name</option> }
+                                    </select>
+                                </td>
+                                <td></td>
+                                <td class="text-end"><button class="btn btn-sm btn-primary">Ekle</button></td>
+                            </form>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -16,7 +16,14 @@ public class AppDbContext : DbContext
 
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<SlaPolicy> SlaPolicies => Set<SlaPolicy>();
-    public DbSet<Feedback> Feedbacks => Set<Feedback>();
+    public DbSet<SurveyTemplate> SurveyTemplates => Set<SurveyTemplate>();
+    public DbSet<SurveyQuestion> SurveyQuestions => Set<SurveyQuestion>();
+    public DbSet<SurveyResponse> SurveyResponses => Set<SurveyResponse>();
+    public DbSet<SurveyAnswer> SurveyAnswers => Set<SurveyAnswer>();
+    public DbSet<KpiSnapshot> KpiSnapshots => Set<KpiSnapshot>();
+    public DbSet<Nonconformity> Nonconformities => Set<Nonconformity>();
+    public DbSet<KnowledgeArticle> KnowledgeArticles => Set<KnowledgeArticle>();
+    public DbSet<LoginAttempt> LoginAttempts => Set<LoginAttempt>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
     public DbSet<TicketComment> TicketComments => Set<TicketComment>();
@@ -34,11 +41,11 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        // Ticket 1 - 0..1 Feedback
-        mb.Entity<Ticket>()
-          .HasOne(t => t.Feedback)
-          .WithOne(f => f.Ticket)
-          .HasForeignKey<Feedback>(f => f.TicketId);
+        // Ticket 1 - 0..1 SurveyResponse
+        mb.Entity<SurveyResponse>()
+          .HasOne(r => r.Ticket).WithOne(t => t.Survey)
+          .HasForeignKey<SurveyResponse>(r => r.TicketId)
+          .OnDelete(DeleteBehavior.Cascade);
 
         // Ticket 1 - N Attachment (talep silinirse ekleri de silinir)
         mb.Entity<Attachment>()
@@ -229,11 +236,88 @@ public class AppDbContext : DbContext
         // Aynı kişi aynı adımda iki kez karar veremez
         mb.Entity<ChangeApproval>().HasIndex(a => new { a.TicketId, a.Step, a.ApproverId }).IsUnique();
 
+        // ── ISO kalite katmanı ───────────────────────────────────────────
+        mb.Entity<SurveyQuestion>()
+          .HasOne(q => q.Template).WithMany(t => t.Questions)
+          .HasForeignKey(q => q.TemplateId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+        mb.Entity<SurveyResponse>()
+          .HasOne(r => r.Template).WithMany()
+          .HasForeignKey(r => r.TemplateId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<SurveyResponse>()
+          .HasOne(r => r.SubmittedBy).WithMany()
+          .HasForeignKey(r => r.SubmittedById)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<SurveyAnswer>()
+          .HasOne(a => a.Response).WithMany(r => r.Answers)
+          .HasForeignKey(a => a.ResponseId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+        mb.Entity<SurveyAnswer>()
+          .HasOne(a => a.Question).WithMany()
+          .HasForeignKey(a => a.QuestionId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<SurveyAnswer>().HasIndex(a => new { a.ResponseId, a.QuestionId }).IsUnique();
+        mb.Entity<SurveyResponse>().Ignore(r => r.Average);
+
+        // Aynı dönem ve birim için tek anlık görüntü
+        mb.Entity<KpiSnapshot>()
+          .HasOne(k => k.Department).WithMany()
+          .HasForeignKey(k => k.DepartmentId)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<KpiSnapshot>()
+          .HasIndex(k => new { k.Period, k.PeriodStart, k.DepartmentId }).IsUnique();
+
+        // Oran ve ortalamalar: varsayılan hassasiyette sessizce kırpılmasın
+        mb.Entity<KpiSnapshot>().Property(k => k.SlaComplianceRate).HasPrecision(5, 1);
+        mb.Entity<KpiSnapshot>().Property(k => k.AvgResolutionHours).HasPrecision(9, 1);
+        mb.Entity<KpiSnapshot>().Property(k => k.AvgFirstResponseHours).HasPrecision(9, 1);
+        mb.Entity<KpiSnapshot>().Property(k => k.CsatAverage).HasPrecision(3, 2);
+
+        mb.Entity<Nonconformity>()
+          .HasOne(n => n.Ticket).WithMany()
+          .HasForeignKey(n => n.TicketId)
+          .OnDelete(DeleteBehavior.NoAction);
+        mb.Entity<Nonconformity>()
+          .HasOne(n => n.Responsible).WithMany()
+          .HasForeignKey(n => n.ResponsibleId)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<Nonconformity>().HasIndex(n => new { n.Status, n.DueAt });
+        mb.Entity<Nonconformity>().Ignore(n => n.IsOverdue);
+
+        mb.Entity<KnowledgeArticle>()
+          .HasOne(a => a.Category).WithMany()
+          .HasForeignKey(a => a.CategoryId)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<KnowledgeArticle>()
+          .HasOne(a => a.Author).WithMany()
+          .HasForeignKey(a => a.AuthorId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<Ticket>()
+          .HasOne(t => t.ResolvedByArticle).WithMany()
+          .HasForeignKey(t => t.ResolvedByArticleId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        // Giriş denemeleri: kullanıcı silinmese de kayıt bağımsız durur
+        mb.Entity<LoginAttempt>()
+          .HasOne(l => l.User).WithMany()
+          .HasForeignKey(l => l.UserId)
+          .OnDelete(DeleteBehavior.SetNull);
+        mb.Entity<LoginAttempt>().HasIndex(l => new { l.Email, l.AttemptedAt });
+        mb.Entity<LoginAttempt>().Ignore(l => l.IsSuccess);
+
         mb.Entity<Ticket>().HasQueryFilter(t => !t.IsDeleted);
         mb.Entity<ChangeDetail>().HasQueryFilter(d => !d.Ticket!.IsDeleted);
         mb.Entity<ChangeApproval>().HasQueryFilter(a => !a.Ticket!.IsDeleted);
         mb.Entity<Attachment>().HasQueryFilter(a => !a.Ticket!.IsDeleted);
-        mb.Entity<Feedback>().HasQueryFilter(f => !f.Ticket!.IsDeleted);
+        mb.Entity<SurveyResponse>().HasQueryFilter(r => !r.Ticket!.IsDeleted);
+        mb.Entity<SurveyAnswer>().HasQueryFilter(a => !a.Response!.Ticket!.IsDeleted);
         mb.Entity<TicketComment>().HasQueryFilter(c => !c.Ticket!.IsDeleted);
         mb.Entity<TicketHistory>().HasQueryFilter(h => !h.Ticket!.IsDeleted);
         mb.Entity<EscalationRecord>().HasQueryFilter(e => !e.Ticket!.IsDeleted);
@@ -344,56 +428,24 @@ public class AppDbContext : DbContext
             new Category { Id = 5, Name = "Hesap / Erişim", DefaultTeamId = 2, SortOrder = 40, IsActive = true },
             new Category { Id = 6, Name = "E-posta", DefaultTeamId = 1, SortOrder = 50, IsActive = true });
 
+        // Memnuniyet anketi: üç boyut ayrı ayrı ölçülür ki hangi tarafta
+        // iyileştirme gerektiği görülebilsin
+        mb.Entity<SurveyTemplate>().HasData(
+            new SurveyTemplate { Id = 1, Name = "Destek Memnuniyet Anketi", IsActive = true });
+
+        mb.Entity<SurveyQuestion>().HasData(
+            new SurveyQuestion { Id = 1, TemplateId = 1, Text = "Çözüm hızından memnun kaldınız mı?", SortOrder = 10, IsActive = true },
+            new SurveyQuestion { Id = 2, TemplateId = 1, Text = "Sorununuz kalıcı olarak çözüldü mü?", SortOrder = 20, IsActive = true },
+            new SurveyQuestion { Id = 3, TemplateId = 1, Text = "Destek ekibinin ilgisinden memnun kaldınız mı?", SortOrder = 30, IsActive = true });
+
         mb.Entity<EscalationRule>().HasData(
             new EscalationRule { Id = 1, Level = 1, AfterMinutes = 0, TargetRole = UserRole.Agent, IsActive = true },
             new EscalationRule { Id = 2, Level = 2, AfterMinutes = 120, TargetRole = UserRole.Admin, IsActive = true });
 
-        // Demo kullanıcılar. Şifre özetleri PasswordHasher<AppUser> biçiminde SABİT
-        // değerlerdir (sırasıyla admin123 / agent123 / user123). Hash her derlemede
-        // yeniden üretilseydi tuz değişir, EF her seferinde "model değişti" deyip
-        // boş migration üretirdi. Yeni şifre gerekirse özeti bir kez üretip buraya yapıştır.
-        var seedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        mb.Entity<AppUser>().HasData(
-            new AppUser
-            {
-                Id = 1,
-                FirstName = "Demo",
-                LastName = "Yönetici",
-                Email = "admin@servicedesk.local",
-                PasswordHash = "AQAAAAIAAYagAAAAEFi3JF03e5L+rT0TFVRNIDpLX9U4gHjj97qMn+Eb/motK5gw/4voqGzIWdLDQnLoRg==",
-                PhoneNumber = "05321234567",
-                Role = UserRole.Admin,
-                DepartmentId = 1,
-                IsActive = true,
-                CreatedAt = seedDate
-            },
-            new AppUser
-            {
-                Id = 2,
-                FirstName = "Ayşe",
-                LastName = "Destek",
-                Email = "agent@servicedesk.local",
-                PasswordHash = "AQAAAAIAAYagAAAAEGkvNowp+RHWmgqpxlh3o9uxa4AB+oXFA7R1IxRkUxU8Phrot1adAxfk+tsgti4wag==",
-                PhoneNumber = "05329876543",
-                Role = UserRole.Agent,
-                DepartmentId = 1,
-                TeamId = 1,
-                IsActive = true,
-                CreatedAt = seedDate
-            },
-            new AppUser
-            {
-                Id = 3,
-                FirstName = "Mehmet",
-                LastName = "Kullanıcı",
-                Email = "user@servicedesk.local",
-                PasswordHash = "AQAAAAIAAYagAAAAEGCuZpCsLC2ztoJiLtcHCbzkXXyQBZZ6US8lq80NpQ9uHcFc6ORCHZpysx1O4810DA==",
-                PhoneNumber = "05321112233",
-                Role = UserRole.User,
-                DepartmentId = 2,
-                IsActive = true,
-                CreatedAt = seedDate
-            });
+        // NOT: Demo kullanıcılar burada DEĞİL. Referans veri (politika, kategori,
+        // takvim, anket şablonu) her ortamda gerekli olduğu için HasData ile gelir;
+        // test hesapları yalnızca Development ortamında DevDataSeeder tarafından
+        // oluşturulur. Böylece canlı veritabanına bilinen şifreli hesap yazılmaz.
     }
 
     // Talep üzerindeki alan değişiklikleri kaydedilmeden önce geçmişe yazılır.

@@ -20,14 +20,17 @@ public class AccountController : Controller
     private readonly IPasswordHasher<AppUser> _hasher;
     private readonly CurrentUser _current;
     private readonly IWebHostEnvironment _env;
+    private readonly LoginAuditService _audit;
 
     public AccountController(AppDbContext db, IPasswordHasher<AppUser> hasher,
-                             CurrentUser current, IWebHostEnvironment env)
+                             CurrentUser current, IWebHostEnvironment env,
+                             LoginAuditService audit)
     {
         _db = db;
         _hasher = hasher;
         _current = current;
         _env = env;
+        _audit = audit;
     }
 
     [HttpGet]
@@ -44,6 +47,15 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid) return View(vm);
 
+        // Art arda başarısız denemelerden sonra hesap geçici olarak kapanır
+        if (await _audit.IsLockedOutAsync(vm.Email))
+        {
+            await _audit.RecordAsync(vm.Email, LoginResult.LockedOut);
+            ModelState.AddModelError(string.Empty,
+                $"Çok fazla başarısız deneme yapıldı. {LoginAuditService.Window.TotalMinutes:0} dakika sonra tekrar deneyin.");
+            return View(vm);
+        }
+
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == vm.Email && u.IsActive);
 
         // Kullanıcı bulunamasa da şifre doğrulaması yapılır ki yanıt süresinden
@@ -54,12 +66,19 @@ public class AccountController : Controller
 
         if (user is null || !verified)
         {
-            ModelState.AddModelError(string.Empty, "E-posta veya şifre hatalı.");
+            await _audit.RecordAsync(vm.Email,
+                user is null ? LoginResult.UnknownEmail : LoginResult.WrongPassword, user?.Id);
+
+            var kalan = _audit.RemainingAttempts(await _audit.RecentFailuresAsync(vm.Email));
+            ModelState.AddModelError(string.Empty, kalan <= 2
+                ? $"E-posta veya şifre hatalı. Kalan deneme hakkı: {kalan}."
+                : "E-posta veya şifre hatalı.");
             return View(vm);
         }
 
         if (string.IsNullOrWhiteSpace(user.PhoneNumber))
         {
+            await _audit.RecordAsync(vm.Email, LoginResult.NoPhone, user.Id);
             ModelState.AddModelError(string.Empty,
                 "Bu hesapta doğrulama için telefon numarası tanımlı değil. Yöneticinize başvurun.");
             return View(vm);
@@ -187,6 +206,9 @@ public class AccountController : Controller
         if (!DateTime.TryParse(expiresRaw, null, System.Globalization.DateTimeStyles.RoundtripKind, out var expires)
             || DateTime.UtcNow > expires)
         {
+            await _audit.RecordAsync(_db.Users.Where(u => u.Id == HttpContext.Session.GetInt32(SessUserId))
+                                        .Select(u => u.Email).FirstOrDefault() ?? "",
+                                     LoginResult.OtpExpired, HttpContext.Session.GetInt32(SessUserId));
             ModelState.AddModelError(nameof(vm.Code), "Kodun süresi doldu. Yeni kod isteyin.");
             return View(vm);
         }
@@ -194,6 +216,18 @@ public class AccountController : Controller
         var expected = HttpContext.Session.GetString(SessCode);
         if (!string.Equals(vm.Code, expected, StringComparison.Ordinal))
         {
+            var bekleyenId = HttpContext.Session.GetInt32(SessUserId);
+            var eposta = await _db.Users.Where(u => u.Id == bekleyenId).Select(u => u.Email).FirstOrDefaultAsync() ?? "";
+            await _audit.RecordAsync(eposta, LoginResult.OtpFailed, bekleyenId);
+
+            // Kod da sınırsız denenemez
+            if (await _audit.IsLockedOutAsync(eposta))
+            {
+                ClearOtpSession();
+                TempData["Err"] = "Çok fazla hatalı kod girildi. Lütfen yeniden giriş yapın.";
+                return RedirectToAction(nameof(Login));
+            }
+
             ModelState.AddModelError(nameof(vm.Code), "Kod hatalı. Tekrar deneyin.");
             return View(vm);
         }
@@ -206,6 +240,8 @@ public class AccountController : Controller
             ModelState.AddModelError(string.Empty, "Hesap bulunamadı veya pasif durumda.");
             return RedirectToAction(nameof(Login));
         }
+
+        await _audit.RecordAsync(user.Email, LoginResult.Success, user.Id);
 
         HttpContext.Session.SetInt32(SessAuthed, user.Id);
         ClearOtpSession();

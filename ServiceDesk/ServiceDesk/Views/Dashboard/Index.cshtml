@@ -101,12 +101,13 @@
             <div class="panel-head">Son değerlendirmeler <a asp-controller="Surveys" asp-action="Index" class="small fw-normal">Tümü</a></div>
             <div class="table-responsive">
                 <table class="table">
-                    @if (!Model.LatestFeedback.Any()) { <tr><td class="text-muted text-center py-4">Henüz değerlendirme yok</td></tr> }
-                    @foreach (var f in Model.LatestFeedback)
+                    @if (!Model.LatestSurveys.Any()) { <tr><td class="text-muted text-center py-4">Henüz değerlendirme yok</td></tr> }
+                    @foreach (var f in Model.LatestSurveys)
                     {
                         <tr>
-                            <td><span class="fw-semibold">@f.Score / 5</span></td>
-                            <td><div>@(f.Comment ?? "-")</div><div class="small text-muted">#@f.TicketId @f.Ticket?.Title</div></td>
+                            @{ var fOrt = f.Answers.Count == 0 ? 0 : f.Answers.Average(a => a.Score); }
+                            <td><span class="fw-semibold">@fOrt.ToString("0.0") / 5</span></td>
+                            <td><div>@(f.Comment ?? "-")</div><div class="small text-muted">@(f.Ticket == null ? "#" + f.TicketId : Ui.TicketNo(f.Ticket)) @f.Ticket?.Title</div></td>
                             <td class="text-end small text-muted">@AppTime.ToLocal(f.CreatedAt).ToString("dd.MM")</td>
                         </tr>
                     }

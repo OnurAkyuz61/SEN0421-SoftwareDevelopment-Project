@@ -23,7 +23,7 @@ public class AttachmentsController : Controller
 
     public async Task<IActionResult> Get(int id, bool download = false)
     {
-        var a = await _db.Attachments.Include(x => x.Ticket).FirstOrDefaultAsync(x => x.Id == id);
+        var a = await _db.Attachments.AsNoTracking().Include(x => x.Ticket).FirstOrDefaultAsync(x => x.Id == id);
         if (a == null || !System.IO.File.Exists(_files.PathOf(a))) return NotFound();
 
         // Destek ve yönetici her eke erişir; son kullanıcı yalnızca kendi talebinin ekine.

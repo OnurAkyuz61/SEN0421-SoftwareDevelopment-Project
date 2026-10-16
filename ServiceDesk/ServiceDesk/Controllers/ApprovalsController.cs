@@ -25,11 +25,13 @@ public class ApprovalsController : Controller
     public async Task<IActionResult> Index()
     {
         ViewBag.History = await _db.Tickets
+            .AsNoTracking()
             .Include(t => t.Category)
             .Where(t => t.ApprovalStatus == ApprovalStatus.Approved || t.ApprovalStatus == ApprovalStatus.Rejected)
             .OrderByDescending(t => t.ApprovalDecidedAt).Take(10).ToListAsync();
 
         return View(await _db.Tickets
+            .AsNoTracking()
             .Include(t => t.Category)
             .Include(t => t.ChangeDetail)
             .Include(t => t.Approvals).ThenInclude(a => a.Approver)

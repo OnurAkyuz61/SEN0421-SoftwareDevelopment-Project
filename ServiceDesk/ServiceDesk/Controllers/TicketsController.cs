@@ -52,7 +52,7 @@ public class TicketsController : Controller
     public async Task<IActionResult> Details(int id)
     {
         var ticket = await _db.Tickets
-            .Include(t => t.Feedback)
+            .Include(t => t.Survey)!.ThenInclude(r => r!.Answers).ThenInclude(a => a.Question)
             .Include(t => t.Attachments)
             .Include(t => t.Assignee)
             .Include(t => t.Requester)
@@ -65,6 +65,10 @@ public class TicketsController : Controller
             .Include(t => t.AssignedTeam)
             .Include(t => t.ChangeDetail)
             .Include(t => t.Approvals).ThenInclude(a => a.Approver)
+            .AsNoTracking()
+            // Birden fazla koleksiyon include ediliyor: tek sorgu kartezyen
+            // çarpım üretir, ayrı sorgulara bölünür
+            .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == id);
         if (ticket == null) return NotFound();
 
@@ -73,6 +77,11 @@ public class TicketsController : Controller
         ticket.Escalations = ticket.Escalations.OrderByDescending(e => e.OccurredAt).ToList();
 
         // Atama listesi: aktif Destek ve Yönetici rolündeki kullanıcılar
+        ViewBag.Articles = await _db.KnowledgeArticles.AsNoTracking()
+            .Where(a => a.IsPublished)
+            .OrderBy(a => a.Title)
+            .ToListAsync();
+
         ViewBag.Staff = await _db.Users
             .Where(u => u.Role != UserRole.User && u.IsActive)
             .OrderBy(u => u.FirstName).ThenBy(u => u.LastName)
@@ -103,40 +112,24 @@ public class TicketsController : Controller
             }
         }
 
-        // Onaylanmamış değişiklik talebi üzerinde çalışılamaz (Change Management kuralı)
-        if (ticket.Type == TicketType.Change && ticket.ApprovalStatus != ApprovalStatus.Approved
-            && status is TicketStatus.InProgress or TicketStatus.Resolved)
+        // Durum geçiş kuralları tek yerde: Services/TicketWorkflow
+        var karar = TicketWorkflow.CanTransition(ticket, status);
+        if (!karar.Allowed)
         {
-            TempData["Err"] = "Bu değişiklik talebi onaylanmadan işleme alınamaz.";
+            TempData["Err"] = karar.Error;
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        var wasFinished = ticket.Status is TicketStatus.Resolved or TicketStatus.Closed;
-        var isFinished = status is TicketStatus.Resolved or TicketStatus.Closed;
         var previousAssignee = ticket.AssigneeId;
-
-        ticket.Status = status;
+        TicketWorkflow.Apply(ticket, status, AppTime.UtcNow);
         ticket.AssigneeId = assigneeId;
 
         // Yeni atanan kişiye bildirim
         if (assigneeId != null && assigneeId != previousAssignee)
         {
             _notify.Queue(assigneeId.Value, NotificationType.Assigned,
-                $"Size atandı: #{ticket.Id} {ticket.Title}",
+                $"Size atandı: {Ui.TicketNo(ticket)} {ticket.Title}",
                 $"Hedef çözüm: {AppTime.ToLocal(ticket.SlaDueAt):dd.MM.yyyy HH:mm}", ticket.Id);
-        }
-
-        if (isFinished)
-        {
-            ticket.ResolvedAt ??= AppTime.UtcNow;
-            if (status == TicketStatus.Closed) ticket.ClosedAt ??= AppTime.UtcNow;
-        }
-        else if (wasFinished)
-        {
-            // Yeniden açılış: sayaç artar, önceki çözüm bilgisi geçmişte kalır
-            ticket.ReopenCount++;
-            ticket.ResolvedAt = null;
-            ticket.ClosedAt = null;
         }
 
         try
@@ -261,8 +254,7 @@ public class TicketsController : Controller
         _db.TicketComments.Add(comment);
 
         // İlk yanıt: kullanıcıya görünen ilk destek mesajı SLA'nın yanıt ayağını kapatır
-        if (!isInternal && ticket.FirstRespondedAt == null)
-            ticket.FirstRespondedAt = AppTime.UtcNow;
+        TicketWorkflow.MarkFirstResponse(ticket, isInternal, AppTime.UtcNow);
 
         // Kullanıcıya yazılan yanıt talep sahibine bildirilir; iç not bildirilmez
         if (!isInternal)

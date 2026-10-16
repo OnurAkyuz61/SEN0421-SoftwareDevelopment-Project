@@ -22,6 +22,8 @@
             <nav class="nav">
                 <a class="nav-link @(a == "Index" ? "active" : "")" asp-controller="Portal" asp-action="Index">Taleplerim</a>
                 <a class="nav-link @(a == "Create" ? "active" : "")" asp-controller="Portal" asp-action="Create">Yeni Talep</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Knowledge" ? "active" : "")"
+                   asp-controller="Knowledge" asp-action="Index">Bilgi Bankası</a>
             </nav>
             <div class="ms-auto d-flex align-items-center gap-2">
                 @if (Me.IsStaff)

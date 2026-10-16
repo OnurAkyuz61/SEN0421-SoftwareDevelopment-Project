@@ -220,7 +220,11 @@ public class Ticket
     [Timestamp]
     public byte[]? RowVersion { get; set; }
 
-    public Feedback? Feedback { get; set; }
+    public SurveyResponse? Survey { get; set; }
+
+    // Talep bir bilgi bankası makalesiyle çözüldüyse
+    public int? ResolvedByArticleId { get; set; }
+    public KnowledgeArticle? ResolvedByArticle { get; set; }
     public List<Attachment> Attachments { get; set; } = new();
     public List<TicketComment> Comments { get; set; } = new();
     public List<TicketHistory> History { get; set; } = new();
@@ -391,20 +395,74 @@ public class Notification
     public string? SendError { get; set; }
 }
 
-// Müşteri memnuniyet anketi (1-5)
-public class Feedback
+// ── Müşteri memnuniyeti (ISO 9001 md. 9.1.2) ─────────────────────────────
+// Tek puanlı Feedback yerine şablonlu anket: yönetici soruları düzenleyebilir,
+// hangi boyutta memnuniyetsizlik olduğu ayrıştırılabilir.
+
+public class SurveyTemplate
 {
     public int Id { get; set; }
+
+    [Required, StringLength(100), Display(Name = "Anket")]
+    public string Name { get; set; } = "";
+
+    public bool IsActive { get; set; } = true;
+
+    public List<SurveyQuestion> Questions { get; set; } = new();
+}
+
+public class SurveyQuestion
+{
+    public int Id { get; set; }
+
+    public int TemplateId { get; set; }
+    public SurveyTemplate? Template { get; set; }
+
+    [Required, StringLength(200), Display(Name = "Soru")]
+    public string Text { get; set; } = "";
+
+    public int SortOrder { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+// Bir talebe verilen tek anket cevabı (talep başına en fazla bir tane)
+public class SurveyResponse
+{
+    public int Id { get; set; }
+
     public int TicketId { get; set; }
     public Ticket? Ticket { get; set; }
 
-    [Range(1, 5), Display(Name = "Puan")]
-    public int Score { get; set; }
+    public int TemplateId { get; set; }
+    public SurveyTemplate? Template { get; set; }
+
+    // Anketi kimin doldurduğu artık kayıtlı
+    public int SubmittedById { get; set; }
+    public AppUser? SubmittedBy { get; set; }
 
     [StringLength(500), Display(Name = "Yorum")]
     public string? Comment { get; set; }
 
     public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+
+    public List<SurveyAnswer> Answers { get; set; } = new();
+
+    // Genel memnuniyet: soruların ortalaması
+    public double Average => Answers.Count == 0 ? 0 : Answers.Average(a => a.Score);
+}
+
+public class SurveyAnswer
+{
+    public int Id { get; set; }
+
+    public int ResponseId { get; set; }
+    public SurveyResponse? Response { get; set; }
+
+    public int QuestionId { get; set; }
+    public SurveyQuestion? Question { get; set; }
+
+    [Range(1, 5), Display(Name = "Puan")]
+    public int Score { get; set; }
 }
 
 // Talep üzerindeki yazışma. IsInternal = true olan notlar kullanıcıya gösterilmez.
@@ -535,3 +593,156 @@ public class AppUser
 }
 
 public enum OtpDeliveryChannel { Sms, WhatsApp }
+
+public enum LoginResult
+{
+    [Display(Name = "Başarılı")] Success = 0,
+    [Display(Name = "Şifre hatalı")] WrongPassword = 1,
+    [Display(Name = "Hesap bulunamadı")] UnknownEmail = 2,
+    [Display(Name = "Telefon tanımsız")] NoPhone = 3,
+    [Display(Name = "OTP hatalı")] OtpFailed = 4,
+    [Display(Name = "OTP süresi doldu")] OtpExpired = 5,
+    [Display(Name = "Çok fazla deneme")] LockedOut = 6
+}
+
+// Giriş denemesi denetim izi. Hem güvenlik kaydı hem de deneme
+// sınırlamasının dayandığı veri: art arda başarısız denemeler sayılır.
+public class LoginAttempt
+{
+    public int Id { get; set; }
+
+    public int? UserId { get; set; }
+    public AppUser? User { get; set; }
+
+    [Required, StringLength(150)]
+    public string Email { get; set; } = "";
+
+    [StringLength(45)]
+    public string? IpAddress { get; set; }
+
+    public LoginResult Result { get; set; }
+    public DateTime AttemptedAt { get; set; } = AppTime.UtcNow;
+
+    public bool IsSuccess => Result == LoginResult.Success;
+}
+
+// ── ISO 9001 kalite katmanı ──────────────────────────────────────────────
+
+public enum KpiPeriod
+{
+    [Display(Name = "Günlük")] Daily = 0,
+    [Display(Name = "Aylık")] Monthly = 1
+}
+
+// Dönemsel ölçüm kaydı (md. 9.1.1). Göstergeler her panel açılışında
+// yeniden hesaplanmak yerine dönem kapanınca dondurulur; böylece
+// "geçen aya göre iyileşme" sorusu cevaplanabilir.
+public class KpiSnapshot
+{
+    public int Id { get; set; }
+
+    public KpiPeriod Period { get; set; }
+    public DateTime PeriodStart { get; set; }
+    public DateTime PeriodEnd { get; set; }
+
+    // null = kurum geneli
+    public int? DepartmentId { get; set; }
+    public Department? Department { get; set; }
+
+    public int TotalTickets { get; set; }
+    public int ResolvedTickets { get; set; }
+    public int BreachedTickets { get; set; }
+    public int ReopenCount { get; set; }
+
+    [Display(Name = "SLA uyumu (%)")]
+    public decimal SlaComplianceRate { get; set; }
+
+    [Display(Name = "Ortalama çözüm (saat)")]
+    public decimal AvgResolutionHours { get; set; }
+
+    [Display(Name = "Ortalama ilk yanıt (saat)")]
+    public decimal AvgFirstResponseHours { get; set; }
+
+    [Display(Name = "Memnuniyet")]
+    public decimal CsatAverage { get; set; }
+
+    public DateTime CalculatedAt { get; set; } = AppTime.UtcNow;
+}
+
+public enum NonconformitySource
+{
+    [Display(Name = "SLA ihlali")] SlaBreach = 0,
+    [Display(Name = "Düşük memnuniyet")] LowSatisfaction = 1,
+    [Display(Name = "İç denetim")] Audit = 2,
+    [Display(Name = "Elle açıldı")] Manual = 3
+}
+
+public enum NonconformityStatus
+{
+    [Display(Name = "Açık")] Open = 0,
+    [Display(Name = "İşlemde")] InProgress = 1,
+    [Display(Name = "Kapalı")] Closed = 2
+}
+
+// Uygunsuzluk ve düzeltici faaliyet (md. 10.2). Projeyi sıradan bir talep
+// sisteminden ayıran kayıt: kök neden, alınan önlem, sorumlu, etkinlik kontrolü.
+public class Nonconformity
+{
+    public int Id { get; set; }
+
+    public int? TicketId { get; set; }
+    public Ticket? Ticket { get; set; }
+
+    public NonconformitySource Source { get; set; }
+    public NonconformityStatus Status { get; set; } = NonconformityStatus.Open;
+
+    [Required, StringLength(500), Display(Name = "Uygunsuzluk")]
+    public string Description { get; set; } = "";
+
+    [StringLength(2000), Display(Name = "Kök neden")]
+    public string? RootCause { get; set; }
+
+    [StringLength(2000), Display(Name = "Düzeltici faaliyet")]
+    public string? CorrectiveAction { get; set; }
+
+    public int? ResponsibleId { get; set; }
+    public AppUser? Responsible { get; set; }
+
+    public DateTime DetectedAt { get; set; } = AppTime.UtcNow;
+
+    [Display(Name = "Termin")]
+    public DateTime? DueAt { get; set; }
+
+    public DateTime? ClosedAt { get; set; }
+
+    [Display(Name = "Etkinlik doğrulandı")]
+    public bool? EffectivenessVerified { get; set; }
+
+    public bool IsOverdue => Status != NonconformityStatus.Closed
+                             && DueAt != null && AppTime.UtcNow > DueAt;
+}
+
+// Bilgi bankası ve dokümante edilmiş prosedür (md. 7.5)
+public class KnowledgeArticle
+{
+    public int Id { get; set; }
+
+    [Required, StringLength(200), Display(Name = "Başlık")]
+    public string Title { get; set; } = "";
+
+    [Required, Display(Name = "İçerik")]
+    public string Body { get; set; } = "";
+
+    public int? CategoryId { get; set; }
+    public Category? Category { get; set; }
+
+    public int AuthorId { get; set; }
+    public AppUser? Author { get; set; }
+
+    public bool IsPublished { get; set; } = true;
+    public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+
+    // Bu makaleyle kaç talep çözüldü: makalenin gerçek faydası
+    public int UsedCount { get; set; }
+}

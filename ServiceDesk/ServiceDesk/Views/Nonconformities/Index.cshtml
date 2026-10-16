@@ -1,0 +1,111 @@
+@model List<Nonconformity>
+@{
+    ViewData["Title"] = "Uygunsuzluklar";
+    var staff = (List<AppUser>)ViewBag.Staff;
+    var secili = (NonconformityStatus?)ViewBag.Status;
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="me-auto">
+        <h4 class="fw-bold mb-0">Uygunsuzluk ve düzeltici faaliyet</h4>
+        <div class="text-muted small">ISO 9001 md. 10.2 · açık kayıt: @ViewBag.OpenCount</div>
+    </div>
+    <div class="btn-group btn-group-sm">
+        <a class="btn @(secili == null ? "btn-secondary" : "btn-outline-secondary")" asp-action="Index">Tümü</a>
+        @foreach (var s in Enum.GetValues<NonconformityStatus>())
+        {
+            <a class="btn @(secili == s ? "btn-secondary" : "btn-outline-secondary")"
+               asp-action="Index" asp-route-status="@s">@Ui.NonconformityStatusText(s)</a>
+        }
+    </div>
+</div>
+
+<div class="panel mb-3">
+    <div class="panel-head">Elle uygunsuzluk aç</div>
+    <div class="panel-body">
+        <form asp-action="Create" method="post" class="d-flex gap-2 flex-wrap">
+            <input name="description" class="form-control form-control-sm flex-grow-1" style="min-width:260px"
+                   placeholder="Denetimde veya gözlemle tespit edilen uygunsuzluğu yazın" required />
+            <input name="ticketId" type="number" class="form-control form-control-sm" style="width:130px" placeholder="Talep no (ops.)" />
+            <button class="btn btn-sm btn-primary">Kayıt aç</button>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="panel"><div class="panel-body text-center text-muted py-5">
+        <i class="bi bi-check-circle fs-4 d-block mb-2"></i> Bu filtrede uygunsuzluk kaydı yok
+    </div></div>
+}
+
+@foreach (var n in Model)
+{
+    <div class="panel mb-3 @(n.IsOverdue ? "border-danger" : "")">
+        <div class="panel-head">
+            <span>#@n.Id · @Ui.NonconformitySourceText(n.Source)</span>
+            <span class="tag @(n.Status == NonconformityStatus.Closed ? "tag-green" : n.Status == NonconformityStatus.InProgress ? "tag-amber" : "tag-red")">
+                @Ui.NonconformityStatusText(n.Status)
+            </span>
+            @if (n.IsOverdue) { <span class="tag tag-red">termin geçti</span> }
+            @if (n.TicketId != null)
+            {
+                <a class="small text-decoration-none ms-auto" asp-controller="Tickets" asp-action="Details" asp-route-id="@n.TicketId">
+                    @(n.Ticket == null ? "#" + n.TicketId : Ui.TicketNo(n.Ticket))
+                </a>
+            }
+        </div>
+        <div class="panel-body">
+            <p class="mb-3">@n.Description</p>
+            <div class="small text-muted mb-3">
+                Tespit: @AppTime.ToLocal(n.DetectedAt).ToString("dd.MM.yyyy HH:mm")
+                @if (n.ClosedAt != null) { <text> · Kapanış: @AppTime.ToLocal(n.ClosedAt)?.ToString("dd.MM.yyyy HH:mm")</text> }
+            </div>
+
+            <form asp-action="Update" asp-route-id="@n.Id" method="post">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted mb-1">Kök neden</label>
+                        <textarea name="rootCause" rows="2" class="form-control form-control-sm">@n.RootCause</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted mb-1">Düzeltici faaliyet</label>
+                        <textarea name="correctiveAction" rows="2" class="form-control form-control-sm">@n.CorrectiveAction</textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Sorumlu</label>
+                        <select name="responsibleId" class="form-select form-select-sm">
+                            <option value="">-</option>
+                            @foreach (var u in staff)
+                            {
+                                <option value="@u.Id" selected="@(u.Id == n.ResponsibleId)">@u.FullName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Termin</label>
+                        <input type="datetime-local" name="dueAt" class="form-control form-control-sm"
+                               value="@(AppTime.ToLocal(n.DueAt)?.ToString("yyyy-MM-ddTHH:mm"))" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Durum</label>
+                        <select name="status" class="form-select form-select-sm">
+                            @foreach (var s in Enum.GetValues<NonconformityStatus>())
+                            {
+                                <option value="@s" selected="@(s == n.Status)">@Ui.NonconformityStatusText(s)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="checkbox" name="effectivenessVerified" value="true"
+                                   id="ev@(n.Id)" checked="@(n.EffectivenessVerified == true)" />
+                            <label class="form-check-label small" for="ev@(n.Id)">Etkinlik doğrulandı</label>
+                        </div>
+                        <button class="btn btn-sm btn-primary ms-auto">Kaydet</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+}

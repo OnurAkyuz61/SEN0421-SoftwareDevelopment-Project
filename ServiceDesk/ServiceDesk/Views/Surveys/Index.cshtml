@@ -1,52 +1,93 @@
-@model List<Feedback>
+@model List<SurveyResponse>
+@using ServiceDesk.Controllers
 @{
-    ViewData["Title"] = "Anketler";
+    ViewData["Title"] = "Memnuniyet Anketleri";
+    var avg = (double)ViewBag.Avg;
     var dist = (int[])ViewBag.Dist;
-    var max = Math.Max(1, dist.Max());
+    var byQuestion = (List<QuestionAverage>)ViewBag.ByQuestion;
+    var toplam = dist.Sum();
 }
 
 <div class="row g-3 mb-3">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="stat">
-            <div class="label">Ortalama memnuniyet (CSAT)</div>
-            <div class="value">@ViewBag.Avg <small class="fs-6 text-muted">/ 5</small></div>
-            <div class="hint">@Model.Count değerlendirme</div>
+            <div class="label">Genel memnuniyet</div>
+            <div class="value">@avg.ToString("0.00") <span class="text-muted fs-6">/ 5</span></div>
         </div>
     </div>
-    <div class="col-md-8">
-        <div class="stat">
-            <div class="label mb-2">Puan dağılımı</div>
-            @for (int s = 5; s >= 1; s--)
-            {
-                var n = dist[s - 1];
-                <div class="d-flex align-items-center gap-2 small mb-1" title="@s puan: @n">
-                    <span style="width:14px">@s</span>
-                    <div class="flex-fill" style="background:#f2f3f5;border-radius:4px;height:10px">
-                        <div style="width:@(n * 100 / max)%;background:#2a78d6;height:10px;border-radius:4px"></div>
+    <div class="col-md-3">
+        <div class="stat"><div class="label">Değerlendirme</div><div class="value">@Model.Count</div></div>
+    </div>
+    <div class="col-md-6">
+        <div class="panel h-100">
+            <div class="panel-head">Puan dağılımı</div>
+            <div class="panel-body py-2">
+                @for (var s = 5; s >= 1; s--)
+                {
+                    var adet = dist[s - 1];
+                    var oran = toplam == 0 ? 0 : 100.0 * adet / toplam;
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="small text-muted" style="width:12px">@s</span>
+                        <div class="flex-grow-1 bg-light rounded" style="height:8px">
+                            <div class="rounded" style="height:8px;width:@oran.ToString("0.#")%;background:var(--accent, #0d6efd)"></div>
+                        </div>
+                        <span class="small text-muted" style="width:28px">@adet</span>
                     </div>
-                    <span class="text-muted" style="width:24px;text-align:right">@n</span>
-                </div>
-            }
+                }
+            </div>
         </div>
     </div>
 </div>
 
+<div class="panel mb-3">
+    <div class="panel-head">Soru bazında ortalama <span class="text-muted small fw-normal">hangi boyutta zayıfız</span></div>
+    <table class="table table-sm mb-0">
+        <tbody>
+            @foreach (var q in byQuestion)
+            {
+                <tr>
+                    <td>@q.Text</td>
+                    <td style="width:120px" class="text-end">
+                        <span class="tag @(q.Average >= 4 ? "tag-green" : q.Average >= 3 ? "tag-amber" : "tag-red")">
+                            @q.Average.ToString("0.00") / 5
+                        </span>
+                    </td>
+                    <td style="width:80px" class="text-end small text-muted">@q.Count cevap</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
 <div class="panel">
-    <div class="panel-head">Tüm değerlendirmeler</div>
+    <div class="panel-head">Değerlendirmeler</div>
     <div class="table-responsive">
-        <table class="table">
-            <thead><tr><th>Puan</th><th>Yorum</th><th>Talep</th><th>Tarih</th></tr></thead>
+        <table class="table table-hover">
+            <thead><tr><th>Talep</th><th>Dolduran</th><th>Puanlar</th><th>Yorum</th><th class="text-end">Tarih</th></tr></thead>
             <tbody>
-                @if (!Model.Any()) { <tr><td colspan="4" class="text-center text-muted py-5">Henüz değerlendirme yok</td></tr> }
-                @foreach (var f in Model)
+                @if (!Model.Any())
                 {
+                    <tr><td colspan="5" class="text-center text-muted py-5">Henüz değerlendirme yok</td></tr>
+                }
+                @foreach (var r in Model)
+                {
+                    var ort = r.Answers.Count == 0 ? 0 : r.Answers.Average(a => a.Score);
                     <tr>
-                        <td class="text-nowrap">
-                            @for (int i = 1; i <= 5; i++) { <i class="bi @(i <= f.Score ? "bi-star-fill text-warning" : "bi-star text-muted")"></i> }
+                        <td>
+                            <a class="fw-semibold text-decoration-none" asp-controller="Tickets" asp-action="Details" asp-route-id="@r.TicketId">
+                                @(r.Ticket == null ? "#" + r.TicketId : Ui.TicketNo(r.Ticket))
+                            </a>
+                            <div class="small text-muted">@r.Ticket?.Title</div>
                         </td>
-                        <td>@(f.Comment ?? "-")</td>
-                        <td><a asp-controller="Tickets" asp-action="Details" asp-route-id="@f.TicketId" class="text-decoration-none">#@f.TicketId @f.Ticket?.Title</a></td>
-                        <td class="small text-muted">@AppTime.ToLocal(f.CreatedAt).ToString("dd.MM.yyyy")</td>
+                        <td class="small">@(r.SubmittedBy?.FullName ?? "-")</td>
+                        <td>
+                            <span class="tag @(ort >= 4 ? "tag-green" : ort >= 3 ? "tag-amber" : "tag-red")">@ort.ToString("0.0") / 5</span>
+                            <div class="small text-muted">
+                                @string.Join(" · ", r.Answers.OrderBy(a => a.Question!.SortOrder).Select(a => $"{a.Score}"))
+                            </div>
+                        </td>
+                        <td class="small text-muted">@r.Comment</td>
+                        <td class="text-end small text-muted">@AppTime.ToLocal(r.CreatedAt).ToString("dd.MM.yyyy")</td>
                     </tr>
                 }
             </tbody>
