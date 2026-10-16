@@ -21,6 +21,14 @@ public class AppDbContext : DbContext
     public DbSet<Attachment> Attachments => Set<Attachment>();
     public DbSet<TicketComment> TicketComments => Set<TicketComment>();
     public DbSet<TicketHistory> TicketHistories => Set<TicketHistory>();
+    public DbSet<BusinessCalendar> BusinessCalendars => Set<BusinessCalendar>();
+    public DbSet<Holiday> Holidays => Set<Holiday>();
+    public DbSet<EscalationRule> EscalationRules => Set<EscalationRule>();
+    public DbSet<EscalationRecord> EscalationRecords => Set<EscalationRecord>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<Department> Departments => Set<Department>();
+    public DbSet<Team> Teams => Set<Team>();
+    public DbSet<Category> Categories => Set<Category>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -84,6 +92,103 @@ public class AppDbContext : DbContext
         mb.Entity<TicketComment>().HasIndex(c => new { c.TicketId, c.CreatedAt });
         mb.Entity<TicketHistory>().HasIndex(h => new { h.TicketId, h.ChangedAt });
 
+        // Talep N - 0..1 SlaPolicy: uygulanan taahhüt sabitlenir, politika silinemez
+        mb.Entity<Ticket>()
+          .HasOne(t => t.SlaPolicy)
+          .WithMany()
+          .HasForeignKey(t => t.SlaPolicyId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<SlaPolicy>()
+          .HasOne(s => s.BusinessCalendar)
+          .WithMany()
+          .HasForeignKey(s => s.BusinessCalendarId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<Holiday>()
+          .HasOne(h => h.BusinessCalendar)
+          .WithMany(c => c.Holidays)
+          .HasForeignKey(h => h.BusinessCalendarId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<Holiday>().HasIndex(h => new { h.BusinessCalendarId, h.Date }).IsUnique();
+
+        mb.Entity<EscalationRecord>()
+          .HasOne(e => e.Ticket)
+          .WithMany(t => t.Escalations)
+          .HasForeignKey(e => e.TicketId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+        mb.Entity<EscalationRecord>()
+          .HasOne(e => e.EscalatedTo)
+          .WithMany()
+          .HasForeignKey(e => e.EscalatedToId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<EscalationRule>().HasIndex(r => r.Level).IsUnique();
+
+        mb.Entity<Notification>()
+          .HasOne(n => n.Recipient)
+          .WithMany()
+          .HasForeignKey(n => n.RecipientId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+        // Talep silinirse bildirim de gider; iki cascade yolu çakışmasın diye
+        // talep bağı NoAction (bildirim talebe zorunlu bağlı değil)
+        mb.Entity<Notification>()
+          .HasOne(n => n.Ticket)
+          .WithMany()
+          .HasForeignKey(n => n.TicketId)
+          .OnDelete(DeleteBehavior.NoAction);
+
+        // Zil ve bildirim listesi bu sıralamayla okunuyor
+        mb.Entity<Notification>().HasIndex(n => new { n.RecipientId, n.ReadAt, n.CreatedAt });
+
+        // ── Katalog ve organizasyon ──────────────────────────────────────
+        // Referans tablolar silinmez, IsActive = false ile pasifleştirilir;
+        // bu yüzden bağların tamamı Restrict.
+        mb.Entity<Team>()
+          .HasOne(t => t.Department).WithMany(d => d.Teams)
+          .HasForeignKey(t => t.DepartmentId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<Team>()
+          .HasOne(t => t.LeadUser).WithMany()
+          .HasForeignKey(t => t.LeadUserId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<Category>()
+          .HasOne(c => c.Parent).WithMany(c => c.Children)
+          .HasForeignKey(c => c.ParentId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<Category>()
+          .HasOne(c => c.DefaultTeam).WithMany()
+          .HasForeignKey(c => c.DefaultTeamId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<AppUser>()
+          .HasOne(u => u.Department).WithMany()
+          .HasForeignKey(u => u.DepartmentId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<AppUser>()
+          .HasOne(u => u.Team).WithMany()
+          .HasForeignKey(u => u.TeamId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<Ticket>()
+          .HasOne(t => t.Category).WithMany()
+          .HasForeignKey(t => t.CategoryId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<Ticket>()
+          .HasOne(t => t.AssignedTeam).WithMany()
+          .HasForeignKey(t => t.AssignedTeamId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<Ticket>().HasIndex(t => t.CategoryId);
+        mb.Entity<Category>().HasIndex(c => new { c.IsActive, c.SortOrder });
+
         // Ticket N - 1 AppUser (talep eden). Talebi olan kullanıcı silinemez;
         // ayrılan personel IsActive = false ile pasifleştirilir.
         mb.Entity<Ticket>()
@@ -106,19 +211,93 @@ public class AppDbContext : DbContext
         mb.Entity<Ticket>().HasIndex(t => t.ApprovalStatus);
         mb.Entity<Ticket>().HasIndex(t => t.CreatedAt);
 
-        mb.Entity<SlaPolicy>().HasIndex(s => s.Priority).IsUnique();
+        // Artık önceliğe birden fazla politika bağlanabilir (tür bazlı, sürümlü),
+        // bu yüzden benzersiz değil
+        mb.Entity<SlaPolicy>().HasIndex(s => new { s.Priority, s.IsActive });
         mb.Entity<AppUser>().HasIndex(u => u.Email).IsUnique();
         // Telefon opsiyonel: yalnızca dolu olanlar benzersiz olmalı
         mb.Entity<AppUser>().HasIndex(u => u.PhoneNumber).IsUnique()
           .HasFilter("[PhoneNumber] IS NOT NULL");
         mb.Entity<AppUser>().Ignore(u => u.FullName);
 
-        // Başlangıç verisi (migration ile tabloya yazılır)
+        // ── Başlangıç verisi (migration ile tabloya yazılır) ─────────────
+        var policyFrom = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        mb.Entity<BusinessCalendar>().HasData(
+            new BusinessCalendar
+            {
+                Id = 1,
+                Name = "Varsayılan Mesai",
+                WorkStartMinutes = 9 * 60,
+                WorkEndMinutes = 18 * 60,
+                WorkDays = "1,2,3,4,5"      // Pazartesi–Cuma
+            });
+
+        // Sabit tarihli resmî tatiller (dinî bayramlar her yıl kaydığı için
+        // yönetim ekranından elle eklenecek)
+        mb.Entity<Holiday>().HasData(
+            new Holiday { Id = 1, BusinessCalendarId = 1, Date = new DateTime(2026, 1, 1), Name = "Yılbaşı" },
+            new Holiday { Id = 2, BusinessCalendarId = 1, Date = new DateTime(2026, 4, 23), Name = "Ulusal Egemenlik ve Çocuk Bayramı" },
+            new Holiday { Id = 3, BusinessCalendarId = 1, Date = new DateTime(2026, 5, 1), Name = "Emek ve Dayanışma Günü" },
+            new Holiday { Id = 4, BusinessCalendarId = 1, Date = new DateTime(2026, 5, 19), Name = "Atatürk'ü Anma, Gençlik ve Spor Bayramı" },
+            new Holiday { Id = 5, BusinessCalendarId = 1, Date = new DateTime(2026, 7, 15), Name = "Demokrasi ve Millî Birlik Günü" },
+            new Holiday { Id = 6, BusinessCalendarId = 1, Date = new DateTime(2026, 8, 30), Name = "Zafer Bayramı" },
+            new Holiday { Id = 7, BusinessCalendarId = 1, Date = new DateTime(2026, 10, 29), Name = "Cumhuriyet Bayramı" });
+
+        // Kritik talepler 7x24 işler; diğerleri mesai saatleriyle sayılır
         mb.Entity<SlaPolicy>().HasData(
-            new SlaPolicy { Id = 1, Priority = Priority.Critical, ResolutionHours = 4 },
-            new SlaPolicy { Id = 2, Priority = Priority.High, ResolutionHours = 8 },
-            new SlaPolicy { Id = 3, Priority = Priority.Medium, ResolutionHours = 24 },
-            new SlaPolicy { Id = 4, Priority = Priority.Low, ResolutionHours = 72 });
+            new SlaPolicy
+            {
+                Id = 1, Name = "Kritik", Priority = Priority.Critical,
+                FirstResponseMinutes = 30, ResolutionMinutes = 4 * 60,
+                BusinessHoursOnly = false, BusinessCalendarId = null,
+                EffectiveFrom = policyFrom, IsActive = true
+            },
+            new SlaPolicy
+            {
+                Id = 2, Name = "Yüksek", Priority = Priority.High,
+                FirstResponseMinutes = 60, ResolutionMinutes = 8 * 60,
+                BusinessHoursOnly = true, BusinessCalendarId = 1,
+                EffectiveFrom = policyFrom, IsActive = true
+            },
+            new SlaPolicy
+            {
+                Id = 3, Name = "Orta", Priority = Priority.Medium,
+                FirstResponseMinutes = 4 * 60, ResolutionMinutes = 24 * 60,
+                BusinessHoursOnly = true, BusinessCalendarId = 1,
+                EffectiveFrom = policyFrom, IsActive = true
+            },
+            new SlaPolicy
+            {
+                Id = 4, Name = "Düşük", Priority = Priority.Low,
+                FirstResponseMinutes = 8 * 60, ResolutionMinutes = 72 * 60,
+                BusinessHoursOnly = true, BusinessCalendarId = 1,
+                EffectiveFrom = policyFrom, IsActive = true
+            });
+
+        mb.Entity<Department>().HasData(
+            new Department { Id = 1, Name = "Bilgi İşlem", IsActive = true },
+            new Department { Id = 2, Name = "İnsan Kaynakları", IsActive = true },
+            new Department { Id = 3, Name = "Muhasebe", IsActive = true },
+            new Department { Id = 4, Name = "Satış", IsActive = true });
+
+        mb.Entity<Team>().HasData(
+            new Team { Id = 1, Name = "Son Kullanıcı Desteği", DepartmentId = 1, IsActive = true },
+            new Team { Id = 2, Name = "Ağ ve Sistem", DepartmentId = 1, IsActive = true });
+
+        // Id'ler eski TicketCategory enum değerlerinin bir fazlası olacak şekilde
+        // seçildi; migration içindeki taşıma bu eşlemeye dayanıyor
+        mb.Entity<Category>().HasData(
+            new Category { Id = 1, Name = "Diğer", SortOrder = 99, IsActive = true },
+            new Category { Id = 2, Name = "Donanım", DefaultTeamId = 1, SortOrder = 10, IsActive = true },
+            new Category { Id = 3, Name = "Yazılım", DefaultTeamId = 1, SortOrder = 20, IsActive = true },
+            new Category { Id = 4, Name = "Ağ / İnternet", DefaultTeamId = 2, SortOrder = 30, IsActive = true },
+            new Category { Id = 5, Name = "Hesap / Erişim", DefaultTeamId = 2, SortOrder = 40, IsActive = true },
+            new Category { Id = 6, Name = "E-posta", DefaultTeamId = 1, SortOrder = 50, IsActive = true });
+
+        mb.Entity<EscalationRule>().HasData(
+            new EscalationRule { Id = 1, Level = 1, AfterMinutes = 0, TargetRole = UserRole.Agent, IsActive = true },
+            new EscalationRule { Id = 2, Level = 2, AfterMinutes = 120, TargetRole = UserRole.Admin, IsActive = true });
 
         // Demo kullanıcılar. Şifre özetleri PasswordHasher<AppUser> biçiminde SABİT
         // değerlerdir (sırasıyla admin123 / agent123 / user123). Hash her derlemede
@@ -135,6 +314,7 @@ public class AppDbContext : DbContext
                 PasswordHash = "AQAAAAIAAYagAAAAEFi3JF03e5L+rT0TFVRNIDpLX9U4gHjj97qMn+Eb/motK5gw/4voqGzIWdLDQnLoRg==",
                 PhoneNumber = "05321234567",
                 Role = UserRole.Admin,
+                DepartmentId = 1,
                 IsActive = true,
                 CreatedAt = seedDate
             },
@@ -147,6 +327,8 @@ public class AppDbContext : DbContext
                 PasswordHash = "AQAAAAIAAYagAAAAEGkvNowp+RHWmgqpxlh3o9uxa4AB+oXFA7R1IxRkUxU8Phrot1adAxfk+tsgti4wag==",
                 PhoneNumber = "05329876543",
                 Role = UserRole.Agent,
+                DepartmentId = 1,
+                TeamId = 1,
                 IsActive = true,
                 CreatedAt = seedDate
             },
@@ -159,6 +341,7 @@ public class AppDbContext : DbContext
                 PasswordHash = "AQAAAAIAAYagAAAAEGCuZpCsLC2ztoJiLtcHCbzkXXyQBZZ6US8lq80NpQ9uHcFc6ORCHZpysx1O4810DA==",
                 PhoneNumber = "05321112233",
                 Role = UserRole.User,
+                DepartmentId = 2,
                 IsActive = true,
                 CreatedAt = seedDate
             });

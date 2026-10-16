@@ -7,15 +7,56 @@ public enum TicketType { [Display(Name = "Arıza")] Incident, [Display(Name = "D
 public enum Priority { [Display(Name = "Düşük")] Low, [Display(Name = "Orta")] Medium, [Display(Name = "Yüksek")] High, [Display(Name = "Kritik")] Critical }
 public enum TicketStatus { New, InProgress, Resolved, Closed }
 
-// Sorun kategorisi (mevcut kayıtlar "Diğer" olur)
-public enum TicketCategory
+// Kurum birimi: talepler ve göstergeler birim bazında kırılabilsin diye
+public class Department
 {
-    [Display(Name = "Diğer")] Other = 0,
-    [Display(Name = "Donanım")] Hardware = 1,
-    [Display(Name = "Yazılım")] Software = 2,
-    [Display(Name = "Ağ / İnternet")] Network = 3,
-    [Display(Name = "Hesap / Erişim")] Access = 4,
-    [Display(Name = "E-posta")] Email = 5
+    public int Id { get; set; }
+
+    [Required, StringLength(100), Display(Name = "Birim")]
+    public string Name { get; set; } = "";
+
+    public bool IsActive { get; set; } = true;
+
+    public List<Team> Teams { get; set; } = new();
+}
+
+// Destek ekibi: talep kişiye atanmadan önce ekibe düşer
+public class Team
+{
+    public int Id { get; set; }
+
+    [Required, StringLength(100), Display(Name = "Ekip")]
+    public string Name { get; set; } = "";
+
+    public int DepartmentId { get; set; }
+    public Department? Department { get; set; }
+
+    // Eskalasyonun ikinci seviyesi ileride bu kişiye yükselecek
+    public int? LeadUserId { get; set; }
+    public AppUser? LeadUser { get; set; }
+
+    public bool IsActive { get; set; } = true;
+}
+
+// Talep kategorisi. Enum yerine tablo: yeni kategori eklemek artık
+// kod değişikliği ve migration gerektirmiyor, alt kategori kurulabiliyor.
+public class Category
+{
+    public int Id { get; set; }
+
+    [Required, StringLength(100), Display(Name = "Kategori")]
+    public string Name { get; set; } = "";
+
+    public int? ParentId { get; set; }
+    public Category? Parent { get; set; }
+    public List<Category> Children { get; set; } = new();
+
+    // Bu kategorideki talepler varsayılan olarak hangi ekibe düşer
+    public int? DefaultTeamId { get; set; }
+    public Team? DefaultTeam { get; set; }
+
+    public bool IsActive { get; set; } = true;
+    public int SortOrder { get; set; }
 }
 
 // Değişiklik (Change) talepleri yönetici onayından geçer
@@ -39,7 +80,13 @@ public class Ticket
     public Priority Priority { get; set; } = Priority.Medium;
 
     [Display(Name = "Kategori")]
-    public TicketCategory Category { get; set; } = TicketCategory.Other;
+    public int CategoryId { get; set; }
+    public Category? Category { get; set; }
+
+    // Kişiye atanmadan önce talebin düştüğü ekip
+    [Display(Name = "Ekip")]
+    public int? AssignedTeamId { get; set; }
+    public Team? AssignedTeam { get; set; }
 
     [Display(Name = "Durum")]
     public TicketStatus Status { get; set; } = TicketStatus.New;
@@ -65,8 +112,17 @@ public class Ticket
     public string? ApprovalNote { get; set; }
     public DateTime? ApprovalDecidedAt { get; set; }
 
+    // Hangi SLA politikası uygulandı: politika sonradan değişse bile
+    // bu talebin hangi taahhüde göre ölçüldüğü kayıtlı kalır
+    public int? SlaPolicyId { get; set; }
+    public SlaPolicy? SlaPolicy { get; set; }
+
     // Tüm tarihler UTC saklanır; ekranda AppTime.ToLocal ile gösterilir
     public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+
+    // SLA'nın iki ayağı: ilk yanıt ve çözüm
+    public DateTime? FirstResponseDueAt { get; set; }
+    public DateTime? FirstRespondedAt { get; set; }
     public DateTime SlaDueAt { get; set; }
 
     // Çözüm ile kapanış ayrı olaylardır: MTTR çözüm süresinden, kapanış süresi ise
@@ -77,7 +133,15 @@ public class Ticket
     // Kaç kez yeniden açıldı: ISO 9001 sürekli iyileştirmenin temel göstergelerinden
     public int ReopenCount { get; set; }
 
+    // İhlal artık her sayfa açılışında hesaplanmıyor; arka plan servisi
+    // tespit ettiği anda buraya yazıyor. Böylece SQL tarafında filtrelenebiliyor
+    // ve "ne zaman ihlal edildi" sorusunun cevabı kayıtlı oluyor.
+    public bool IsSlaBreached { get; set; }
+    public DateTime? SlaBreachedAt { get; set; }
+    public DateTime? SlaWarningSentAt { get; set; }
+
     public bool IsEscalated { get; set; }
+    public int EscalationLevel { get; set; }
 
     // Aynı talebi iki kişi aynı anda güncellerse ikincisi uyarı alır
     [Timestamp]
@@ -87,17 +151,163 @@ public class Ticket
     public List<Attachment> Attachments { get; set; } = new();
     public List<TicketComment> Comments { get; set; } = new();
     public List<TicketHistory> History { get; set; } = new();
+    public List<EscalationRecord> Escalations { get; set; } = new();
 
-    // SLA ihlali: çözüm süresi hedef süreyi aştıysa
-    public bool IsSlaBreached => (ResolvedAt ?? AppTime.UtcNow) > SlaDueAt;
+    // Henüz çözülmemiş ve süresi dolmuş mu (ekranda anlık uyarı için).
+    // Kalıcı ihlal bilgisi IsSlaBreached kolonunda.
+    public bool IsOverdueNow => ResolvedAt == null && AppTime.UtcNow > SlaDueAt;
 }
 
-// Önceliğe göre SLA çözüm süresi (saat)
+// Hizmet seviyesi taahhüdü: önceliğe (ve isteğe bağlı olarak talep türüne) göre
+// ilk yanıt ve çözüm süresi. Yürürlük tarihiyle sürümlenir; eski talepler
+// kendi uygulandıkları politikaya bağlı kalır.
 public class SlaPolicy
 {
     public int Id { get; set; }
+
+    [Required, StringLength(100), Display(Name = "Politika")]
+    public string Name { get; set; } = "";
+
     public Priority Priority { get; set; }
-    public int ResolutionHours { get; set; }
+
+    // null = her tür için geçerli
+    public TicketType? AppliesToType { get; set; }
+
+    [Display(Name = "İlk yanıt (dk)")]
+    public int FirstResponseMinutes { get; set; }
+
+    [Display(Name = "Çözüm (dk)")]
+    public int ResolutionMinutes { get; set; }
+
+    // true ise süre yalnızca mesai saatlerinde işler
+    [Display(Name = "Mesai saatleriyle")]
+    public bool BusinessHoursOnly { get; set; } = true;
+
+    public int? BusinessCalendarId { get; set; }
+    public BusinessCalendar? BusinessCalendar { get; set; }
+
+    public DateTime EffectiveFrom { get; set; }
+    public DateTime? EffectiveTo { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+// Mesai takvimi: SLA sayacı yalnızca çalışma saatlerinde ilerler
+public class BusinessCalendar
+{
+    public int Id { get; set; }
+
+    [Required, StringLength(100)]
+    public string Name { get; set; } = "";
+
+    // Gün içindeki çalışma aralığı, gece yarısından itibaren dakika (09:00 = 540)
+    public int WorkStartMinutes { get; set; } = 9 * 60;
+    public int WorkEndMinutes { get; set; } = 18 * 60;
+
+    // Çalışılan günler: "1,2,3,4,5" = Pazartesi–Cuma (ISO gün numarası)
+    [Required, StringLength(20)]
+    public string WorkDays { get; set; } = "1,2,3,4,5";
+
+    public List<Holiday> Holidays { get; set; } = new();
+}
+
+// Resmî tatil: bu günlerde SLA sayacı durur
+public class Holiday
+{
+    public int Id { get; set; }
+    public int BusinessCalendarId { get; set; }
+    public BusinessCalendar? BusinessCalendar { get; set; }
+
+    public DateTime Date { get; set; }
+
+    [Required, StringLength(100)]
+    public string Name { get; set; } = "";
+}
+
+// Eskalasyon kuralı: süresi dolan talep hangi gecikmede hangi role yükselir
+public class EscalationRule
+{
+    public int Id { get; set; }
+
+    [Display(Name = "Seviye")]
+    public int Level { get; set; }
+
+    // SLA bitişinden kaç dakika sonra devreye girer (0 = ihlal anında)
+    [Display(Name = "Gecikme (dk)")]
+    public int AfterMinutes { get; set; }
+
+    [Display(Name = "Hedef rol")]
+    public UserRole TargetRole { get; set; }
+
+    public bool IsActive { get; set; } = true;
+}
+
+// Gerçekleşen eskalasyon kaydı: bool bayrak değil, olayın kendisi
+public class EscalationRecord
+{
+    public int Id { get; set; }
+
+    public int TicketId { get; set; }
+    public Ticket? Ticket { get; set; }
+
+    public int Level { get; set; }
+    public DateTime OccurredAt { get; set; } = AppTime.UtcNow;
+
+    // Kaç dakika gecikmeyle tespit edildi
+    public int MinutesOverdue { get; set; }
+
+    // Kime yükseltildi (rol bazlı kuralda birden fazla kişiye bildirim gider,
+    // atanan kişi varsa o yazılır)
+    public int? EscalatedToId { get; set; }
+    public AppUser? EscalatedTo { get; set; }
+
+    [StringLength(300)]
+    public string? Note { get; set; }
+}
+
+public enum NotificationType
+{
+    [Display(Name = "SLA yaklaşıyor")] SlaWarning = 0,
+    [Display(Name = "SLA ihlali")] SlaBreach = 1,
+    [Display(Name = "Eskalasyon")] Escalation = 2,
+    [Display(Name = "Talep atandı")] Assigned = 3,
+    [Display(Name = "Onay bekliyor")] ApprovalPending = 4,
+    [Display(Name = "Onay kararı")] ApprovalDecided = 5,
+    [Display(Name = "Yeni mesaj")] NewComment = 6
+}
+
+public enum NotificationChannel { InApp = 0, Email = 1, Sms = 2 }
+
+// Gönderilen uyarının kaydı. Önceden bildirimler her sayfa açılışında
+// hesaplanıyordu; artık kime, ne zaman gittiği ve okunup okunmadığı kayıtlı.
+public class Notification
+{
+    public int Id { get; set; }
+
+    public int RecipientId { get; set; }
+    public AppUser? Recipient { get; set; }
+
+    public int? TicketId { get; set; }
+    public Ticket? Ticket { get; set; }
+
+    public NotificationType Type { get; set; }
+    public NotificationChannel Channel { get; set; } = NotificationChannel.InApp;
+
+    [Required, StringLength(200)]
+    public string Title { get; set; } = "";
+
+    [Required, StringLength(500)]
+    public string Message { get; set; } = "";
+
+    public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+    public DateTime? ReadAt { get; set; }
+
+    // Uygulama içi bildirim anında "gönderilmiş" sayılır; e-posta/SMS
+    // entegrasyonu bağlanınca bu alanlar gerçek gönderimi kaydedecek
+    public bool IsSent { get; set; } = true;
+    public DateTime? SentAt { get; set; } = AppTime.UtcNow;
+
+    [StringLength(300)]
+    public string? SendError { get; set; }
 }
 
 // Müşteri memnuniyet anketi (1-5)
@@ -224,6 +434,14 @@ public class AppUser
 
     [Display(Name = "Rol")]
     public UserRole Role { get; set; } = UserRole.User;
+
+    [Display(Name = "Birim")]
+    public int? DepartmentId { get; set; }
+    public Department? Department { get; set; }
+
+    [Display(Name = "Ekip")]
+    public int? TeamId { get; set; }
+    public Team? Team { get; set; }
 
     // Ayrılan kullanıcı silinmez, pasifleştirilir; talep geçmişi kopmaz
     [Display(Name = "Aktif")]

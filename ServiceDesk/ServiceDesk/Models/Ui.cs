@@ -27,12 +27,8 @@ public static class Ui
 
     public static string TypeText(TicketType t) => t == TicketType.Incident ? "Arıza" : "Değişiklik";
 
-    public static string CategoryText(TicketCategory c) => c switch
-    {
-        TicketCategory.Hardware => "Donanım", TicketCategory.Software => "Yazılım",
-        TicketCategory.Network => "Ağ / İnternet", TicketCategory.Access => "Hesap / Erişim",
-        TicketCategory.Email => "E-posta", _ => "Diğer"
-    };
+    // Kategori artık enum değil tablo; ad doğrudan kayıttan gelir
+    public static string CategoryText(Category? c) => c?.Name ?? "-";
 
     public static string ApprovalText(ApprovalStatus a) => a switch
     {

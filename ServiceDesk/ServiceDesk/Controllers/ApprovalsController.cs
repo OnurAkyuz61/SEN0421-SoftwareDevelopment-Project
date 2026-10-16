@@ -12,15 +12,23 @@ namespace ServiceDesk.Controllers;
 public class ApprovalsController : Controller
 {
     private readonly AppDbContext _db;
-    public ApprovalsController(AppDbContext db) => _db = db;
+    private readonly NotificationService _notify;
+
+    public ApprovalsController(AppDbContext db, NotificationService notify)
+    {
+        _db = db;
+        _notify = notify;
+    }
 
     public async Task<IActionResult> Index()
     {
         ViewBag.History = await _db.Tickets
+            .Include(t => t.Category)
             .Where(t => t.ApprovalStatus == ApprovalStatus.Approved || t.ApprovalStatus == ApprovalStatus.Rejected)
             .OrderByDescending(t => t.ApprovalDecidedAt).Take(10).ToListAsync();
 
         return View(await _db.Tickets
+            .Include(t => t.Category)
             .Where(t => t.ApprovalStatus == ApprovalStatus.Pending)
             .OrderBy(t => t.CreatedAt).ToListAsync());
     }
@@ -52,6 +60,11 @@ public class ApprovalsController : Controller
             t.ResolvedAt ??= AppTime.UtcNow;
             t.ClosedAt ??= AppTime.UtcNow;
         }
+
+        _notify.Queue(t.RequesterId, NotificationType.ApprovalDecided,
+            $"Talebiniz {(approve ? "onaylandı" : "reddedildi")}: #{t.Id} {t.Title}",
+            string.IsNullOrWhiteSpace(note) ? "Karar verildi." : note!, t.Id);
+
         await _db.SaveChangesAsync();
 
         TempData["Ok"] = $"#{t.Id} {(approve ? "onaylandı" : "reddedildi")}.";

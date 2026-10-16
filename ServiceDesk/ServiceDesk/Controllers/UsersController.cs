@@ -14,5 +14,10 @@ public class UsersController : Controller
     public UsersController(AppDbContext db) => _db = db;
 
     public async Task<IActionResult> Index() =>
-        View(await _db.Users.OrderBy(u => u.Role).ThenBy(u => u.FirstName).ToListAsync());
+        View(await _db.Users
+            .AsNoTracking()
+            .Include(u => u.Department)
+            .Include(u => u.Team)
+            .OrderBy(u => u.Role).ThenBy(u => u.FirstName)
+            .ToListAsync());
 }

@@ -16,7 +16,9 @@ public class DashboardController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var tickets = await _db.Tickets.Include(t => t.Assignee).ToListAsync();
+        var tickets = await _db.Tickets.Include(t => t.Assignee).Include(t => t.Category).ToListAsync();
+        var categories = await _db.Categories.AsNoTracking()
+            .OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToListAsync();
         var feedback = await _db.Feedbacks.Include(f => f.Ticket).OrderByDescending(f => f.CreatedAt).ToListAsync();
 
         bool IsOpen(Ticket t) => t.Status is TicketStatus.New or TicketStatus.InProgress;
@@ -37,8 +39,8 @@ public class DashboardController : Controller
 
             StatusLabels = Enum.GetValues<TicketStatus>().Select(Ui.StatusText).ToArray(),
             StatusCounts = Enum.GetValues<TicketStatus>().Select(s => tickets.Count(t => t.Status == s)).ToArray(),
-            CategoryLabels = Enum.GetValues<TicketCategory>().Select(Ui.CategoryText).ToArray(),
-            CategoryCounts = Enum.GetValues<TicketCategory>().Select(c => tickets.Count(t => t.Category == c)).ToArray(),
+            CategoryLabels = categories.Select(c => c.Name).ToArray(),
+            CategoryCounts = categories.Select(c => tickets.Count(t => t.CategoryId == c.Id)).ToArray(),
             DayLabels = days.Select(d => d.ToString("dd.MM")).ToArray(),
             // Tarihler UTC saklandığı için günlük kırılım yerel takvime çevrilerek sayılır
             DayCreated = days.Select(d => tickets.Count(t => AppTime.ToLocal(t.CreatedAt).Date == d)).ToArray(),

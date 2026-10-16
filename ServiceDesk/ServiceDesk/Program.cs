@@ -12,7 +12,10 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 builder.Services.AddSingleton<FileStorage>(); // talep ekleri (Uploads/ klasörü)
 builder.Services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<CurrentUser>();    // oturumdaki kullanıcı
+builder.Services.AddScoped<CurrentUser>();           // oturumdaki kullanıcı
+builder.Services.AddScoped<NotificationService>();   // bildirim okuma / yazma
+builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef tarihler
+builder.Services.AddHostedService<SlaMonitorService>(); // dakikada bir SLA taraması
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(opt =>
 {

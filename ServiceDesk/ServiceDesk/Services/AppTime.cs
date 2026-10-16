@@ -28,6 +28,11 @@ public static class AppTime
 
     public static DateTime? ToLocal(DateTime? utc) => utc == null ? null : ToLocal(utc.Value);
 
+    // Yerel saatten UTC'ye: SLA hesabı mesai saatlerini yerel takvimde yürütür,
+    // sonucu veritabanına yazmadan önce buradan geçirir
+    public static DateTime ToUtc(DateTime local) =>
+        TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(local, DateTimeKind.Unspecified), DisplayZone);
+
     // Grafiklerde "bugün" yerel takvime göre belirlenir
     public static DateTime LocalToday => ToLocal(DateTime.UtcNow).Date;
 }

@@ -1,4 +1,5 @@
 @model OtpChannelVm
+@inject IWebHostEnvironment Env
 @{
     Layout = null;
     ViewData["Title"] = "Doğrulama yöntemi";
@@ -59,6 +60,19 @@
                 <span asp-validation-for="Channel" class="otp-alert error" style="display:block"></span>
 
                 <button type="submit" class="otp-btn">Kodu gönder</button>
+
+                @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────
+                   Kanal seçimini atlayıp doğrudan SMS ile ilerler.
+                   Canlıya çıkmadan önce bu blok silinecek. *@
+                @if (Env.IsDevelopment())
+                {
+                    <button type="submit" name="Channel" value="Sms"
+                            style="width:100%;margin-top:.6rem;cursor:pointer;font-family:inherit;font-size:.8rem;
+                                   padding:.5rem;border:1.5px dashed var(--otp-line);border-radius:.6rem;
+                                   background:#fff;color:var(--otp-muted)">
+                        Geliştirme · SMS ile hızlı devam
+                    </button>
+                }
             </form>
 
             <a class="otp-link" asp-action="Login">← Girişe dön</a>

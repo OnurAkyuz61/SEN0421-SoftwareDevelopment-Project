@@ -55,6 +55,27 @@
             </div>
         </div>
 
+        @if (Model.Escalations.Any())
+        {
+            <div class="panel mb-3" style="border-color:#f0c2bc">
+                <div class="panel-head">Eskalasyon <span class="text-muted small fw-normal">@Model.Escalations.Count kayıt</span></div>
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Seviye</th><th>Gecikme</th><th>İlgilenen</th><th class="text-end">Zaman</th></tr></thead>
+                    <tbody>
+                        @foreach (var e in Model.Escalations)
+                        {
+                            <tr>
+                                <td><span class="tag tag-red">Seviye @e.Level</span></td>
+                                <td>@e.MinutesOverdue dk</td>
+                                <td>@(e.EscalatedTo?.FullName ?? "-")</td>
+                                <td class="text-end small text-muted">@AppTime.ToLocal(e.OccurredAt).ToString("dd.MM.yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
         <div class="panel mb-3">
             <div class="panel-head">Geçmiş <span class="text-muted small fw-normal">@Model.History.Count kayıt</span></div>
             <div class="panel-body"><partial name="_HistoryTimeline" model="Model.History" /></div>
@@ -65,8 +86,31 @@
             <table class="table table-sm mb-0">
                 <tr><td class="text-muted" style="width:35%">Talep eden</td><td>@Model.RequesterName</td></tr>
                 <tr><td class="text-muted">Tür / Kategori</td><td>@Ui.TypeText(Model.Type) · @Ui.CategoryText(Model.Category)</td></tr>
+                <tr><td class="text-muted">Ekip</td><td>@(Model.AssignedTeam?.Name ?? "-")</td></tr>
                 <tr><td class="text-muted">Açılış</td><td>@AppTime.ToLocal(Model.CreatedAt).ToString("dd.MM.yyyy HH:mm")</td></tr>
-                <tr><td class="text-muted">SLA bitiş</td><td class="@(Model.IsSlaBreached ? "text-danger fw-semibold" : "")">@AppTime.ToLocal(Model.SlaDueAt).ToString("dd.MM.yyyy HH:mm")</td></tr>
+                <tr>
+                    <td class="text-muted">İlk yanıt</td>
+                    <td>
+                        @if (Model.FirstRespondedAt != null)
+                        {
+                            var gecikti = Model.FirstResponseDueAt != null && Model.FirstRespondedAt > Model.FirstResponseDueAt;
+                            <span class="@(gecikti ? "text-danger fw-semibold" : "")">@AppTime.ToLocal(Model.FirstRespondedAt)?.ToString("dd.MM.yyyy HH:mm")</span>
+                            @if (gecikti) { <span class="tag tag-red ms-1">geç</span> }
+                        }
+                        else if (Model.FirstResponseDueAt != null)
+                        {
+                            <span class="text-muted">hedef: @AppTime.ToLocal(Model.FirstResponseDueAt)?.ToString("dd.MM.yyyy HH:mm")</span>
+                        }
+                        else { <text>-</text> }
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted">SLA bitiş</td>
+                    <td class="@(Model.IsSlaBreached ? "text-danger fw-semibold" : "")">
+                        @AppTime.ToLocal(Model.SlaDueAt).ToString("dd.MM.yyyy HH:mm")
+                        @if (Model.SlaPolicy != null) { <span class="text-muted small">· @Model.SlaPolicy.Name</span> }
+                    </td>
+                </tr>
                 <tr><td class="text-muted">Çözülme</td><td>@(AppTime.ToLocal(Model.ResolvedAt)?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td></tr>
                 <tr><td class="text-muted">Kapanış</td><td>@(AppTime.ToLocal(Model.ClosedAt)?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td></tr>
                 @if (Model.ReopenCount > 0)

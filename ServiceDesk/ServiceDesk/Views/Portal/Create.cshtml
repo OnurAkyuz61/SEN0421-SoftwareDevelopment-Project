@@ -28,8 +28,15 @@
                 </select>
             </div>
             <div class="col-md-4">
-                <label asp-for="Category" class="form-label fw-semibold">Kategori</label>
-                <select asp-for="Category" asp-items="Html.GetEnumSelectList<TicketCategory>()" class="form-select"></select>
+                <label asp-for="CategoryId" class="form-label fw-semibold">Kategori</label>
+                <select asp-for="CategoryId" class="form-select">
+                    <option value="">Seçin...</option>
+                    @foreach (var c in (List<Category>)ViewBag.Categories)
+                    {
+                        <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@c.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger small"></span>
             </div>
             <div class="col-md-4">
                 <label asp-for="Priority" class="form-label fw-semibold">Öncelik</label>

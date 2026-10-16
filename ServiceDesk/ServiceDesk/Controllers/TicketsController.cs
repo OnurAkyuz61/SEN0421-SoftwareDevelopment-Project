@@ -15,42 +15,36 @@ public class TicketsController : Controller
     private readonly AppDbContext _db;
     private readonly FileStorage _files;
     private readonly CurrentUser _current;
+    private readonly NotificationService _notify;
 
-    public TicketsController(AppDbContext db, FileStorage files, CurrentUser current)
+    public TicketsController(AppDbContext db, FileStorage files, CurrentUser current, NotificationService notify)
     {
         _db = db;
         _files = files;
         _current = current;
+        _notify = notify;
     }
 
     // Filtreler: arama metni, durum, öncelik, tür, kategori
-    public async Task<IActionResult> Index(string? q, TicketStatus? status, Priority? priority, TicketType? type, TicketCategory? category)
+    public async Task<IActionResult> Index(string? q, TicketStatus? status, Priority? priority, TicketType? type, int? categoryId)
     {
-        var query = _db.Tickets.Include(t => t.Assignee).AsQueryable();
+        var query = _db.Tickets.Include(t => t.Assignee).Include(t => t.Category).AsQueryable();
         if (!string.IsNullOrWhiteSpace(q))
             query = query.Where(t => t.Title.Contains(q) || t.RequesterName.Contains(q)
                 || (t.Assignee != null && (t.Assignee.FirstName + " " + t.Assignee.LastName).Contains(q)));
         if (status != null) query = query.Where(t => t.Status == status);
         if (priority != null) query = query.Where(t => t.Priority == priority);
         if (type != null) query = query.Where(t => t.Type == type);
-        if (category != null) query = query.Where(t => t.Category == category);
+        if (categoryId != null) query = query.Where(t => t.CategoryId == categoryId);
 
-        ViewBag.Q = q; ViewBag.Status = status; ViewBag.Priority = priority; ViewBag.Type = type; ViewBag.Category = category;
+        ViewBag.Q = q; ViewBag.Status = status; ViewBag.Priority = priority; ViewBag.Type = type;
+        ViewBag.CategoryId = categoryId;
+        ViewBag.Categories = await _db.Categories.AsNoTracking()
+            .Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToListAsync();
 
-        var list = await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
-
-        // Basit eskalasyon: SLA aşılan açık talepler işaretlenir
-        // (Faz 3'te bu iş arka plan servisine taşınacak; GET içinde yazmak geçici)
-        foreach (var t in list.Where(t => t.IsSlaBreached && t.ResolvedAt == null && !t.IsEscalated))
-            t.IsEscalated = true;
-        try
-        {
-            await _db.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            // Aynı anda listeyi açan başka bir kullanıcı işaretlemiş olabilir; liste yine doğru görünür
-        }
+        // İhlal işaretleme ve eskalasyon artık SlaMonitorService'in işi;
+        // bu sayfa yalnızca okur
+        var list = await query.AsNoTracking().OrderByDescending(t => t.CreatedAt).ToListAsync();
 
         return View(list);
     }
@@ -65,11 +59,16 @@ public class TicketsController : Controller
             .Include(t => t.Comments).ThenInclude(c => c.Author)
             .Include(t => t.Comments).ThenInclude(c => c.Attachments)
             .Include(t => t.History).ThenInclude(h => h.ChangedBy)
+            .Include(t => t.Escalations).ThenInclude(e => e.EscalatedTo)
+            .Include(t => t.SlaPolicy)
+            .Include(t => t.Category)
+            .Include(t => t.AssignedTeam)
             .FirstOrDefaultAsync(t => t.Id == id);
         if (ticket == null) return NotFound();
 
         ticket.Comments = ticket.Comments.OrderBy(c => c.CreatedAt).ToList();
         ticket.History = ticket.History.OrderByDescending(h => h.ChangedAt).ToList();
+        ticket.Escalations = ticket.Escalations.OrderByDescending(e => e.OccurredAt).ToList();
 
         // Atama listesi: aktif Destek ve Yönetici rolündeki kullanıcılar
         ViewBag.Staff = await _db.Users
@@ -112,9 +111,18 @@ public class TicketsController : Controller
 
         var wasFinished = ticket.Status is TicketStatus.Resolved or TicketStatus.Closed;
         var isFinished = status is TicketStatus.Resolved or TicketStatus.Closed;
+        var previousAssignee = ticket.AssigneeId;
 
         ticket.Status = status;
         ticket.AssigneeId = assigneeId;
+
+        // Yeni atanan kişiye bildirim
+        if (assigneeId != null && assigneeId != previousAssignee)
+        {
+            _notify.Queue(assigneeId.Value, NotificationType.Assigned,
+                $"Size atandı: #{ticket.Id} {ticket.Title}",
+                $"Hedef çözüm: {AppTime.ToLocal(ticket.SlaDueAt):dd.MM.yyyy HH:mm}", ticket.Id);
+        }
 
         if (isFinished)
         {
@@ -182,7 +190,16 @@ public class TicketsController : Controller
 
         _db.TicketComments.Add(comment);
 
-        // İlk yanıt zamanı: SLA'nın yanıt ayağı Faz 3'te bu alandan hesaplanacak
+        // İlk yanıt: kullanıcıya görünen ilk destek mesajı SLA'nın yanıt ayağını kapatır
+        if (!isInternal && ticket.FirstRespondedAt == null)
+            ticket.FirstRespondedAt = AppTime.UtcNow;
+
+        // Kullanıcıya yazılan yanıt talep sahibine bildirilir; iç not bildirilmez
+        if (!isInternal)
+            _notify.Queue(ticket.RequesterId, NotificationType.NewComment,
+                $"Talebinize yanıt: #{ticket.Id} {ticket.Title}",
+                $"{_current.User!.FullName} yanıt yazdı.", ticket.Id);
+
         await _db.SaveChangesAsync();
 
         TempData["Ok"] = isInternal ? "İç not eklendi." : "Yanıtınız talebe eklendi.";

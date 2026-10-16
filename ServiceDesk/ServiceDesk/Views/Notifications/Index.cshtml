@@ -1,24 +1,73 @@
-@model List<ServiceDesk.Services.NotificationItem>
-@{ ViewData["Title"] = "Bildirimler"; }
+@model List<Notification>
+@{
+    ViewData["Title"] = "Bildirimler";
+    var unreadOnly = (bool)ViewBag.UnreadOnly;
+    var unread = (int)ViewBag.UnreadCount;
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <h4 class="fw-bold mb-0 me-auto">Bildirimler</h4>
+
+    <div class="btn-group btn-group-sm">
+        <a class="btn @(unreadOnly ? "btn-outline-secondary" : "btn-secondary")"
+           asp-action="Index">Tümü</a>
+        <a class="btn @(unreadOnly ? "btn-secondary" : "btn-outline-secondary")"
+           asp-action="Index" asp-route-unreadOnly="true">Okunmamış @(unread > 0 ? $"({unread})" : "")</a>
+    </div>
+
+    @if (unread > 0)
+    {
+        <form asp-action="MarkRead" method="post">
+            <input type="hidden" name="returnUrl" value="@Url.Action("Index", new { unreadOnly })" />
+            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-check2-all"></i> Tümünü okundu say</button>
+        </form>
+    }
+</div>
 
 <div class="panel">
-    <div class="panel-head">@Model.Count bildirim</div>
+    <div class="panel-head">@Model.Count kayıt</div>
+
     @if (!Model.Any())
     {
-        <div class="panel-body text-center text-muted py-5"><i class="bi bi-check-circle"></i> Bildirim yok</div>
+        <div class="panel-body text-center text-muted py-5">
+            <i class="bi bi-check-circle fs-4 d-block mb-2"></i>
+            @(unreadOnly ? "Okunmamış bildirim yok" : "Henüz bildirim yok")
+        </div>
     }
+
     <div class="list-group list-group-flush">
         @foreach (var n in Model)
         {
-            <a class="list-group-item list-group-item-action d-flex gap-3 align-items-center py-3"
-               asp-controller="Tickets" asp-action="Details" asp-route-id="@n.TicketId">
-                <i class="bi @n.Icon text-@n.Color fs-5"></i>
-                <div class="flex-grow-1">
-                    <div class="fw-semibold">@n.Title</div>
+            <div class="list-group-item d-flex gap-3 align-items-start py-3 @(n.ReadAt == null ? "bg-unread" : "")">
+                <i class="bi @NotificationService.Describe(n.Type) text-@NotificationService.Color(n.Type) fs-5"></i>
+
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fw-semibold">
+                        @if (n.TicketId != null)
+                        {
+                            <a class="text-decoration-none" asp-controller="Tickets" asp-action="Details" asp-route-id="@n.TicketId">@n.Title</a>
+                        }
+                        else
+                        {
+                            @n.Title
+                        }
+                        @if (n.ReadAt == null) { <span class="tag tag-blue ms-1">yeni</span> }
+                    </div>
                     <div class="small text-muted">@n.Message</div>
                 </div>
-                <small class="text-muted text-nowrap">@AppTime.ToLocal(n.Time).ToString("dd.MM.yyyy HH:mm")</small>
-            </a>
+
+                <div class="text-end text-nowrap">
+                    <div class="small text-muted">@AppTime.ToLocal(n.CreatedAt).ToString("dd.MM.yyyy HH:mm")</div>
+                    @if (n.ReadAt == null)
+                    {
+                        <form asp-action="MarkRead" method="post" class="mt-1">
+                            <input type="hidden" name="id" value="@n.Id" />
+                            <input type="hidden" name="returnUrl" value="@Url.Action("Index", new { unreadOnly })" />
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none">okundu</button>
+                        </form>
+                    }
+                </div>
+            </div>
         }
     </div>
 </div>

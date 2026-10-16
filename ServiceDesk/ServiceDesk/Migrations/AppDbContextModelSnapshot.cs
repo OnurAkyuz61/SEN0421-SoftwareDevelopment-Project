@@ -33,6 +33,9 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -63,7 +66,12 @@ namespace ServiceDesk.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -72,6 +80,8 @@ namespace ServiceDesk.Migrations
                         .IsUnique()
                         .HasFilter("[PhoneNumber] IS NOT NULL");
 
+                    b.HasIndex("TeamId");
+
                     b.ToTable("Users", (string)null);
 
                     b.HasData(
@@ -79,6 +89,7 @@ namespace ServiceDesk.Migrations
                         {
                             Id = 1,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DepartmentId = 1,
                             Email = "admin@servicedesk.local",
                             FirstName = "Demo",
                             IsActive = true,
@@ -91,18 +102,21 @@ namespace ServiceDesk.Migrations
                         {
                             Id = 2,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DepartmentId = 1,
                             Email = "agent@servicedesk.local",
                             FirstName = "Ayşe",
                             IsActive = true,
                             LastName = "Destek",
                             PasswordHash = "AQAAAAIAAYagAAAAEGkvNowp+RHWmgqpxlh3o9uxa4AB+oXFA7R1IxRkUxU8Phrot1adAxfk+tsgti4wag==",
                             PhoneNumber = "05329876543",
-                            Role = 1
+                            Role = 1,
+                            TeamId = 1
                         },
                         new
                         {
                             Id = 3,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DepartmentId = 2,
                             Email = "user@servicedesk.local",
                             FirstName = "Mehmet",
                             IsActive = true,
@@ -162,6 +176,259 @@ namespace ServiceDesk.Migrations
                     b.ToTable("Attachments", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.BusinessCalendar", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("WorkDays")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("WorkEndMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorkStartMinutes")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BusinessCalendars", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Varsayılan Mesai",
+                            WorkDays = "1,2,3,4,5",
+                            WorkEndMinutes = 1080,
+                            WorkStartMinutes = 540
+                        });
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("DefaultTeamId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DefaultTeamId");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("IsActive", "SortOrder");
+
+                    b.ToTable("Categories", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            IsActive = true,
+                            Name = "Diğer",
+                            SortOrder = 99
+                        },
+                        new
+                        {
+                            Id = 2,
+                            DefaultTeamId = 1,
+                            IsActive = true,
+                            Name = "Donanım",
+                            SortOrder = 10
+                        },
+                        new
+                        {
+                            Id = 3,
+                            DefaultTeamId = 1,
+                            IsActive = true,
+                            Name = "Yazılım",
+                            SortOrder = 20
+                        },
+                        new
+                        {
+                            Id = 4,
+                            DefaultTeamId = 2,
+                            IsActive = true,
+                            Name = "Ağ / İnternet",
+                            SortOrder = 30
+                        },
+                        new
+                        {
+                            Id = 5,
+                            DefaultTeamId = 2,
+                            IsActive = true,
+                            Name = "Hesap / Erişim",
+                            SortOrder = 40
+                        },
+                        new
+                        {
+                            Id = 6,
+                            DefaultTeamId = 1,
+                            IsActive = true,
+                            Name = "E-posta",
+                            SortOrder = 50
+                        });
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Department", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Departments", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            IsActive = true,
+                            Name = "Bilgi İşlem"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            IsActive = true,
+                            Name = "İnsan Kaynakları"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            IsActive = true,
+                            Name = "Muhasebe"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            IsActive = true,
+                            Name = "Satış"
+                        });
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.EscalationRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("EscalatedToId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinutesOverdue")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EscalatedToId");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("EscalationRecords", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.EscalationRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AfterMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TargetRole")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Level")
+                        .IsUnique();
+
+                    b.ToTable("EscalationRules", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AfterMinutes = 0,
+                            IsActive = true,
+                            Level = 1,
+                            TargetRole = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AfterMinutes = 120,
+                            IsActive = true,
+                            Level = 2,
+                            TargetRole = 2
+                        });
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.Feedback", b =>
                 {
                     b.Property<int>("Id")
@@ -191,6 +458,139 @@ namespace ServiceDesk.Migrations
                     b.ToTable("Feedbacks", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.Holiday", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BusinessCalendarId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessCalendarId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("Holidays", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BusinessCalendarId = 1,
+                            Date = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Yılbaşı"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BusinessCalendarId = 1,
+                            Date = new DateTime(2026, 4, 23, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Ulusal Egemenlik ve Çocuk Bayramı"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BusinessCalendarId = 1,
+                            Date = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Emek ve Dayanışma Günü"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            BusinessCalendarId = 1,
+                            Date = new DateTime(2026, 5, 19, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Atatürk'ü Anma, Gençlik ve Spor Bayramı"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            BusinessCalendarId = 1,
+                            Date = new DateTime(2026, 7, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Demokrasi ve Millî Birlik Günü"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            BusinessCalendarId = 1,
+                            Date = new DateTime(2026, 8, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Zafer Bayramı"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            BusinessCalendarId = 1,
+                            Date = new DateTime(2026, 10, 29, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Cumhuriyet Bayramı"
+                        });
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsSent")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RecipientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SendError")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("TicketId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.HasIndex("RecipientId", "ReadAt", "CreatedAt");
+
+                    b.ToTable("Notifications", (string)null);
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.SlaPolicy", b =>
                 {
                     b.Property<int>("Id")
@@ -199,16 +599,43 @@ namespace ServiceDesk.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AppliesToType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BusinessCalendarId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("BusinessHoursOnly")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("EffectiveFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EffectiveTo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FirstResponseMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
-                    b.Property<int>("ResolutionHours")
+                    b.Property<int>("ResolutionMinutes")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Priority")
-                        .IsUnique();
+                    b.HasIndex("BusinessCalendarId");
+
+                    b.HasIndex("Priority", "IsActive");
 
                     b.ToTable("SlaPolicies", (string)null);
 
@@ -216,26 +643,96 @@ namespace ServiceDesk.Migrations
                         new
                         {
                             Id = 1,
+                            BusinessHoursOnly = false,
+                            EffectiveFrom = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            FirstResponseMinutes = 30,
+                            IsActive = true,
+                            Name = "Kritik",
                             Priority = 3,
-                            ResolutionHours = 4
+                            ResolutionMinutes = 240
                         },
                         new
                         {
                             Id = 2,
+                            BusinessCalendarId = 1,
+                            BusinessHoursOnly = true,
+                            EffectiveFrom = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            FirstResponseMinutes = 60,
+                            IsActive = true,
+                            Name = "Yüksek",
                             Priority = 2,
-                            ResolutionHours = 8
+                            ResolutionMinutes = 480
                         },
                         new
                         {
                             Id = 3,
+                            BusinessCalendarId = 1,
+                            BusinessHoursOnly = true,
+                            EffectiveFrom = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            FirstResponseMinutes = 240,
+                            IsActive = true,
+                            Name = "Orta",
                             Priority = 1,
-                            ResolutionHours = 24
+                            ResolutionMinutes = 1440
                         },
                         new
                         {
                             Id = 4,
+                            BusinessCalendarId = 1,
+                            BusinessHoursOnly = true,
+                            EffectiveFrom = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            FirstResponseMinutes = 480,
+                            IsActive = true,
+                            Name = "Düşük",
                             Priority = 0,
-                            ResolutionHours = 72
+                            ResolutionMinutes = 4320
+                        });
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Team", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("LeadUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("LeadUserId");
+
+                    b.ToTable("Teams", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DepartmentId = 1,
+                            IsActive = true,
+                            Name = "Son Kullanıcı Desteği"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            DepartmentId = 1,
+                            IsActive = true,
+                            Name = "Ağ ve Sistem"
                         });
                 });
 
@@ -257,10 +754,13 @@ namespace ServiceDesk.Migrations
                     b.Property<int>("ApprovalStatus")
                         .HasColumnType("int");
 
+                    b.Property<int?>("AssignedTeamId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("AssigneeId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Category")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("ClosedAt")
@@ -273,7 +773,19 @@ namespace ServiceDesk.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("EscalationLevel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FirstRespondedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FirstResponseDueAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsEscalated")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSlaBreached")
                         .HasColumnType("bit");
 
                     b.Property<int>("Priority")
@@ -298,7 +810,16 @@ namespace ServiceDesk.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<DateTime?>("SlaBreachedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("SlaDueAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("SlaPolicyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SlaWarningSentAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
@@ -316,11 +837,17 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("ApprovalStatus");
 
+                    b.HasIndex("AssignedTeamId");
+
                     b.HasIndex("AssigneeId");
+
+                    b.HasIndex("CategoryId");
 
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("RequesterId");
+
+                    b.HasIndex("SlaPolicyId");
 
                     b.HasIndex("Status");
 
@@ -405,6 +932,23 @@ namespace ServiceDesk.Migrations
                     b.ToTable("TicketHistories", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.AppUser", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ServiceDesk.Models.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Team");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.Attachment", b =>
                 {
                     b.HasOne("ServiceDesk.Models.TicketComment", "Comment")
@@ -430,6 +974,41 @@ namespace ServiceDesk.Migrations
                     b.Navigation("UploadedBy");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.Category", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.Team", "DefaultTeam")
+                        .WithMany()
+                        .HasForeignKey("DefaultTeamId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ServiceDesk.Models.Category", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("DefaultTeam");
+
+                    b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.EscalationRecord", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "EscalatedTo")
+                        .WithMany()
+                        .HasForeignKey("EscalatedToId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
+                        .WithMany("Escalations")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EscalatedTo");
+
+                    b.Navigation("Ticket");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.Feedback", b =>
                 {
                     b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
@@ -441,12 +1020,80 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Ticket");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.Holiday", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.BusinessCalendar", "BusinessCalendar")
+                        .WithMany("Holidays")
+                        .HasForeignKey("BusinessCalendarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BusinessCalendar");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Notification", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
+                        .WithMany()
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.SlaPolicy", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.BusinessCalendar", "BusinessCalendar")
+                        .WithMany()
+                        .HasForeignKey("BusinessCalendarId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BusinessCalendar");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Team", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.Department", "Department")
+                        .WithMany("Teams")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.AppUser", "LeadUser")
+                        .WithMany()
+                        .HasForeignKey("LeadUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Department");
+
+                    b.Navigation("LeadUser");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.Ticket", b =>
                 {
+                    b.HasOne("ServiceDesk.Models.Team", "AssignedTeam")
+                        .WithMany()
+                        .HasForeignKey("AssignedTeamId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.AppUser", "Assignee")
                         .WithMany()
                         .HasForeignKey("AssigneeId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ServiceDesk.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("ServiceDesk.Models.AppUser", "Requester")
                         .WithMany()
@@ -454,9 +1101,20 @@ namespace ServiceDesk.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ServiceDesk.Models.SlaPolicy", "SlaPolicy")
+                        .WithMany()
+                        .HasForeignKey("SlaPolicyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AssignedTeam");
+
                     b.Navigation("Assignee");
 
+                    b.Navigation("Category");
+
                     b.Navigation("Requester");
+
+                    b.Navigation("SlaPolicy");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.TicketComment", b =>
@@ -496,11 +1154,28 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Ticket");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.BusinessCalendar", b =>
+                {
+                    b.Navigation("Holidays");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Category", b =>
+                {
+                    b.Navigation("Children");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Department", b =>
+                {
+                    b.Navigation("Teams");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.Ticket", b =>
                 {
                     b.Navigation("Attachments");
 
                     b.Navigation("Comments");
+
+                    b.Navigation("Escalations");
 
                     b.Navigation("Feedback");
 

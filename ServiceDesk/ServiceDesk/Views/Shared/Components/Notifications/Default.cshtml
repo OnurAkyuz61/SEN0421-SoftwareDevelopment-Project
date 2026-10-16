@@ -1,4 +1,4 @@
-@model List<ServiceDesk.Services.NotificationItem>
+@model List<Notification>
 
 <div class="dropdown">
     <button class="btn btn-light position-relative rounded-circle bell" data-bs-toggle="dropdown" title="Bildirimler">
@@ -9,15 +9,18 @@
         }
     </button>
     <div class="dropdown-menu dropdown-menu-end shadow p-0 notif-menu">
-        <div class="px-3 py-2 fw-semibold border-bottom">Bildirimler</div>
+        <div class="px-3 py-2 fw-semibold border-bottom">Okunmamış bildirimler</div>
         @if (!Model.Any())
         {
             <div class="px-3 py-4 text-center text-muted small">Yeni bildirim yok</div>
         }
         @foreach (var n in Model.Take(5))
         {
-            <a class="dropdown-item d-flex gap-2 py-2 border-bottom" asp-controller="Tickets" asp-action="Details" asp-route-id="@n.TicketId">
-                <i class="bi @n.Icon text-@n.Color fs-5"></i>
+            <a class="dropdown-item d-flex gap-2 py-2 border-bottom"
+               asp-controller="@(n.TicketId != null ? "Tickets" : "Notifications")"
+               asp-action="@(n.TicketId != null ? "Details" : "Index")"
+               asp-route-id="@n.TicketId">
+                <i class="bi @NotificationService.Describe(n.Type) text-@NotificationService.Color(n.Type) fs-5"></i>
                 <div class="text-wrap">
                     <div class="small fw-semibold">@n.Title</div>
                     <div class="small text-muted">@n.Message</div>

@@ -16,12 +16,17 @@ public class PortalController : Controller
     private readonly AppDbContext _db;
     private readonly FileStorage _files;
     private readonly CurrentUser _current;
+    private readonly TicketSlaService _sla;
+    private readonly NotificationService _notify;
 
-    public PortalController(AppDbContext db, FileStorage files, CurrentUser current)
+    public PortalController(AppDbContext db, FileStorage files, CurrentUser current,
+                            TicketSlaService sla, NotificationService notify)
     {
         _db = db;
         _files = files;
         _current = current;
+        _sla = sla;
+        _notify = notify;
     }
 
     public async Task<IActionResult> Index()
@@ -30,6 +35,7 @@ public class PortalController : Controller
 
         var list = await _db.Tickets
             .AsNoTracking()
+            .Include(t => t.Category)
             .Where(t => t.RequesterId == me.Id)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
@@ -37,12 +43,22 @@ public class PortalController : Controller
         return View(list);
     }
 
-    public IActionResult Create() => View(new Ticket { Type = TicketType.Incident });
+    public async Task<IActionResult> Create()
+    {
+        await LoadCategoriesAsync();
+        return View(new Ticket { Type = TicketType.Incident });
+    }
+
+    private async Task LoadCategoriesAsync() =>
+        ViewBag.Categories = await _db.Categories.AsNoTracking()
+            .Where(c => c.IsActive)
+            .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
+            .ToListAsync();
 
     [HttpPost, ValidateAntiForgeryToken]
     [RequestSizeLimit(60 * 1024 * 1024)]
     public async Task<IActionResult> Create(
-        [Bind("Title,Description,Type,Priority,Category")] Ticket ticket,
+        [Bind("Title,Description,Type,Priority,CategoryId")] Ticket ticket,
         List<IFormFile>? files)
     {
         var me = _current.User!;
@@ -52,20 +68,45 @@ public class PortalController : Controller
         ticket.RequesterName = me.FullName;
         ModelState.Remove(nameof(Ticket.RequesterName));
 
+        var category = await _db.Categories.FirstOrDefaultAsync(c => c.Id == ticket.CategoryId && c.IsActive);
+        if (category == null) ModelState.AddModelError(nameof(Ticket.CategoryId), "Geçerli bir kategori seçin.");
+
         var fileError = FileStorage.Validate(files);
         if (fileError != null) ModelState.AddModelError("files", fileError);
-        if (!ModelState.IsValid) return View(ticket);
 
-        var sla = await _db.SlaPolicies.FirstAsync(s => s.Priority == ticket.Priority);
+        if (!ModelState.IsValid)
+        {
+            await LoadCategoriesAsync();
+            return View(ticket);
+        }
+
         ticket.CreatedAt = AppTime.UtcNow;
-        ticket.SlaDueAt = ticket.CreatedAt.AddHours(sla.ResolutionHours);
         ticket.Status = TicketStatus.New;
+        // Kategorinin varsayılan ekibi varsa talep doğrudan o ekibe düşer
+        ticket.AssignedTeamId = category!.DefaultTeamId;
+        await _sla.ApplyPolicyAsync(ticket);
+
         // Değişiklik talepleri yönetici onayına düşer
         ticket.ApprovalStatus = ticket.Type == TicketType.Change ? ApprovalStatus.Pending : ApprovalStatus.NotRequired;
         ticket.Attachments = await _files.SaveAsync(files);
         foreach (var a in ticket.Attachments) a.UploadedById = me.Id;
 
         _db.Tickets.Add(ticket);
+        await _db.SaveChangesAsync();
+
+        // Değişiklik talebi onay bekliyor: yöneticiler haberdar edilir
+        if (ticket.ApprovalStatus == ApprovalStatus.Pending)
+        {
+            await _notify.QueueToRoleAsync(UserRole.Admin, NotificationType.ApprovalPending,
+                $"Onay bekliyor: #{ticket.Id} {ticket.Title}",
+                $"{me.FullName} bir değişiklik talep etti.", ticket.Id);
+        }
+        else
+        {
+            await _notify.QueueToRoleAsync(UserRole.Agent, NotificationType.NewComment,
+                $"Yeni talep: #{ticket.Id} {ticket.Title}",
+                $"{me.FullName} tarafından açıldı.", ticket.Id);
+        }
         await _db.SaveChangesAsync();
 
         TempData["Ok"] = $"Talebiniz alındı. Talep numaranız: #{ticket.Id}";
@@ -80,6 +121,7 @@ public class PortalController : Controller
             .Include(t => t.Assignee)
             .Include(t => t.Comments).ThenInclude(c => c.Author)
             .Include(t => t.Comments).ThenInclude(c => c.Attachments)
+            .Include(t => t.Category)
             .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
 
         if (ticket == null) return NotFound();
@@ -131,6 +173,17 @@ public class PortalController : Controller
         }
 
         _db.TicketComments.Add(comment);
+
+        // İlgilenen varsa ona, yoksa destek ekibine haber ver
+        if (ticket.AssigneeId != null)
+            _notify.Queue(ticket.AssigneeId.Value, NotificationType.NewComment,
+                $"Yeni mesaj: #{ticket.Id} {ticket.Title}",
+                $"{_current.User!.FullName} talebe mesaj yazdı.", ticket.Id);
+        else
+            await _notify.QueueToRoleAsync(UserRole.Agent, NotificationType.NewComment,
+                $"Yeni mesaj: #{ticket.Id} {ticket.Title}",
+                $"{_current.User!.FullName} talebe mesaj yazdı.", ticket.Id);
+
         await _db.SaveChangesAsync();
 
         TempData["Ok"] = "Mesajınız iletildi.";
