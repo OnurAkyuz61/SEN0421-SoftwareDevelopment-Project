@@ -1,9 +1,11 @@
 @model Ticket
+@inject CurrentUser Me
 @{ ViewData["Title"] = "Yeni Talep"; }
 
 <div class="mb-4">
     <h4 class="fw-bold mb-1">Yeni destek talebi</h4>
     <div class="text-muted">Sorununuzu ya da isteğinizi anlatın, varsa dosya veya ekran görüntüsü ekleyin.</div>
+    <div class="text-muted small mt-1">Talep sahibi: <span class="fw-semibold">@Me.DisplayName</span></div>
 </div>
 
 <form asp-action="Create" method="post" enctype="multipart/form-data" class="panel">
@@ -12,16 +14,10 @@
         <span class="text-danger d-block mb-2">@Html.ValidationMessage("files")</span>
 
         <div class="row g-3">
-            <div class="col-md-8">
+            <div class="col-12">
                 <label asp-for="Title" class="form-label fw-semibold">Konu</label>
                 <input asp-for="Title" class="form-control" placeholder="Örn: Yazıcı çıktı vermiyor" />
                 <span asp-validation-for="Title" class="text-danger small"></span>
-            </div>
-            <div class="col-md-4">
-                <label asp-for="RequesterName" class="form-label fw-semibold">Ad Soyad</label>
-                @* TODO (login): oturumdaki kullanıcının adı otomatik gelecek *@
-                <input asp-for="RequesterName" class="form-control" />
-                <span asp-validation-for="RequesterName" class="text-danger small"></span>
             </div>
 
             <div class="col-md-4">

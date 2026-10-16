@@ -30,6 +30,9 @@ namespace ServiceDesk.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -40,18 +43,20 @@ namespace ServiceDesk.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -64,38 +69,45 @@ namespace ServiceDesk.Migrations
                         .IsUnique();
 
                     b.HasIndex("PhoneNumber")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[PhoneNumber] IS NOT NULL");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = 1,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@servicedesk.local",
                             FirstName = "Demo",
+                            IsActive = true,
                             LastName = "Yönetici",
-                            Password = "admin123",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFi3JF03e5L+rT0TFVRNIDpLX9U4gHjj97qMn+Eb/motK5gw/4voqGzIWdLDQnLoRg==",
                             PhoneNumber = "05321234567",
                             Role = 2
                         },
                         new
                         {
                             Id = 2,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "agent@servicedesk.local",
                             FirstName = "Ayşe",
+                            IsActive = true,
                             LastName = "Destek",
-                            Password = "agent123",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGkvNowp+RHWmgqpxlh3o9uxa4AB+oXFA7R1IxRkUxU8Phrot1adAxfk+tsgti4wag==",
                             PhoneNumber = "05329876543",
                             Role = 1
                         },
                         new
                         {
                             Id = 3,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "user@servicedesk.local",
                             FirstName = "Mehmet",
+                            IsActive = true,
                             LastName = "Kullanıcı",
-                            Password = "user123",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGCuZpCsLC2ztoJiLtcHCbzkXXyQBZZ6US8lq80NpQ9uHcFc6ORCHZpysx1O4810DA==",
                             PhoneNumber = "05321112233",
                             Role = 0
                         });
@@ -108,6 +120,9 @@ namespace ServiceDesk.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CommentId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ContentType")
                         .IsRequired()
@@ -133,11 +148,18 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("UploadedById")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CommentId");
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("Attachments");
+                    b.HasIndex("UploadedById");
+
+                    b.ToTable("Attachments", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Feedback", b =>
@@ -166,7 +188,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("TicketId")
                         .IsUnique();
 
-                    b.ToTable("Feedbacks");
+                    b.ToTable("Feedbacks", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.SlaPolicy", b =>
@@ -188,7 +210,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("Priority")
                         .IsUnique();
 
-                    b.ToTable("SlaPolicies");
+                    b.ToTable("SlaPolicies", (string)null);
 
                     b.HasData(
                         new
@@ -235,12 +257,14 @@ namespace ServiceDesk.Migrations
                     b.Property<int>("ApprovalStatus")
                         .HasColumnType("int");
 
-                    b.Property<string>("AssignedTo")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int?>("AssigneeId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Category")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -255,7 +279,10 @@ namespace ServiceDesk.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
-                    b.Property<int?>("RequesterId")
+                    b.Property<int>("ReopenCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RequesterId")
                         .HasColumnType("int");
 
                     b.Property<string>("RequesterName")
@@ -265,6 +292,11 @@ namespace ServiceDesk.Migrations
 
                     b.Property<DateTime?>("ResolvedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTime>("SlaDueAt")
                         .HasColumnType("datetime2");
@@ -282,20 +314,120 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ApprovalStatus");
+
+                    b.HasIndex("AssigneeId");
+
+                    b.HasIndex("CreatedAt");
+
                     b.HasIndex("RequesterId");
 
-                    b.ToTable("Tickets");
+                    b.HasIndex("Status");
+
+                    b.HasIndex("Status", "SlaDueAt");
+
+                    b.ToTable("Tickets", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.TicketComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsInternal")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("WorkMinutes")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("TicketId", "CreatedAt");
+
+                    b.ToTable("TicketComments", (string)null);
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.TicketHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ChangedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("NewValue")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChangedById");
+
+                    b.HasIndex("TicketId", "ChangedAt");
+
+                    b.ToTable("TicketHistories", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Attachment", b =>
                 {
+                    b.HasOne("ServiceDesk.Models.TicketComment", "Comment")
+                        .WithMany("Attachments")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
                         .WithMany("Attachments")
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ServiceDesk.Models.AppUser", "UploadedBy")
+                        .WithMany()
+                        .HasForeignKey("UploadedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Comment");
+
                     b.Navigation("Ticket");
+
+                    b.Navigation("UploadedBy");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Feedback", b =>
@@ -311,19 +443,73 @@ namespace ServiceDesk.Migrations
 
             modelBuilder.Entity("ServiceDesk.Models.Ticket", b =>
                 {
+                    b.HasOne("ServiceDesk.Models.AppUser", "Assignee")
+                        .WithMany()
+                        .HasForeignKey("AssigneeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.AppUser", "Requester")
                         .WithMany()
                         .HasForeignKey("RequesterId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assignee");
 
                     b.Navigation("Requester");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.TicketComment", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
+                        .WithMany("Comments")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.TicketHistory", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "ChangedBy")
+                        .WithMany()
+                        .HasForeignKey("ChangedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
+                        .WithMany("History")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChangedBy");
+
+                    b.Navigation("Ticket");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Ticket", b =>
                 {
                     b.Navigation("Attachments");
 
+                    b.Navigation("Comments");
+
                     b.Navigation("Feedback");
+
+                    b.Navigation("History");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.TicketComment", b =>
+                {
+                    b.Navigation("Attachments");
                 });
 #pragma warning restore 612, 618
         }

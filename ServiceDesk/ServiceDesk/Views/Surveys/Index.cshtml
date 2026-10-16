@@ -46,7 +46,7 @@
                         </td>
                         <td>@(f.Comment ?? "-")</td>
                         <td><a asp-controller="Tickets" asp-action="Details" asp-route-id="@f.TicketId" class="text-decoration-none">#@f.TicketId @f.Ticket?.Title</a></td>
-                        <td class="small text-muted">@f.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td class="small text-muted">@AppTime.ToLocal(f.CreatedAt).ToString("dd.MM.yyyy")</td>
                     </tr>
                 }
             </tbody>

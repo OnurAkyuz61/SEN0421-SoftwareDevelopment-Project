@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
+using ServiceDesk.Models;
 using ServiceDesk.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +10,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddSingleton<FileStorage>(); // talep ekleri (Uploads/ klasörü)
+builder.Services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CurrentUser>();    // oturumdaki kullanıcı
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(opt =>
 {

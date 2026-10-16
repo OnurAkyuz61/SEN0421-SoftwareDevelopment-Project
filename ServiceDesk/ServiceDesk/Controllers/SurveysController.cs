@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
+using ServiceDesk.Filters;
+using ServiceDesk.Models;
 
 namespace ServiceDesk.Controllers;
 
 // YÖNETİM: Müşteri memnuniyet anketi sonuçları
+[AuthorizeRole(UserRole.Agent, UserRole.Admin)]
 public class SurveysController : Controller
 {
     private readonly AppDbContext _db;

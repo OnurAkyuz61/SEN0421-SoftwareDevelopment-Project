@@ -17,7 +17,7 @@
                     <div class="fw-semibold">@n.Title</div>
                     <div class="small text-muted">@n.Message</div>
                 </div>
-                <small class="text-muted text-nowrap">@n.Time.ToString("dd.MM.yyyy HH:mm")</small>
+                <small class="text-muted text-nowrap">@AppTime.ToLocal(n.Time).ToString("dd.MM.yyyy HH:mm")</small>
             </a>
         }
     </div>

@@ -21,11 +21,6 @@
 <div class="panel">
     <div class="panel-head">
         <span>Talepler</span>
-        @* TODO (login): bu filtre kalkacak, liste oturumdaki kullanıcıya göre gelecek *@
-        <form method="get" class="d-flex gap-2">
-            <input name="name" value="@ViewBag.Name" class="form-control form-control-sm" placeholder="Ad soyad ile ara" style="max-width:200px" />
-            <button class="btn btn-sm btn-light border"><i class="bi bi-search"></i></button>
-        </form>
     </div>
     <div class="table-responsive">
         <table class="table table-hover">
@@ -47,7 +42,7 @@
                         </td>
                         <td>@Ui.CategoryText(t.Category)</td>
                         <td><span class="tag @Ui.StatusTag(t.Status)">@Ui.StatusText(t.Status)</span></td>
-                        <td class="text-muted">@t.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td class="text-muted">@AppTime.ToLocal(t.CreatedAt).ToString("dd.MM.yyyy")</td>
                     </tr>
                 }
             </tbody>

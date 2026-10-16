@@ -9,7 +9,7 @@ public static class NotificationService
 {
     public static async Task<List<NotificationItem>> GetAsync(AppDbContext db)
     {
-        var now = DateTime.Now;
+        var now = AppTime.UtcNow;
         var list = new List<NotificationItem>();
 
         var open = await db.Tickets

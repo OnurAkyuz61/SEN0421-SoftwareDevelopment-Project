@@ -1,5 +1,6 @@
 @* YÖNETİM PANELİ LAYOUT'U (sidebar) *@
 @inject ServiceDesk.Data.AppDbContext Db
+@inject CurrentUser Me
 @{
     var c = ViewContext.RouteData.Values["controller"]?.ToString();
     string Act(string ctrl) => c == ctrl ? "active" : "";
@@ -46,9 +47,21 @@
                     <a class="btn btn-outline-secondary btn-sm d-none d-md-inline-block" asp-controller="Portal" asp-action="Index">
                         <i class="bi bi-box-arrow-up-right"></i> Kullanıcı Portalı
                     </a>
-                    <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login">
-                        <i class="bi bi-box-arrow-in-right"></i> Login
-                    </a>
+                    @if (Me.IsAuthenticated)
+                    {
+                        <span class="small text-muted d-none d-lg-inline">@Me.DisplayName</span>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-box-arrow-right"></i> Çıkış
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login">
+                            <i class="bi bi-box-arrow-in-right"></i> Giriş Yap
+                        </a>
+                    }
                 </div>
             </header>
             <main class="p-4">

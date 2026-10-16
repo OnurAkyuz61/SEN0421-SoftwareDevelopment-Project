@@ -70,10 +70,10 @@
                         <td>@Ui.CategoryText(t.Category)</td>
                         <td><span class="tag @Ui.PriorityTag(t.Priority)">@Ui.PriorityText(t.Priority)</span></td>
                         <td><span class="tag @Ui.StatusTag(t.Status)">@Ui.StatusText(t.Status)</span></td>
-                        <td>@(t.AssignedTo ?? "-")</td>
+                        <td>@(t.Assignee?.FullName ?? "-")</td>
                         <td class="text-nowrap">
                             @if (t.IsSlaBreached) { <span class="tag tag-red"><i class="bi bi-exclamation-triangle"></i> İhlal@(t.IsEscalated ? " · Eskale" : "")</span> }
-                            else { <span class="small text-muted">@t.SlaDueAt.ToString("dd.MM HH:mm")</span> }
+                            else { <span class="small text-muted">@AppTime.ToLocal(t.SlaDueAt).ToString("dd.MM HH:mm")</span> }
                         </td>
                     </tr>
                 }

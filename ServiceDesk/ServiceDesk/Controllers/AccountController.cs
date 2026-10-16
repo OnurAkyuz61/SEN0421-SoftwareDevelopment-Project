@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Models;
+using ServiceDesk.Services;
 
 namespace ServiceDesk.Controllers;
 
@@ -12,14 +14,26 @@ public class AccountController : Controller
     private const string SessCode = "Otp.Code";
     private const string SessChannel = "Otp.Channel";
     private const string SessExpires = "Otp.Expires";
-    private const string SessAuthed = "Auth.UserId";
+    private const string SessAuthed = CurrentUser.SessionKey;
 
     private readonly AppDbContext _db;
+    private readonly IPasswordHasher<AppUser> _hasher;
+    private readonly CurrentUser _current;
 
-    public AccountController(AppDbContext db) => _db = db;
+    public AccountController(AppDbContext db, IPasswordHasher<AppUser> hasher, CurrentUser current)
+    {
+        _db = db;
+        _hasher = hasher;
+        _current = current;
+    }
 
     [HttpGet]
-    public IActionResult Login() => View(new LoginVm());
+    public IActionResult Login()
+    {
+        // Zaten giriş yapılmışsa rolüne göre kendi sayfasına gönder
+        if (_current.User is { } signedIn) return RedirectToHome(signedIn.Role);
+        return View(new LoginVm());
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -27,12 +41,24 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid) return View(vm);
 
-        var user = await _db.Users.FirstOrDefaultAsync(u =>
-            u.Email == vm.Email && u.Password == vm.Password);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == vm.Email && u.IsActive);
 
-        if (user is null)
+        // Kullanıcı bulunamasa da şifre doğrulaması yapılır ki yanıt süresinden
+        // hesabın var olup olmadığı anlaşılmasın
+        var verified = user is not null &&
+            _hasher.VerifyHashedPassword(user, user.PasswordHash, vm.Password)
+                != PasswordVerificationResult.Failed;
+
+        if (user is null || !verified)
         {
             ModelState.AddModelError(string.Empty, "E-posta veya şifre hatalı.");
+            return View(vm);
+        }
+
+        if (string.IsNullOrWhiteSpace(user.PhoneNumber))
+        {
+            ModelState.AddModelError(string.Empty,
+                "Bu hesapta doğrulama için telefon numarası tanımlı değil. Yöneticinize başvurun.");
             return View(vm);
         }
 
@@ -44,6 +70,20 @@ public class AccountController : Controller
 
         return RedirectToAction(nameof(OtpChannel));
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Logout()
+    {
+        HttpContext.Session.Clear();
+        return RedirectToAction(nameof(Login));
+    }
+
+    // Yönetici ve destek yönetim paneline, son kullanıcı portala düşer
+    private IActionResult RedirectToHome(UserRole role) =>
+        role == UserRole.User
+            ? RedirectToAction("Index", "Portal")
+            : RedirectToAction("Index", "Dashboard");
 
     [HttpGet]
     public IActionResult OtpChannel()
@@ -97,7 +137,7 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult OtpVerify(OtpVerifyVm vm)
+    public async Task<IActionResult> OtpVerify(OtpVerifyVm vm)
     {
         if (!HasPendingLogin() || string.IsNullOrEmpty(HttpContext.Session.GetString(SessCode)))
             return RedirectToAction(nameof(OtpChannel));
@@ -124,10 +164,18 @@ public class AccountController : Controller
         }
 
         var userId = HttpContext.Session.GetInt32(SessUserId)!.Value;
-        HttpContext.Session.SetInt32(SessAuthed, userId);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+        if (user is null)
+        {
+            ClearOtpSession();
+            ModelState.AddModelError(string.Empty, "Hesap bulunamadı veya pasif durumda.");
+            return RedirectToAction(nameof(Login));
+        }
+
+        HttpContext.Session.SetInt32(SessAuthed, user.Id);
         ClearOtpSession();
 
-        return RedirectToAction("Index", "Dashboard");
+        return RedirectToHome(user.Role);
     }
 
     [HttpPost]
