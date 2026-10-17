@@ -1,90 +1,95 @@
 @model LoginVm
 @inject IWebHostEnvironment Env
 @{
-    Layout = null;
+    Layout = "_AuthLayout";
     ViewData["Title"] = "Giriş";
+    ViewData["AuthStep"] = 1;
+
+    var reason = ViewData["Reason"] as string;
+    var formErrors = ViewData.ModelState[string.Empty]?.Errors.Select(e => e.ErrorMessage).ToList() ?? new();
+    bool HasError(string key) => ViewData.ModelState[key]?.Errors.Count > 0;
 }
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ServiceDesk</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;550;650;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="~/css/otp.css" asp-append-version="true" />
-    <style>
-        .otp-field { margin-bottom: 1rem; }
-        .otp-field label { display: block; font-size: .82rem; font-weight: 650; margin-bottom: .35rem; color: var(--otp-muted); }
-        .otp-field input {
-            width: 100%; border: 1.5px solid var(--otp-line); border-radius: .85rem;
-            padding: .75rem .9rem; font-family: inherit; font-size: .95rem; background: #fff; outline: none;
-        }
-        .otp-field input:focus { border-color: var(--otp-accent); box-shadow: 0 0 0 3px var(--otp-glow); }
 
-        /* GELİŞTİRME: hızlı giriş kutusu — canlıya çıkmadan önce kaldırılacak */
-        .dev-fill { margin-top: 1.1rem; padding-top: .9rem; border-top: 1px dashed var(--otp-line); }
-        .dev-fill .dev-label { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--otp-muted); margin-bottom: .5rem; }
-        .dev-fill .dev-row { display: flex; gap: .4rem; flex-wrap: wrap; }
-        .dev-fill button {
-            flex: 1 1 0; min-width: 88px; cursor: pointer; font-family: inherit; font-size: .8rem;
-            padding: .45rem .3rem; border: 1.5px solid var(--otp-line); border-radius: .6rem;
-            background: #fff; color: var(--otp-muted);
-        }
-        .dev-fill button:hover { border-color: var(--otp-accent); color: var(--otp-accent); }
-    </style>
-</head>
-<body class="otp-body">
-    <div class="otp-shell">
-        <div class="otp-brand">
-            <i class="bi bi-headset"></i>
-            <span>ServiceDesk</span>
-        </div>
-        <div class="otp-card">
-            <h1>Giriş yap</h1>
-            <p class="lead">Hesabınıza giriş sonrası telefon doğrulaması istenir.</p>
+<div class="auth-head">
+    <h1>Tekrar hoş geldiniz</h1>
+    <p>Servis masasına erişmek için kurumsal hesabınızla giriş yapın.</p>
+</div>
 
-            <form asp-action="Login" method="post">
-                @Html.AntiForgeryToken()
-                <div asp-validation-summary="ModelOnly" class="otp-alert error"></div>
-
-                <div class="otp-field">
-                    <label asp-for="Email">E-posta</label>
-                    <input asp-for="Email" autocomplete="username" placeholder="admin@servicedesk.local" />
-                    <span asp-validation-for="Email" class="otp-alert error" style="display:block;margin-top:.4rem"></span>
-                </div>
-                <div class="otp-field">
-                    <label asp-for="Password">Şifre</label>
-                    <input asp-for="Password" autocomplete="current-password" placeholder="••••••••" />
-                    <span asp-validation-for="Password" class="otp-alert error" style="display:block;margin-top:.4rem"></span>
-                </div>
-
-                <button type="submit" class="otp-btn">Devam et</button>
-
-            </form>
-
-            @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────────
-               Test hesabına şifre ve OTP olmadan girer. Giriş formundan ayrı
-               bir form olduğu için tarayıcı parola gönderimi algılamaz;
-               "bu şifre bir veri sızıntısında bulundu" uyarısı çıkmaz.
-               Yalnızca Development'ta görünür, sunucu tarafında da ayrıca
-               kilitli. Canlıya çıkmadan önce bu blok, yukarıdaki .dev-fill
-               stilleri ve AccountController.DevLogin silinecek. *@
-            @if (Env.IsDevelopment())
-            {
-                <form asp-action="DevLogin" method="post" class="dev-fill">
-                    @Html.AntiForgeryToken()
-                    <div class="dev-label">Geliştirme · şifresiz hızlı giriş</div>
-                    <div class="dev-row">
-                        <button type="submit" name="email" value="admin@servicedesk.local">Yönetici</button>
-                        <button type="submit" name="email" value="agent@servicedesk.local">Destek</button>
-                        <button type="submit" name="email" value="user@servicedesk.local">Kullanıcı</button>
-                    </div>
-                </form>
-            }
-        </div>
+@if (reason == "timeout" || reason == "expired")
+{
+    <div class="auth-alert warn" role="status">
+        <i class="bi bi-hourglass-bottom"></i>
+        <span>Güvenliğiniz için oturumunuz zaman aşımına uğradı. Lütfen tekrar giriş yapın.</span>
     </div>
-</body>
-</html>
+}
+else if (reason == "logout")
+{
+    <div class="auth-alert success" role="status">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>Güvenli bir şekilde çıkış yaptınız.</span>
+    </div>
+}
+
+@if (formErrors.Any())
+{
+    <div class="auth-alert error" role="alert">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <ul>@foreach (var e in formErrors) { <li>@e</li> }</ul>
+    </div>
+}
+
+<form asp-action="Login" method="post" novalidate data-auth-form>
+    <input type="hidden" asp-for="ReturnUrl" />
+
+    <div class="auth-field">
+        <label asp-for="Email">E-posta</label>
+        <div class="auth-input @(HasError(nameof(Model.Email)) ? "invalid" : "")">
+            <i class="bi bi-envelope"></i>
+            <input asp-for="Email" type="email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false"
+                   placeholder="ad.soyad@servicedesk.local" autofocus />
+        </div>
+        <span asp-validation-for="Email" class="field-error"></span>
+    </div>
+
+    <div class="auth-field">
+        <label asp-for="Password">Şifre</label>
+        <div class="auth-input @(HasError(nameof(Model.Password)) ? "invalid" : "")">
+            <i class="bi bi-lock"></i>
+            <input asp-for="Password" autocomplete="current-password" placeholder="Şifrenizi girin" data-caps-target="#capsHint" />
+            <button type="button" class="reveal" data-reveal="#Password" aria-label="Şifreyi göster" title="Şifreyi göster">
+                <i class="bi bi-eye"></i>
+            </button>
+        </div>
+        <span asp-validation-for="Password" class="field-error"></span>
+        <div class="caps-hint" id="capsHint" role="status"><i class="bi bi-capslock-fill"></i> Caps Lock açık</div>
+    </div>
+
+    <button type="submit" class="auth-btn">
+        <span class="spinner" aria-hidden="true"></span>
+        <span class="btn-label">Devam et</span>
+        <i class="bi bi-arrow-right"></i>
+    </button>
+</form>
+
+<p class="text-center text-muted small mt-3 mb-0">
+    Şifreden sonra telefonunuza tek kullanımlık bir doğrulama kodu gönderilir.
+</p>
+
+@* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────────────────
+   Test hesabına şifre ve OTP olmadan girer. Giriş formundan ayrı bir form
+   olduğu için tarayıcı parola gönderimi algılamaz; "bu şifre bir veri
+   sızıntısında bulundu" uyarısı çıkmaz. Yalnızca Development'ta görünür,
+   sunucu tarafında da ayrıca kilitli. Canlıya çıkmadan önce bu blok,
+   auth.css'teki .dev-* stilleri ve AccountController.DevLogin silinecek. *@
+@if (Env.IsDevelopment())
+{
+    <form asp-action="DevLogin" method="post" class="dev-box">
+        <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+        <div class="dev-label"><i class="bi bi-wrench-adjustable"></i> Geliştirme · şifresiz hızlı giriş</div>
+        <div class="dev-row">
+            <button type="submit" class="dev-btn" name="email" value="admin@servicedesk.local">Yönetici</button>
+            <button type="submit" class="dev-btn" name="email" value="agent@servicedesk.local">Destek</button>
+            <button type="submit" class="dev-btn" name="email" value="user@servicedesk.local">Kullanıcı</button>
+        </div>
+    </form>
+}

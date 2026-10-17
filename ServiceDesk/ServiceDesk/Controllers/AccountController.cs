@@ -1,51 +1,70 @@
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ServiceDesk.Data;
+using ServiceDesk.Filters;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
 
 namespace ServiceDesk.Controllers;
 
+// Giriş akışı: E-posta + şifre → OTP kanalı seçimi → 6 haneli kod → oturum
+//
+// Session'da iki ayrı durum tutulur:
+//   • Bekleyen giriş (Otp.*): şifre doğru, kod henüz girilmedi
+//   • Açık oturum (Auth.*):   kod doğrulandı, kullanıcı içeride
+// Kod doğrulanınca bekleyen giriş tamamen silinir ve oturum sıfırdan açılır.
+//
+// Giriş sayfaları tarayıcı önbelleğine alınmaz; "geri" tuşuyla eski bir
+// OTP ekranına dönülemez.
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public class AccountController : Controller
 {
-    private const string SessUserId = "Otp.UserId";
-    private const string SessPhone = "Otp.Phone";
-    private const string SessCode = "Otp.Code";
-    private const string SessChannel = "Otp.Channel";
-    private const string SessExpires = "Otp.Expires";
-    private const string SessAuthed = CurrentUser.SessionKey;
-
     private readonly AppDbContext _db;
     private readonly IPasswordHasher<AppUser> _hasher;
     private readonly CurrentUser _current;
     private readonly IWebHostEnvironment _env;
     private readonly LoginAuditService _audit;
+    private readonly AuthSettings _cfg;
 
     public AccountController(AppDbContext db, IPasswordHasher<AppUser> hasher,
                              CurrentUser current, IWebHostEnvironment env,
-                             LoginAuditService audit)
+                             LoginAuditService audit, IOptions<AuthSettings> cfg)
     {
         _db = db;
         _hasher = hasher;
         _current = current;
         _env = env;
         _audit = audit;
+        _cfg = cfg.Value;
     }
 
+    private ISession Session => HttpContext.Session;
+
+    // ───── 1. ADIM: E-posta + şifre ──────────────────────────────────────
+
     [HttpGet]
-    public IActionResult Login()
+    public IActionResult Login(string? returnUrl, string? reason)
     {
         // Zaten giriş yapılmışsa rolüne göre kendi sayfasına gönder
-        if (_current.User is { } signedIn) return RedirectToHome(signedIn.Role);
-        return View(new LoginVm());
+        if (_current.User is { } signedIn) return RedirectAfterLogin(signedIn.Role, returnUrl);
+
+        ViewData["Reason"] = reason; // timeout | expired | logout
+        return View(new LoginVm { ReturnUrl = SafeReturnUrl(returnUrl) });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginVm vm)
     {
+        vm.ReturnUrl = SafeReturnUrl(vm.ReturnUrl);
         if (!ModelState.IsValid) return View(vm);
+
+        vm.Email = vm.Email.Trim();
 
         // Art arda başarısız denemelerden sonra hesap geçici olarak kapanır
         if (await _audit.IsLockedOutAsync(vm.Email))
@@ -84,11 +103,12 @@ public class AccountController : Controller
             return View(vm);
         }
 
-        HttpContext.Session.SetInt32(SessUserId, user.Id);
-        HttpContext.Session.SetString(SessPhone, user.PhoneNumber);
-        HttpContext.Session.Remove(SessCode);
-        HttpContext.Session.Remove(SessChannel);
-        HttpContext.Session.Remove(SessExpires);
+        // Önceki oturumdan kalan her şey silinir; bekleyen giriş temiz başlar
+        Session.Clear();
+        Session.SetInt32(SessionKeys.PendingUserId, user.Id);
+        Session.SetString(SessionKeys.PendingPhone, user.PhoneNumber);
+        SetTime(SessionKeys.PendingStartedAt, DateTime.UtcNow);
+        if (vm.ReturnUrl != null) Session.SetString(SessionKeys.ReturnUrl, vm.ReturnUrl);
 
         return RedirectToAction(nameof(OtpChannel));
     }
@@ -103,7 +123,7 @@ public class AccountController : Controller
     // sayfasındaki dev bloğu silinecek.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DevLogin(string? email)
+    public async Task<IActionResult> DevLogin(string? email, string? returnUrl)
     {
         if (!_env.IsDevelopment()) return NotFound();
 
@@ -118,35 +138,40 @@ public class AccountController : Controller
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
         if (user == null) return NotFound();
 
-        HttpContext.Session.Clear();
-        HttpContext.Session.SetInt32(SessAuthed, user.Id);
+        StartSession(user);
 
         TempData["Ok"] = $"Geliştirme girişi: {user.FullName} ({Ui.RoleText(user.Role)})";
-        return RedirectToHome(user.Role);
+        return RedirectAfterLogin(user.Role, returnUrl);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult Logout()
     {
-        HttpContext.Session.Clear();
-        return RedirectToAction(nameof(Login));
+        Session.Clear();
+        Response.Cookies.Delete(AuthSettings.CookieName);
+        return RedirectToAction(nameof(Login), new { reason = "logout" });
     }
 
-    // Yönetici ve destek yönetim paneline, son kullanıcı portala düşer
-    private IActionResult RedirectToHome(UserRole role) =>
-        role == UserRole.User
-            ? RedirectToAction("Index", "Portal")
-            : RedirectToAction("Index", "Dashboard");
+    // Sayfadaki "oturumu sürdür" düğmesi çağırır. Session'a erişmek boşta
+    // kalma süresini sıfırlar; yanıt kalan süreyi döner.
+    [HttpGet]
+    [AuthorizeRole]
+    public IActionResult KeepAlive() =>
+        Json(new { ok = true, idleSeconds = _cfg.IdleTimeoutMinutes * 60 });
+
+    // ───── 2. ADIM: Kodun gönderileceği kanal ────────────────────────────
 
     [HttpGet]
     public IActionResult OtpChannel()
     {
         if (!HasPendingLogin()) return RedirectToAction(nameof(Login));
 
+        Enum.TryParse<OtpDeliveryChannel>(Session.GetString(SessionKeys.Channel), out var last);
         return View(new OtpChannelVm
         {
-            MaskedPhone = MaskPhone(HttpContext.Session.GetString(SessPhone)!)
+            MaskedPhone = MaskPhone(Session.GetString(SessionKeys.PendingPhone)!),
+            Channel = last
         });
     }
 
@@ -156,97 +181,10 @@ public class AccountController : Controller
     {
         if (!HasPendingLogin()) return RedirectToAction(nameof(Login));
 
-        vm.MaskedPhone = MaskPhone(HttpContext.Session.GetString(SessPhone)!);
+        vm.MaskedPhone = MaskPhone(Session.GetString(SessionKeys.PendingPhone)!);
         if (!ModelState.IsValid) return View(vm);
 
-        var code = Random.Shared.Next(100000, 999999).ToString();
-
-        HttpContext.Session.SetString(SessCode, code);
-        HttpContext.Session.SetString(SessChannel, vm.Channel.ToString());
-        HttpContext.Session.SetString(SessExpires, DateTime.UtcNow.AddMinutes(5).ToString("O"));
-
-        // Gerçek SMS / WhatsApp API buraya bağlanacak; şimdilik simülasyon
-        TempData["OtpDemoCode"] = code;
-        TempData["OtpSentInfo"] = vm.Channel == OtpDeliveryChannel.WhatsApp
-            ? $"Doğrulama kodu WhatsApp ile {vm.MaskedPhone} numarasına gönderildi."
-            : $"Doğrulama kodu SMS ile {vm.MaskedPhone} numarasına gönderildi.";
-
-        return RedirectToAction(nameof(OtpVerify));
-    }
-
-    [HttpGet]
-    public IActionResult OtpVerify()
-    {
-        if (!HasPendingLogin() || string.IsNullOrEmpty(HttpContext.Session.GetString(SessCode)))
-            return RedirectToAction(nameof(OtpChannel));
-
-        Enum.TryParse<OtpDeliveryChannel>(HttpContext.Session.GetString(SessChannel), out var channel);
-
-        return View(new OtpVerifyVm
-        {
-            MaskedPhone = MaskPhone(HttpContext.Session.GetString(SessPhone)!),
-            Channel = channel
-        });
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> OtpVerify(OtpVerifyVm vm)
-    {
-        if (!HasPendingLogin() || string.IsNullOrEmpty(HttpContext.Session.GetString(SessCode)))
-            return RedirectToAction(nameof(OtpChannel));
-
-        Enum.TryParse<OtpDeliveryChannel>(HttpContext.Session.GetString(SessChannel), out var channel);
-        vm.MaskedPhone = MaskPhone(HttpContext.Session.GetString(SessPhone)!);
-        vm.Channel = channel;
-
-        if (!ModelState.IsValid) return View(vm);
-
-        var expiresRaw = HttpContext.Session.GetString(SessExpires);
-        if (!DateTime.TryParse(expiresRaw, null, System.Globalization.DateTimeStyles.RoundtripKind, out var expires)
-            || DateTime.UtcNow > expires)
-        {
-            await _audit.RecordAsync(_db.Users.Where(u => u.Id == HttpContext.Session.GetInt32(SessUserId))
-                                        .Select(u => u.Email).FirstOrDefault() ?? "",
-                                     LoginResult.OtpExpired, HttpContext.Session.GetInt32(SessUserId));
-            ModelState.AddModelError(nameof(vm.Code), "Kodun süresi doldu. Yeni kod isteyin.");
-            return View(vm);
-        }
-
-        var expected = HttpContext.Session.GetString(SessCode);
-        if (!string.Equals(vm.Code, expected, StringComparison.Ordinal))
-        {
-            var bekleyenId = HttpContext.Session.GetInt32(SessUserId);
-            var eposta = await _db.Users.Where(u => u.Id == bekleyenId).Select(u => u.Email).FirstOrDefaultAsync() ?? "";
-            await _audit.RecordAsync(eposta, LoginResult.OtpFailed, bekleyenId);
-
-            // Kod da sınırsız denenemez
-            if (await _audit.IsLockedOutAsync(eposta))
-            {
-                ClearOtpSession();
-                TempData["Err"] = "Çok fazla hatalı kod girildi. Lütfen yeniden giriş yapın.";
-                return RedirectToAction(nameof(Login));
-            }
-
-            ModelState.AddModelError(nameof(vm.Code), "Kod hatalı. Tekrar deneyin.");
-            return View(vm);
-        }
-
-        var userId = HttpContext.Session.GetInt32(SessUserId)!.Value;
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
-        if (user is null)
-        {
-            ClearOtpSession();
-            ModelState.AddModelError(string.Empty, "Hesap bulunamadı veya pasif durumda.");
-            return RedirectToAction(nameof(Login));
-        }
-
-        await _audit.RecordAsync(user.Email, LoginResult.Success, user.Id);
-
-        HttpContext.Session.SetInt32(SessAuthed, user.Id);
-        ClearOtpSession();
-
-        return RedirectToHome(user.Role);
+        return SendCode(vm.Channel);
     }
 
     [HttpPost]
@@ -255,26 +193,224 @@ public class AccountController : Controller
     {
         if (!HasPendingLogin()) return RedirectToAction(nameof(Login));
 
-        var channelRaw = HttpContext.Session.GetString(SessChannel);
-        if (string.IsNullOrEmpty(channelRaw)
-            || !Enum.TryParse<OtpDeliveryChannel>(channelRaw, out var channel))
+        if (!Enum.TryParse<OtpDeliveryChannel>(Session.GetString(SessionKeys.Channel), out var channel))
             return RedirectToAction(nameof(OtpChannel));
 
-        return OtpChannel(new OtpChannelVm { Channel = channel });
+        return SendCode(channel);
     }
 
-    private bool HasPendingLogin() =>
-        HttpContext.Session.GetInt32(SessUserId).HasValue
-        && !string.IsNullOrEmpty(HttpContext.Session.GetString(SessPhone));
-
-    private void ClearOtpSession()
+    // Kodu üretir, session'a yazar ve (şimdilik) ekranda gösterir.
+    // Bekleme süresi ve toplam gönderim sınırı sunucu tarafında uygulanır;
+    // butonu devre dışı bırakmak yalnızca görsel kolaylıktır.
+    private IActionResult SendCode(OtpDeliveryChannel channel)
     {
-        HttpContext.Session.Remove(SessCode);
-        HttpContext.Session.Remove(SessChannel);
-        HttpContext.Session.Remove(SessExpires);
-        HttpContext.Session.Remove(SessUserId);
-        HttpContext.Session.Remove(SessPhone);
+        var now = DateTime.UtcNow;
+        var sendCount = Session.GetInt32(SessionKeys.SendCount) ?? 0;
+
+        if (sendCount >= _cfg.OtpMaxSends)
+        {
+            ClearPendingLogin();
+            TempData["Err"] = "Çok fazla kod istendi. Güvenliğiniz için lütfen yeniden giriş yapın.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        if (GetTime(SessionKeys.SentAt) is { } sentAt &&
+            now - sentAt < TimeSpan.FromSeconds(_cfg.OtpResendCooldownSeconds) &&
+            !string.IsNullOrEmpty(Session.GetString(SessionKeys.Code)))
+        {
+            var wait = (int)Math.Ceiling((sentAt.AddSeconds(_cfg.OtpResendCooldownSeconds) - now).TotalSeconds);
+            TempData["OtpSentInfo"] = $"Yeni kod isteyebilmek için {wait} saniye bekleyin.";
+            return RedirectToAction(nameof(OtpVerify));
+        }
+
+        // Kriptografik olarak güvenli 6 haneli kod (000000–999999)
+        var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6", CultureInfo.InvariantCulture);
+
+        Session.SetString(SessionKeys.Code, code);
+        Session.SetString(SessionKeys.Channel, channel.ToString());
+        SetTime(SessionKeys.ExpiresAt, now.AddSeconds(_cfg.OtpLifetimeSeconds));
+        SetTime(SessionKeys.SentAt, now);
+        Session.SetInt32(SessionKeys.SendCount, sendCount + 1);
+        Session.SetInt32(SessionKeys.Attempts, 0);
+
+        var masked = MaskPhone(Session.GetString(SessionKeys.PendingPhone)!);
+
+        // Gerçek SMS / WhatsApp API buraya bağlanacak; şimdilik simülasyon
+        TempData["OtpDemoCode"] = code;
+        TempData["OtpSentInfo"] = channel == OtpDeliveryChannel.WhatsApp
+            ? $"Kod WhatsApp ile {masked} numarasına gönderildi."
+            : $"Kod SMS ile {masked} numarasına gönderildi.";
+
+        return RedirectToAction(nameof(OtpVerify));
     }
+
+    // ───── 3. ADIM: 6 haneli kod ─────────────────────────────────────────
+
+    [HttpGet]
+    public IActionResult OtpVerify()
+    {
+        if (!HasPendingLogin()) return RedirectToAction(nameof(Login));
+        if (string.IsNullOrEmpty(Session.GetString(SessionKeys.Code))) return RedirectToAction(nameof(OtpChannel));
+
+        var vm = new OtpVerifyVm();
+        FillVerifyVm(vm);
+        return View(vm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> OtpVerify(OtpVerifyVm vm)
+    {
+        if (!HasPendingLogin()) return RedirectToAction(nameof(Login));
+
+        var expected = Session.GetString(SessionKeys.Code);
+        if (string.IsNullOrEmpty(expected)) return RedirectToAction(nameof(OtpChannel));
+
+        FillVerifyVm(vm);
+        if (!ModelState.IsValid) return View(vm);
+
+        var pendingId = Session.GetInt32(SessionKeys.PendingUserId);
+        var email = await _db.Users.Where(u => u.Id == pendingId).Select(u => u.Email).FirstOrDefaultAsync() ?? "";
+
+        // Süresi dolan kod bir daha kullanılamaz
+        if (GetTime(SessionKeys.ExpiresAt) is not { } expires || DateTime.UtcNow > expires)
+        {
+            await _audit.RecordAsync(email, LoginResult.OtpExpired, pendingId);
+            Session.Remove(SessionKeys.Code);
+            vm.SecondsLeft = 0;
+            ModelState.AddModelError(nameof(vm.Code), "Kodun süresi doldu. Yeni kod isteyin.");
+            return View(vm);
+        }
+
+        var attempts = (Session.GetInt32(SessionKeys.Attempts) ?? 0) + 1;
+        Session.SetInt32(SessionKeys.Attempts, attempts);
+
+        // Sabit süreli karşılaştırma: yanıt süresinden kodun kaç hanesinin
+        // doğru olduğu anlaşılamaz
+        var ok = CryptographicOperations.FixedTimeEquals(
+            Encoding.ASCII.GetBytes(vm.Code), Encoding.ASCII.GetBytes(expected));
+
+        if (!ok)
+        {
+            await _audit.RecordAsync(email, LoginResult.OtpFailed, pendingId);
+
+            // Hesap genelindeki deneme sınırı (LoginAuditService)
+            if (await _audit.IsLockedOutAsync(email))
+            {
+                ClearPendingLogin();
+                TempData["Err"] = "Çok fazla hatalı kod girildi. Lütfen daha sonra yeniden giriş yapın.";
+                return RedirectToAction(nameof(Login));
+            }
+
+            // Bu koda özel deneme sınırı
+            if (attempts >= _cfg.OtpMaxAttempts)
+            {
+                Session.Remove(SessionKeys.Code);
+                TempData["Err"] = "Bu kod için deneme hakkınız doldu. Yeni bir kod isteyin.";
+                return RedirectToAction(nameof(OtpChannel));
+            }
+
+            vm.AttemptsLeft = _cfg.OtpMaxAttempts - attempts;
+            ModelState.AddModelError(nameof(vm.Code),
+                $"Kod hatalı. {vm.AttemptsLeft} deneme hakkınız kaldı.");
+            return View(vm);
+        }
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == pendingId && u.IsActive);
+        if (user is null)
+        {
+            ClearPendingLogin();
+            TempData["Err"] = "Hesap bulunamadı veya pasif durumda.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        await _audit.RecordAsync(user.Email, LoginResult.Success, user.Id);
+
+        var returnUrl = Session.GetString(SessionKeys.ReturnUrl);
+        StartSession(user);
+
+        return RedirectAfterLogin(user.Role, returnUrl);
+    }
+
+    // ───── Yardımcılar ───────────────────────────────────────────────────
+
+    // Bekleyen giriş var mı? Süresi dolduysa temizler ve kullanıcıya söyler.
+    private bool HasPendingLogin()
+    {
+        if (Session.GetInt32(SessionKeys.PendingUserId) is null ||
+            string.IsNullOrEmpty(Session.GetString(SessionKeys.PendingPhone)))
+            return false;
+
+        if (GetTime(SessionKeys.PendingStartedAt) is not { } started ||
+            DateTime.UtcNow - started > TimeSpan.FromMinutes(_cfg.PendingLoginMinutes))
+        {
+            ClearPendingLogin();
+            TempData["Err"] = "Doğrulama adımı zaman aşımına uğradı. Lütfen yeniden giriş yapın.";
+            return false;
+        }
+        return true;
+    }
+
+    private void FillVerifyVm(OtpVerifyVm vm)
+    {
+        var now = DateTime.UtcNow;
+        Enum.TryParse<OtpDeliveryChannel>(Session.GetString(SessionKeys.Channel), out var channel);
+
+        vm.MaskedPhone = MaskPhone(Session.GetString(SessionKeys.PendingPhone)!);
+        vm.Channel = channel;
+        vm.SecondsLeft = GetTime(SessionKeys.ExpiresAt) is { } exp ? Math.Max(0, (int)(exp - now).TotalSeconds) : 0;
+        vm.ResendInSeconds = GetTime(SessionKeys.SentAt) is { } sent
+            ? Math.Max(0, (int)Math.Ceiling((sent.AddSeconds(_cfg.OtpResendCooldownSeconds) - now).TotalSeconds))
+            : 0;
+        vm.SendsLeft = Math.Max(0, _cfg.OtpMaxSends - (Session.GetInt32(SessionKeys.SendCount) ?? 0));
+        vm.AttemptsLeft = Math.Max(0, _cfg.OtpMaxAttempts - (Session.GetInt32(SessionKeys.Attempts) ?? 0));
+    }
+
+    // Oturumu sıfırdan açar: bekleyen girişe ait tüm anahtarlar silinir
+    private void StartSession(AppUser user)
+    {
+        Session.Clear();
+        Session.SetInt32(SessionKeys.UserId, user.Id);
+        SetTime(SessionKeys.IssuedAt, DateTime.UtcNow);
+    }
+
+    private void ClearPendingLogin()
+    {
+        foreach (var key in new[]
+                 {
+                     SessionKeys.PendingUserId, SessionKeys.PendingPhone, SessionKeys.PendingStartedAt,
+                     SessionKeys.ReturnUrl, SessionKeys.Code, SessionKeys.Channel, SessionKeys.ExpiresAt,
+                     SessionKeys.SentAt, SessionKeys.SendCount, SessionKeys.Attempts
+                 })
+            Session.Remove(key);
+    }
+
+    // Yönetici ve destek yönetim paneline, son kullanıcı portala düşer.
+    // Güvenli bir dönüş adresi varsa oraya gidilir.
+    private IActionResult RedirectAfterLogin(UserRole role, string? returnUrl)
+    {
+        var safe = SafeReturnUrl(returnUrl);
+        if (safe != null) return LocalRedirect(safe);
+
+        return role == UserRole.User
+            ? RedirectToAction("Index", "Portal")
+            : RedirectToAction("Index", "Dashboard");
+    }
+
+    // Yalnızca bu sitedeki adreslere dönülür (açık yönlendirme engeli);
+    // giriş sayfalarının kendisine dönülmez.
+    private string? SafeReturnUrl(string? url) =>
+        !string.IsNullOrWhiteSpace(url) && Url.IsLocalUrl(url) &&
+        !url.StartsWith("/Account", StringComparison.OrdinalIgnoreCase)
+            ? url
+            : null;
+
+    private void SetTime(string key, DateTime utc) =>
+        Session.SetString(key, utc.ToString("O", CultureInfo.InvariantCulture));
+
+    private DateTime? GetTime(string key) =>
+        DateTime.TryParse(Session.GetString(key), CultureInfo.InvariantCulture,
+                          DateTimeStyles.RoundtripKind, out var t) ? t : null;
 
     private static string MaskPhone(string phone)
     {

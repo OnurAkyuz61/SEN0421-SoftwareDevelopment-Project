@@ -1,0 +1,94 @@
+@* GİRİŞ / OTP LAYOUT'U
+   Sol: marka paneli (yalnızca geniş ekranda) · Sağ: adım göstergesi + form kartı.
+   View'lar ViewData["AuthStep"] ile hangi adımda olduğunu bildirir:
+     1 = E-posta ve şifre · 2 = Doğrulama yöntemi · 3 = Kod *@
+@{
+    var step = ViewData["AuthStep"] as int? ?? 1;
+    string StepCls(int n) => n < step ? "done" : n == step ? "current" : "";
+    var steps = new[] { "Giriş", "Yöntem", "Doğrulama" };
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <partial name="_ThemeHead" />
+    <meta name="robots" content="noindex" />
+    <title>@ViewData["Title"] · ServiceDesk</title>
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+</head>
+<body class="auth-body">
+    <div class="auth-grid">
+        <aside class="auth-aside" aria-hidden="true">
+            <div class="auth-aside-brand">
+                <span class="brand-mark"><i class="bi bi-headset"></i></span>
+                <span>ServiceDesk</span>
+            </div>
+
+            <div class="auth-aside-copy">
+                <span class="eyebrow"><i class="bi bi-patch-check-fill"></i> ISO 9001 · IT Servis Masası</span>
+                <h2>Destek taleplerini tek yerden, <em>standartlara uygun</em> yönetin.</h2>
+                <ul class="auth-features">
+                    <li><span><i class="bi bi-stopwatch"></i></span><div><strong>SLA takibi</strong>Önceliğe göre çözüm süresi, ihlal ve yaklaşan süre uyarıları</div></li>
+                    <li><span><i class="bi bi-diagram-3"></i></span><div><strong>Süreç kaydı</strong>Onay, atama ve değişiklik geçmişi denetime hazır</div></li>
+                    <li><span><i class="bi bi-shield-lock"></i></span><div><strong>İki adımlı giriş</strong>Şifreye ek olarak telefona gelen tek kullanımlık kod</div></li>
+                </ul>
+            </div>
+
+            @* Dekoratif örnek kart — gerçek veri değildir *@
+            <div class="auth-preview">
+                <div class="pv-card pv-back"></div>
+                <div class="pv-card">
+                    <div class="pv-top">
+                        <span class="pv-id">INC-2026-00042</span>
+                        <span class="pv-tag">Kritik</span>
+                    </div>
+                    <div class="pv-title">VPN bağlantısı kurulamıyor</div>
+                    <div class="pv-bar"><span style="width:68%"></span></div>
+                    <div class="pv-meta"><span><i class="bi bi-clock"></i> SLA · 1s 17dk kaldı</span><span class="pv-avatar">EM</span></div>
+                </div>
+            </div>
+
+            <div class="auth-aside-foot">İstanbul Kültür Üniversitesi · SEN0421</div>
+        </aside>
+
+        <main class="auth-main">
+            <div class="auth-panel">
+                <div class="auth-mobile-brand">
+                    <span class="brand-mark"><i class="bi bi-headset"></i></span>
+                    <span>ServiceDesk</span>
+                </div>
+
+                <ol class="auth-steps" aria-label="Giriş adımları">
+                    @for (var i = 0; i < steps.Length; i++)
+                    {
+                        var n = i + 1;
+                        <li class="@StepCls(n)" aria-current="@(n == step ? "step" : null)">
+                            <span class="dot">@if (n < step) { <i class="bi bi-check-lg"></i> } else { @n }</span>
+                            <span class="lbl">@steps[i]</span>
+                        </li>
+                    }
+                </ol>
+
+                @if (TempData["Err"] is string err)
+                {
+                    <div class="auth-alert error" role="alert"><i class="bi bi-exclamation-circle-fill"></i><span>@err</span></div>
+                }
+                @if (TempData["Ok"] is string ok)
+                {
+                    <div class="auth-alert success" role="status"><i class="bi bi-check-circle-fill"></i><span>@ok</span></div>
+                }
+
+                @RenderBody()
+
+                <div class="auth-foot">
+                    <span><i class="bi bi-lock-fill"></i> Şifreli bağlantı</span>
+                    <span>·</span>
+                    <span>İki adımlı doğrulama</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="~/js/auth.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

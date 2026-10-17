@@ -1,0 +1,193 @@
+/* ==========================================================================
+   ServiceDesk — ortak tema
+   --------------------------------------------------------------------------
+   Tüm sayfalar (yönetim paneli, kullanıcı portalı, giriş / OTP ekranları)
+   bu dosyayı Bootstrap'ten SONRA yükler. Renk, yazı tipi, köşe ve gölge
+   değerleri yalnızca burada tanımlanır; diğer CSS dosyaları bu değişkenleri
+   kullanır. Rengi değiştirmek için sadece :root bloğunu düzenlemek yeterli.
+
+   Bootstrap 5.1 bileşenleri (buton, form, dropdown, alert, badge, tablo)
+   aşağıda tema renklerine çekilir.
+   ========================================================================== */
+
+:root {
+    /* Marka */
+    --sd-ink: #0f1c24;          /* koyu lacivert-antrasit: sidebar, başlıklar */
+    --sd-ink-2: #182a33;        /* sidebar hover */
+    --sd-ink-3: #22363f;        /* sidebar çizgileri */
+    --sd-accent: #0d9488;       /* turkuaz: ana vurgu */
+    --sd-accent-600: #0f766e;
+    --sd-accent-700: #115e59;
+    --sd-accent-soft: #e6f4f2;
+    --sd-accent-ring: rgba(13, 148, 136, .22);
+
+    /* Yüzeyler ve metin */
+    --sd-bg: #f3f6f5;
+    --sd-surface: #ffffff;
+    --sd-surface-2: #f8faf9;
+    --sd-border: #e1e7e5;
+    --sd-border-strong: #cdd6d3;
+    --sd-text: #0f1c24;
+    --sd-text-2: #33444c;
+    --sd-muted: #5b6b73;
+
+    /* Durum renkleri */
+    --sd-success: #15803d;  --sd-success-soft: #e8f6ec;
+    --sd-warning: #b45309;  --sd-warning-soft: #fdf3e2;
+    --sd-danger:  #c92a2a;  --sd-danger-soft:  #fdecec;
+    --sd-info:    #0369a1;  --sd-info-soft:    #e7f3fb;
+
+    /* Ölçüler */
+    --sd-radius-sm: 7px;
+    --sd-radius: 10px;
+    --sd-radius-lg: 16px;
+    --sd-shadow-sm: 0 1px 2px rgba(15, 28, 36, .06);
+    --sd-shadow: 0 1px 2px rgba(15, 28, 36, .05), 0 8px 24px -12px rgba(15, 28, 36, .16);
+    --sd-shadow-lg: 0 24px 48px -24px rgba(15, 28, 36, .35);
+
+    --sd-font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --sd-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+
+    /* Eski değişken adları — mevcut view'lar ve site.css bozulmasın diye */
+    --bg: var(--sd-bg);
+    --surface: var(--sd-surface);
+    --border: var(--sd-border);
+    --text: var(--sd-text);
+    --muted: var(--sd-muted);
+    --accent: var(--sd-accent);
+    --accent-dark: var(--sd-accent-600);
+    --accent-soft: var(--sd-accent-soft);
+
+    /* Bootstrap 5.1'in okuduğu değişkenler */
+    --bs-primary: var(--sd-accent);
+    --bs-primary-rgb: 13, 148, 136;
+    --bs-body-font-family: var(--sd-font);
+    --bs-font-sans-serif: var(--sd-font);
+}
+
+/* ---------- Temel ---------- */
+html { -webkit-text-size-adjust: 100%; }
+body {
+    background: var(--sd-bg);
+    color: var(--sd-text);
+    font-family: var(--sd-font);
+    font-size: 14.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 { letter-spacing: -.02em; color: var(--sd-text); }
+a { color: var(--sd-accent-600); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { color: var(--sd-accent-700); }
+.text-muted { color: var(--sd-muted) !important; }
+.text-primary { color: var(--sd-accent-600) !important; }
+.bg-primary { background-color: var(--sd-accent) !important; }
+.border-primary { border-color: var(--sd-accent) !important; }
+::selection { background: rgba(13, 148, 136, .18); }
+code, kbd, pre, samp { font-family: var(--sd-mono); }
+
+:focus-visible { outline: 2px solid var(--sd-accent); outline-offset: 2px; }
+
+/* ---------- Butonlar ---------- */
+.btn {
+    border-radius: var(--sd-radius-sm);
+    font-weight: 600;
+    letter-spacing: -.005em;
+    transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s, transform .1s;
+}
+.btn:active { transform: translateY(1px); }
+.btn:focus, .btn:focus-visible { box-shadow: 0 0 0 3px var(--sd-accent-ring); outline: 0; }
+.btn-sm { padding: .3rem .7rem; font-size: .82rem; }
+
+.btn-primary { color: #fff; background: var(--sd-accent); border-color: var(--sd-accent); }
+.btn-primary:hover, .btn-primary:focus { color: #fff; background: var(--sd-accent-600); border-color: var(--sd-accent-600); }
+.btn-primary:active, .btn-primary.active { background: var(--sd-accent-700) !important; border-color: var(--sd-accent-700) !important; }
+.btn-primary:disabled, .btn-primary.disabled { background: var(--sd-accent); border-color: var(--sd-accent); opacity: .55; }
+
+.btn-outline-primary { color: var(--sd-accent-600); border-color: var(--sd-accent); }
+.btn-outline-primary:hover, .btn-outline-primary.active { color: #fff; background: var(--sd-accent); border-color: var(--sd-accent); }
+
+.btn-outline-secondary { color: var(--sd-text-2); border-color: var(--sd-border-strong); background: var(--sd-surface); }
+.btn-outline-secondary:hover, .btn-outline-secondary.active { color: var(--sd-text); background: var(--sd-surface-2); border-color: #b9c4c0; }
+
+.btn-light { background: var(--sd-surface); border-color: var(--sd-border); color: var(--sd-text-2); }
+.btn-light:hover { background: var(--sd-surface-2); border-color: var(--sd-border-strong); color: var(--sd-text); }
+
+.btn-success { background: var(--sd-success); border-color: var(--sd-success); }
+.btn-success:hover { background: #166534; border-color: #166534; }
+.btn-outline-success { color: var(--sd-success); border-color: #86c79b; }
+.btn-outline-success:hover { background: var(--sd-success); border-color: var(--sd-success); }
+.btn-outline-danger { color: var(--sd-danger); border-color: #eeb0b0; }
+.btn-outline-danger:hover { background: var(--sd-danger); border-color: var(--sd-danger); }
+.btn-link { color: var(--sd-accent-600); font-weight: 600; }
+
+/* ---------- Form ---------- */
+.form-label { font-weight: 600; font-size: .84rem; color: var(--sd-text-2); margin-bottom: .35rem; }
+.form-control, .form-select {
+    border-color: var(--sd-border-strong);
+    border-radius: var(--sd-radius-sm);
+    color: var(--sd-text);
+    transition: border-color .15s, box-shadow .15s;
+}
+.form-control::placeholder { color: #9aa7ad; }
+.form-control:focus, .form-select:focus {
+    border-color: var(--sd-accent);
+    box-shadow: 0 0 0 3px var(--sd-accent-ring);
+}
+.form-control.is-invalid, .input-validation-error { border-color: var(--sd-danger) !important; }
+.form-check-input:checked { background-color: var(--sd-accent); border-color: var(--sd-accent); }
+.form-check-input:focus { border-color: var(--sd-accent); box-shadow: 0 0 0 3px var(--sd-accent-ring); }
+.form-text { color: var(--sd-muted); }
+.field-validation-error, .text-danger { color: var(--sd-danger) !important; font-size: .82rem; }
+
+/* ---------- Dropdown ---------- */
+.dropdown-menu {
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    box-shadow: var(--sd-shadow);
+    padding: .35rem;
+    font-size: .88rem;
+}
+.dropdown-item { border-radius: 6px; padding: .45rem .7rem; color: var(--sd-text-2); }
+.dropdown-item:hover, .dropdown-item:focus { background: var(--sd-surface-2); color: var(--sd-text); }
+.dropdown-item.active, .dropdown-item:active { background: var(--sd-accent-soft); color: var(--sd-accent-700); }
+.dropdown-divider { border-color: var(--sd-border); margin: .35rem 0; }
+
+/* ---------- Uyarılar ---------- */
+.alert { border-radius: var(--sd-radius); border-width: 1px; font-size: .9rem; }
+.alert-success { background: var(--sd-success-soft); border-color: #bfe3ca; color: #14532d; }
+.alert-danger  { background: var(--sd-danger-soft);  border-color: #f3c4c4; color: #8b1d1d; }
+.alert-warning { background: var(--sd-warning-soft); border-color: #f1d7a8; color: #7c3d06; }
+.alert-info    { background: var(--sd-info-soft);    border-color: #bddcf0; color: #0c4a6e; }
+
+/* ---------- Rozetler, tablolar, listeler ---------- */
+.badge { font-weight: 600; letter-spacing: .01em; }
+.table { --bs-table-hover-bg: var(--sd-surface-2); color: var(--sd-text); border-color: var(--sd-border); }
+.table-light, .table-light > th, .table-light > td { --bs-table-bg: var(--sd-surface-2); }
+.list-group-item { border-color: var(--sd-border); }
+.list-group-item.active { background: var(--sd-accent); border-color: var(--sd-accent); }
+.nav-tabs .nav-link.active { color: var(--sd-accent-700); }
+.page-link { color: var(--sd-accent-600); }
+.page-item.active .page-link { background: var(--sd-accent); border-color: var(--sd-accent); }
+.progress-bar { background-color: var(--sd-accent); }
+.modal-content { border: 0; border-radius: var(--sd-radius-lg); box-shadow: var(--sd-shadow-lg); }
+
+/* ---------- Ortak yardımcılar ---------- */
+.brand-mark {
+    width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+    display: grid; place-items: center;
+    background: linear-gradient(140deg, var(--sd-accent) 0%, var(--sd-accent-700) 100%);
+    color: #fff; font-size: 1rem;
+    box-shadow: 0 6px 14px -6px rgba(13, 148, 136, .7), inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+.avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    display: inline-grid; place-items: center;
+    background: var(--sd-accent-soft); color: var(--sd-accent-700);
+    font-weight: 700; font-size: .78rem; letter-spacing: .02em;
+}
+.avatar-sm { width: 28px; height: 28px; font-size: .7rem; }
+.kbd-hint { font-family: var(--sd-mono); font-size: .72rem; padding: .05rem .35rem; border: 1px solid var(--sd-border); border-radius: 4px; color: var(--sd-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

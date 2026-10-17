@@ -20,11 +20,20 @@ public class AuthorizeRoleAttribute : Attribute, IAuthorizationFilter
     public void OnAuthorization(AuthorizationFilterContext context)
     {
         var services = context.HttpContext.RequestServices;
-        var user = services.GetRequiredService<CurrentUser>().User;
+        var current = services.GetRequiredService<CurrentUser>();
+        var user = current.User;
 
         if (user == null)
         {
-            context.Result = new RedirectToActionResult("Login", "Account", null);
+            // GET isteklerinde kullanıcı girişten sonra bulunduğu sayfaya geri döner
+            var req = context.HttpContext.Request;
+            var returnUrl = HttpMethods.IsGet(req.Method) ? req.PathBase + req.Path + req.QueryString : null;
+
+            context.Result = new RedirectToActionResult("Login", "Account", new
+            {
+                returnUrl,
+                reason = current.ExpiredThisRequest ? "expired" : null
+            });
             return;
         }
 

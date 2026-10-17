@@ -1,0 +1,39 @@
+@* Oturum süresi uyarısı.
+   Kullanıcı IdleTimeoutMinutes boyunca hiçbir sayfa açmazsa sunucudaki
+   oturum kapanır. Bitmeden WarningBeforeSeconds önce bu pencere açılır:
+     • "Oturumu sürdür" → /Account/KeepAlive çağrılır, süre baştan başlar
+     • Süre dolarsa giriş sayfasına "oturum zaman aşımına uğradı" mesajıyla gidilir
+   Aynı tarayıcıda başka sekmede işlem yapılırsa sayaç orada da sıfırlanır.
+   Mantık: wwwroot/js/site.js → initSessionTimeout *@
+@inject CurrentUser Me
+@inject Microsoft.Extensions.Options.IOptions<AuthSettings> AuthOpt
+@if (Me.IsAuthenticated)
+{
+    var cfg = AuthOpt.Value;
+    var absLeft = Me.SignedInAtUtc is { } t
+        ? Math.Max(0, (int)(t.AddHours(cfg.AbsoluteTimeoutHours) - DateTime.UtcNow).TotalSeconds)
+        : cfg.AbsoluteTimeoutHours * 3600;
+
+    <div class="modal fade" id="sessionModal" tabindex="-1" aria-labelledby="sessionModalTitle" aria-hidden="true"
+         data-bs-backdrop="static" data-bs-keyboard="false"
+         data-idle-seconds="@(cfg.IdleTimeoutMinutes * 60)"
+         data-warn-seconds="@cfg.WarningBeforeSeconds"
+         data-absolute-left="@absLeft"
+         data-keepalive-url="@Url.Action("KeepAlive", "Account")"
+         data-login-url="@Url.Action("Login", "Account", new { reason = "timeout" })">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:380px">
+            <div class="modal-content text-center p-4">
+                <div class="session-ring"><i class="bi bi-hourglass-split"></i></div>
+                <h2 class="h5 fw-bold mb-1" id="sessionModalTitle">Oturumunuz kapanmak üzere</h2>
+                <p class="text-muted small mb-3">Güvenliğiniz için uzun süre işlem yapılmayan oturumlar otomatik kapatılır.</p>
+                <div class="session-count mb-3" data-session-count>2:00</div>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary" data-session-extend><i class="bi bi-arrow-repeat me-1"></i> Oturumu sürdür</button>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-grid">
+                        <button type="submit" class="btn btn-outline-secondary">Çıkış yap</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}

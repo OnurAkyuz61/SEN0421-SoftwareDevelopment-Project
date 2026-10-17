@@ -1,134 +1,118 @@
 @model OtpVerifyVm
 @inject IWebHostEnvironment Env
+@inject Microsoft.Extensions.Options.IOptions<AuthSettings> AuthOpt
 @{
-    Layout = null;
+    Layout = "_AuthLayout";
     ViewData["Title"] = "Kod doğrulama";
+    ViewData["AuthStep"] = 3;
+
     var channelLabel = Model.Channel == OtpDeliveryChannel.WhatsApp ? "WhatsApp" : "SMS";
+    var channelIcon = Model.Channel == OtpDeliveryChannel.WhatsApp ? "bi-whatsapp" : "bi-chat-dots";
     // Tek yerden okunur: hem aşağıdaki demo kutusu hem geliştirme otomatik doldurması kullanır
     var demoCode = TempData["OtpDemoCode"] as string;
+    var codeErrors = ViewData.ModelState[nameof(Model.Code)]?.Errors.Select(e => e.ErrorMessage).ToList() ?? new();
+    var lifetime = AuthOpt.Value.OtpLifetimeSeconds;
 }
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ServiceDesk</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;550;650;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="~/css/otp.css" asp-append-version="true" />
-</head>
-<body class="otp-body">
-    <div class="otp-shell">
-        <div class="otp-brand">
-            <i class="bi bi-shield-check"></i>
-            <span>ServiceDesk</span>
-        </div>
 
-        <div class="otp-card">
-            <h1>Kodu girin</h1>
-            <p class="lead">@channelLabel ile <strong>@Model.MaskedPhone</strong> numarasına gönderilen 6 haneli kodu yazın.</p>
+<div class="auth-head">
+    <div class="icon"><i class="bi @channelIcon"></i></div>
+    <h1>Doğrulama kodunu girin</h1>
+    <p>@channelLabel ile <strong>@Model.MaskedPhone</strong> numarasına gönderilen 6 haneli kodu yazın.</p>
+</div>
 
-            @if (TempData["OtpSentInfo"] is string info)
-            {
-                <div class="otp-alert info">@info</div>
-            }
+@if (TempData["OtpSentInfo"] is string info)
+{
+    <div class="auth-alert info" role="status"><i class="bi bi-info-circle-fill"></i><span>@info</span></div>
+}
 
-            @if (demoCode != null)
-            {
-                <div class="otp-alert demo">Demo kod (API bağlanınca kalkacak): @demoCode</div>
-            }
+@* SMS / WhatsApp API bağlanana kadar kod ekranda gösterilir *@
+@if (demoCode != null)
+{
+    <div class="demo-code">
+        <span><i class="bi bi-cone-striped me-1"></i> Demo kod <span class="opacity-75">(API bağlanınca kalkacak)</span></span>
+        <b>@demoCode</b>
+    </div>
+}
 
-            <form asp-action="OtpVerify" method="post" id="otpForm">
-                @Html.AntiForgeryToken()
-                <input type="hidden" asp-for="Code" id="Code" />
-
-                <div class="otp-digits" id="otpDigits">
-                    @for (var i = 0; i < 6; i++)
-                    {
-                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code"
-                               aria-label="Kod hanesi @(i + 1)" class="otp-digit" />
-                    }
-                </div>
-
-                @foreach (var err in ViewData.ModelState[nameof(Model.Code)]?.Errors ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.ModelBinding.ModelError>())
-                {
-                    <div class="otp-alert error">@err.ErrorMessage</div>
-                }
-
-                <button type="submit" class="otp-btn">Doğrula ve devam et</button>
-            </form>
-
-            <div class="otp-meta">
-                <span>Kod 5 dakika geçerli</span>
-                <form asp-action="ResendOtp" method="post" style="margin:0">
-                    @Html.AntiForgeryToken()
-                    <button type="submit">Tekrar gönder</button>
-                </form>
-            </div>
-
-            <a class="otp-link" asp-action="OtpChannel">← Kanal değiştir</a>
-        </div>
+<form asp-action="OtpVerify" method="post" id="otpForm" novalidate data-auth-form>
+    @* JavaScript kapalıysa bu tek kutu görünür; açıksa gizlenir ve 6 kutudan doldurulur *@
+    <div class="otp-single">
+        <input asp-for="Code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" aria-label="6 haneli doğrulama kodu" />
     </div>
 
-    <script>
-        (function () {
-            const inputs = [...document.querySelectorAll('.otp-digit')];
-            const hidden = document.getElementById('Code');
-            const form = document.getElementById('otpForm');
+    <div class="otp-boxes @(codeErrors.Any() ? "invalid shake" : "")" id="otpBoxes" role="group" aria-label="6 haneli doğrulama kodu">
+        @for (var i = 0; i < 6; i++)
+        {
+            if (i == 3) { <span class="sep" aria-hidden="true"></span> }
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1"
+                   autocomplete="@(i == 0 ? "one-time-code" : "off")"
+                   aria-label="@(i + 1). hane" class="otp-digit" />
+        }
+    </div>
 
-            function sync() {
-                hidden.value = inputs.map(i => i.value.replace(/\D/g, '')).join('');
+    @if (codeErrors.Any())
+    {
+        <div class="auth-alert error" role="alert"><i class="bi bi-exclamation-circle-fill"></i><span>@codeErrors.First()</span></div>
+    }
+
+    <button type="submit" class="auth-btn" @(Model.SecondsLeft <= 0 ? "disabled" : null)>
+        <span class="spinner" aria-hidden="true"></span>
+        <span class="btn-label">Doğrula ve giriş yap</span>
+        <i class="bi bi-arrow-right"></i>
+    </button>
+</form>
+
+<div class="otp-status">
+    <span class="otp-timer @(Model.SecondsLeft <= 0 ? "over" : "")" id="otpTimer"
+          data-seconds-left="@Model.SecondsLeft" data-lifetime="@lifetime">
+        <svg class="ring" viewBox="0 0 20 20" aria-hidden="true">
+            <circle class="bg" cx="10" cy="10" r="8" />
+            <circle class="fg" cx="10" cy="10" r="8" stroke-dasharray="50.27" stroke-dashoffset="0" />
+        </svg>
+        <span data-timer-text>
+            @if (Model.SecondsLeft > 0)
+            {
+                <text>Kalan süre <b>@($"{Model.SecondsLeft / 60}:{Model.SecondsLeft % 60:00}")</b></text>
             }
+            else
+            {
+                <text>Kodun süresi doldu</text>
+            }
+        </span>
+    </span>
 
-            inputs.forEach((input, idx) => {
-                input.addEventListener('input', (e) => {
-                    const v = e.target.value.replace(/\D/g, '').slice(-1);
-                    e.target.value = v;
-                    if (v && idx < inputs.length - 1) inputs[idx + 1].focus();
-                    sync();
-                    if (hidden.value.length === 6) form.requestSubmit();
-                });
+    @if (Model.SendsLeft > 0)
+    {
+        <form asp-action="ResendOtp" method="post" class="m-0">
+            <button type="submit" class="resend-btn" id="resendBtn" data-cooldown="@Model.ResendInSeconds"
+                    @(Model.ResendInSeconds > 0 ? "disabled" : null)>
+                @(Model.ResendInSeconds > 0 ? $"Tekrar gönder ({Model.ResendInSeconds} sn)" : "Kodu tekrar gönder")
+            </button>
+        </form>
+    }
+    else
+    {
+        <span class="small">Kod gönderme hakkı doldu</span>
+    }
+</div>
 
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace' && !e.target.value && idx > 0) {
-                        inputs[idx - 1].focus();
-                    }
-                });
+<div class="auth-row">
+    <a class="auth-link" asp-action="OtpChannel"><i class="bi bi-arrow-left"></i> Yöntemi değiştir</a>
+</div>
 
-                input.addEventListener('paste', (e) => {
-                    e.preventDefault();
-                    const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
-                    text.split('').forEach((ch, i) => { if (inputs[i]) inputs[i].value = ch; });
-                    sync();
-                    const focusIdx = Math.min(text.length, inputs.length - 1);
-                    inputs[focusIdx].focus();
-                    if (hidden.value.length === 6) form.requestSubmit();
-                });
-            });
-
-            if (inputs[0]) inputs[0].focus();
-        })();
-    </script>
-
+@section Scripts {
     @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────────────
-       Demo kodu haneleree otomatik yazar; mevcut betik 6 hane dolunca formu
-       kendisi gönderdiği için giriş tamamlanır. Yalnızca Development'ta
-       çalışır, canlıya çıkmadan önce bu blok silinecek. *@
-    @if (Env.IsDevelopment() && demoCode != null)
+       Demo kodu kutulara otomatik yazar; auth.js 6 hane dolunca formu kendisi
+       gönderdiği için giriş tamamlanır. Yalnızca Development'ta çalışır,
+       canlıya çıkmadan önce bu blok silinecek. *@
+    @if (Env.IsDevelopment() && demoCode != null && !codeErrors.Any())
     {
         <script>
-            (function () {
-                const code = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(demoCode));
-                const inputs = [...document.querySelectorAll('.otp-digit')];
-                code.split('').forEach((ch, i) => {
-                    if (!inputs[i]) return;
-                    inputs[i].value = ch;
-                    inputs[i].dispatchEvent(new Event('input', { bubbles: true }));
-                });
-            })();
+            window.addEventListener('load', function () {
+                setTimeout(function () {
+                    window.SdOtp && window.SdOtp.fill(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(demoCode)));
+                }, 600);
+            });
         </script>
     }
-</body>
-</html>
+}

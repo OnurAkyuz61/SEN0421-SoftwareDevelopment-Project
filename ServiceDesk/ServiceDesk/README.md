@@ -43,9 +43,18 @@ dotnet run
 | `Controllers/ApprovalsController.cs` | Yönetim: değişiklik onay / red |
 | `Controllers/SurveysController.cs` | Yönetim: memnuniyet anketleri |
 | `Controllers/UsersController.cs` | Yönetim: kullanıcı listesi |
-| `Controllers/AccountController.cs` | Giriş + OTP doğrulama |
+| `Controllers/AccountController.cs` | Giriş + OTP doğrulama, oturum açma / kapatma |
+| `Services/AuthSettings.cs` | Oturum ve OTP süreleri / sınırları, session anahtarları |
 | `Views/Shared/_Layout.cshtml` | Yönetim paneli düzeni (sidebar) |
 | `Views/Shared/_PortalLayout.cshtml` | Kullanıcı portalı düzeni (üst menü + chatbot) |
+| `Views/Shared/_AuthLayout.cshtml` | Giriş / OTP ekranlarının düzeni (marka paneli + adım göstergesi) |
+| `Views/Shared/_ThemeHead.cshtml` | Tüm layout'larda ortak font + CSS bağlantıları |
+| `Views/Shared/_SessionTimeout.cshtml` | "Oturumunuz kapanmak üzere" penceresi |
+| `wwwroot/css/theme.css` | Ortak tema: renk, yazı tipi, Bootstrap ayarları (renk değişikliği sadece burada) |
+| `wwwroot/css/site.css` | Yönetim paneli ve portal bileşenleri |
+| `wwwroot/css/auth.css` | Giriş ve OTP ekranları |
+| `wwwroot/js/site.js` | Mobil menü, oturum süresi uyarısı |
+| `wwwroot/js/auth.js` | Şifre göster, Caps Lock uyarısı, 6 haneli kod kutuları, geri sayım |
 | `wwwroot/js/upload.js` | Sürükle-bırak, Ctrl+V ile ekran görüntüsü yapıştırma |
 | `Uploads/` | Yüklenen dosyalar (git'e eklenmez) |
 
@@ -54,6 +63,19 @@ dotnet run
 - `PortalController`: listeyi oturumdaki kullanıcıya göre filtrele, `RequesterId` / `RequesterName` alanlarını oturumdan doldur
 - Yönetim controller'larına (Dashboard, Tickets, Approvals, Surveys, Users, Notifications) sadece Admin/Agent erişsin
 - Karşılama sayfasındaki ve menülerdeki `GEÇİCİ` linkler kaldırılacak
+
+## Oturum (session) kuralları
+Değerler `appsettings.json` → `Auth` bölümünden değiştirilebilir.
+
+| Kural | Varsayılan |
+|---|---|
+| İşlem yapılmazsa oturum kapanır | 30 dk (2 dk kala uyarı penceresi) |
+| Oturumun en uzun süresi | 8 saat |
+| Şifreden sonra OTP adımı için süre | 10 dk |
+| Kodun geçerliliği | 5 dk |
+| "Tekrar gönder" bekleme süresi | 30 sn |
+| Bir girişte en fazla kod gönderimi | 4 |
+| Aynı kod için en fazla hatalı deneme | 5 |
 
 ## Paketler
 - Chart.js 4.4.1 (`wwwroot/lib/chartjs`, yerel)

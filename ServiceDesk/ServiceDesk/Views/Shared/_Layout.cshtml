@@ -1,70 +1,133 @@
-@* YÖNETİM PANELİ LAYOUT'U (sidebar) *@
+@* YÖNETİM PANELİ LAYOUT'U
+   ┌──────────┬───────────────────────────────┐
+   │ sidebar  │ üst bar (başlık, bildirim, kullanıcı menüsü)
+   │ (koyu)   ├───────────────────────────────┤
+   │          │ sayfa içeriği                 │
+   └──────────┴───────────────────────────────┘
+   992px altında sidebar soldan açılan menüye dönüşür (☰ düğmesi). *@
 @inject ServiceDesk.Data.AppDbContext Db
 @inject CurrentUser Me
 @{
     var c = ViewContext.RouteData.Values["controller"]?.ToString();
     string Act(string ctrl) => c == ctrl ? "active" : "";
+    string? Cur(string ctrl) => c == ctrl ? "page" : null;
     var pendingCount = Db.Tickets.Count(t => t.ApprovalStatus == ApprovalStatus.Pending);
     var ncCount = Db.Nonconformities.Count(n => n.Status != NonconformityStatus.Closed);
+    var area = c switch
+    {
+        "Surveys" or "Nonconformities" or "Knowledge" => "Kalite",
+        "Users" or "Catalog" => "Yönetim",
+        _ => "Servis Masası"
+    };
 }
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ServiceDesk Yönetim</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <partial name="_ThemeHead" />
+    <title>@ViewData["Title"] · ServiceDesk Yönetim</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <div class="d-flex">
-        <aside class="sidebar d-flex flex-column">
-            <a class="brand" asp-controller="Dashboard" asp-action="Index">
-                <span class="brand-mark"><i class="bi bi-headset"></i></span><span>ServiceDesk</span>
-            </a>
+    <a class="visually-hidden-focusable position-absolute m-2 btn btn-primary btn-sm" href="#content">İçeriğe geç</a>
 
-            <div class="side-label">YÖNETİM</div>
-            <nav class="nav flex-column">
-                <a class="nav-link @Act("Dashboard")" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid"></i><span>Genel Bakış</span></a>
-                <a class="nav-link @Act("Tickets")" asp-controller="Tickets" asp-action="Index"><i class="bi bi-inbox"></i><span>Talepler</span></a>
-                <a class="nav-link @Act("Approvals")" asp-controller="Approvals" asp-action="Index">
-                    <i class="bi bi-check2-square"></i><span>Onaylar</span>
-                    @if (pendingCount > 0) { <span class="nav-count">@pendingCount</span> }
+    <div class="app-shell">
+        <aside class="sidebar" id="appSidebar" aria-label="Ana menü">
+            <div class="sidebar-head">
+                <a class="brand" asp-controller="Dashboard" asp-action="Index">
+                    <span class="brand-mark"><i class="bi bi-headset"></i></span>
+                    <span>ServiceDesk<small>Yönetim Paneli</small></span>
                 </a>
-                <a class="nav-link @Act("Surveys")" asp-controller="Surveys" asp-action="Index"><i class="bi bi-chat-square-heart"></i><span>Anketler</span></a>
-                <a class="nav-link @Act("Nonconformities")" asp-controller="Nonconformities" asp-action="Index">
-                    <i class="bi bi-clipboard2-x"></i><span>Uygunsuzluklar</span>
-                    @if (ncCount > 0) { <span class="nav-count">@ncCount</span> }
-                </a>
-                <a class="nav-link @Act("Knowledge")" asp-controller="Knowledge" asp-action="Index"><i class="bi bi-journal-text"></i><span>Bilgi Bankası</span></a>
-                <a class="nav-link @Act("Users")" asp-controller="Users" asp-action="Index"><i class="bi bi-people"></i><span>Kullanıcılar</span></a>
-                @if (Me.Role == UserRole.Admin)
-                {
-                    <a class="nav-link @Act("Catalog")" asp-controller="Catalog" asp-action="Index"><i class="bi bi-tags"></i><span>Katalog</span></a>
-                }
-                <a class="nav-link @Act("Notifications")" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell"></i><span>Bildirimler</span></a>
-            </nav>
+                <button type="button" class="sidebar-close" data-sidebar-close aria-label="Menüyü kapat"><i class="bi bi-x"></i></button>
+            </div>
 
-            <div class="mt-auto p-3 small sidebar-foot"><span>ISO 9001 · SDS-07</span></div>
-        </aside>
-
-        <div class="flex-grow-1 min-vh-100 main">
-            <header class="topbar d-flex align-items-center px-4 gap-3">
-                <h5 class="mb-0 fw-semibold">@ViewData["Title"]</h5>
-                <div class="ms-auto d-flex align-items-center gap-2">
-                    @await Component.InvokeAsync("Notifications")
-                    <a class="btn btn-outline-secondary btn-sm d-none d-md-inline-block" asp-controller="Portal" asp-action="Index">
-                        <i class="bi bi-box-arrow-up-right"></i> Kullanıcı Portalı
+            <div class="sidebar-scroll">
+                <div class="side-label">Servis Masası</div>
+                <nav class="nav flex-column">
+                    <a class="nav-link @Act("Dashboard")" aria-current="@Cur("Dashboard")" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid-1x2"></i><span>Genel Bakış</span></a>
+                    <a class="nav-link @Act("Tickets")" aria-current="@Cur("Tickets")" asp-controller="Tickets" asp-action="Index"><i class="bi bi-inbox"></i><span>Talepler</span></a>
+                    <a class="nav-link @Act("Approvals")" aria-current="@Cur("Approvals")" asp-controller="Approvals" asp-action="Index">
+                        <i class="bi bi-check2-square"></i><span>Onaylar</span>
+                        @if (pendingCount > 0) { <span class="nav-count" title="Onay bekleyen">@pendingCount</span> }
                     </a>
+                    <a class="nav-link @Act("Notifications")" aria-current="@Cur("Notifications")" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell"></i><span>Bildirimler</span></a>
+                </nav>
+
+                <div class="side-label">Kalite · ISO 9001</div>
+                <nav class="nav flex-column">
+                    <a class="nav-link @Act("Surveys")" aria-current="@Cur("Surveys")" asp-controller="Surveys" asp-action="Index"><i class="bi bi-chat-square-heart"></i><span>Anketler</span></a>
+                    <a class="nav-link @Act("Nonconformities")" aria-current="@Cur("Nonconformities")" asp-controller="Nonconformities" asp-action="Index">
+                        <i class="bi bi-clipboard2-x"></i><span>Uygunsuzluklar</span>
+                        @if (ncCount > 0) { <span class="nav-count" title="Açık kayıt">@ncCount</span> }
+                    </a>
+                    <a class="nav-link @Act("Knowledge")" aria-current="@Cur("Knowledge")" asp-controller="Knowledge" asp-action="Index"><i class="bi bi-journal-text"></i><span>Bilgi Bankası</span></a>
+                </nav>
+
+                <div class="side-label">Yönetim</div>
+                <nav class="nav flex-column">
+                    <a class="nav-link @Act("Users")" aria-current="@Cur("Users")" asp-controller="Users" asp-action="Index"><i class="bi bi-people"></i><span>Kullanıcılar</span></a>
+                    @if (Me.Role == UserRole.Admin)
+                    {
+                        <a class="nav-link @Act("Catalog")" aria-current="@Cur("Catalog")" asp-controller="Catalog" asp-action="Index"><i class="bi bi-tags"></i><span>Katalog</span></a>
+                    }
+                    <a class="nav-link" asp-controller="Portal" asp-action="Index"><i class="bi bi-box-arrow-up-right"></i><span>Kullanıcı Portalı</span></a>
+                </nav>
+            </div>
+
+            <div class="sidebar-foot">
+                @if (Me.IsAuthenticated)
+                {
+                    <div class="user-card">
+                        <span class="avatar">@Me.Initials</span>
+                        <div class="who">
+                            <strong title="@Me.DisplayName">@Me.DisplayName</strong>
+                            <span>@Ui.RoleText(Me.Role!.Value)</span>
+                        </div>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="ms-auto">
+                            <button type="submit" class="btn-icon" title="Çıkış yap" aria-label="Çıkış yap"><i class="bi bi-box-arrow-right"></i></button>
+                        </form>
+                    </div>
+                }
+                <div class="iso-chip"><i class="bi bi-patch-check"></i> ISO 9001 · SDS-07</div>
+            </div>
+        </aside>
+        <div class="sidebar-backdrop" data-sidebar-close></div>
+
+        <div class="main">
+            <header class="topbar">
+                <button type="button" class="btn-icon menu-toggle" data-sidebar-open aria-label="Menüyü aç" aria-controls="appSidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="page-title">
+                    <div class="crumb">@area</div>
+                    <h1>@ViewData["Title"]</h1>
+                </div>
+
+                <div class="topbar-actions">
+                    @await Component.InvokeAsync("Notifications")
+
                     @if (Me.IsAuthenticated)
                     {
-                        <span class="small text-muted d-none d-lg-inline">@Me.DisplayName</span>
-                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-box-arrow-right"></i> Çıkış
+                        <div class="dropdown">
+                            <button class="user-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Hesap menüsü">
+                                <span class="avatar avatar-sm">@Me.Initials</span>
+                                <span class="d-none d-md-inline">@Me.User!.FirstName</span>
+                                <i class="bi bi-chevron-down d-none d-md-inline"></i>
                             </button>
-                        </form>
+                            <div class="dropdown-menu dropdown-menu-end" style="min-width:240px">
+                                <div class="user-menu-head">
+                                    <strong>@Me.DisplayName</strong>
+                                    <span>@Me.User!.Email</span><br />
+                                    <span class="role-pill"><i class="bi bi-shield-check"></i> @Ui.RoleText(Me.Role!.Value)</span>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" asp-controller="Portal" asp-action="Index"><i class="bi bi-box-arrow-up-right me-2"></i>Kullanıcı Portalı</a>
+                                <a class="dropdown-item" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell me-2"></i>Bildirimler</a>
+                                <div class="dropdown-divider"></div>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Çıkış yap</button>
+                                </form>
+                            </div>
+                        </div>
                     }
                     else
                     {
@@ -74,7 +137,8 @@
                     }
                 </div>
             </header>
-            <main class="p-4">
+
+            <main id="content" class="page-wrap">
                 <partial name="_Alerts" />
                 @RenderBody()
             </main>
@@ -82,9 +146,11 @@
     </div>
 
     <partial name="_ChatbotPartial" />
+    <partial name="_SessionTimeout" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

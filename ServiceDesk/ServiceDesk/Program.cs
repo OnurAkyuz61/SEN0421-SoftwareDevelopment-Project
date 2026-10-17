@@ -20,12 +20,23 @@ builder.Services.AddScoped<NonconformityService>();  // otomatik uygunsuzluk kay
 builder.Services.AddScoped<LoginAuditService>();     // giriş denetim izi ve deneme sınırı
 builder.Services.AddHostedService<SlaMonitorService>();   // dakikada bir SLA taraması
 builder.Services.AddHostedService<KpiAggregatorService>();// yarım saatte bir KPI
+// ───── OTURUM (SESSION) ──────────────────────────────────────────────────
+// Süreler ve OTP sınırları appsettings.json → "Auth" bölümünden gelir
+var authSection = builder.Configuration.GetSection(AuthSettings.Section);
+builder.Services.Configure<AuthSettings>(authSection);
+var auth = authSection.Get<AuthSettings>() ?? new AuthSettings();
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(opt =>
 {
-    opt.IdleTimeout = TimeSpan.FromMinutes(30);
-    opt.Cookie.HttpOnly = true;
+    opt.IdleTimeout = TimeSpan.FromMinutes(auth.IdleTimeoutMinutes);
+    opt.Cookie.Name = AuthSettings.CookieName;
+    opt.Cookie.HttpOnly = true;                       // JavaScript okuyamaz
     opt.Cookie.IsEssential = true;
+    opt.Cookie.SameSite = SameSiteMode.Lax;           // başka sitelerden gelen POST'larda gönderilmez
+    opt.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest            // yerelde http ile de çalışsın
+        : CookieSecurePolicy.Always;                  // canlıda yalnızca https
 });
 
 var app = builder.Build();

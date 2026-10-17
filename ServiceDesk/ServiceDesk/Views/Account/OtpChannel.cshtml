@@ -1,82 +1,61 @@
 @model OtpChannelVm
 @inject IWebHostEnvironment Env
 @{
-    Layout = null;
+    Layout = "_AuthLayout";
     ViewData["Title"] = "Doğrulama yöntemi";
+    ViewData["AuthStep"] = 2;
 }
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ServiceDesk</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;550;650;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="~/css/otp.css" asp-append-version="true" />
-</head>
-<body class="otp-body">
-    <div class="otp-shell">
-        <div class="otp-brand">
-            <i class="bi bi-shield-lock"></i>
-            <span>ServiceDesk</span>
-        </div>
 
-        <div class="otp-card">
-            <h1>Nasıl doğrulayalım?</h1>
-            <p class="lead">Girişinizi tamamlamak için kayıtlı telefonunuza tek kullanımlık kod göndereceğiz.</p>
+<div class="auth-head">
+    <div class="icon"><i class="bi bi-shield-lock"></i></div>
+    <h1>Kimliğinizi doğrulayalım</h1>
+    <p>Girişi tamamlamak için kayıtlı telefonunuza 6 haneli tek kullanımlık bir kod göndereceğiz.</p>
+</div>
 
-            <div class="otp-phone">
-                <i class="bi bi-phone"></i>
-                @Model.MaskedPhone
-            </div>
+<div class="phone-chip"><i class="bi bi-phone"></i> @Model.MaskedPhone</div>
 
-            <form asp-action="OtpChannel" method="post">
-                @Html.AntiForgeryToken()
+<form asp-action="OtpChannel" method="post" data-auth-form>
+    <div class="channel-list" role="radiogroup" aria-label="Kodun gönderileceği kanal">
+        <label class="channel sms">
+            <input type="radio" name="Channel" value="Sms" @(Model.Channel == OtpDeliveryChannel.Sms ? "checked" : null) />
+            <span class="ch-icon"><i class="bi bi-chat-dots-fill"></i></span>
+            <span>
+                <strong>SMS</strong>
+                <small>Kod kısa mesaj olarak gelir</small>
+            </span>
+            <span class="tick"><i class="bi bi-check-lg"></i></span>
+        </label>
 
-                <div class="otp-channels" role="radiogroup" aria-label="Doğrulama kanalı">
-                    <label class="otp-channel sms">
-                        <input type="radio" name="Channel" value="Sms" @(Model.Channel == OtpDeliveryChannel.Sms ? "checked" : null) />
-                        <span class="icon"><i class="bi bi-chat-dots-fill"></i></span>
-                        <span class="txt">
-                            <strong>SMS</strong>
-                            <small>6 haneli kod kısa mesaj olarak gelir</small>
-                        </span>
-                        <span class="tick"><i class="bi bi-check-lg"></i></span>
-                    </label>
-
-                    <label class="otp-channel wa">
-                        <input type="radio" name="Channel" value="WhatsApp" @(Model.Channel == OtpDeliveryChannel.WhatsApp ? "checked" : null) />
-                        <span class="icon"><i class="bi bi-whatsapp"></i></span>
-                        <span class="txt">
-                            <strong>WhatsApp</strong>
-                            <small>Aynı kod WhatsApp üzerinden iletilir</small>
-                        </span>
-                        <span class="tick"><i class="bi bi-check-lg"></i></span>
-                    </label>
-                </div>
-
-                <span asp-validation-for="Channel" class="otp-alert error" style="display:block"></span>
-
-                <button type="submit" class="otp-btn">Kodu gönder</button>
-
-                @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────
-                   Kanal seçimini atlayıp doğrudan SMS ile ilerler.
-                   Canlıya çıkmadan önce bu blok silinecek. *@
-                @if (Env.IsDevelopment())
-                {
-                    <button type="submit" name="Channel" value="Sms"
-                            style="width:100%;margin-top:.6rem;cursor:pointer;font-family:inherit;font-size:.8rem;
-                                   padding:.5rem;border:1.5px dashed var(--otp-line);border-radius:.6rem;
-                                   background:#fff;color:var(--otp-muted)">
-                        Geliştirme · SMS ile hızlı devam
-                    </button>
-                }
-            </form>
-
-            <a class="otp-link" asp-action="Login">← Girişe dön</a>
-        </div>
+        <label class="channel wa">
+            <input type="radio" name="Channel" value="WhatsApp" @(Model.Channel == OtpDeliveryChannel.WhatsApp ? "checked" : null) />
+            <span class="ch-icon"><i class="bi bi-whatsapp"></i></span>
+            <span>
+                <strong>WhatsApp</strong>
+                <small>Kod WhatsApp mesajı olarak gelir</small>
+            </span>
+            <span class="tick"><i class="bi bi-check-lg"></i></span>
+        </label>
     </div>
-</body>
-</html>
+
+    <span asp-validation-for="Channel" class="field-error mb-3"></span>
+
+    <button type="submit" class="auth-btn">
+        <span class="spinner" aria-hidden="true"></span>
+        <span class="btn-label">Kodu gönder</span>
+        <i class="bi bi-send"></i>
+    </button>
+
+    @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────────────
+       Kanal seçimini atlayıp doğrudan SMS ile ilerler.
+       Canlıya çıkmadan önce bu blok silinecek. *@
+    @if (Env.IsDevelopment())
+    {
+        <button type="submit" name="Channel" value="Sms" class="dev-btn wide">
+            <i class="bi bi-wrench-adjustable"></i> Geliştirme · SMS ile hızlı devam
+        </button>
+    }
+</form>
+
+<div class="auth-row">
+    <a class="auth-link" asp-action="Login"><i class="bi bi-arrow-left"></i> Farklı hesapla giriş yap</a>
+</div>

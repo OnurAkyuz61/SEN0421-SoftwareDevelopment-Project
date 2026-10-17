@@ -4,50 +4,277 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hoş Geldiniz - ServiceDesk</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <partial name="_ThemeHead" />
+    <title>Hoş Geldiniz · ServiceDesk</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
-        .entry { display: block; text-decoration: none; color: var(--text); transition: border-color .15s; }
-        .entry:hover { border-color: var(--accent); color: var(--text); }
-        .entry i { font-size: 1.6rem; }
+        .welcome { min-height: 100vh; display: flex; flex-direction: column; background: var(--sd-bg); }
+        .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+        /* ---------- Hero ---------- */
+        .hero { position: relative; z-index: 0; overflow: hidden; background: var(--sd-ink); color: #b9c7cc; padding-bottom: 7.5rem; }
+        .hero::before {
+            content: ""; position: absolute; inset: 0; z-index: -1;
+            background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            -webkit-mask-image: radial-gradient(ellipse 75% 85% at 30% 10%, #000 25%, transparent 75%);
+            mask-image: radial-gradient(ellipse 75% 85% at 30% 10%, #000 25%, transparent 75%);
+        }
+        .hero::after {
+            content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+            background:
+                radial-gradient(640px 420px at 8% -10%, rgba(13,148,136,.40), transparent 60%),
+                radial-gradient(560px 420px at 95% 30%, rgba(14,165,233,.20), transparent 60%);
+        }
+        .hero-top { height: 76px; display: flex; align-items: center; gap: 1rem; }
+        .hero-top .brand { display: flex; align-items: center; gap: .65rem; color: #fff; font-weight: 800; font-size: 1.08rem; letter-spacing: -.02em; text-decoration: none; }
+        .hero-top .brand .brand-mark { width: 36px; height: 36px; border-radius: 10px; }
+        .hero-top .links { margin-left: auto; display: flex; align-items: center; gap: .5rem; }
+        .ghost-link { color: #c9d6da; font-weight: 600; font-size: .9rem; text-decoration: none; padding: .45rem .8rem; border-radius: 9px; }
+        .ghost-link:hover { color: #fff; background: rgba(255,255,255,.06); }
+
+        .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 3.5rem; align-items: center; padding-top: 3.5rem; }
+        .pill { display: inline-flex; align-items: center; gap: .45rem; padding: .35rem .85rem; border-radius: 999px; font-size: .78rem; font-weight: 700; color: #99f6e4; background: rgba(45,212,191,.1); border: 1px solid rgba(45,212,191,.24); }
+        .hero h1 { color: #fff; font-weight: 800; letter-spacing: -.028em; font-size: clamp(2.2rem, 4.2vw, 3.3rem); line-height: 1.08; margin: 1.25rem 0 1.15rem; }
+        .hero h1 em { font-style: normal; background: linear-gradient(90deg, #5eead4 0%, #7dd3fc 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .hero .lead { color: #a7b8be; font-size: 1.08rem; line-height: 1.65; max-width: 34rem; margin: 0; }
+        .hero-cta { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
+        .cta {
+            display: inline-flex; align-items: center; gap: .55rem; height: 50px; padding: 0 1.4rem;
+            border-radius: 12px; font-weight: 700; font-size: .96rem; text-decoration: none; transition: transform .15s, background-color .15s, box-shadow .15s;
+        }
+        .cta-primary { background: var(--sd-accent); color: #fff; box-shadow: 0 14px 30px -14px rgba(13,148,136,.9); }
+        .cta-primary:hover { background: #14a89b; color: #fff; transform: translateY(-1px); }
+        .cta-ghost { color: #e6eef0; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04); }
+        .cta-ghost:hover { color: #fff; background: rgba(255,255,255,.09); }
+        .cta i { transition: transform .15s; }
+        .cta:hover i.bi-arrow-right { transform: translateX(3px); }
+        .trust { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 2.25rem; font-size: .82rem; color: #8ea2a9; }
+        .trust span { display: inline-flex; align-items: center; gap: .4rem; }
+        .trust i { color: #5eead4; }
+
+        /* ---------- Ürün önizlemesi (dekoratif) ---------- */
+        .mock { position: relative; }
+        .mock-window {
+            position: relative; border-radius: 18px; overflow: hidden;
+            background: #f7f9f8; border: 1px solid rgba(255,255,255,.12);
+            box-shadow: 0 40px 80px -30px rgba(0,0,0,.65), 0 0 0 8px rgba(255,255,255,.03);
+            transform: perspective(1400px) rotateY(-7deg) rotateX(3deg);
+        }
+        .mock-bar { height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 14px; background: #fff; border-bottom: 1px solid var(--sd-border); }
+        .mock-bar i { width: 9px; height: 9px; border-radius: 50%; background: #e1e7e5; }
+        .mock-bar span { margin-left: 10px; height: 16px; flex: 1; max-width: 220px; border-radius: 6px; background: var(--sd-surface-2); border: 1px solid var(--sd-border); }
+        .mock-body { display: grid; grid-template-columns: 54px 1fr; min-height: 320px; }
+        .mock-side { background: var(--sd-ink); display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 14px; }
+        .mock-side b { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(140deg, var(--sd-accent), var(--sd-accent-700)); }
+        .mock-side i { width: 22px; height: 6px; border-radius: 3px; background: #2a3e47; }
+        .mock-side i.on { background: #2dd4bf; }
+        .mock-main { padding: 16px; }
+        .mock-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+        .kpi { background: #fff; border: 1px solid var(--sd-border); border-radius: 10px; padding: 10px 12px; }
+        .kpi small { display: block; font-size: .64rem; font-weight: 700; color: var(--sd-muted); text-transform: uppercase; letter-spacing: .05em; }
+        .kpi strong { display: block; font-size: 1.3rem; font-weight: 800; color: var(--sd-text); letter-spacing: -.03em; margin-top: 2px; }
+        .kpi .spark { height: 22px; margin-top: 4px; }
+        .mock-list { background: #fff; border: 1px solid var(--sd-border); border-radius: 10px; overflow: hidden; }
+        .mrow { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 9px 12px; border-top: 1px solid var(--sd-border); font-size: .74rem; color: var(--sd-text); }
+        .mrow:first-child { border-top: 0; }
+        .mrow .id { font-family: var(--sd-mono); color: var(--sd-muted); font-size: .66rem; }
+        .mrow .t { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mrow .sla { width: 70px; height: 5px; border-radius: 99px; background: #e9efed; overflow: hidden; }
+        .mrow .sla b { display: block; height: 100%; border-radius: inherit; }
+
+        .float-card {
+            position: absolute; display: flex; align-items: center; gap: .65rem;
+            padding: .7rem .9rem; border-radius: 14px; background: #fff; color: var(--sd-text);
+            box-shadow: 0 24px 40px -18px rgba(0,0,0,.55); font-size: .78rem; line-height: 1.3;
+            animation: floaty 6s ease-in-out infinite;
+        }
+        .float-card .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 1rem; }
+        .float-card strong { display: block; font-size: .84rem; }
+        .float-card span { color: var(--sd-muted); }
+        .fc-1 { left: -34px; bottom: -26px; }
+        .fc-1 .ic { background: var(--sd-success-soft); color: var(--sd-success); }
+        .fc-2 { right: -18px; top: -22px; animation-delay: -3s; }
+        .fc-2 .ic { background: var(--sd-accent-soft); color: var(--sd-accent-700); }
+        @@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+        /* ---------- Giriş kartları (hero'nun üzerine biner) ---------- */
+        .entries { position: relative; z-index: 2; margin-top: -4.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        .entry {
+            position: relative; display: flex; gap: 1.1rem; align-items: flex-start;
+            padding: 1.6rem; border-radius: 18px; background: #fff; border: 1px solid var(--sd-border);
+            box-shadow: 0 1px 2px rgba(15,28,36,.05), 0 24px 48px -28px rgba(15,28,36,.35);
+            text-decoration: none; color: var(--sd-text); transition: transform .2s, box-shadow .2s, border-color .2s;
+        }
+        .entry:hover { color: var(--sd-text); transform: translateY(-3px); border-color: rgba(13,148,136,.45); box-shadow: 0 1px 2px rgba(15,28,36,.05), 0 30px 56px -28px rgba(13,148,136,.45); }
+        .entry .ic { width: 52px; height: 52px; border-radius: 15px; flex-shrink: 0; display: grid; place-items: center; font-size: 1.4rem; }
+        .entry.user .ic { background: var(--sd-accent-soft); color: var(--sd-accent-700); }
+        .entry.admin .ic { background: var(--sd-ink); color: #5eead4; }
+        .entry h3 { font-size: 1.18rem; font-weight: 800; margin: .1rem 0 .35rem; }
+        .entry p { color: var(--sd-muted); margin: 0 0 .9rem; font-size: .92rem; line-height: 1.55; }
+        .entry .tags { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: 1rem; }
+        .entry .tags span { font-size: .7rem; font-weight: 700; padding: .18rem .55rem; border-radius: 999px; background: var(--sd-surface-2); border: 1px solid var(--sd-border); color: var(--sd-text-2); }
+        .entry .go { font-weight: 700; font-size: .9rem; color: var(--sd-accent-700); display: inline-flex; align-items: center; gap: .35rem; }
+        .entry .go i { transition: transform .15s; }
+        .entry:hover .go i { transform: translateX(4px); }
+        .entry .corner { position: absolute; top: 1.25rem; right: 1.25rem; color: #b6c2c6; font-size: 1.1rem; transition: color .2s, transform .2s; }
+        .entry:hover .corner { color: var(--sd-accent); transform: translate(2px, -2px); }
+
+        /* ---------- Özellikler ---------- */
+        .section-head { text-align: center; max-width: 40rem; margin: 5rem auto 2.25rem; }
+        .section-head .kicker { font-size: .74rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--sd-accent-700); }
+        .section-head h2 { font-size: clamp(1.6rem, 2.6vw, 2.1rem); font-weight: 800; letter-spacing: -.03em; margin: .5rem 0 .6rem; }
+        .section-head p { color: var(--sd-muted); margin: 0; }
+        .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+        .feature { padding: 1.5rem; border-radius: 16px; background: #fff; border: 1px solid var(--sd-border); }
+        .feature .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 1.2rem; margin-bottom: 1rem; background: var(--sd-accent-soft); color: var(--sd-accent-700); }
+        .feature h3 { font-size: 1.02rem; font-weight: 800; margin: 0 0 .35rem; }
+        .feature p { color: var(--sd-muted); font-size: .89rem; margin: 0 0 1rem; line-height: 1.55; }
+        .sla-chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+        .sla-chips span { font-size: .72rem; font-weight: 700; padding: .2rem .55rem; border-radius: 8px; border: 1px solid; }
+
+        .welcome-foot { margin-top: 5rem; border-top: 1px solid var(--sd-border); background: #fff; font-size: .82rem; color: var(--sd-muted); }
+
+        @@media (max-width: 991.98px) {
+            .hero-grid { grid-template-columns: 1fr; gap: 3rem; padding-top: 2rem; }
+            .mock { max-width: 560px; margin: 0 auto 1rem; width: 100%; }
+            .mock-window { transform: none; }
+            .fc-1 { left: 8px; } .fc-2 { right: 8px; }
+            .features { grid-template-columns: 1fr; }
+        }
+        @@media (max-width: 767.98px) {
+            .entries { grid-template-columns: 1fr; }
+            .hero-top .ghost-link { display: none; }
+            .hero { padding-bottom: 6rem; }
+        }
+        @@media (max-width: 480px) {
+            .wrap { padding: 0 16px; }
+            .mock-kpis { grid-template-columns: repeat(2, 1fr); }
+            .mock-kpis .kpi:last-child { display: none; }
+            .float-card { display: none; }
+            .entry { flex-direction: column; }
+        }
     </style>
 </head>
-<body class="d-flex flex-column min-vh-100">
-    <header class="portal-nav">
-        <div class="container h-100 d-flex align-items-center" style="max-width:880px">
-            <span class="d-flex align-items-center gap-2 fw-bold"><span class="brand-mark"><i class="bi bi-headset"></i></span>ServiceDesk</span>
-            <a class="btn btn-primary btn-sm ms-auto" asp-controller="Account" asp-action="Login"><i class="bi bi-box-arrow-in-right"></i> Giriş Yap</a>
+<body class="welcome">
+    <section class="hero">
+        <div class="wrap">
+            <div class="hero-top">
+                <span class="brand"><span class="brand-mark"><i class="bi bi-headset"></i></span>ServiceDesk</span>
+                <div class="links">
+                    <a class="ghost-link" asp-controller="Portal" asp-action="Index">Kullanıcı Portalı</a>
+                    <a class="btn btn-light btn-sm px-3" asp-controller="Account" asp-action="Login"><i class="bi bi-box-arrow-in-right me-1"></i> Giriş Yap</a>
+                </div>
+            </div>
+
+            <div class="hero-grid">
+                <div>
+                    <span class="pill"><i class="bi bi-patch-check-fill"></i> ISO 9001 Kalite Yönetimi</span>
+                    <h1>IT destek süreçleriniz,<br /><em>ölçülebilir ve denetime hazır.</em></h1>
+                    <p class="lead">Arıza ve değişiklik taleplerini açın, SLA sürelerini izleyin, memnuniyeti ölçün. Hepsi tek bir servis masasında.</p>
+                    <div class="hero-cta">
+                        <a class="cta cta-primary" asp-controller="Account" asp-action="Login">Giriş yap <i class="bi bi-arrow-right"></i></a>
+                        <a class="cta cta-ghost" asp-controller="Portal" asp-action="Create"><i class="bi bi-plus-circle"></i> Talep oluştur</a>
+                    </div>
+                    <div class="trust">
+                        <span><i class="bi bi-shield-lock-fill"></i> İki adımlı giriş</span>
+                        <span><i class="bi bi-stopwatch-fill"></i> Otomatik SLA takibi</span>
+                        <span><i class="bi bi-graph-up-arrow"></i> KPI paneli</span>
+                    </div>
+                </div>
+
+                @* Dekoratif ürün önizlemesi — gerçek veri değildir *@
+                <div class="mock" aria-hidden="true">
+                    <div class="mock-window">
+                        <div class="mock-bar"><i></i><i></i><i></i><span></span></div>
+                        <div class="mock-body">
+                            <div class="mock-side"><b></b><i class="on"></i><i></i><i></i><i></i><i></i></div>
+                            <div class="mock-main">
+                                <div class="mock-kpis">
+                                    <div class="kpi"><small>SLA uyumu</small><strong>%94</strong>
+                                        <svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="#0d9488" stroke-width="2" points="0,16 15,14 30,15 45,9 60,11 75,6 100,4" /></svg></div>
+                                    <div class="kpi"><small>MTTR</small><strong>5,2 sa</strong>
+                                        <svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="#0ea5e9" stroke-width="2" points="0,6 15,9 30,8 45,12 60,11 75,14 100,15" /></svg></div>
+                                    <div class="kpi"><small>CSAT</small><strong>4,6</strong>
+                                        <svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="#f59e0b" stroke-width="2" points="0,14 15,12 30,13 45,10 60,8 75,9 100,6" /></svg></div>
+                                </div>
+                                <div class="mock-list">
+                                    <div class="mrow"><span class="id">INC-042</span><span class="t">VPN bağlantısı kurulamıyor</span><span class="sla"><b style="width:82%;background:#ef4444"></b></span></div>
+                                    <div class="mrow"><span class="id">CHG-007</span><span class="t">Sunucu RAM yükseltme</span><span class="sla"><b style="width:55%;background:#f59e0b"></b></span></div>
+                                    <div class="mrow"><span class="id">INC-039</span><span class="t">Yazıcı kağıt sıkıştırıyor</span><span class="sla"><b style="width:30%;background:#0d9488"></b></span></div>
+                                    <div class="mrow"><span class="id">INC-038</span><span class="t">Outlook şifre sıfırlama</span><span class="sla"><b style="width:12%;background:#0d9488"></b></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="float-card fc-1"><span class="ic"><i class="bi bi-check2-circle"></i></span><div><strong>Talep çözüldü</strong><span>SLA içinde · 2 sa 14 dk</span></div></div>
+                    <div class="float-card fc-2"><span class="ic"><i class="bi bi-bell"></i></span><div><strong>SLA uyarısı</strong><span>INC-042 · 1 sa kaldı</span></div></div>
+                </div>
+            </div>
         </div>
-    </header>
+    </section>
 
-    <main class="container flex-grow-1 d-flex flex-column justify-content-center py-5" style="max-width:880px">
-        <h1 class="fw-bold mb-2">IT Servis Masası</h1>
-        <p class="text-muted fs-5 mb-5">ISO 9001 Kalite Yönetim Standardına uygun destek talebi ve süreç takip sistemi.</p>
-
+    <main class="wrap flex-grow-1">
         @* Giriş yapılmışsa bu sayfa hiç görünmez; HomeController rolüne göre yönlendirir.
            Buradaki iki kart giriş yapmamış ziyaretçiyi Login'e düşürür. *@
-        <div class="row g-3">
-            <div class="col-md-6">
-                <a class="panel panel-body entry h-100" asp-controller="Portal" asp-action="Index">
-                    <i class="bi bi-person"></i>
-                    <div class="fw-semibold fs-5 mt-2">Kullanıcı Portalı</div>
-                    <div class="text-muted">Sorun bildirin, dosya veya ekran görüntüsü ekleyin, taleplerinizi takip edin.</div>
-                </a>
+        <div class="entries">
+            <a class="entry user" asp-controller="Portal" asp-action="Index">
+                <span class="ic"><i class="bi bi-person"></i></span>
+                <div>
+                    <h3>Kullanıcı Portalı</h3>
+                    <p>Sorun bildirin, dosya veya ekran görüntüsü ekleyin, taleplerinizi adım adım takip edin.</p>
+                    <div class="tags"><span>Talep aç</span><span>Dosya ekle</span><span>Anket</span></div>
+                    <span class="go">Portala git <i class="bi bi-arrow-right"></i></span>
+                </div>
+                <i class="bi bi-arrow-up-right corner"></i>
+            </a>
+            <a class="entry admin" asp-controller="Dashboard" asp-action="Index">
+                <span class="ic"><i class="bi bi-grid-1x2"></i></span>
+                <div>
+                    <h3>Yönetim Paneli</h3>
+                    <p>Grafikler, onay bekleyen değişiklikler, atama bekleyen talepler ve SLA takibi tek ekranda.</p>
+                    <div class="tags"><span>KPI</span><span>Onaylar</span><span>Uygunsuzluklar</span></div>
+                    <span class="go">Panele git <i class="bi bi-arrow-right"></i></span>
+                </div>
+                <i class="bi bi-arrow-up-right corner"></i>
+            </a>
+        </div>
+
+        <div class="section-head">
+            <div class="kicker">Neler sunuyor</div>
+            <h2>Standartlara uygun servis yönetimi</h2>
+            <p>ISO 9001'in istediği izlenebilirlik, ölçüm ve sürekli iyileştirme döngüsü uygulamanın içinde.</p>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="ic"><i class="bi bi-stopwatch"></i></div>
+                <h3>Önceliğe göre SLA</h3>
+                <p>Her talebin çözüm süresi otomatik hesaplanır; yaklaşan ve aşılan süreler bildirilir.</p>
+                <div class="sla-chips">
+                    <span class="tag-red">Kritik 4 sa</span><span class="tag-amber">Yüksek 8 sa</span><span class="tag-blue">Orta 24 sa</span><span class="tag-gray">Düşük 72 sa</span>
+                </div>
             </div>
-            <div class="col-md-6">
-                <a class="panel panel-body entry h-100" asp-controller="Dashboard" asp-action="Index">
-                    <i class="bi bi-grid"></i>
-                    <div class="fw-semibold fs-5 mt-2">Yönetim Paneli</div>
-                    <div class="text-muted">Grafikler, onay bekleyen değişiklikler, atama bekleyen talepler ve SLA takibi.</div>
-                </a>
+            <div class="feature">
+                <div class="ic"><i class="bi bi-graph-up-arrow"></i></div>
+                <h3>Ölçülebilir kalite</h3>
+                <p>SLA uyum oranı, ortalama çözüm süresi (MTTR) ve müşteri memnuniyeti (CSAT) tek panelde.</p>
+                <div class="sla-chips"><span class="tag-green">SLA %</span><span class="tag-green">MTTR</span><span class="tag-green">CSAT</span></div>
+            </div>
+            <div class="feature">
+                <div class="ic"><i class="bi bi-shield-lock"></i></div>
+                <h3>Güvenli erişim</h3>
+                <p>Şifreye ek olarak SMS veya WhatsApp ile gelen tek kullanımlık kod; rol bazlı yetkilendirme.</p>
+                <div class="sla-chips"><span class="tag-gray">OTP</span><span class="tag-gray">Rol bazlı</span><span class="tag-gray">Oturum süresi</span></div>
             </div>
         </div>
     </main>
 
-    <footer class="text-center small text-muted py-3">SDS-07 · Software Development with Standards</footer>
+    <footer class="welcome-foot">
+        <div class="wrap d-flex flex-wrap justify-content-between gap-2 py-4">
+            <span class="d-flex align-items-center gap-2"><span class="brand-mark" style="width:24px;height:24px;border-radius:7px;font-size:.75rem"><i class="bi bi-headset"></i></span> ServiceDesk · İstanbul Kültür Üniversitesi</span>
+            <span>SEN0421 · SDS-07 · Software Development with Standards</span>
+        </div>
+    </footer>
 </body>
 </html>
