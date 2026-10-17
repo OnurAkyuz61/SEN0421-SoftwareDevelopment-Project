@@ -1,9 +1,11 @@
 @* YÖNETİM PANELİ LAYOUT'U (sidebar) *@
 @inject ServiceDesk.Data.AppDbContext Db
+@inject CurrentUser Me
 @{
     var c = ViewContext.RouteData.Values["controller"]?.ToString();
     string Act(string ctrl) => c == ctrl ? "active" : "";
     var pendingCount = Db.Tickets.Count(t => t.ApprovalStatus == ApprovalStatus.Pending);
+    var ncCount = Db.Nonconformities.Count(n => n.Status != NonconformityStatus.Closed);
 }
 <!DOCTYPE html>
 <html lang="tr">
@@ -31,7 +33,16 @@
                     @if (pendingCount > 0) { <span class="nav-count">@pendingCount</span> }
                 </a>
                 <a class="nav-link @Act("Surveys")" asp-controller="Surveys" asp-action="Index"><i class="bi bi-chat-square-heart"></i><span>Anketler</span></a>
+                <a class="nav-link @Act("Nonconformities")" asp-controller="Nonconformities" asp-action="Index">
+                    <i class="bi bi-clipboard2-x"></i><span>Uygunsuzluklar</span>
+                    @if (ncCount > 0) { <span class="nav-count">@ncCount</span> }
+                </a>
+                <a class="nav-link @Act("Knowledge")" asp-controller="Knowledge" asp-action="Index"><i class="bi bi-journal-text"></i><span>Bilgi Bankası</span></a>
                 <a class="nav-link @Act("Users")" asp-controller="Users" asp-action="Index"><i class="bi bi-people"></i><span>Kullanıcılar</span></a>
+                @if (Me.Role == UserRole.Admin)
+                {
+                    <a class="nav-link @Act("Catalog")" asp-controller="Catalog" asp-action="Index"><i class="bi bi-tags"></i><span>Katalog</span></a>
+                }
                 <a class="nav-link @Act("Notifications")" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell"></i><span>Bildirimler</span></a>
             </nav>
 
@@ -46,9 +57,21 @@
                     <a class="btn btn-outline-secondary btn-sm d-none d-md-inline-block" asp-controller="Portal" asp-action="Index">
                         <i class="bi bi-box-arrow-up-right"></i> Kullanıcı Portalı
                     </a>
-                    <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login">
-                        <i class="bi bi-box-arrow-in-right"></i> Login
-                    </a>
+                    @if (Me.IsAuthenticated)
+                    {
+                        <span class="small text-muted d-none d-lg-inline">@Me.DisplayName</span>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-box-arrow-right"></i> Çıkış
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login">
+                            <i class="bi bi-box-arrow-in-right"></i> Giriş Yap
+                        </a>
+                    }
                 </div>
             </header>
             <main class="p-4">

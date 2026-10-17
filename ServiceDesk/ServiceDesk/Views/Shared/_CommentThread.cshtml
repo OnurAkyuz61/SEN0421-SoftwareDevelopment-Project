@@ -1,0 +1,31 @@
+@model List<TicketComment>
+@* Talep yazışması. İç notlar sarı kenarlıkla ayrılır; portala zaten filtrelenmiş liste gelir. *@
+@if (!Model.Any())
+{
+    <div class="text-muted small">Henüz mesaj yok.</div>
+}
+else
+{
+    <div class="d-flex flex-column gap-3">
+        @foreach (var c in Model)
+        {
+            <div class="comment @(c.IsInternal ? "comment-internal" : "")">
+                <div class="d-flex flex-wrap align-items-baseline gap-2 mb-1">
+                    <span class="fw-semibold">@(c.Author?.FullName ?? "Bilinmiyor")</span>
+                    @if (c.Author != null && c.Author.Role != UserRole.User)
+                    {
+                        <span class="tag tag-blue">@(c.Author.Role == UserRole.Admin ? "Yönetici" : "Destek")</span>
+                    }
+                    @if (c.IsInternal) { <span class="tag tag-amber"><i class="bi bi-eye-slash"></i> İç not</span> }
+                    @if (c.WorkMinutes is > 0) { <span class="tag tag-gray"><i class="bi bi-clock"></i> @c.WorkMinutes dk</span> }
+                    <span class="text-muted small ms-auto">@AppTime.ToLocal(c.CreatedAt).ToString("dd.MM.yyyy HH:mm")</span>
+                </div>
+                <div style="white-space:pre-line">@c.Body</div>
+                @if (c.Attachments.Any())
+                {
+                    <div class="mt-2"><partial name="_AttachmentList" model="c.Attachments" /></div>
+                }
+            </div>
+        }
+    </div>
+}

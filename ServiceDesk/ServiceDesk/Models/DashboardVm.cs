@@ -26,5 +26,10 @@ public class DashboardVm
     public List<Ticket> Approvals { get; set; } = new();
     public List<Ticket> UnassignedList { get; set; } = new();
     public List<Ticket> BreachedList { get; set; } = new();
-    public List<Feedback> LatestFeedback { get; set; } = new();
+    public List<SurveyResponse> LatestSurveys { get; set; } = new();
+
+    // ISO 9001 md. 9.1.1: dönemsel ölçüm karşılaştırması
+    public List<KpiSnapshot> MonthlyKpi { get; set; } = new();
+    public int OpenNonconformities { get; set; }
+    public int OverdueNonconformities { get; set; }
 }

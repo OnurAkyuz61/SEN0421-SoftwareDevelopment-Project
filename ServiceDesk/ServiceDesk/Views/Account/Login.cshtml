@@ -1,4 +1,5 @@
 @model LoginVm
+@inject IWebHostEnvironment Env
 @{
     Layout = null;
     ViewData["Title"] = "Giriş";
@@ -22,6 +23,17 @@
             padding: .75rem .9rem; font-family: inherit; font-size: .95rem; background: #fff; outline: none;
         }
         .otp-field input:focus { border-color: var(--otp-accent); box-shadow: 0 0 0 3px var(--otp-glow); }
+
+        /* GELİŞTİRME: hızlı giriş kutusu — canlıya çıkmadan önce kaldırılacak */
+        .dev-fill { margin-top: 1.1rem; padding-top: .9rem; border-top: 1px dashed var(--otp-line); }
+        .dev-fill .dev-label { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--otp-muted); margin-bottom: .5rem; }
+        .dev-fill .dev-row { display: flex; gap: .4rem; flex-wrap: wrap; }
+        .dev-fill button {
+            flex: 1 1 0; min-width: 88px; cursor: pointer; font-family: inherit; font-size: .8rem;
+            padding: .45rem .3rem; border: 1.5px solid var(--otp-line); border-radius: .6rem;
+            background: #fff; color: var(--otp-muted);
+        }
+        .dev-fill button:hover { border-color: var(--otp-accent); color: var(--otp-accent); }
     </style>
 </head>
 <body class="otp-body">
@@ -50,8 +62,28 @@
                 </div>
 
                 <button type="submit" class="otp-btn">Devam et</button>
+
             </form>
-            <p class="otp-link" style="cursor:default">Demo: admin@servicedesk.local / admin123</p>
+
+            @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────────
+               Test hesabına şifre ve OTP olmadan girer. Giriş formundan ayrı
+               bir form olduğu için tarayıcı parola gönderimi algılamaz;
+               "bu şifre bir veri sızıntısında bulundu" uyarısı çıkmaz.
+               Yalnızca Development'ta görünür, sunucu tarafında da ayrıca
+               kilitli. Canlıya çıkmadan önce bu blok, yukarıdaki .dev-fill
+               stilleri ve AccountController.DevLogin silinecek. *@
+            @if (Env.IsDevelopment())
+            {
+                <form asp-action="DevLogin" method="post" class="dev-fill">
+                    @Html.AntiForgeryToken()
+                    <div class="dev-label">Geliştirme · şifresiz hızlı giriş</div>
+                    <div class="dev-row">
+                        <button type="submit" name="email" value="admin@servicedesk.local">Yönetici</button>
+                        <button type="submit" name="email" value="agent@servicedesk.local">Destek</button>
+                        <button type="submit" name="email" value="user@servicedesk.local">Kullanıcı</button>
+                    </div>
+                </form>
+            }
         </div>
     </div>
 </body>

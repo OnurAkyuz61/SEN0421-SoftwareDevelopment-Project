@@ -1,6 +1,6 @@
 @model Ticket
 @{
-    ViewData["Title"] = "Talep #" + Model.Id;
+    ViewData["Title"] = "Talep " + Ui.TicketNo(Model);
     var closed = Model.Status is TicketStatus.Resolved or TicketStatus.Closed;
     // Basit süreç adımları: Alındı → İşlemde → Çözüldü
     var step = Model.Status switch { TicketStatus.New => 1, TicketStatus.InProgress => 2, _ => 3 };
@@ -9,7 +9,7 @@
 <a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Taleplerim</a>
 
 <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mb-4">
-    <h4 class="fw-bold mb-0 me-auto">#@Model.Id · @Model.Title</h4>
+    <h4 class="fw-bold mb-0 me-auto">@Ui.TicketNo(Model) · @Model.Title</h4>
     <span class="tag @Ui.StatusTag(Model.Status)">@Ui.StatusText(Model.Status)</span>
     @if (Model.ApprovalStatus != ApprovalStatus.NotRequired)
     {
@@ -47,7 +47,7 @@
             <div class="panel-body" style="white-space:pre-line">@Model.Description</div>
         </div>
 
-        <div class="panel">
+        <div class="panel mb-3">
             <div class="panel-head">Ekler <span class="text-muted small fw-normal">@Model.Attachments.Count dosya</span></div>
             <div class="panel-body">
                 <partial name="_AttachmentList" model="Model.Attachments" />
@@ -61,6 +61,31 @@
                 }
             </div>
         </div>
+
+        <div class="panel">
+            <div class="panel-head">
+                Yazışma
+                <span class="text-muted small fw-normal">@Model.Comments.Count mesaj</span>
+            </div>
+            <div class="panel-body">
+                <partial name="_CommentThread" model="Model.Comments" />
+
+                @if (!closed)
+                {
+                    <form asp-action="AddComment" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="mt-3 pt-3 border-top">
+                        <textarea name="body" class="form-control mb-2" rows="3" required
+                                  placeholder="Destek ekibine bir şey eklemek ister misiniz?"></textarea>
+                        <button class="btn btn-primary btn-sm">Gönder</button>
+                    </form>
+                }
+                else
+                {
+                    <div class="text-muted small mt-3 pt-3 border-top">
+                        Talep kapandığı için yeni mesaj gönderilemez.
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 
     <div class="col-lg-4">
@@ -70,36 +95,54 @@
                 <tr><td class="text-muted">Tür</td><td>@Ui.TypeText(Model.Type)</td></tr>
                 <tr><td class="text-muted">Kategori</td><td>@Ui.CategoryText(Model.Category)</td></tr>
                 <tr><td class="text-muted">Öncelik</td><td><span class="tag @Ui.PriorityTag(Model.Priority)">@Ui.PriorityText(Model.Priority)</span></td></tr>
-                <tr><td class="text-muted">Açılış</td><td>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td></tr>
-                <tr><td class="text-muted">Hedef çözüm</td><td>@Model.SlaDueAt.ToString("dd.MM.yyyy HH:mm")</td></tr>
-                <tr><td class="text-muted">İlgilenen</td><td>@(Model.AssignedTo ?? "Atanmadı")</td></tr>
+                <tr><td class="text-muted">Açılış</td><td>@AppTime.ToLocal(Model.CreatedAt).ToString("dd.MM.yyyy HH:mm")</td></tr>
+                <tr><td class="text-muted">Hedef çözüm</td><td>@AppTime.ToLocal(Model.SlaDueAt).ToString("dd.MM.yyyy HH:mm")</td></tr>
+                <tr><td class="text-muted">İlgilenen</td><td>@(Model.Assignee?.FullName ?? "Atanmadı")</td></tr>
             </table>
         </div>
 
-        @if (Model.Feedback != null)
+        @if (Model.Survey != null)
         {
+            var ort = Model.Survey.Answers.Count == 0 ? 0 : Model.Survey.Answers.Average(a => a.Score);
             <div class="panel">
                 <div class="panel-head">Değerlendirmeniz</div>
                 <div class="panel-body">
-                    <div class="fs-5 text-warning">
-                        @for (int i = 1; i <= 5; i++) { <i class="bi @(i <= Model.Feedback.Score ? "bi-star-fill" : "bi-star")"></i> }
+                    <div class="fs-5 text-warning mb-2">
+                        @for (int i = 1; i <= 5; i++) { <i class="bi @(i <= Math.Round(ort) ? "bi-star-fill" : "bi-star")"></i> }
+                        <span class="fs-6 text-muted ms-1">@ort.ToString("0.0") / 5</span>
                     </div>
-                    <div class="text-muted small">@Model.Feedback.Comment</div>
+                    @foreach (var a in Model.Survey.Answers.OrderBy(a => a.Question!.SortOrder))
+                    {
+                        <div class="small d-flex justify-content-between border-top py-1">
+                            <span class="text-muted">@a.Question?.Text</span>
+                            <span class="fw-semibold">@a.Score</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Survey.Comment))
+                    {
+                        <div class="text-muted small mt-2">@Model.Survey.Comment</div>
+                    }
                 </div>
             </div>
         }
-        else if (closed)
+        else if (closed && ViewBag.SurveyQuestions != null)
         {
             <form asp-action="Feedback" asp-route-id="@Model.Id" method="post" class="panel">
                 <div class="panel-head">Hizmeti değerlendirin</div>
                 <div class="panel-body">
-                    <select name="score" class="form-select mb-2">
-                        <option value="5">5 - Çok memnunum</option>
-                        <option value="4">4 - Memnunum</option>
-                        <option value="3">3 - Orta</option>
-                        <option value="2">2 - Memnun değilim</option>
-                        <option value="1">1 - Hiç memnun değilim</option>
-                    </select>
+                    @foreach (var q in (List<SurveyQuestion>)ViewBag.SurveyQuestions)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold mb-1">@q.Text</label>
+                            <select name="q@(q.Id)" class="form-select form-select-sm">
+                                <option value="5">5 - Çok memnunum</option>
+                                <option value="4">4 - Memnunum</option>
+                                <option value="3" selected>3 - Orta</option>
+                                <option value="2">2 - Memnun değilim</option>
+                                <option value="1">1 - Hiç memnun değilim</option>
+                            </select>
+                        </div>
+                    }
                     <textarea name="comment" class="form-control mb-2" rows="2" placeholder="Yorumunuz (isteğe bağlı)"></textarea>
                     <button class="btn btn-primary w-100">Gönder</button>
                 </div>

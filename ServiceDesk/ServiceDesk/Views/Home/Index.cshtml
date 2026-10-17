@@ -28,7 +28,8 @@
         <h1 class="fw-bold mb-2">IT Servis Masası</h1>
         <p class="text-muted fs-5 mb-5">ISO 9001 Kalite Yönetim Standardına uygun destek talebi ve süreç takip sistemi.</p>
 
-        @* GEÇİCİ: Login bağlanınca kullanıcı rolüne göre otomatik yönlendirilecek *@
+        @* Giriş yapılmışsa bu sayfa hiç görünmez; HomeController rolüne göre yönlendirir.
+           Buradaki iki kart giriş yapmamış ziyaretçiyi Login'e düşürür. *@
         <div class="row g-3">
             <div class="col-md-6">
                 <a class="panel panel-body entry h-100" asp-controller="Portal" asp-action="Index">

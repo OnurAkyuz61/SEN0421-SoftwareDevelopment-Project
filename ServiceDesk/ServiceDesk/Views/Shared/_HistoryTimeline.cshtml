@@ -1,0 +1,25 @@
+@model List<TicketHistory>
+@* Alan bazlı değişiklik izi — ISO 9001 md. 7.5.3. Yönetim tarafında gösterilir. *@
+@if (!Model.Any())
+{
+    <div class="text-muted small">Talep açıldığından beri değişiklik yapılmadı.</div>
+}
+else
+{
+    <ul class="timeline">
+        @foreach (var h in Model)
+        {
+            <li>
+                <div class="small">
+                    <span class="fw-semibold">@h.Field</span>
+                    <span class="text-muted">@(h.OldValue ?? "-")</span>
+                    <i class="bi bi-arrow-right text-muted"></i>
+                    <span class="fw-semibold">@(h.NewValue ?? "-")</span>
+                </div>
+                <div class="text-muted" style="font-size:.78rem">
+                    @(h.ChangedBy?.FullName ?? "Sistem") · @AppTime.ToLocal(h.ChangedAt).ToString("dd.MM.yyyy HH:mm")
+                </div>
+            </li>
+        }
+    </ul>
+}

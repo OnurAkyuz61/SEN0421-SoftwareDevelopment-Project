@@ -24,9 +24,9 @@
         </div>
         <div class="col-lg-2 col-md-4 col-6">
             <label class="form-label small text-muted mb-1">Kategori</label>
-            <select name="category" class="form-select">
+            <select name="categoryId" class="form-select">
                 <option value="">Tümü</option>
-                @foreach (var c in Enum.GetValues<TicketCategory>()) { <option value="@c" selected="@(ViewBag.Category == c)">@Ui.CategoryText(c)</option> }
+                @foreach (var c in (List<Category>)ViewBag.Categories) { <option value="@c.Id" selected="@(ViewBag.CategoryId as int? == c.Id)">@c.Name</option> }
             </select>
         </div>
         <div class="col-lg-1 col-md-4 col-6">
@@ -59,7 +59,7 @@
                 @foreach (var t in Model)
                 {
                     <tr>
-                        <td class="text-muted">#@t.Id</td>
+                        <td class="text-muted small">@Ui.TicketNo(t)</td>
                         <td>
                             <a class="fw-semibold text-decoration-none" asp-action="Details" asp-route-id="@t.Id">@t.Title</a>
                             <div class="small text-muted">
@@ -70,10 +70,10 @@
                         <td>@Ui.CategoryText(t.Category)</td>
                         <td><span class="tag @Ui.PriorityTag(t.Priority)">@Ui.PriorityText(t.Priority)</span></td>
                         <td><span class="tag @Ui.StatusTag(t.Status)">@Ui.StatusText(t.Status)</span></td>
-                        <td>@(t.AssignedTo ?? "-")</td>
+                        <td>@(t.Assignee?.FullName ?? "-")</td>
                         <td class="text-nowrap">
                             @if (t.IsSlaBreached) { <span class="tag tag-red"><i class="bi bi-exclamation-triangle"></i> İhlal@(t.IsEscalated ? " · Eskale" : "")</span> }
-                            else { <span class="small text-muted">@t.SlaDueAt.ToString("dd.MM HH:mm")</span> }
+                            else { <span class="small text-muted">@AppTime.ToLocal(t.SlaDueAt).ToString("dd.MM HH:mm")</span> }
                         </td>
                     </tr>
                 }

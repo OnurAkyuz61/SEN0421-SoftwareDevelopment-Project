@@ -27,12 +27,49 @@ public static class Ui
 
     public static string TypeText(TicketType t) => t == TicketType.Incident ? "Arıza" : "Değişiklik";
 
-    public static string CategoryText(TicketCategory c) => c switch
+    // Kategori artık enum değil tablo; ad doğrudan kayıttan gelir
+    public static string CategoryText(Category? c) => c?.Name ?? "-";
+
+    public static string NonconformityStatusText(NonconformityStatus s) => s switch
     {
-        TicketCategory.Hardware => "Donanım", TicketCategory.Software => "Yazılım",
-        TicketCategory.Network => "Ağ / İnternet", TicketCategory.Access => "Hesap / Erişim",
-        TicketCategory.Email => "E-posta", _ => "Diğer"
+        NonconformityStatus.Closed => "Kapalı", NonconformityStatus.InProgress => "İşlemde", _ => "Açık"
     };
+
+    public static string NonconformitySourceText(NonconformitySource s) => s switch
+    {
+        NonconformitySource.SlaBreach => "SLA ihlali",
+        NonconformitySource.LowSatisfaction => "Düşük memnuniyet",
+        NonconformitySource.Audit => "İç denetim",
+        _ => "Elle açıldı"
+    };
+
+    public static string RiskText(RiskLevel r) => r switch
+    {
+        RiskLevel.High => "Yüksek", RiskLevel.Medium => "Orta", _ => "Düşük"
+    };
+
+    public static string LoginResultText(LoginResult r) => r switch
+    {
+        LoginResult.Success => "Başarılı",
+        LoginResult.WrongPassword => "Şifre hatalı",
+        LoginResult.UnknownEmail => "Hesap yok",
+        LoginResult.NoPhone => "Telefon tanımsız",
+        LoginResult.OtpFailed => "OTP hatalı",
+        LoginResult.OtpExpired => "OTP süresi doldu",
+        _ => "Çok fazla deneme"
+    };
+
+    public static string RoleText(UserRole r) => r switch
+    {
+        UserRole.Admin => "Yönetici", UserRole.Agent => "Destek", _ => "Kullanıcı"
+    };
+
+    // INC-2026-00042 / CHG-2026-00007. Id benzersiz olduğu için numara da benzersizdir.
+    public static string BuildTicketNumber(Ticket t) =>
+        $"{(t.Type == TicketType.Change ? "CHG" : "INC")}-{Services.AppTime.ToLocal(t.CreatedAt):yyyy}-{t.Id:D5}";
+
+    // Numarası henüz üretilmemiş eski kayıtlar için geri düşüş
+    public static string TicketNo(Ticket t) => t.Number ?? $"#{t.Id}";
 
     public static string ApprovalText(ApprovalStatus a) => a switch
     {

@@ -4,36 +4,80 @@ using ServiceDesk.Models;
 
 namespace ServiceDesk.Services;
 
-// Bildirimler veritabanında tutulmaz, talep verisinden anlık hesaplanır
-public static class NotificationService
+// Bildirimler artık talep verisinden anlık hesaplanmıyor; Notifications
+// tablosunda duruyor. Bu servis hem yazma (olay anında) hem okuma tarafını yönetir.
+public class NotificationService
 {
-    public static async Task<List<NotificationItem>> GetAsync(AppDbContext db)
-    {
-        var now = DateTime.Now;
-        var list = new List<NotificationItem>();
+    private readonly AppDbContext _db;
+    public NotificationService(AppDbContext db) => _db = db;
 
-        var open = await db.Tickets
-            .Where(t => t.Status == TicketStatus.New || t.Status == TicketStatus.InProgress)
+    // ── Okuma ────────────────────────────────────────────────────────────
+
+    public Task<List<Notification>> GetForAsync(int userId, bool unreadOnly = false, int take = 100)
+    {
+        var q = _db.Notifications
+            .AsNoTracking()
+            .Include(n => n.Ticket)
+            .Where(n => n.RecipientId == userId);
+
+        if (unreadOnly) q = q.Where(n => n.ReadAt == null);
+
+        return q.OrderByDescending(n => n.CreatedAt).Take(take).ToListAsync();
+    }
+
+    public Task<int> UnreadCountAsync(int userId) =>
+        _db.Notifications.CountAsync(n => n.RecipientId == userId && n.ReadAt == null);
+
+    public async Task MarkReadAsync(int userId, int? notificationId = null)
+    {
+        var q = _db.Notifications.Where(n => n.RecipientId == userId && n.ReadAt == null);
+        if (notificationId != null) q = q.Where(n => n.Id == notificationId);
+
+        foreach (var n in await q.ToListAsync()) n.ReadAt = AppTime.UtcNow;
+        await _db.SaveChangesAsync();
+    }
+
+    // ── Yazma ────────────────────────────────────────────────────────────
+
+    // Kaydı ekler ama SaveChanges çağırmaz: çağıran kendi işlemiyle birlikte kaydeder
+    public void Queue(int recipientId, NotificationType type, string title, string message, int? ticketId = null)
+    {
+        _db.Notifications.Add(new Notification
+        {
+            RecipientId = recipientId,
+            TicketId = ticketId,
+            Type = type,
+            Title = title,
+            Message = message
+        });
+    }
+
+    // Belirli roldeki aktif kullanıcıların tümüne
+    public async Task QueueToRoleAsync(UserRole role, NotificationType type, string title, string message, int? ticketId = null, int? exceptUserId = null)
+    {
+        var ids = await _db.Users
+            .Where(u => u.Role == role && u.IsActive && (exceptUserId == null || u.Id != exceptUserId))
+            .Select(u => u.Id)
             .ToListAsync();
 
-        foreach (var t in open)
-        {
-            if (t.SlaDueAt < now)
-                list.Add(new(t.Id, $"SLA ihlali: #{t.Id} {t.Title}", "Çözüm süresi aşıldı, eskalasyon gerekli.", "danger", "bi-exclamation-octagon", t.SlaDueAt));
-            else if (t.SlaDueAt < now.AddHours(2))
-                list.Add(new(t.Id, $"SLA yaklaşıyor: #{t.Id} {t.Title}", $"Kalan süre: {(t.SlaDueAt - now).TotalMinutes:0} dk", "warning", "bi-hourglass-split", t.SlaDueAt));
-
-            if (t.ApprovalStatus == ApprovalStatus.Pending)
-                list.Add(new(t.Id, $"Onay bekliyor: #{t.Id} {t.Title}", $"{t.RequesterName} bir değişiklik talep etti.", "warning", "bi-patch-question", t.CreatedAt));
-
-            if (t.CreatedAt > now.AddHours(-24))
-                list.Add(new(t.Id, $"Yeni talep: #{t.Id} {t.Title}", $"{t.RequesterName} tarafından açıldı.", "primary", "bi-plus-circle", t.CreatedAt));
-        }
-
-        // Önce ihlaller, sonra yaklaşanlar, sonra yeni talepler
-        return list.OrderBy(n => n.Color == "danger" ? 0 : n.Color == "warning" ? 1 : 2)
-                   .ThenByDescending(n => n.Time).ToList();
+        foreach (var id in ids) Queue(id, type, title, message, ticketId);
     }
-}
 
-public record NotificationItem(int TicketId, string Title, string Message, string Color, string Icon, DateTime Time);
+    public static string Describe(NotificationType type) => type switch
+    {
+        NotificationType.SlaWarning => "bi-hourglass-split",
+        NotificationType.SlaBreach => "bi-exclamation-octagon",
+        NotificationType.Escalation => "bi-arrow-up-circle",
+        NotificationType.Assigned => "bi-person-check",
+        NotificationType.ApprovalPending => "bi-patch-question",
+        NotificationType.ApprovalDecided => "bi-check2-square",
+        _ => "bi-chat-left-text"
+    };
+
+    public static string Color(NotificationType type) => type switch
+    {
+        NotificationType.SlaBreach or NotificationType.Escalation => "danger",
+        NotificationType.SlaWarning or NotificationType.ApprovalPending => "warning",
+        _ => "primary"
+    };
+}

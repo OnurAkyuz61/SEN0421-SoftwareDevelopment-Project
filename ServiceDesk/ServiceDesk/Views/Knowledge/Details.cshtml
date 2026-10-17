@@ -1,0 +1,30 @@
+@model KnowledgeArticle
+@inject CurrentUser Me
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = Me.IsStaff ? "_Layout" : "_PortalLayout";
+}
+
+<a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Bilgi Bankası</a>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mt-2 mb-3">
+    <h4 class="fw-bold mb-0 me-auto">@Model.Title</h4>
+    @if (Model.Category != null) { <span class="tag tag-blue">@Model.Category.Name</span> }
+    @if (!Model.IsPublished) { <span class="tag tag-gray">taslak</span> }
+    @if (Me.IsStaff)
+    {
+        <a class="btn btn-outline-secondary btn-sm" asp-action="Edit" asp-route-id="@Model.Id">
+            <i class="bi bi-pencil"></i> Düzenle
+        </a>
+    }
+</div>
+
+<div class="panel">
+    <div class="panel-body" style="white-space:pre-line;line-height:1.7">@Model.Body</div>
+</div>
+
+<div class="small text-muted mt-3">
+    @(Model.Author?.FullName ?? "-") · @AppTime.ToLocal(Model.CreatedAt).ToString("dd.MM.yyyy")
+    @if (Model.UpdatedAt != null) { <text> · güncellendi @AppTime.ToLocal(Model.UpdatedAt)?.ToString("dd.MM.yyyy")</text> }
+    · @Model.UsedCount talepte kullanıldı
+</div>

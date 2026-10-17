@@ -1,8 +1,11 @@
 @model OtpVerifyVm
+@inject IWebHostEnvironment Env
 @{
     Layout = null;
     ViewData["Title"] = "Kod doğrulama";
     var channelLabel = Model.Channel == OtpDeliveryChannel.WhatsApp ? "WhatsApp" : "SMS";
+    // Tek yerden okunur: hem aşağıdaki demo kutusu hem geliştirme otomatik doldurması kullanır
+    var demoCode = TempData["OtpDemoCode"] as string;
 }
 <!DOCTYPE html>
 <html lang="tr">
@@ -32,9 +35,9 @@
                 <div class="otp-alert info">@info</div>
             }
 
-            @if (TempData["OtpDemoCode"] is string demo)
+            @if (demoCode != null)
             {
-                <div class="otp-alert demo">Demo kod (API bağlanınca kalkacak): @demo</div>
+                <div class="otp-alert demo">Demo kod (API bağlanınca kalkacak): @demoCode</div>
             }
 
             <form asp-action="OtpVerify" method="post" id="otpForm">
@@ -108,5 +111,24 @@
             if (inputs[0]) inputs[0].focus();
         })();
     </script>
+
+    @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────────────
+       Demo kodu haneleree otomatik yazar; mevcut betik 6 hane dolunca formu
+       kendisi gönderdiği için giriş tamamlanır. Yalnızca Development'ta
+       çalışır, canlıya çıkmadan önce bu blok silinecek. *@
+    @if (Env.IsDevelopment() && demoCode != null)
+    {
+        <script>
+            (function () {
+                const code = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(demoCode));
+                const inputs = [...document.querySelectorAll('.otp-digit')];
+                code.split('').forEach((ch, i) => {
+                    if (!inputs[i]) return;
+                    inputs[i].value = ch;
+                    inputs[i].dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            })();
+        </script>
+    }
 </body>
 </html>

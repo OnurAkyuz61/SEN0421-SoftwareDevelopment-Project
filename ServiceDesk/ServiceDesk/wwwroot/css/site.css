@@ -199,3 +199,33 @@ a:hover { color: var(--accent-dark); }
     .chat-panel { right: 16px; bottom: 74px; }
     .chat-body { height: 260px; }
 }
+
+/* ── Talep yazışması ve değişiklik geçmişi ───────────────────────────── */
+.comment {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 6px;
+    padding: .7rem .85rem;
+    background: var(--surface);
+}
+.comment-internal {
+    border-left-color: #e0a800;
+    background: #fffdf5;
+}
+
+.timeline { list-style: none; margin: 0; padding: 0 0 0 1.1rem; position: relative; }
+.timeline::before {
+    content: ""; position: absolute; left: 4px; top: .35rem; bottom: .35rem;
+    width: 1px; background: var(--border);
+}
+.timeline li { position: relative; padding: 0 0 .85rem 0; }
+.timeline li:last-child { padding-bottom: 0; }
+.timeline li::before {
+    content: ""; position: absolute; left: -1.1rem; top: .4rem;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--border);
+}
+
+/* Okunmamış bildirim satırı */
+.bg-unread { background: #f3f8fd; }
+.min-w-0 { min-width: 0; }

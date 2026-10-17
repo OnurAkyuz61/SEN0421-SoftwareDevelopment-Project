@@ -14,10 +14,21 @@
                 @foreach (var t in Model)
                 {
                     <tr>
-                        <td class="text-muted">#@t.Id</td>
+                        <td class="text-muted">@Ui.TicketNo(t)</td>
                         <td>
                             <a asp-controller="Tickets" asp-action="Details" asp-route-id="@t.Id" class="fw-semibold text-decoration-none">@t.Title</a>
-                            <div class="small text-muted">@t.RequesterName · @Ui.CategoryText(t.Category) · @t.CreatedAt.ToString("dd.MM.yyyy HH:mm")</div>
+                            <div class="small text-muted">@t.RequesterName · @Ui.CategoryText(t.Category) · @AppTime.ToLocal(t.CreatedAt).ToString("dd.MM.yyyy HH:mm")</div>
+                            <div class="small mt-1">
+                                @if (t.ChangeDetail != null)
+                                {
+                                    <span class="tag @(t.ChangeDetail.Risk == RiskLevel.High ? "tag-red" : t.ChangeDetail.Risk == RiskLevel.Medium ? "tag-amber" : "tag-gray")">@Ui.RiskText(t.ChangeDetail.Risk) risk</span>
+                                }
+                                else
+                                {
+                                    <span class="tag tag-gray">plan yok</span>
+                                }
+                                <span class="text-muted ms-1">@t.Approvals.Count(a => a.Decision == ApprovalStatus.Approved) / @t.RequiredApprovalSteps onay</span>
+                            </div>
                         </td>
                         <td><span class="tag @Ui.PriorityTag(t.Priority)">@Ui.PriorityText(t.Priority)</span></td>
                         <td>
@@ -44,11 +55,11 @@
                 @foreach (var t in history)
                 {
                     <tr>
-                        <td class="text-muted">#@t.Id</td>
+                        <td class="text-muted">@Ui.TicketNo(t)</td>
                         <td><a asp-controller="Tickets" asp-action="Details" asp-route-id="@t.Id" class="text-decoration-none">@t.Title</a></td>
                         <td><span class="tag @Ui.ApprovalTag(t.ApprovalStatus)">@Ui.ApprovalText(t.ApprovalStatus)</span></td>
                         <td class="small">@(t.ApprovalNote ?? "-")</td>
-                        <td class="small text-muted">@t.ApprovalDecidedAt?.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td class="small text-muted">@AppTime.ToLocal(t.ApprovalDecidedAt)?.ToString("dd.MM.yyyy HH:mm")</td>
                     </tr>
                 }
             </tbody>
