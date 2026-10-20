@@ -76,43 +76,23 @@ public class TicketsController : Controller
         ticket.History = ticket.History.OrderByDescending(h => h.ChangedAt).ToList();
         ticket.Escalations = ticket.Escalations.OrderByDescending(e => e.OccurredAt).ToList();
 
-        // Atama listesi: aktif Destek ve Yönetici rolündeki kullanıcılar
+        // Çözüm makalesi seçimi için yayımlanmış makaleler
         ViewBag.Articles = await _db.KnowledgeArticles.AsNoTracking()
             .Where(a => a.IsPublished)
             .OrderBy(a => a.Title)
             .ToListAsync();
 
-        ViewBag.Staff = await _db.Users
-            .Where(u => u.Role != UserRole.User && u.IsActive)
-            .OrderBy(u => u.FirstName).ThenBy(u => u.LastName)
-            .ToListAsync();
         return View(ticket);
     }
 
+    // Durum butonları: İşleme al / Çözüldü / Kapat / Yeniden aç.
+    // Geçişe izin verilip verilmediği TicketWorkflow'da kontrol edilir.
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateStatus(int id, TicketStatus status, int? assigneeId, string? rowVersion)
+    public async Task<IActionResult> ChangeStatus(int id, TicketStatus status)
     {
         var ticket = await _db.Tickets.FindAsync(id);
         if (ticket == null) return NotFound();
 
-        // Formun açıldığı andaki sürüm: aradan başka biri kaydettiyse yazma reddedilir
-        if (!string.IsNullOrEmpty(rowVersion))
-            _db.Entry(ticket).Property(t => t.RowVersion).OriginalValue = Convert.FromBase64String(rowVersion);
-
-        // Talep yalnızca aktif destek personeline atanabilir
-        if (assigneeId != null)
-        {
-            var isStaff = await _db.Users.AnyAsync(u =>
-                u.Id == assigneeId && u.IsActive && u.Role != UserRole.User);
-
-            if (!isStaff)
-            {
-                TempData["Err"] = "Seçilen kişi bu talebe atanamaz.";
-                return RedirectToAction(nameof(Details), new { id });
-            }
-        }
-
-        // Durum geçiş kuralları tek yerde: Services/TicketWorkflow
         var karar = TicketWorkflow.CanTransition(ticket, status);
         if (!karar.Allowed)
         {
@@ -120,29 +100,76 @@ public class TicketsController : Controller
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        var previousAssignee = ticket.AssigneeId;
+        // Kimseye atanmamış talebi işleme alan kişi talebi üstlenir
+        if (status == TicketStatus.InProgress && ticket.AssigneeId == null)
+            ticket.AssigneeId = _current.User!.Id;
+
         TicketWorkflow.Apply(ticket, status, AppTime.UtcNow);
-        ticket.AssigneeId = assigneeId;
+        await _db.SaveChangesAsync();
 
-        // Yeni atanan kişiye bildirim
-        if (assigneeId != null && assigneeId != previousAssignee)
+        TempData["Ok"] = karar.Reopened
+            ? "Talep yeniden açıldı."
+            : $"Talep durumu \"{Ui.StatusText(status)}\" olarak güncellendi.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    // Atama ekranı: aktif destek personeli ve her birinin üzerindeki açık talep sayısı
+    public async Task<IActionResult> Assign(int id)
+    {
+        var ticket = await _db.Tickets.AsNoTracking()
+            .Include(t => t.Assignee).Include(t => t.AssignedTeam).Include(t => t.Category)
+            .FirstOrDefaultAsync(t => t.Id == id);
+        if (ticket == null) return NotFound();
+
+        var staff = await _db.Users.AsNoTracking().Include(u => u.Team)
+            .Where(u => u.Role != UserRole.User && u.IsActive)
+            .OrderBy(u => u.FirstName).ThenBy(u => u.LastName)
+            .ToListAsync();
+
+        // Talebin ekibindeki kişiler listenin başına gelsin
+        ViewBag.Staff = staff
+            .OrderByDescending(u => u.TeamId != null && u.TeamId == ticket.AssignedTeamId)
+            .ToList();
+
+        // Kişi başına açık (Yeni + İşlemde) talep sayısı: iş yükünü görmek için
+        ViewBag.OpenCounts = await _db.Tickets
+            .Where(t => t.AssigneeId != null && (t.Status == TicketStatus.New || t.Status == TicketStatus.InProgress))
+            .GroupBy(t => t.AssigneeId!.Value)
+            .Select(g => new { UserId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.UserId, x => x.Count);
+
+        return View(ticket);
+    }
+
+    // Talebi seçilen personele atar. assigneeId boş gelirse atama kaldırılır.
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Assign(int id, int? assigneeId)
+    {
+        var ticket = await _db.Tickets.FindAsync(id);
+        if (ticket == null) return NotFound();
+
+        // Talep yalnızca aktif destek personeline atanabilir
+        if (assigneeId != null &&
+            !await _db.Users.AnyAsync(u => u.Id == assigneeId && u.IsActive && u.Role != UserRole.User))
         {
-            _notify.Queue(assigneeId.Value, NotificationType.Assigned,
-                $"Size atandı: {Ui.TicketNo(ticket)} {ticket.Title}",
-                $"Hedef çözüm: {AppTime.ToLocal(ticket.SlaDueAt):dd.MM.yyyy HH:mm}", ticket.Id);
+            TempData["Err"] = "Seçilen kişi bu talebe atanamaz.";
+            return RedirectToAction(nameof(Assign), new { id });
         }
 
-        try
+        if (ticket.AssigneeId != assigneeId)
         {
+            ticket.AssigneeId = assigneeId;
+
+            // Yeni atanan kişiye bildirim (kendini atadıysa gerek yok)
+            if (assigneeId != null && assigneeId != _current.User!.Id)
+                _notify.Queue(assigneeId.Value, NotificationType.Assigned,
+                    $"Size atandı: {Ui.TicketNo(ticket)} {ticket.Title}",
+                    $"Hedef çözüm: {AppTime.ToLocal(ticket.SlaDueAt):dd.MM.yyyy HH:mm}", ticket.Id);
+
             await _db.SaveChangesAsync();
-            TempData["Ok"] = "Talep güncellendi.";
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            TempData["Err"] = "Bu talep siz sayfayı açtıktan sonra başka biri tarafından güncellendi. " +
-                              "Aşağıdaki güncel hali inceleyip değişikliğinizi tekrar uygulayın.";
         }
 
+        TempData["Ok"] = assigneeId == null ? "Atama kaldırıldı." : "Talep atandı.";
         return RedirectToAction(nameof(Details), new { id });
     }
 
@@ -222,9 +249,9 @@ public class TicketsController : Controller
         var ticket = await _db.Tickets.FindAsync(id);
         if (ticket == null) return NotFound();
 
-        if (string.IsNullOrWhiteSpace(body))
+        if (string.IsNullOrWhiteSpace(body) || body.Length > 4000)
         {
-            TempData["Err"] = "Mesaj boş olamaz.";
+            TempData["Err"] = "Mesaj boş olamaz ve en fazla 4000 karakter olabilir.";
             return RedirectToAction(nameof(Details), new { id });
         }
 
@@ -259,7 +286,7 @@ public class TicketsController : Controller
         // Kullanıcıya yazılan yanıt talep sahibine bildirilir; iç not bildirilmez
         if (!isInternal)
             _notify.Queue(ticket.RequesterId, NotificationType.NewComment,
-                $"Talebinize yanıt: #{ticket.Id} {ticket.Title}",
+                $"Talebinize yanıt: {Ui.TicketNo(ticket)} {ticket.Title}",
                 $"{_current.User!.FullName} yanıt yazdı.", ticket.Id);
 
         await _db.SaveChangesAsync();

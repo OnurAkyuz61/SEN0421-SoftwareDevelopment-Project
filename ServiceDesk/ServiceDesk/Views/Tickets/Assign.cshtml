@@ -1,0 +1,85 @@
+@model Ticket
+@inject CurrentUser Me
+@{
+    ViewData["Title"] = "Talep Ata";
+    var staff = (List<AppUser>)ViewBag.Staff;
+    var acik = (Dictionary<int, int>)ViewBag.OpenCounts;
+}
+
+<a asp-action="Details" asp-route-id="@Model.Id" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Talebe dön</a>
+<h4 class="fw-bold mt-2 mb-3">Talep ata</h4>
+
+@* Atanacak talebin özeti *@
+<div class="panel mb-3">
+    <div class="panel-body d-flex flex-wrap align-items-center gap-2">
+        <div class="me-auto">
+            <div class="fw-semibold">@Ui.TicketNo(Model) · @Model.Title</div>
+            <div class="small text-muted">
+                @Ui.CategoryText(Model.Category) · Ekip: @(Model.AssignedTeam?.Name ?? "-")
+                · SLA: @AppTime.ToLocal(Model.SlaDueAt).ToString("dd.MM.yyyy HH:mm")
+            </div>
+        </div>
+        <span class="tag @Ui.PriorityTag(Model.Priority)">@Ui.PriorityText(Model.Priority)</span>
+        <span class="tag @Ui.StatusTag(Model.Status)">@Ui.StatusText(Model.Status)</span>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        Destek personeli
+        <span class="text-muted small fw-normal">Şu an atanan: @(Model.Assignee?.FullName ?? "yok")</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr><th>Ad Soyad</th><th>Rol</th><th>Ekip</th><th>Açık talep</th><th></th></tr>
+            </thead>
+            <tbody>
+                @if (!staff.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">Aktif destek personeli yok</td></tr>
+                }
+                @foreach (var u in staff)
+                {
+                    var sayi = acik.GetValueOrDefault(u.Id);
+                    var mevcut = u.Id == Model.AssigneeId;
+                    <tr class="@(mevcut ? "table-active" : "")">
+                        <td class="fw-semibold">
+                            @u.FullName
+                            @if (u.Id == Me.Id) { <span class="text-muted small fw-normal">(siz)</span> }
+                        </td>
+                        <td>@Ui.RoleText(u.Role)</td>
+                        <td>
+                            @(u.Team?.Name ?? "-")
+                            @if (u.TeamId != null && u.TeamId == Model.AssignedTeamId) { <span class="tag tag-blue ms-1">talebin ekibi</span> }
+                        </td>
+                        @* İş yükü: 3 ve üstü sarı, 5 ve üstü kırmızı *@
+                        <td><span class="tag @(sayi >= 5 ? "tag-red" : sayi >= 3 ? "tag-amber" : "tag-green")">@sayi</span></td>
+                        <td class="text-end">
+                            @if (mevcut)
+                            {
+                                <span class="tag tag-gray"><i class="bi bi-check2"></i> Atanmış</span>
+                            }
+                            else
+                            {
+                                <form asp-action="Assign" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                    <input type="hidden" name="assigneeId" value="@u.Id" />
+                                    <button class="btn btn-sm btn-outline-primary">Ata</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.AssigneeId != null)
+    {
+        <div class="panel-body border-top">
+            @* assigneeId gönderilmezse atama kaldırılır *@
+            <form asp-action="Assign" asp-route-id="@Model.Id" method="post">
+                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-person-x"></i> Atamayı kaldır</button>
+            </form>
+        </div>
+    }
+</div>

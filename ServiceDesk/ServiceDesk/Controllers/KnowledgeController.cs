@@ -63,7 +63,8 @@ public class KnowledgeController : Controller
 
         if (id == null) return View(new KnowledgeArticle());
 
-        var article = await _db.KnowledgeArticles.FirstOrDefaultAsync(a => a.Id == id);
+        // Yazar bilgisi sağdaki "Bilgi" kartında gösteriliyor
+        var article = await _db.KnowledgeArticles.Include(a => a.Author).FirstOrDefaultAsync(a => a.Id == id);
         return article == null ? NotFound() : View(article);
     }
 
@@ -71,9 +72,15 @@ public class KnowledgeController : Controller
     [AuthorizeRole(UserRole.Agent, UserRole.Admin)]
     public async Task<IActionResult> Edit(int? id, string? title, string? body, int? categoryId, bool isPublished)
     {
+        string? hata = null;
         if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(body))
+            hata = "Başlık ve içerik boş olamaz.";
+        else if (title.Trim().Length > 200)
+            hata = "Başlık en fazla 200 karakter olabilir.";
+
+        if (hata != null)
         {
-            TempData["Err"] = "Başlık ve içerik boş olamaz.";
+            TempData["Err"] = hata;
             await LoadCategoriesAsync();
             return View(new KnowledgeArticle
             {
@@ -85,8 +92,9 @@ public class KnowledgeController : Controller
         KnowledgeArticle article;
         if (id is > 0)
         {
-            article = (await _db.KnowledgeArticles.FirstOrDefaultAsync(a => a.Id == id))!;
-            if (article == null) return NotFound();
+            var mevcut = await _db.KnowledgeArticles.FirstOrDefaultAsync(a => a.Id == id);
+            if (mevcut == null) return NotFound();
+            article = mevcut;
             article.UpdatedAt = AppTime.UtcNow;
         }
         else
@@ -95,8 +103,8 @@ public class KnowledgeController : Controller
             _db.KnowledgeArticles.Add(article);
         }
 
-        article.Title = title.Trim();
-        article.Body = body.Trim();
+        article.Title = title!.Trim();
+        article.Body = body!.Trim();
         article.CategoryId = categoryId;
         article.IsPublished = isPublished;
 

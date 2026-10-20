@@ -2,7 +2,6 @@
 @inject CurrentUser Me
 @{
     ViewData["Title"] = "Talep " + Ui.TicketNo(Model);
-    var staff = (List<AppUser>)ViewBag.Staff;
 }
 
 <a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Talepler</a>
@@ -35,7 +34,7 @@
                 <partial name="_CommentThread" model="Model.Comments" />
 
                 <form asp-action="AddComment" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="mt-3 pt-3 border-top">
-                    <textarea name="body" class="form-control mb-2" rows="3" required
+                    <textarea name="body" class="form-control mb-2" rows="3" required maxlength="4000"
                               placeholder="Kullanıcıya yanıt yazın veya ekibe iç not bırakın..."></textarea>
                     <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
                         <div class="form-check mb-0">
@@ -259,26 +258,68 @@
             </div>
         }
 
-        <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="panel">
-            @* Sayfanın açıldığı andaki sürüm: aradan başkası kaydederse uyarı verilir *@
-            <input type="hidden" name="rowVersion" value="@(Model.RowVersion == null ? "" : Convert.ToBase64String(Model.RowVersion))" />
-            <div class="panel-head">İşlem</div>
+        @* Atama: hızlıca kendine al veya atama ekranından personel seç *@
+        <div class="panel mb-3">
+            <div class="panel-head">Atama</div>
             <div class="panel-body">
-                <label class="form-label small text-muted mb-1">Atanan</label>
-                <select name="assigneeId" class="form-select mb-3">
-                    <option value="">Atanmadı</option>
-                    @foreach (var s in staff) { <option value="@s.Id" selected="@(s.Id == Model.AssigneeId)">@s.FullName</option> }
-                    @* Pasifleştirilmiş bir personele atanmış talepte mevcut atama kaybolmasın *@
-                    @if (Model.Assignee != null && staff.All(s => s.Id != Model.AssigneeId))
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-person-circle fs-3 text-muted"></i>
+                    <div>
+                        <div class="fw-semibold">@(Model.Assignee?.FullName ?? "Atanmadı")</div>
+                        <div class="small text-muted">Ekip: @(Model.AssignedTeam?.Name ?? "-")</div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    @if (Model.AssigneeId != Me.Id)
                     {
-                        <option value="@Model.AssigneeId" selected>@Model.Assignee.FullName (pasif)</option>
+                        <form asp-action="Assign" asp-route-id="@Model.Id" method="post" class="flex-fill">
+                            <input type="hidden" name="assigneeId" value="@Me.Id" />
+                            <button class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-person-check"></i> Bana ata</button>
+                        </form>
                     }
-                </select>
-                <label class="form-label small text-muted mb-1">Durum</label>
-                <select name="status" class="form-select mb-3">
-                    @foreach (var s in Enum.GetValues<TicketStatus>()) { <option value="@s" selected="@(s == Model.Status)">@Ui.StatusText(s)</option> }
-                </select>
-                <button class="btn btn-primary w-100">Kaydet</button>
+                    <a asp-action="Assign" asp-route-id="@Model.Id" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-people"></i> Personel seç</a>
+                </div>
+            </div>
+        </div>
+
+        @{
+            // Mevcut duruma göre gösterilecek butonlar (Yeni → İşlemde → Çözüldü → Kapandı)
+            var sonraki = Model.Status switch
+            {
+                TicketStatus.New => new[] { TicketStatus.InProgress, TicketStatus.Resolved },
+                TicketStatus.InProgress => new[] { TicketStatus.Resolved },
+                TicketStatus.Resolved => new[] { TicketStatus.Closed, TicketStatus.InProgress },
+                _ => new[] { TicketStatus.InProgress }
+            };
+            // Reddedilen değişiklik talebi işleme alınamaz, sadece kapatılabilir
+            if (Model.ApprovalStatus == ApprovalStatus.Rejected)
+                sonraki = Model.Status == TicketStatus.Closed ? Array.Empty<TicketStatus>() : new[] { TicketStatus.Closed };
+        }
+        <form asp-action="ChangeStatus" asp-route-id="@Model.Id" method="post" class="panel">
+            <div class="panel-head">
+                Durum
+                <span class="tag @Ui.StatusTag(Model.Status)">@Ui.StatusText(Model.Status)</span>
+            </div>
+            <div class="panel-body d-grid gap-2">
+                @foreach (var s in sonraki)
+                {
+                    var (yazi, ikon, renk) = s switch
+                    {
+                        TicketStatus.InProgress when TicketWorkflow.IsFinished(Model.Status) => ("Yeniden aç", "bi-arrow-counterclockwise", "btn-outline-warning"),
+                        TicketStatus.InProgress => ("İşleme al", "bi-play-circle", "btn-outline-primary"),
+                        TicketStatus.Resolved => ("Çözüldü", "bi-check2-circle", "btn-success"),
+                        _ => ("Kapat", "bi-lock", "btn-outline-secondary")
+                    };
+                    <button name="status" value="@s" class="btn btn-sm @renk"
+                            onclick="@(s == TicketStatus.Closed ? "return confirm('Talep kapatılsın mı?')" : null)">
+                        <i class="bi @ikon"></i> @yazi
+                    </button>
+                }
+                @if (!sonraki.Any())
+                {
+                    <div class="small text-muted">Bu talep için yapılacak işlem kalmadı.</div>
+                }
+                <div class="small text-muted">Atanmamış talebi işleme alırsanız talep size atanır.</div>
             </div>
         </form>
 

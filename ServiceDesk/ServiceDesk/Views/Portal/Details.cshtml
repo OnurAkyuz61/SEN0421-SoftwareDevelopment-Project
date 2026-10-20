@@ -70,12 +70,17 @@
             <div class="panel-body">
                 <partial name="_CommentThread" model="Model.Comments" />
 
-                @if (!closed)
+                @* Çözüldü durumunda da yazılabilir: kullanıcı "sorun devam ediyor" diyebilsin *@
+                @if (Model.Status != TicketStatus.Closed)
                 {
                     <form asp-action="AddComment" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="mt-3 pt-3 border-top">
-                        <textarea name="body" class="form-control mb-2" rows="3" required
-                                  placeholder="Destek ekibine bir şey eklemek ister misiniz?"></textarea>
-                        <button class="btn btn-primary btn-sm">Gönder</button>
+                        <textarea name="body" class="form-control mb-2" rows="3" required maxlength="4000"
+                                  placeholder="@(closed ? "Sorun devam ediyorsa buradan yazabilirsiniz." : "Destek ekibine bir şey eklemek ister misiniz?")"></textarea>
+                        <details class="mb-2">
+                            <summary class="small text-muted">Dosya / ekran görüntüsü ekle</summary>
+                            <div class="mt-2"><partial name="_UploadField" /></div>
+                        </details>
+                        <button class="btn btn-primary btn-sm"><i class="bi bi-send"></i> Gönder</button>
                     </form>
                 }
                 else

@@ -3,49 +3,119 @@
     var yeni = Model.Id == 0;
     ViewData["Title"] = yeni ? "Yeni Makale" : "Makaleyi Düzenle";
     var kategoriler = (List<Category>)ViewBag.Categories;
+    // Geri dön / Vazgeç: yeni makalede listeye, düzenlemede makalenin kendisine
+    var donus = yeni ? Url.Action("Index") : Url.Action("Details", new { id = Model.Id });
 }
 
-<a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Bilgi Bankası</a>
+<a href="@donus" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> @(yeni ? "Bilgi Bankası" : "Makaleye dön")</a>
 <h4 class="fw-bold mt-2 mb-3">@ViewData["Title"]</h4>
 
-<form asp-action="Edit" method="post" class="panel">
+<form asp-action="Edit" method="post">
     <input type="hidden" name="id" value="@Model.Id" />
-    <div class="panel-body">
-        <div class="row g-3">
-            <div class="col-md-8">
-                <label class="form-label fw-semibold">Başlık</label>
-                <input name="title" value="@Model.Title" class="form-control" required
-                       placeholder="Örn: Yazıcı kağıt sıkışması giderme" />
-            </div>
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Kategori</label>
-                <select name="categoryId" class="form-select">
-                    <option value="">Kategorisiz</option>
-                    @foreach (var c in kategoriler)
-                    {
-                        <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@c.Name</option>
-                    }
-                </select>
-            </div>
-            <div class="col-12">
-                <label class="form-label fw-semibold">İçerik</label>
-                <textarea name="body" rows="14" class="form-control" required
-                          placeholder="Adım adım çözümü yazın.">@Model.Body</textarea>
-                <div class="form-text">Satır sonları olduğu gibi gösterilir; adımları alt alta yazabilirsiniz.</div>
-            </div>
-            <div class="col-12">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="isPublished" value="true"
-                           id="isPublished" checked="@(yeni || Model.IsPublished)" />
-                    <label class="form-check-label" for="isPublished">
-                        Yayımla <span class="text-muted small">(işaretli değilse yalnızca destek ekibi görür)</span>
-                    </label>
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="panel">
+                <div class="panel-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label fw-semibold" for="title">Başlık</label>
+                            <span class="small text-muted" id="baslikSayac"></span>
+                        </div>
+                        <input name="title" id="title" value="@Model.Title" class="form-control" required maxlength="200"
+                               placeholder="Örn: Yazıcı kağıt sıkışması giderme" />
+                    </div>
+
+                    <ul class="nav nav-tabs mb-2">
+                        <li class="nav-item">
+                            <button type="button" class="nav-link active" data-bs-toggle="tab" data-bs-target="#yaz"><i class="bi bi-pencil"></i> Yaz</button>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#onizle"><i class="bi bi-eye"></i> Önizleme</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="yaz">
+                            <textarea name="body" id="body" rows="14" class="form-control"
+                                      placeholder="1. İlk adım&#10;2. İkinci adım&#10;3. Sorun devam ederse talep açın">@Model.Body</textarea>
+                            <div class="form-text">Satır sonları olduğu gibi gösterilir; adımları alt alta yazabilirsiniz.</div>
+                        </div>
+                        <div class="tab-pane fade" id="onizle">
+                            <div class="kb-preview">
+                                <h5 class="fw-bold mb-3" id="onizlemeBaslik"></h5>
+                                <div id="onizlemeMetin" style="white-space:pre-line"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="d-flex gap-2 mt-3">
-            <button class="btn btn-primary">Kaydet</button>
-            <a class="btn btn-light border" asp-action="Index">Vazgeç</a>
+
+        <div class="col-lg-4">
+            <div class="panel mb-3">
+                <div class="panel-head">Yayın</div>
+                <div class="panel-body">
+                    <label class="form-label small text-muted mb-1" for="categoryId">Kategori</label>
+                    <select name="categoryId" id="categoryId" class="form-select mb-3">
+                        <option value="">Kategorisiz</option>
+                        @foreach (var c in kategoriler)
+                        {
+                            <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@c.Name</option>
+                        }
+                    </select>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" name="isPublished" value="true"
+                               id="isPublished" checked="@Model.IsPublished" />
+                        <label class="form-check-label" for="isPublished">Yayımla</label>
+                        <div class="form-text">Kapalıysa taslak kalır, sadece destek ekibi görür.</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary"><i class="bi bi-save"></i> Kaydet</button>
+                        <a href="@donus" class="btn btn-light border">Vazgeç</a>
+                    </div>
+                </div>
+            </div>
+
+            @if (!yeni && Model.Author != null)
+            {
+                <div class="panel mb-3">
+                    <div class="panel-head">Bilgi</div>
+                    <table class="table table-sm mb-0 small">
+                        <tr><td class="text-muted">Yazar</td><td>@Model.Author.FullName</td></tr>
+                        <tr><td class="text-muted">Oluşturma</td><td>@AppTime.ToLocal(Model.CreatedAt).ToString("dd.MM.yyyy")</td></tr>
+                        <tr><td class="text-muted">Son güncelleme</td><td>@(AppTime.ToLocal(Model.UpdatedAt)?.ToString("dd.MM.yyyy") ?? "-")</td></tr>
+                        <tr><td class="text-muted">Kullanım</td><td>@Model.UsedCount talep</td></tr>
+                    </table>
+                </div>
+            }
+
+            <div class="panel">
+                <div class="panel-head">İpucu</div>
+                <div class="panel-body small text-muted">
+                    <ul class="mb-0 ps-3">
+                        <li>Başlığı kullanıcının arayacağı kelimelerle yazın.</li>
+                        <li>Çözümü numaralı adımlarla anlatın.</li>
+                        <li>Çözülmezse ne yapılacağını en sona ekleyin.</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </form>
+
+@section Scripts {
+    <script>
+        // Başlık karakter sayacı ve canlı önizleme
+        const baslik = document.getElementById('title');
+        const metin = document.getElementById('body');
+        function guncelle() {
+            document.getElementById('baslikSayac').textContent = baslik.value.length + ' / 200';
+            document.getElementById('onizlemeBaslik').textContent = baslik.value || 'Başlıksız makale';
+            document.getElementById('onizlemeMetin').textContent = metin.value || 'Henüz içerik yok.';
+        }
+        baslik.addEventListener('input', guncelle);
+        metin.addEventListener('input', guncelle);
+        guncelle();
+    </script>
+}

@@ -162,9 +162,15 @@ public class PortalController : Controller
             .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
         if (ticket == null) return NotFound();
 
-        if (string.IsNullOrWhiteSpace(body))
+        if (ticket.Status == TicketStatus.Closed)
         {
-            TempData["Err"] = "Mesaj boş olamaz.";
+            TempData["Err"] = "Kapanmış talebe mesaj yazılamaz.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        if (string.IsNullOrWhiteSpace(body) || body.Length > 4000)
+        {
+            TempData["Err"] = "Mesaj boş olamaz ve en fazla 4000 karakter olabilir.";
             return RedirectToAction(nameof(Details), new { id });
         }
 
@@ -195,11 +201,11 @@ public class PortalController : Controller
         // İlgilenen varsa ona, yoksa destek ekibine haber ver
         if (ticket.AssigneeId != null)
             _notify.Queue(ticket.AssigneeId.Value, NotificationType.NewComment,
-                $"Yeni mesaj: #{ticket.Id} {ticket.Title}",
+                $"Yeni mesaj: {Ui.TicketNo(ticket)} {ticket.Title}",
                 $"{_current.User!.FullName} talebe mesaj yazdı.", ticket.Id);
         else
             await _notify.QueueToRoleAsync(UserRole.Agent, NotificationType.NewComment,
-                $"Yeni mesaj: #{ticket.Id} {ticket.Title}",
+                $"Yeni mesaj: {Ui.TicketNo(ticket)} {ticket.Title}",
                 $"{_current.User!.FullName} talebe mesaj yazdı.", ticket.Id);
 
         await _db.SaveChangesAsync();
