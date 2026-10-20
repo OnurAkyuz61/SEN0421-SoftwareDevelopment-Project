@@ -1,6 +1,8 @@
 @model List<Notification>
+@inject CurrentUser Me
 @{
     ViewData["Title"] = "Bildirimler";
+    Layout = Me.IsStaff ? "_Layout" : "_PortalLayout";
     var unreadOnly = (bool)ViewBag.UnreadOnly;
     var unread = (int)ViewBag.UnreadCount;
 }
@@ -43,14 +45,7 @@
 
                 <div class="flex-grow-1 min-w-0">
                     <div class="fw-semibold">
-                        @if (n.TicketId != null)
-                        {
-                            <a class="text-decoration-none" asp-controller="Tickets" asp-action="Details" asp-route-id="@n.TicketId">@n.Title</a>
-                        }
-                        else
-                        {
-                            @n.Title
-                        }
+                        <a class="text-decoration-none" asp-action="Open" asp-route-id="@n.Id">@n.Title</a>
                         @if (n.ReadAt == null) { <span class="tag tag-blue ms-1">yeni</span> }
                     </div>
                     <div class="small text-muted">@n.Message</div>

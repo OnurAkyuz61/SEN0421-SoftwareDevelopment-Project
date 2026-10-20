@@ -25,8 +25,9 @@ public class TicketsController : Controller
         _notify = notify;
     }
 
-    // Filtreler: arama metni, durum, öncelik, tür, kategori
-    public async Task<IActionResult> Index(string? q, TicketStatus? status, Priority? priority, TicketType? type, int? categoryId)
+    // Filtreler: arama metni, durum, öncelik, tür, kategori, oluşturma tarihi aralığı
+    public async Task<IActionResult> Index(string? q, TicketStatus? status, Priority? priority,
+        TicketType? type, int? categoryId, DateTime? from, DateTime? to)
     {
         var query = _db.Tickets.Include(t => t.Assignee).Include(t => t.Category).AsQueryable();
         if (!string.IsNullOrWhiteSpace(q))
@@ -37,8 +38,22 @@ public class TicketsController : Controller
         if (type != null) query = query.Where(t => t.Type == type);
         if (categoryId != null) query = query.Where(t => t.CategoryId == categoryId);
 
+        // Tarih aralığı yerel gün olarak gelir; UTC'ye çevrilerek CreatedAt ile karşılaştırılır
+        if (from is { } fromLocal)
+        {
+            var fromUtc = AppTime.ToUtc(fromLocal.Date);
+            query = query.Where(t => t.CreatedAt >= fromUtc);
+        }
+        if (to is { } toLocal)
+        {
+            var toUtc = AppTime.ToUtc(toLocal.Date.AddDays(1));
+            query = query.Where(t => t.CreatedAt < toUtc);
+        }
+
         ViewBag.Q = q; ViewBag.Status = status; ViewBag.Priority = priority; ViewBag.Type = type;
         ViewBag.CategoryId = categoryId;
+        ViewBag.From = from?.ToString("yyyy-MM-dd");
+        ViewBag.To = to?.ToString("yyyy-MM-dd");
         ViewBag.Categories = await _db.Categories.AsNoTracking()
             .Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToListAsync();
 
@@ -167,6 +182,7 @@ public class TicketsController : Controller
                     $"Hedef çözüm: {AppTime.ToLocal(ticket.SlaDueAt):dd.MM.yyyy HH:mm}", ticket.Id);
 
             await _db.SaveChangesAsync();
+            await _notify.DeliverPendingEmailsAsync();
         }
 
         TempData["Ok"] = assigneeId == null ? "Atama kaldırıldı." : "Talep atandı.";

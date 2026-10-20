@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<Nonconformity> Nonconformities => Set<Nonconformity>();
     public DbSet<KnowledgeArticle> KnowledgeArticles => Set<KnowledgeArticle>();
     public DbSet<LoginAttempt> LoginAttempts => Set<LoginAttempt>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
     public DbSet<TicketComment> TicketComments => Set<TicketComment>();
@@ -311,6 +312,14 @@ public class AppDbContext : DbContext
           .OnDelete(DeleteBehavior.SetNull);
         mb.Entity<LoginAttempt>().HasIndex(l => new { l.Email, l.AttemptedAt });
         mb.Entity<LoginAttempt>().Ignore(l => l.IsSuccess);
+
+        // Şifre sıfırlama: kullanıcı silinirse token'lar da gider; özet benzersiz
+        mb.Entity<PasswordResetToken>()
+          .HasOne(t => t.User).WithMany()
+          .HasForeignKey(t => t.UserId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<PasswordResetToken>().HasIndex(t => t.TokenHash).IsUnique();
+        mb.Entity<PasswordResetToken>().Ignore(t => t.IsUsable);
 
         mb.Entity<Ticket>().HasQueryFilter(t => !t.IsDeleted);
         mb.Entity<ChangeDetail>().HasQueryFilter(d => !d.Ticket!.IsDeleted);

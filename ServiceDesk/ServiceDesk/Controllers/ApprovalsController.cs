@@ -126,6 +126,7 @@ public class ApprovalsController : Controller
         }
 
         await _db.SaveChangesAsync();
+        await _notify.DeliverPendingEmailsAsync();
 
         TempData["Ok"] = $"{Ui.TicketNo(t)} {mesaj}.";
         return Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl!) : RedirectToAction(nameof(Index));

@@ -29,17 +29,20 @@ public class AccountController : Controller
     private readonly CurrentUser _current;
     private readonly IWebHostEnvironment _env;
     private readonly LoginAuditService _audit;
+    private readonly IEmailSender _email;
     private readonly AuthSettings _cfg;
 
     public AccountController(AppDbContext db, IPasswordHasher<AppUser> hasher,
                              CurrentUser current, IWebHostEnvironment env,
-                             LoginAuditService audit, IOptions<AuthSettings> cfg)
+                             LoginAuditService audit, IEmailSender email,
+                             IOptions<AuthSettings> cfg)
     {
         _db = db;
         _hasher = hasher;
         _current = current;
         _env = env;
         _audit = audit;
+        _email = email;
         _cfg = cfg.Value;
     }
 
@@ -330,6 +333,137 @@ public class AccountController : Controller
         StartSession(user);
 
         return RedirectAfterLogin(user.Role, returnUrl);
+    }
+
+    // ───── ŞİFRE SIFIRLAMA ────────────────────────────────────────────────
+    // Akış: e-posta iste → tek kullanımlık bağlantı → yeni şifre.
+    // Hesabın var olup olmadığı yanıtta açıklanmaz (e-posta enumeration engeli).
+
+    [HttpGet]
+    public IActionResult ForgotPassword()
+    {
+        if (_current.User is { } signedIn) return RedirectAfterLogin(signedIn.Role, null);
+        return View(new ForgotPasswordVm());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordVm vm)
+    {
+        if (_current.User is { } signedIn) return RedirectAfterLogin(signedIn.Role, null);
+        if (!ModelState.IsValid) return View(vm);
+
+        vm.Email = vm.Email.Trim();
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == vm.Email && u.IsActive);
+
+        // Kullanıcı yoksa da aynı başarı sayfasına gideriz; süre farkı sızdırmaz
+        string? demoLink = null;
+        if (user is not null)
+        {
+            // Aynı hesabın eski (kullanılmamış) token'larını geçersiz kıl
+            var eski = await _db.PasswordResetTokens
+                .Where(t => t.UserId == user.Id && t.UsedAt == null)
+                .ToListAsync();
+            foreach (var t in eski) t.UsedAt = DateTime.UtcNow;
+
+            var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+                .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+            _db.PasswordResetTokens.Add(new PasswordResetToken
+            {
+                UserId = user.Id,
+                TokenHash = HashToken(raw),
+                ExpiresAt = DateTime.UtcNow.AddHours(_cfg.PasswordResetHours),
+                CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+
+            var link = Url.Action(nameof(ResetPassword), "Account",
+                new { token = raw }, Request.Scheme)!;
+
+            await _email.SendAsync(
+                user.Email,
+                "ServiceDesk · Şifre sıfırlama",
+                $"<p>Merhaba {user.FirstName},</p>" +
+                $"<p>Şifrenizi sıfırlamak için <a href=\"{link}\">bu bağlantıya</a> tıklayın.</p>" +
+                $"<p>Bağlantı {_cfg.PasswordResetHours} saat geçerlidir. İstek sizden gelmediyse bu e-postayı yok sayın.</p>",
+                $"Merhaba {user.FirstName},\n\nŞifrenizi sıfırlamak için:\n{link}\n\n" +
+                $"Bağlantı {_cfg.PasswordResetHours} saat geçerlidir.");
+
+            // SMTP bağlanana kadar geliştirmede bağlantıyı ekranda göster
+            if (_env.IsDevelopment()) demoLink = link;
+        }
+
+        return View("ForgotPasswordSent", new ForgotPasswordSentVm
+        {
+            Email = vm.Email,
+            DemoResetLink = demoLink
+        });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ResetPassword(string? token)
+    {
+        if (_current.User is { } signedIn) return RedirectAfterLogin(signedIn.Role, null);
+
+        if (string.IsNullOrWhiteSpace(token) || await FindUsableTokenAsync(token) is null)
+        {
+            TempData["Err"] = "Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Lütfen yeniden isteyin.";
+            return RedirectToAction(nameof(ForgotPassword));
+        }
+
+        return View(new ResetPasswordVm { Token = token });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordVm vm)
+    {
+        if (_current.User is { } signedIn) return RedirectAfterLogin(signedIn.Role, null);
+        if (!ModelState.IsValid) return View(vm);
+
+        var entry = await FindUsableTokenAsync(vm.Token);
+        if (entry is null)
+        {
+            TempData["Err"] = "Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Lütfen yeniden isteyin.";
+            return RedirectToAction(nameof(ForgotPassword));
+        }
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == entry.UserId && u.IsActive);
+        if (user is null)
+        {
+            TempData["Err"] = "Hesap bulunamadı veya pasif durumda.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        user.PasswordHash = _hasher.HashPassword(user, vm.Password);
+        entry.UsedAt = DateTime.UtcNow;
+
+        // Diğer açık sıfırlama token'larını da kapat
+        var diger = await _db.PasswordResetTokens
+            .Where(t => t.UserId == user.Id && t.UsedAt == null && t.Id != entry.Id)
+            .ToListAsync();
+        foreach (var t in diger) t.UsedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        TempData["Ok"] = "Şifreniz güncellendi. Yeni şifrenizle giriş yapabilirsiniz.";
+        return RedirectToAction(nameof(Login));
+    }
+
+    private async Task<PasswordResetToken?> FindUsableTokenAsync(string rawToken)
+    {
+        var hash = HashToken(rawToken);
+        var entry = await _db.PasswordResetTokens
+            .FirstOrDefaultAsync(t => t.TokenHash == hash && t.UsedAt == null);
+        if (entry is null) return null;
+        return DateTime.UtcNow <= entry.ExpiresAt ? entry : null;
+    }
+
+    private static string HashToken(string raw)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(raw));
+        return Convert.ToHexString(bytes);
     }
 
     // ───── Yardımcılar ───────────────────────────────────────────────────

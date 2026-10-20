@@ -38,6 +38,8 @@
 
                     @if (Me.IsAuthenticated)
                     {
+                        @await Component.InvokeAsync("Notifications")
+
                         <div class="dropdown">
                             <button class="user-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Hesap menüsü">
                                 <span class="avatar avatar-sm">@Me.Initials</span>
@@ -51,6 +53,8 @@
                                     <span class="role-pill"><i class="bi bi-person"></i> @Ui.RoleText(Me.Role!.Value)</span>
                                 </div>
                                 <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="bi bi-person me-2"></i>Profilim</a>
+                                <a class="dropdown-item" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell me-2"></i>Bildirimler</a>
                                 @if (Me.IsStaff)
                                 {
                                     <a class="dropdown-item" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid-1x2 me-2"></i>Yönetim Paneli</a>

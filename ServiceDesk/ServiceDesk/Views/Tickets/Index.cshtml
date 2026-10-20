@@ -8,14 +8,14 @@
             <label class="form-label small text-muted mb-1">Ara</label>
             <input name="q" value="@ViewBag.Q" class="form-control" placeholder="Konu, talep eden, atanan" />
         </div>
-        <div class="col-lg-2 col-md-3 col-6">
+        <div class="col-lg-1 col-md-3 col-6">
             <label class="form-label small text-muted mb-1">Durum</label>
             <select name="status" class="form-select">
                 <option value="">Tümü</option>
                 @foreach (var s in Enum.GetValues<TicketStatus>()) { <option value="@s" selected="@(ViewBag.Status == s)">@Ui.StatusText(s)</option> }
             </select>
         </div>
-        <div class="col-lg-2 col-md-3 col-6">
+        <div class="col-lg-1 col-md-3 col-6">
             <label class="form-label small text-muted mb-1">Öncelik</label>
             <select name="priority" class="form-select">
                 <option value="">Tümü</option>
@@ -35,6 +35,14 @@
                 <option value="">Tümü</option>
                 @foreach (var t in Enum.GetValues<TicketType>()) { <option value="@t" selected="@(ViewBag.Type == t)">@Ui.TypeText(t)</option> }
             </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+            <label class="form-label small text-muted mb-1">Başlangıç</label>
+            <input type="date" name="from" value="@ViewBag.From" class="form-control" />
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+            <label class="form-label small text-muted mb-1">Bitiş</label>
+            <input type="date" name="to" value="@ViewBag.To" class="form-control" />
         </div>
         <div class="col-lg-2 col-md-4 d-flex gap-2">
             <button class="btn btn-primary flex-fill"><i class="bi bi-funnel"></i> Filtrele</button>
@@ -58,7 +66,7 @@
                 }
                 @foreach (var t in Model)
                 {
-                    <tr>
+                    <tr class="@(t.IsSlaBreached ? "sla-breach-row" : "")">
                         <td class="text-muted small">@Ui.TicketNo(t)</td>
                         <td>
                             <a class="fw-semibold text-decoration-none" asp-action="Details" asp-route-id="@t.Id">@t.Title</a>

@@ -44,3 +44,35 @@ public class OtpVerifyVm
     [RegularExpression(@"^\d{6}$", ErrorMessage = "Kod yalnızca rakamlardan oluşmalı")]
     public string Code { get; set; } = "";
 }
+
+public class ForgotPasswordVm
+{
+    [Required(ErrorMessage = "E-posta adresinizi girin")]
+    [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi girin")]
+    [StringLength(150)]
+    [Display(Name = "E-posta")]
+    public string Email { get; set; } = "";
+}
+
+public class ForgotPasswordSentVm
+{
+    public string Email { get; set; } = "";
+    // Development'ta SMTP yokken bağlantıyı ekranda göstermek için
+    public string? DemoResetLink { get; set; }
+}
+
+public class ResetPasswordVm
+{
+    [Required]
+    public string Token { get; set; } = "";
+
+    [Required(ErrorMessage = "Yeni şifrenizi girin"), DataType(DataType.Password)]
+    [StringLength(128, MinimumLength = 8, ErrorMessage = "Şifre en az 8 karakter olmalı")]
+    [Display(Name = "Yeni şifre")]
+    public string Password { get; set; } = "";
+
+    [Required(ErrorMessage = "Şifreyi tekrar girin"), DataType(DataType.Password)]
+    [Compare(nameof(Password), ErrorMessage = "Şifreler eşleşmiyor")]
+    [Display(Name = "Şifre tekrar")]
+    public string ConfirmPassword { get; set; } = "";
+}

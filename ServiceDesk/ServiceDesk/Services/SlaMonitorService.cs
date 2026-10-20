@@ -140,7 +140,11 @@ public class SlaMonitorService : BackgroundService
             }
         }
 
-        if (changed) await db.SaveChangesAsync(token);
+        if (changed)
+        {
+            await db.SaveChangesAsync(token);
+            await notify.DeliverPendingEmailsAsync();
+        }
     }
 
     // Atanan kişi varsa ona, yoksa tüm destek ekibine

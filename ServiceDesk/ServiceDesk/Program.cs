@@ -18,6 +18,7 @@ builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef
 builder.Services.AddScoped<KpiService>();            // dönemsel gösterge hesabı
 builder.Services.AddScoped<NonconformityService>();  // otomatik uygunsuzluk kaydı
 builder.Services.AddScoped<LoginAuditService>();     // giriş denetim izi ve deneme sınırı
+builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>(); // e-posta (şimdilik log)
 builder.Services.AddHostedService<SlaMonitorService>();   // dakikada bir SLA taraması
 builder.Services.AddHostedService<KpiAggregatorService>();// yarım saatte bir KPI
 // ───── OTURUM (SESSION) ──────────────────────────────────────────────────

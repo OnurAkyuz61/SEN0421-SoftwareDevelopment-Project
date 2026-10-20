@@ -64,6 +64,10 @@ else if (reason == "logout")
         <div class="caps-hint" id="capsHint" role="status"><i class="bi bi-capslock-fill"></i> Caps Lock açık</div>
     </div>
 
+    <div class="auth-row" style="justify-content:flex-end;margin-top:-.35rem;margin-bottom:.85rem;">
+        <a asp-action="ForgotPassword" class="auth-link">Şifremi unuttum</a>
+    </div>
+
     <button type="submit" class="auth-btn">
         <span class="spinner" aria-hidden="true"></span>
         <span class="btn-label">Devam et</span>

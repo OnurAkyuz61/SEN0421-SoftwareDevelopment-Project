@@ -299,6 +299,10 @@ body.auth-body { min-height: 100vh; background: var(--sd-bg); }
     border: 1.5px dashed #f0c27a; background: #fffaf0; color: #7c3d06; font-size: .82rem;
 }
 .demo-code b { font-family: var(--sd-mono); font-size: 1.05rem; letter-spacing: .2em; color: #92400e; }
+.demo-code .demo-reset-link {
+    font-weight: 700; color: #92400e; text-decoration: none; white-space: nowrap;
+}
+.demo-code .demo-reset-link:hover { text-decoration: underline; }
 
 /* Geliştirme kısayolları (yalnızca Development) */
 .dev-box { margin-top: 1.5rem; padding-top: 1.1rem; border-top: 1px dashed var(--sd-border-strong); }

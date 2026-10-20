@@ -31,6 +31,9 @@ public class AuthSettings
 
     // Aynı kod için en fazla hatalı deneme; aşılırsa kod geçersiz olur
     public int OtpMaxAttempts { get; set; } = 5;
+
+    // Şifre sıfırlama bağlantısının geçerlilik süresi (saat)
+    public int PasswordResetHours { get; set; } = 1;
 }
 
 // Session anahtarları — yazım hatası olmasın diye sabit

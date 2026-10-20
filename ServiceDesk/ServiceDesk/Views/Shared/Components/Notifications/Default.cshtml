@@ -1,32 +1,54 @@
 @model List<Notification>
 
 <div class="dropdown">
-    <button class="btn btn-light position-relative rounded-circle bell" data-bs-toggle="dropdown" title="Bildirimler">
-        <i class="bi bi-bell-fill"></i>
+    <button class="btn btn-light position-relative bell" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+            aria-expanded="false" title="Bildirimler" aria-label="Bildirimler@(Model.Any() ? $", {Model.Count} okunmamış" : "")">
+        <i class="bi bi-bell@(Model.Any() ? "-fill" : "")"></i>
         @if (Model.Any())
         {
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">@Model.Count</span>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                @(Model.Count > 9 ? "9+" : Model.Count.ToString())
+            </span>
         }
     </button>
-    <div class="dropdown-menu dropdown-menu-end shadow p-0 notif-menu">
-        <div class="px-3 py-2 fw-semibold border-bottom">Okunmamış bildirimler</div>
+    <div class="dropdown-menu dropdown-menu-end shadow notif-menu">
+        <div class="notif-menu-head">
+            <span class="fw-semibold">Bildirimler</span>
+            @if (Model.Any())
+            {
+                <form asp-controller="Notifications" asp-action="MarkRead" method="post" class="m-0">
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                    <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none">Tümünü okundu say</button>
+                </form>
+            }
+        </div>
+
         @if (!Model.Any())
         {
-            <div class="px-3 py-4 text-center text-muted small">Yeni bildirim yok</div>
+            <div class="notif-empty">
+                <i class="bi bi-bell-slash"></i>
+                <span>Yeni bildirim yok</span>
+            </div>
         }
-        @foreach (var n in Model.Take(5))
+        else
         {
-            <a class="dropdown-item d-flex gap-2 py-2 border-bottom"
-               asp-controller="@(n.TicketId != null ? "Tickets" : "Notifications")"
-               asp-action="@(n.TicketId != null ? "Details" : "Index")"
-               asp-route-id="@n.TicketId">
-                <i class="bi @NotificationService.Describe(n.Type) text-@NotificationService.Color(n.Type) fs-5"></i>
-                <div class="text-wrap">
-                    <div class="small fw-semibold">@n.Title</div>
-                    <div class="small text-muted">@n.Message</div>
-                </div>
-            </a>
+            <div class="notif-list">
+                @foreach (var n in Model.Take(6))
+                {
+                    <a class="notif-item" asp-controller="Notifications" asp-action="Open" asp-route-id="@n.Id">
+                        <span class="notif-icon text-@NotificationService.Color(n.Type)">
+                            <i class="bi @NotificationService.Describe(n.Type)"></i>
+                        </span>
+                        <span class="notif-body">
+                            <span class="notif-title">@n.Title</span>
+                            <span class="notif-msg">@n.Message</span>
+                            <span class="notif-time">@AppTime.ToLocal(n.CreatedAt).ToString("dd.MM HH:mm")</span>
+                        </span>
+                    </a>
+                }
+            </div>
         }
-        <a class="dropdown-item text-center small text-primary py-2" asp-controller="Notifications" asp-action="Index">Tümünü gör</a>
+
+        <a class="notif-footer" asp-controller="Notifications" asp-action="Index">Tüm bildirimleri gör</a>
     </div>
 </div>

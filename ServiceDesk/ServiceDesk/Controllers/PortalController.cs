@@ -110,11 +110,12 @@ public class PortalController : Controller
         }
         else
         {
-            await _notify.QueueToRoleAsync(UserRole.Agent, NotificationType.NewComment,
-                $"Yeni talep: #{ticket.Id} {ticket.Title}",
+            await _notify.QueueToRoleAsync(UserRole.Agent, NotificationType.NewTicket,
+                $"Yeni talep: {Ui.TicketNo(ticket)} {ticket.Title}",
                 $"{me.FullName} tarafından açıldı.", ticket.Id);
         }
         await _db.SaveChangesAsync();
+        await _notify.DeliverPendingEmailsAsync();
 
         TempData["Ok"] = $"Talebiniz alındı. Talep numaranız: {Ui.TicketNo(ticket)}";
         return RedirectToAction(nameof(Details), new { id = ticket.Id });

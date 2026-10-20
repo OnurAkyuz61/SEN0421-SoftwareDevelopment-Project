@@ -1,0 +1,82 @@
+@model ProfilePageVm
+@inject CurrentUser Me
+@{
+    ViewData["Title"] = "Profilim";
+    Layout = Me.IsStaff ? "_Layout" : "_PortalLayout";
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel">
+            <div class="panel-head">Kişisel bilgiler</div>
+            <div class="panel-body">
+                <form asp-action="Update" method="post" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Profile.FirstName" class="form-label"></label>
+                            <input asp-for="Profile.FirstName" class="form-control" autocomplete="given-name" />
+                            <span asp-validation-for="Profile.FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Profile.LastName" class="form-label"></label>
+                            <input asp-for="Profile.LastName" class="form-control" autocomplete="family-name" />
+                            <span asp-validation-for="Profile.LastName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">E-posta</label>
+                            <input class="form-control" value="@Model.Profile.Email" disabled />
+                            <div class="form-text">E-posta adresi yalnızca yönetici tarafından değiştirilebilir.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Profile.PhoneNumber" class="form-label"></label>
+                            <input asp-for="Profile.PhoneNumber" class="form-control" autocomplete="tel" placeholder="+90 5xx xxx xx xx" />
+                            <span asp-validation-for="Profile.PhoneNumber" class="text-danger small"></span>
+                            <div class="form-text">OTP doğrulaması bu numaraya gönderilir.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rol</label>
+                            <input class="form-control" value="@Model.Profile.RoleText" disabled />
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="panel">
+            <div class="panel-head">Şifre değiştir</div>
+            <div class="panel-body">
+                <form asp-action="ChangePassword" method="post" novalidate>
+                    <div class="mb-3">
+                        <label asp-for="Password.CurrentPassword" class="form-label"></label>
+                        <input asp-for="Password.CurrentPassword" class="form-control" autocomplete="current-password" />
+                        <span asp-validation-for="Password.CurrentPassword" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Password.NewPassword" class="form-label"></label>
+                        <input asp-for="Password.NewPassword" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Password.NewPassword" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Password.ConfirmPassword" class="form-label"></label>
+                        <input asp-for="Password.ConfirmPassword" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Password.ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-key"></i> Şifreyi güncelle
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

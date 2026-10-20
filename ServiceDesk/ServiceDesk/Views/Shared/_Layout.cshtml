@@ -16,7 +16,7 @@
     var area = c switch
     {
         "Surveys" or "Nonconformities" or "Knowledge" => "Kalite",
-        "Users" or "Catalog" => "Yönetim",
+        "Users" or "Catalog" or "EscalationRules" => "Yönetim",
         _ => "Servis Masası"
     };
 }
@@ -67,6 +67,7 @@
                     <a class="nav-link @Act("Users")" aria-current="@Cur("Users")" asp-controller="Users" asp-action="Index"><i class="bi bi-people"></i><span>Kullanıcılar</span></a>
                     @if (Me.Role == UserRole.Admin)
                     {
+                        <a class="nav-link @Act("EscalationRules")" aria-current="@Cur("EscalationRules")" asp-controller="EscalationRules" asp-action="Index"><i class="bi bi-arrow-up-circle"></i><span>Eskalasyon</span></a>
                         <a class="nav-link @Act("Catalog")" aria-current="@Cur("Catalog")" asp-controller="Catalog" asp-action="Index"><i class="bi bi-tags"></i><span>Katalog</span></a>
                     }
                     <a class="nav-link" asp-controller="Portal" asp-action="Index"><i class="bi bi-box-arrow-up-right"></i><span>Kullanıcı Portalı</span></a>
@@ -120,6 +121,7 @@
                                     <span class="role-pill"><i class="bi bi-shield-check"></i> @Ui.RoleText(Me.Role!.Value)</span>
                                 </div>
                                 <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="bi bi-person me-2"></i>Profilim</a>
                                 <a class="dropdown-item" asp-controller="Portal" asp-action="Index"><i class="bi bi-box-arrow-up-right me-2"></i>Kullanıcı Portalı</a>
                                 <a class="dropdown-item" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell me-2"></i>Bildirimler</a>
                                 <div class="dropdown-divider"></div>

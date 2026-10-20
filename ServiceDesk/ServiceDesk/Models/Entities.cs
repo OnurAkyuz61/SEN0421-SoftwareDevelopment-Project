@@ -357,7 +357,8 @@ public enum NotificationType
     [Display(Name = "Talep atandı")] Assigned = 3,
     [Display(Name = "Onay bekliyor")] ApprovalPending = 4,
     [Display(Name = "Onay kararı")] ApprovalDecided = 5,
-    [Display(Name = "Yeni mesaj")] NewComment = 6
+    [Display(Name = "Yeni mesaj")] NewComment = 6,
+    [Display(Name = "Yeni talep")] NewTicket = 7
 }
 
 public enum NotificationChannel { InApp = 0, Email = 1, Sms = 2 }
@@ -624,6 +625,25 @@ public class LoginAttempt
     public DateTime AttemptedAt { get; set; } = AppTime.UtcNow;
 
     public bool IsSuccess => Result == LoginResult.Success;
+}
+
+// Şifre sıfırlama bağlantısı. Ham token e-postada gider; veritabanında
+// yalnızca SHA-256 özeti tutulur. Tek kullanımlık ve sürelidir.
+public class PasswordResetToken
+{
+    public int Id { get; set; }
+
+    public int UserId { get; set; }
+    public AppUser? User { get; set; }
+
+    [Required, StringLength(64)]
+    public string TokenHash { get; set; } = "";
+
+    public DateTime ExpiresAt { get; set; }
+    public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+    public DateTime? UsedAt { get; set; }
+
+    public bool IsUsable => UsedAt == null && AppTime.UtcNow <= ExpiresAt;
 }
 
 // ── ISO 9001 kalite katmanı ──────────────────────────────────────────────
