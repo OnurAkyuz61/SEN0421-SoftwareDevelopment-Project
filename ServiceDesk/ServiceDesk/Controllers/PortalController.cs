@@ -39,6 +39,7 @@ public class PortalController : Controller
         var list = await _db.Tickets
             .AsNoTracking()
             .Include(t => t.Category)
+            .Include(t => t.Survey)
             .Where(t => t.RequesterId == me.Id)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
@@ -123,6 +124,21 @@ public class PortalController : Controller
 
     public async Task<IActionResult> Details(int id)
     {
+        var ticket = await LoadPortalTicketAsync(id);
+        if (ticket == null) return NotFound();
+        return View(ticket);
+    }
+
+    // Liste üzerinden popup ile açılır; tam sayfa yerine HTML parçası döner
+    public async Task<IActionResult> DetailsPartial(int id)
+    {
+        var ticket = await LoadPortalTicketAsync(id);
+        if (ticket == null) return NotFound();
+        return PartialView("_DetailsPartial", ticket);
+    }
+
+    private async Task<Ticket?> LoadPortalTicketAsync(int id)
+    {
         var ticket = await _db.Tickets
             .Include(t => t.Survey)!.ThenInclude(r => r!.Answers).ThenInclude(a => a.Question)
             .Include(t => t.Attachments)
@@ -131,33 +147,37 @@ public class PortalController : Controller
             .Include(t => t.Comments).ThenInclude(c => c.Attachments)
             .Include(t => t.Category)
             .AsNoTracking()
-            // Birden fazla koleksiyon include ediliyor: tek sorgu kartezyen
-            // çarpım üretir, ayrı sorgulara bölünür
             .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
 
-        if (ticket == null) return NotFound();
+        if (ticket == null) return null;
 
-        // Anket soruları: talep kapandığında form bunlardan üretilir
         ViewBag.SurveyQuestions = await _db.SurveyQuestions
             .AsNoTracking()
             .Where(q => q.IsActive && q.Template!.IsActive)
             .OrderBy(q => q.SortOrder)
             .ToListAsync();
 
-        // İç notlar kullanıcıya gösterilmez
         ticket.Comments = ticket.Comments
             .Where(c => !c.IsInternal)
             .OrderBy(c => c.CreatedAt)
             .ToList();
 
-        return View(ticket);
+        return ticket;
+    }
+
+    // Modal içinden gelen formlar listeye dönüp popup'ı yeniden açar
+    private IActionResult BackToTicket(int id, string? returnTo, bool survey = false)
+    {
+        if (string.Equals(returnTo, "modal", StringComparison.OrdinalIgnoreCase))
+            return RedirectToAction(nameof(Index), new { open = id, survey = survey ? 1 : (int?)null });
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     // Kullanıcının kendi talebine yazdığı yanıt
     [HttpPost, ValidateAntiForgeryToken]
     [RequestSizeLimit(60 * 1024 * 1024)]
-    public async Task<IActionResult> AddComment(int id, string? body, List<IFormFile>? files)
+    public async Task<IActionResult> AddComment(int id, string? body, List<IFormFile>? files, string? returnTo)
     {
         var ticket = await _db.Tickets
             .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
@@ -166,20 +186,20 @@ public class PortalController : Controller
         if (ticket.Status == TicketStatus.Closed)
         {
             TempData["Err"] = "Kapanmış talebe mesaj yazılamaz.";
-            return RedirectToAction(nameof(Details), new { id });
+            return BackToTicket(id, returnTo);
         }
 
         if (string.IsNullOrWhiteSpace(body) || body.Length > 4000)
         {
             TempData["Err"] = "Mesaj boş olamaz ve en fazla 4000 karakter olabilir.";
-            return RedirectToAction(nameof(Details), new { id });
+            return BackToTicket(id, returnTo);
         }
 
         var fileError = FileStorage.Validate(files);
         if (fileError != null)
         {
             TempData["Err"] = fileError;
-            return RedirectToAction(nameof(Details), new { id });
+            return BackToTicket(id, returnTo);
         }
 
         var comment = new TicketComment
@@ -212,13 +232,13 @@ public class PortalController : Controller
         await _db.SaveChangesAsync();
 
         TempData["Ok"] = "Mesajınız iletildi.";
-        return RedirectToAction(nameof(Details), new { id });
+        return BackToTicket(id, returnTo);
     }
 
     // Açılmış bir talebe sonradan dosya / ekran görüntüsü eklemek için
     [HttpPost, ValidateAntiForgeryToken]
     [RequestSizeLimit(60 * 1024 * 1024)]
-    public async Task<IActionResult> AddFiles(int id, List<IFormFile>? files)
+    public async Task<IActionResult> AddFiles(int id, List<IFormFile>? files, string? returnTo)
     {
         var ticket = await _db.Tickets
             .Include(t => t.Attachments)
@@ -235,12 +255,12 @@ public class PortalController : Controller
             await _db.SaveChangesAsync();
             TempData["Ok"] = "Dosyalar eklendi.";
         }
-        return RedirectToAction(nameof(Details), new { id });
+        return BackToTicket(id, returnTo);
     }
 
     // Çok soruluk memnuniyet anketi. Puanlar form üzerinde "q{soruId}" adıyla gelir.
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Feedback(int id, string? comment)
+    public async Task<IActionResult> Feedback(int id, string? comment, string? returnTo)
     {
         var ticket = await _db.Tickets
             .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
@@ -249,13 +269,13 @@ public class PortalController : Controller
         if (ticket.Status is not (TicketStatus.Resolved or TicketStatus.Closed))
         {
             TempData["Err"] = "Talep kapanmadan değerlendirme yapılamaz.";
-            return RedirectToAction(nameof(Details), new { id });
+            return BackToTicket(id, returnTo);
         }
 
         if (await _db.SurveyResponses.AnyAsync(r => r.TicketId == id))
         {
             TempData["Err"] = "Bu talebi zaten değerlendirdiniz.";
-            return RedirectToAction(nameof(Details), new { id });
+            return BackToTicket(id, returnTo);
         }
 
         var template = await _db.SurveyTemplates
@@ -281,7 +301,7 @@ public class PortalController : Controller
         if (response.Answers.Count == 0)
         {
             TempData["Err"] = "Lütfen en az bir soruyu puanlayın.";
-            return RedirectToAction(nameof(Details), new { id });
+            return BackToTicket(id, returnTo, survey: true);
         }
 
         _db.SurveyResponses.Add(response);
@@ -295,6 +315,6 @@ public class PortalController : Controller
         TempData["Ok"] = acildi
             ? "Değerlendirmeniz alındı. Memnuniyetsizliğiniz kalite kaydı olarak açıldı, ekibimiz inceleyecek."
             : "Değerlendirmeniz için teşekkürler.";
-        return RedirectToAction(nameof(Details), new { id });
+        return BackToTicket(id, returnTo);
     }
 }

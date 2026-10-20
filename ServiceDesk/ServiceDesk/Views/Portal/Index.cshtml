@@ -2,6 +2,8 @@
 @{
     ViewData["Title"] = "Taleplerim";
     var open = Model.Count(t => t.Status is TicketStatus.New or TicketStatus.InProgress);
+    var openTicket = Context.Request.Query["open"].ToString();
+    var showSurvey = Context.Request.Query["survey"] == "1";
 }
 
 <div class="d-flex flex-wrap align-items-end gap-3 mb-4">
@@ -34,10 +36,13 @@
                 }
                 @foreach (var t in Model)
                 {
-                    <tr>
+                    <tr class="ticket-row" role="button" tabindex="0"
+                        data-ticket-id="@t.Id"
+                        data-needs-survey="@(t.Status is TicketStatus.Resolved or TicketStatus.Closed && t.Survey == null ? "1" : "0")"
+                        title="Detayı aç">
                         <td class="text-muted small">@Ui.TicketNo(t)</td>
                         <td>
-                            <a asp-action="Details" asp-route-id="@t.Id" class="fw-semibold text-decoration-none">@t.Title</a>
+                            <span class="fw-semibold text-primary">@t.Title</span>
                             @if (t.ApprovalStatus == ApprovalStatus.Pending) { <span class="tag tag-amber ms-1">Onay bekliyor</span> }
                         </td>
                         <td>@Ui.CategoryText(t.Category)</td>
@@ -49,3 +54,38 @@
         </table>
     </div>
 </div>
+
+@* Talep detay popup *@
+<div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ticketModalTitle">Talep detayı</h5>
+                <div class="d-flex align-items-center gap-2 ms-auto me-2">
+                    <a href="#" id="ticketFullLink" class="btn btn-sm btn-light border d-none d-sm-inline-flex" title="Tam sayfa">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+            </div>
+            <div class="modal-body" id="ticketModalBody">
+                <div class="text-center text-muted py-5">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <div class="small mt-2">Yükleniyor…</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.portalTicket = {
+            partialUrl: '@Url.Action("DetailsPartial", "Portal")',
+            detailsUrl: '@Url.Action("Details", "Portal")',
+            openId: @(string.IsNullOrEmpty(openTicket) ? "null" : openTicket),
+            showSurvey: @(showSurvey ? "true" : "false")
+        };
+    </script>
+    <script src="~/js/portal-modals.js" asp-append-version="true"></script>
+}
