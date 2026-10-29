@@ -61,6 +61,11 @@ public static class TicketWorkflow
         }
     }
 
+    // Onay süreci başladı mı: en az bir onay/red kararı verilmiş ya da talep karara bağlanmış
+    public static bool IsApprovalStarted(Ticket ticket) =>
+        ticket.Approvals.Count > 0
+        || ticket.ApprovalStatus is ApprovalStatus.Approved or ApprovalStatus.Rejected;
+
     // İlk yanıt yalnızca bir kez işaretlenir ve iç notlar saymaz
     public static bool MarkFirstResponse(Ticket ticket, bool isInternalNote, DateTime nowUtc)
     {

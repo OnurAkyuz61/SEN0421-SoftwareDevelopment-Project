@@ -26,7 +26,8 @@
         <form asp-action="Create" method="post" class="d-flex gap-2 flex-wrap">
             <input name="description" class="form-control form-control-sm flex-grow-1" style="min-width:260px"
                    placeholder="Denetimde veya gözlemle tespit edilen uygunsuzluğu yazın" required />
-            <input name="ticketId" type="number" class="form-control form-control-sm" style="width:130px" placeholder="Talep no (ops.)" />
+            <input name="ticketNo" class="form-control form-control-sm" style="width:170px" maxlength="20"
+                   placeholder="Talep no (ör. INC-2026-00042)" />
             <button class="btn btn-sm btn-primary">Kayıt aç</button>
         </form>
     </div>

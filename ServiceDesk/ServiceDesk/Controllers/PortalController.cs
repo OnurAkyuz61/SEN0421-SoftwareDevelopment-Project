@@ -92,6 +92,11 @@ public class PortalController : Controller
 
         // Değişiklik talepleri yönetici onayına düşer
         ticket.ApprovalStatus = ticket.Type == TicketType.Change ? ApprovalStatus.Pending : ApprovalStatus.NotRequired;
+
+        // Değişiklik talebinin plan kaydı (risk, takvim, geri alma) talep açılırken oluşur;
+        // destek ekibi planı talep detayından doldurur
+        if (ticket.Type == TicketType.Change)
+            ticket.ChangeDetail = new ChangeDetail { UpdatedById = me.Id };
         ticket.Attachments = await _files.SaveAsync(files);
         foreach (var a in ticket.Attachments) a.UploadedById = me.Id;
 
@@ -245,6 +250,12 @@ public class PortalController : Controller
             .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
         if (ticket == null) return NotFound();
 
+        if (ticket.Status == TicketStatus.Closed)
+        {
+            TempData["Err"] = "Kapanmış talebe dosya yüklenemez.";
+            return BackToTicket(id, returnTo);
+        }
+
         var err = FileStorage.Validate(files);
         if (err != null) TempData["Err"] = err;
         else if (files is { Count: > 0 })
@@ -291,16 +302,20 @@ public class PortalController : Controller
             Comment = comment
         };
 
+        // Tüm aktif sorular zorunlu: biri bile boş veya geçersizse anket kaydedilmez
         foreach (var q in template.Questions)
         {
-            if (!int.TryParse(Request.Form[$"q{q.Id}"], out var score)) continue;
-            if (score is < 1 or > 5) continue;
+            if (!int.TryParse(Request.Form[$"q{q.Id}"], out var score) || score is < 1 or > 5)
+            {
+                TempData["Err"] = "Lütfen anketteki tüm soruları puanlayın.";
+                return BackToTicket(id, returnTo, survey: true);
+            }
             response.Answers.Add(new SurveyAnswer { QuestionId = q.Id, Score = score });
         }
 
         if (response.Answers.Count == 0)
         {
-            TempData["Err"] = "Lütfen en az bir soruyu puanlayın.";
+            TempData["Err"] = "Ankette puanlanacak soru bulunamadı.";
             return BackToTicket(id, returnTo, survey: true);
         }
 

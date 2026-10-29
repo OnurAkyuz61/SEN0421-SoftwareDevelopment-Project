@@ -78,12 +78,30 @@ public class NonconformitiesController : Controller
 
     // Denetimde veya gözlemle tespit edilen uygunsuzluk elle açılır
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(string? description, int? ticketId)
+    public async Task<IActionResult> Create(string? description, string? ticketNo)
     {
         if (string.IsNullOrWhiteSpace(description))
         {
             TempData["Err"] = "Uygunsuzluk açıklaması boş olamaz.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // Talep no opsiyonel; yazıldıysa böyle bir talep gerçekten olmalı.
+        // "INC-2026-00042" gibi numara ya da "42" / "#42" gibi kayıt Id'si kabul edilir.
+        int? ticketId = null;
+        if (!string.IsNullOrWhiteSpace(ticketNo))
+        {
+            var no = ticketNo.Trim();
+            int.TryParse(no.TrimStart('#'), out var idNo);
+
+            var ticket = await _db.Tickets.AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Number == no || t.Id == idNo);
+            if (ticket == null)
+            {
+                TempData["Err"] = $"\"{no}\" numaralı talep bulunamadı.";
+                return RedirectToAction(nameof(Index));
+            }
+            ticketId = ticket.Id;
         }
 
         _db.Nonconformities.Add(new Nonconformity

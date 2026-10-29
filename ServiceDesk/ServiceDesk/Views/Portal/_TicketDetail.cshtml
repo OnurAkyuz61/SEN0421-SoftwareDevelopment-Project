@@ -163,10 +163,11 @@
                         {
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold mb-1">@q.Text</label>
-                                <select name="q@(q.Id)" class="form-select form-select-sm">
+                                <select name="q@(q.Id)" class="form-select form-select-sm" required>
+                                    <option value="" selected>Seçiniz (zorunlu)</option>
                                     <option value="5">5 - Çok memnunum</option>
                                     <option value="4">4 - Memnunum</option>
-                                    <option value="3" selected>3 - Orta</option>
+                                    <option value="3">3 - Orta</option>
                                     <option value="2">2 - Memnun değilim</option>
                                     <option value="1">1 - Hiç memnun değilim</option>
                                 </select>

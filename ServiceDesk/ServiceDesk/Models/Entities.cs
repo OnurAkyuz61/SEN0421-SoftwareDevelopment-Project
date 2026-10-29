@@ -216,6 +216,10 @@ public class Ticket
     public int? DeletedById { get; set; }
     public AppUser? DeletedBy { get; set; }
 
+    // Talep neden arşivlendi: denetimde "bu kayıt neden listeden kalktı" sorusunun cevabı
+    [StringLength(500), Display(Name = "Arşivleme nedeni")]
+    public string? DeleteReason { get; set; }
+
     // Aynı talebi iki kişi aynı anda güncellerse ikincisi uyarı alır
     [Timestamp]
     public byte[]? RowVersion { get; set; }
@@ -485,7 +489,7 @@ public class TicketComment
     public bool IsInternal { get; set; }
 
     // Bu not için harcanan efor; personel verimliliği göstergesinin girdisi
-    [Range(0, 10000), Display(Name = "Harcanan süre (dk)")]
+    [Range(1, 10000), Display(Name = "Harcanan süre (dk)")]
     public int? WorkMinutes { get; set; }
 
     public DateTime CreatedAt { get; set; } = AppTime.UtcNow;

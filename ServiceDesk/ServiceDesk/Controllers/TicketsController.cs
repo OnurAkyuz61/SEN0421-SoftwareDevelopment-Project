@@ -196,7 +196,10 @@ public class TicketsController : Controller
         int id, RiskLevel risk, DateTime? plannedStart, DateTime? plannedEnd,
         string? implementationPlan, string? rollbackPlan, string? impactAnalysis)
     {
-        var ticket = await _db.Tickets.Include(t => t.ChangeDetail).FirstOrDefaultAsync(t => t.Id == id);
+        var ticket = await _db.Tickets
+            .Include(t => t.ChangeDetail)
+            .Include(t => t.Approvals)
+            .FirstOrDefaultAsync(t => t.Id == id);
         if (ticket == null) return NotFound();
 
         if (ticket.Type != TicketType.Change)
@@ -206,6 +209,14 @@ public class TicketsController : Controller
         }
 
         var detail = ticket.ChangeDetail;
+
+        // Onay başladıktan sonra risk değiştirilemez: risk, onay adımı sayısını
+        // belirliyor; sonradan değişirse verilmiş onaylar anlamını yitirir
+        if (TicketWorkflow.IsApprovalStarted(ticket) && risk != (detail?.Risk ?? RiskLevel.Low))
+        {
+            TempData["Err"] = "Onay süreci başladığı için risk seviyesi değiştirilemez.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
         if (detail == null)
         {
             detail = new ChangeDetail { TicketId = ticket.Id };
@@ -237,9 +248,18 @@ public class TicketsController : Controller
         var ticket = await _db.Tickets.FindAsync(id);
         if (ticket == null) return NotFound();
 
+        // Neden zorunlu ve talebin üzerine kaydedilir
+        reason = reason?.Trim();
+        if (string.IsNullOrEmpty(reason) || reason.Length > 500)
+        {
+            TempData["Err"] = "Arşivleme nedeni boş olamaz ve en fazla 500 karakter olabilir.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         ticket.IsDeleted = true;
         ticket.DeletedAt = AppTime.UtcNow;
         ticket.DeletedById = _current.User!.Id;
+        ticket.DeleteReason = reason;
 
         _db.TicketHistories.Add(new TicketHistory
         {
@@ -268,6 +288,21 @@ public class TicketsController : Controller
         if (string.IsNullOrWhiteSpace(body) || body.Length > 4000)
         {
             TempData["Err"] = "Mesaj boş olamaz ve en fazla 4000 karakter olabilir.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // Harcanan süre boş bırakılabilir; girildiyse 1–10000 arası tam sayı olmalı.
+        // "abc", "1,5" gibi sayı olmayan değerler ModelState hatası olarak gelir.
+        if (!ModelState.IsValid || workMinutes is < 1 or > 10000)
+        {
+            TempData["Err"] = "Harcanan süre 1 ile 10000 dakika arasında bir tam sayı olmalı.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // Kapanmış talebe not yazılabilir ama dosya yüklenemez
+        if (ticket.Status == TicketStatus.Closed && files is { Count: > 0 })
+        {
+            TempData["Err"] = "Kapanmış talebe dosya yüklenemez.";
             return RedirectToAction(nameof(Details), new { id });
         }
 

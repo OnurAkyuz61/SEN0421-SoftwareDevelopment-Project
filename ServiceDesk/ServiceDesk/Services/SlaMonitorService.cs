@@ -119,6 +119,19 @@ public class SlaMonitorService : BackgroundService
 
                 foreach (var rule in rules.Where(r => r.Level > t.EscalationLevel && overdue >= r.AfterMinutes))
                 {
+                    // Kurala göre yeniden atama: hedef roldeki en az açık talebi olan kişiye.
+                    // Atanan değişikliği AppDbContext tarafından geçmişe otomatik yazılır.
+                    var yeniAtanan = await FindEscalationAssigneeAsync(db, rule.TargetRole, t.AssigneeId, token);
+                    if (yeniAtanan != null)
+                    {
+                        t.Assignee = yeniAtanan;
+                        t.AssigneeId = yeniAtanan.Id;
+                        notify.Queue(yeniAtanan.Id, NotificationType.Assigned,
+                            $"Eskalasyonla size atandı: {Ui.TicketNo(t)} {t.Title}",
+                            $"SLA {overdue} dakika aşıldı; seviye {rule.Level} kuralı gereği talep size devredildi.",
+                            t.Id);
+                    }
+
                     db.EscalationRecords.Add(new EscalationRecord
                     {
                         TicketId = t.Id,
@@ -146,6 +159,17 @@ public class SlaMonitorService : BackgroundService
             await notify.DeliverPendingEmailsAsync();
         }
     }
+
+    // Eskalasyon kuralının hedef rolündeki aktif kişilerden üzerinde en az açık
+    // talep olanı seçer; talebin mevcut sahibi hariç (yoksa null döner, atama değişmez)
+    private static Task<AppUser?> FindEscalationAssigneeAsync(
+        AppDbContext db, UserRole role, int? currentAssigneeId, CancellationToken token) =>
+        db.Users
+            .Where(u => u.IsActive && u.Role == role && u.Id != currentAssigneeId)
+            .OrderBy(u => db.Tickets.Count(x => x.AssigneeId == u.Id
+                && (x.Status == TicketStatus.New || x.Status == TicketStatus.InProgress)))
+            .ThenBy(u => u.Id)
+            .FirstOrDefaultAsync(token);
 
     // Atanan kişi varsa ona, yoksa tüm destek ekibine
     private static async Task NotifyOwnersAsync(
