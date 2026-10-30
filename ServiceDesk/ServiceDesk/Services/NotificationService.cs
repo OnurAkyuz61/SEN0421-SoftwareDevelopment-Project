@@ -45,6 +45,18 @@ public class NotificationService
         return q.OrderByDescending(n => n.CreatedAt).Take(take).ToListAsync();
     }
 
+    // Tek bildirim: alıcı filtresi sorgunun içinde. Önce "benim son 500
+    // bildirimim" çekilip aralarında aranıyordu; bu hem listenin dışında kalan
+    // eski bildirimi bulunamaz yapıyor hem de filtreyi uygulamayı çağırana
+    // bırakıyordu. Başkasının bildirimi hiçbir koşulda dönmez.
+    public Task<Notification?> GetOwnAsync(int userId, int notificationId) =>
+        _db.Notifications
+            .AsNoTracking()
+            .Include(n => n.Ticket)
+            .FirstOrDefaultAsync(n => n.Id == notificationId
+                                      && n.RecipientId == userId
+                                      && n.Channel == NotificationChannel.InApp);
+
     public Task<int> UnreadCountAsync(int userId) =>
         _db.Notifications.CountAsync(n => n.RecipientId == userId
             && n.Channel == NotificationChannel.InApp && n.ReadAt == null);

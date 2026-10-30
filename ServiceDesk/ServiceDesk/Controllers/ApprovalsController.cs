@@ -53,30 +53,21 @@ public class ApprovalsController : Controller
             .FirstOrDefaultAsync(x => x.Id == id);
         if (t == null) return NotFound();
 
-        if (t.ApprovalStatus != ApprovalStatus.Pending)
-        {
-            TempData["Err"] = $"{Ui.TicketNo(t)} zaten karara bağlanmış ({Ui.ApprovalText(t.ApprovalStatus)}).";
-            return RedirectToAction(nameof(Index));
-        }
-
         var me = _current.User!;
-        var approvedSoFar = t.Approvals.Count(a => a.Decision == ApprovalStatus.Approved);
-        var step = approvedSoFar + 1;
+
+        // Yetki kuralları tek yerde: ApprovalPolicy (talep türü, rol, kendi
+        // talebi, nihai karar yetkisi ve zincirde tekrar onay kontrolü).
+        // Ekrandaki düğmeler de aynı kuralla gösterilip gizleniyor; bu kontrol
+        // adresin doğrudan POST edilmesine karşı asıl engeldir.
+        var yetki = ApprovalPolicy.CanDecide(t, me, approve);
+        if (!yetki.Allowed)
+        {
+            TempData["Err"] = yetki.Error;
+            return RedirectToAction(nameof(Index));
+        }
+
+        var step = ApprovalPolicy.NextStep(t);
         var required = t.RequiredApprovalSteps;
-
-        // İkinci adım yalnızca yöneticinin yetkisinde
-        if (approve && step == 2 && me.Role != UserRole.Admin)
-        {
-            TempData["Err"] = "Yüksek riskli değişikliğin ikinci onayını yalnızca yönetici verebilir.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // Aynı kişi zinciri tek başına tamamlayamaz
-        if (approve && required > 1 && t.Approvals.Any(a => a.ApproverId == me.Id))
-        {
-            TempData["Err"] = "Bu değişikliği zaten onayladınız; ikinci onay başka bir yetkiliden gelmeli.";
-            return RedirectToAction(nameof(Index));
-        }
 
         _db.ChangeApprovals.Add(new ChangeApproval
         {

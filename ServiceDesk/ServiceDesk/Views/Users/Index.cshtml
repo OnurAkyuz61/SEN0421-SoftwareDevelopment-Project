@@ -1,31 +1,134 @@
 @model List<AppUser>
-@{ ViewData["Title"] = "Kullanıcılar"; }
+@inject CurrentUser Me
+@{
+    ViewData["Title"] = "Kullanıcılar";
+    var secilenRol = (UserRole?)ViewBag.Role;
+    var secilenDurum = (bool?)ViewBag.Active;
+    var pasifSayi = (int)ViewBag.PassiveCount;
+    var yonetici = Me.Role == UserRole.Admin;
+    var buSayfa = Context.Request.Path + Context.Request.QueryString;
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="me-auto">
+        <h4 class="fw-bold mb-0">Kullanıcı yönetimi</h4>
+        <div class="text-muted small">
+            @Model.Count kayıt listeleniyor · pasif hesap: @pasifSayi ·
+            kayıtlar silinmez, pasifleştirilir
+        </div>
+    </div>
+    @if (yonetici)
+    {
+        <a class="btn btn-primary btn-sm" asp-action="Edit">
+            <i class="bi bi-person-plus"></i> Yeni kullanıcı
+        </a>
+    }
+</div>
+
+<form asp-action="Index" method="get" class="panel mb-3">
+    <div class="panel-body d-flex flex-wrap gap-2 align-items-end">
+        <div>
+            <label class="form-label small text-muted mb-1" for="q">Ara</label>
+            <input id="q" name="q" value="@ViewBag.Q" class="form-control form-control-sm"
+                   style="min-width:220px" placeholder="Ad, soyad veya e-posta" />
+        </div>
+        <div>
+            <label class="form-label small text-muted mb-1" for="role">Rol</label>
+            <select id="role" name="role" class="form-select form-select-sm">
+                <option value="">Tümü</option>
+                @foreach (var r in Enum.GetValues<UserRole>())
+                {
+                    <option value="@r" selected="@(secilenRol == r)">@Ui.RoleText(r)</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="form-label small text-muted mb-1" for="active">Durum</label>
+            <select id="active" name="active" class="form-select form-select-sm">
+                <option value="">Tümü</option>
+                <option value="true" selected="@(secilenDurum == true)">Aktif</option>
+                <option value="false" selected="@(secilenDurum == false)">Pasif</option>
+            </select>
+        </div>
+        <button class="btn btn-sm btn-secondary"><i class="bi bi-funnel"></i> Filtrele</button>
+        <a asp-action="Index" class="btn btn-sm btn-light border">Temizle</a>
+    </div>
+</form>
 
 <div class="panel">
-    <div class="panel-head">@Model.Count kullanıcı <span class="small text-muted fw-normal">Kullanıcı ekleme/düzenleme sonra eklenecek</span></div>
+    <div class="panel-head">@Model.Count kullanıcı</div>
     <div class="table-responsive">
-        <table class="table table-hover">
-            <thead><tr><th>Ad Soyad</th><th>E-posta</th><th>Telefon</th><th>Birim / Ekip</th><th>Rol</th><th>Durum</th></tr></thead>
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Ad Soyad</th><th>E-posta</th><th>Telefon</th>
+                    <th>Birim / Ekip</th><th>Rol</th><th>Durum</th>
+                    @if (yonetici) { <th class="text-end">İşlem</th> }
+                </tr>
+            </thead>
             <tbody>
-                @foreach (var u in Model)
+                @if (!Model.Any())
                 {
                     <tr>
-                        <td class="fw-semibold">@u.FirstName @u.LastName</td>
+                        <td colspan="@(yonetici ? 7 : 6)" class="text-center text-muted py-4">
+                            Bu filtrede kullanıcı bulunamadı
+                        </td>
+                    </tr>
+                }
+                @foreach (var u in Model)
+                {
+                    <tr class="@(u.IsActive ? "" : "text-muted")">
+                        <td class="fw-semibold">
+                            @u.FirstName @u.LastName
+                            @if (u.Id == Me.Id) { <span class="text-muted small fw-normal">(siz)</span> }
+                        </td>
                         <td>@u.Email</td>
-                        <td class="text-muted">@u.PhoneNumber</td>
+                        <td class="text-muted">
+                            @if (string.IsNullOrWhiteSpace(u.PhoneNumber))
+                            {
+                                <span class="tag tag-amber" title="Telefon tanımsız: kullanıcı giriş yapamaz">tanımsız</span>
+                            }
+                            else
+                            {
+                                @u.PhoneNumber
+                            }
+                        </td>
                         <td class="small">
                             @(u.Department?.Name ?? "-")
                             @if (u.Team != null) { <div class="text-muted">@u.Team.Name</div> }
                         </td>
                         <td>
                             <span class="tag @(u.Role == UserRole.Admin ? "tag-blue" : u.Role == UserRole.Agent ? "tag-green" : "tag-gray")">
-                                @(u.Role == UserRole.Admin ? "Yönetici" : u.Role == UserRole.Agent ? "Destek" : "Kullanıcı")
+                                @Ui.RoleText(u.Role)
                             </span>
                         </td>
                         <td>
                             @if (u.IsActive) { <span class="tag tag-green">Aktif</span> }
                             else { <span class="tag tag-gray">Pasif</span> }
                         </td>
+                        @if (yonetici)
+                        {
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@u.Id">
+                                    <i class="bi bi-pencil"></i> Düzenle
+                                </a>
+                                @* Rol ve aktiflik düzenleme ekranından da yönetilir;
+                                   buradaki düğme sık yapılan işi tek tıkla halleder *@
+                                @if (u.Id != Me.Id)
+                                {
+                                    <form asp-action="SetActive" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@u.Id" />
+                                        <input type="hidden" name="isActive" value="@(!u.IsActive)" />
+                                        <input type="hidden" name="returnUrl" value="@buSayfa" />
+                                        <button class="btn btn-sm @(u.IsActive ? "btn-outline-danger" : "btn-outline-success")"
+                                                title="@(u.IsActive ? "Hesabı pasifleştir" : "Hesabı aktifleştir")">
+                                            <i class="bi @(u.IsActive ? "bi-person-dash" : "bi-person-check")"></i>
+                                            @(u.IsActive ? "Pasifleştir" : "Aktifleştir")
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>

@@ -25,17 +25,28 @@ public class NotificationsController : Controller
         return View(await _notify.GetForAsync(_current.User!.Id, unreadOnly));
     }
 
-    // Bildirime tıklanınca okundu işaretle, ilgili talebe (veya listeye) git
+    // Bildirime tıklanınca okundu işaretle, ilgili talebe (veya listeye) git.
+    // Bildirim oturumdaki kullanıcıya ait değilse hiç bulunmaz: başka bir
+    // kullanıcının bildirim numarası denenerek talebine atlanamaz.
     [HttpGet]
     public async Task<IActionResult> Open(int id)
     {
-        var list = await _notify.GetForAsync(_current.User!.Id, take: 500);
-        var n = list.FirstOrDefault(x => x.Id == id);
-        if (n == null) return RedirectToAction(nameof(Index));
+        var me = _current.User!;
 
-        await _notify.MarkReadAsync(_current.User!.Id, id);
+        var n = await _notify.GetOwnAsync(me.Id, id);
+        if (n == null) return NotFound();
+
+        await _notify.MarkReadAsync(me.Id, id);
 
         if (n.TicketId == null) return RedirectToAction(nameof(Index));
+
+        // Talep arşivlendiyse (soft-delete) sorgulara düşmez: Ticket boş gelir.
+        // Kullanıcıyı 404'e göndermek yerine nedenini söylüyoruz.
+        if (n.Ticket == null)
+        {
+            TempData["Err"] = "Bildirimin ilgili olduğu talep arşivlendiği için açılamıyor.";
+            return RedirectToAction(nameof(Index));
+        }
 
         return _current.IsStaff
             ? RedirectToAction("Details", "Tickets", new { id = n.TicketId })

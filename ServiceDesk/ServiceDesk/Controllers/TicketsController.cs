@@ -285,6 +285,15 @@ public class TicketsController : Controller
         var ticket = await _db.Tickets.FindAsync(id);
         if (ticket == null) return NotFound();
 
+        // Kapanmış talebin yazışması kapalıdır: kayıt kapandıktan sonra
+        // üzerine not düşülmesi denetim izini bulanıklaştırır (ISO 9001 md. 7.5).
+        // Konuşmaya devam edilecekse talep önce yeniden açılır.
+        if (ticket.Status == TicketStatus.Closed)
+        {
+            TempData["Err"] = "Kapanmış talebe mesaj yazılamaz. Gerekiyorsa talebi yeniden açın.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         if (string.IsNullOrWhiteSpace(body) || body.Length > 4000)
         {
             TempData["Err"] = "Mesaj boş olamaz ve en fazla 4000 karakter olabilir.";
@@ -296,13 +305,6 @@ public class TicketsController : Controller
         if (!ModelState.IsValid || workMinutes is < 1 or > 10000)
         {
             TempData["Err"] = "Harcanan süre 1 ile 10000 dakika arasında bir tam sayı olmalı.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
-
-        // Kapanmış talebe not yazılabilir ama dosya yüklenemez
-        if (ticket.Status == TicketStatus.Closed && files is { Count: > 0 })
-        {
-            TempData["Err"] = "Kapanmış talebe dosya yüklenemez.";
             return RedirectToAction(nameof(Details), new { id });
         }
 
