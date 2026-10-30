@@ -23,7 +23,18 @@ public class HomeController : Controller
         return View();
     }
 
+    // Tüm hata yanıtlarının tek çıkışı:
+    //   • yakalanan istisna      → UseExceptionHandler("/Home/Error")      (code boş, 500)
+    //   • gövdesiz durum kodları → UseStatusCodePagesWithReExecute (?code=404 gibi)
+    // Yanıtın durum kodu korunur: tarayıcı ve arama motoru 404'ü 200 sanmaz.
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error() =>
-        View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    public IActionResult Error(int? code)
+    {
+        var status = code ?? Response.StatusCode;
+        if (status < 400) status = StatusCodes.Status500InternalServerError;
+
+        Response.StatusCode = status;
+
+        return View(ErrorViewModel.For(status, Activity.Current?.Id ?? HttpContext.TraceIdentifier));
+    }
 }

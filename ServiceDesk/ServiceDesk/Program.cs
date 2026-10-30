@@ -67,6 +67,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Gövdesiz hata yanıtları (404, 403, 413 …) da aynı Türkçe hata sayfasına
+// düşer: NotFound() dönen bir action artık tarayıcının boş "404" ekranını
+// değil, ne olduğunu anlatan ve kullanıcıyı kendi alanına geri gönderen
+// sayfayı gösterir. Durum kodu korunur.
+app.UseStatusCodePagesWithReExecute("/Home/Error", "?code={0}");
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

@@ -23,12 +23,18 @@ public class AttachmentsController : Controller
 
     public async Task<IActionResult> Get(int id, bool download = false)
     {
-        var a = await _db.Attachments.AsNoTracking().Include(x => x.Ticket).FirstOrDefaultAsync(x => x.Id == id);
+        // Mesaj da yükleniyor: iç nota eklenmiş dosya talep sahibine kapalıdır.
+        // Arşivlenmiş (soft-delete) talebin eki global filtre sayesinde
+        // sorguya hiç düşmez.
+        var a = await _db.Attachments.AsNoTracking()
+            .Include(x => x.Ticket)
+            .Include(x => x.Comment)
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (a == null || !System.IO.File.Exists(_files.PathOf(a))) return NotFound();
 
-        // Destek ve yönetici her eke erişir; son kullanıcı yalnızca kendi talebinin ekine.
+        // Yetki kuralı AttachmentPolicy'de (birim testi yazılabilsin diye saf sınıf).
         // Yetkisiz erişimde 404 döner: ek numarasını deneyerek varlık yoklaması yapılamasın.
-        if (!_current.IsStaff && a.Ticket!.RequesterId != _current.User!.Id) return NotFound();
+        if (!AttachmentPolicy.CanView(a, _current.User!)) return NotFound();
 
         // Resimler tarayıcıda açılır, diğerleri indirilir
         return a.IsImage && !download

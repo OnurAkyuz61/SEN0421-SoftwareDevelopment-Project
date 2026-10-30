@@ -51,28 +51,53 @@ public class NonconformitiesController : Controller
         var n = await _db.Nonconformities.FindAsync(id);
         if (n == null) return NotFound();
 
+        // Baştaki / sondaki boşluklar zorunluluk kontrolünü atlatmasın:
+        // yalnızca boşluktan oluşan metin boş kabul edilir
+        rootCause = string.IsNullOrWhiteSpace(rootCause) ? null : rootCause.Trim();
+        correctiveAction = string.IsNullOrWhiteSpace(correctiveAction) ? null : correctiveAction.Trim();
+
+        // Sorumlu seçildiyse gerçekten yetkili (destek/yönetici) ve aktif olmalı
+        if (responsibleId != null &&
+            !await _db.Users.AnyAsync(u => u.Id == responsibleId && u.IsActive && u.Role != UserRole.User))
+        {
+            TempData["Err"] = "Seçilen kişi uygunsuzluğa sorumlu atanamaz.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Kapatmak için kök neden ve düzeltici faaliyet zorunlu (ISO 9001 md. 10.2).
+        // Eksikse DURUM HİÇ DEĞİŞMEZ: kayıt ne kapanır, ne de kapalıyken
+        // sessizce "İşlemde"ye düşürülür. Yazılan diğer alanlar korunur ki
+        // kullanıcı formu baştan doldurmak zorunda kalmasın.
+        var kapatiliyor = status == NonconformityStatus.Closed;
+        var eksikAlanlar = new List<string>();
+        if (kapatiliyor && rootCause == null) eksikAlanlar.Add("kök neden");
+        if (kapatiliyor && correctiveAction == null) eksikAlanlar.Add("düzeltici faaliyet");
+
         n.RootCause = rootCause;
         n.CorrectiveAction = correctiveAction;
         n.ResponsibleId = responsibleId;
         n.DueAt = dueAt == null ? null : AppTime.ToUtc(dueAt.Value);
         n.EffectivenessVerified = effectivenessVerified;
 
-        // Kapatmak için kök neden ve düzeltici faaliyet zorunlu
-        if (status == NonconformityStatus.Closed &&
-            (string.IsNullOrWhiteSpace(rootCause) || string.IsNullOrWhiteSpace(correctiveAction)))
+        if (eksikAlanlar.Count > 0)
         {
-            TempData["Err"] = "Kök neden ve düzeltici faaliyet yazılmadan uygunsuzluk kapatılamaz.";
-            n.Status = n.Status == NonconformityStatus.Closed ? NonconformityStatus.InProgress : n.Status;
             await _db.SaveChangesAsync();
+
+            TempData["Err"] = $"Uygunsuzluk #{n.Id} kapatılamadı: " +
+                              $"{string.Join(" ve ", eksikAlanlar)} alanı zorunlu. " +
+                              $"Kayıt \"{Ui.NonconformityStatusText(n.Status)}\" durumunda bırakıldı; " +
+                              "girdiğiniz diğer bilgiler kaydedildi.";
             return RedirectToAction(nameof(Index));
         }
 
         n.Status = status;
-        n.ClosedAt = status == NonconformityStatus.Closed ? (n.ClosedAt ?? AppTime.UtcNow) : null;
+        n.ClosedAt = kapatiliyor ? (n.ClosedAt ?? AppTime.UtcNow) : null;
 
         await _db.SaveChangesAsync();
 
-        TempData["Ok"] = $"Uygunsuzluk #{n.Id} güncellendi.";
+        TempData["Ok"] = kapatiliyor
+            ? $"Uygunsuzluk #{n.Id} kapatıldı."
+            : $"Uygunsuzluk #{n.Id} güncellendi.";
         return RedirectToAction(nameof(Index));
     }
 

@@ -1,25 +1,101 @@
 ﻿@model ErrorViewModel
+@inject CurrentUser Me
 @{
-    ViewData["Title"] = "Error";
+    // Hata sayfası kendi başına ayakta durur: yönetim/portal layout'u veri
+    // okuduğu için hatanın kaynağı veritabanı ise o da patlardı.
+    Layout = null;
+    ViewData["Title"] = Model.Title;
+
+    // Oturum bilgisi veritabanından okunuyor; hatanın kaynağı veritabanı ise
+    // hata sayfasının kendisi de çökmesin diye korumalı okunur.
+    var oturumVar = false;
+    var personel = false;
+    try
+    {
+        oturumVar = Me.IsAuthenticated;
+        personel = Me.IsStaff;
+    }
+    catch
+    {
+        // bilinmiyor: karşılama sayfasına yönlendiririz
+    }
+
+    // Kullanıcıyı kendi alanına geri gönder
+    var anaSayfa = personel ? "Dashboard" : oturumVar ? "Portal" : "Home";
 }
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <partial name="_ThemeHead" />
+    <meta name="robots" content="noindex" />
+    <title>@Model.Title · ServiceDesk</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        .err-page { min-height: 100vh; display: flex; flex-direction: column; background: var(--sd-bg); }
+        .err-top { padding: 1.25rem 1.5rem; }
+        .err-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+        .err-card {
+            width: 100%; max-width: 560px; background: var(--sd-surface, #fff);
+            border: 1px solid var(--sd-border, #e3e6ea); border-radius: 14px;
+            padding: 2.25rem; text-align: center;
+        }
+        .err-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 64px; height: 64px; border-radius: 50%;
+            background: rgba(176, 42, 55, .08); color: #b02a37; font-size: 1.75rem;
+            margin-bottom: 1rem;
+        }
+        .err-code { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; opacity: .65; }
+        .err-card h1 { font-size: 1.4rem; font-weight: 700; margin: .35rem 0 .75rem; }
+        .err-card p { margin-bottom: .5rem; }
+        .err-ref { font-size: .78rem; opacity: .6; word-break: break-all; margin-top: 1.25rem; }
+        .err-foot { padding: 1rem 1.5rem; font-size: .8rem; opacity: .6; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="err-page">
+        <div class="err-top">
+            <a class="brand text-decoration-none" asp-controller="@anaSayfa" asp-action="Index">
+                <span class="brand-mark"><i class="bi bi-headset"></i></span>
+                <span>ServiceDesk</span>
+            </a>
+        </div>
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+        <div class="err-body">
+            <div class="err-card">
+                <div class="err-badge"><i class="bi @Model.Icon"></i></div>
+                <div class="err-code">Hata @Model.StatusCode</div>
+                <h1>@Model.Title</h1>
+                <p class="text-muted">@Model.Message</p>
+                @if (!string.IsNullOrEmpty(Model.Hint))
+                {
+                    <p class="text-muted small">@Model.Hint</p>
+                }
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
+                <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+                    <a class="btn btn-primary" asp-controller="@anaSayfa" asp-action="Index">
+                        <i class="bi bi-house"></i>
+                        @(personel ? "Yönetim paneline dön" : oturumVar ? "Taleplerime dön" : "Ana sayfaya dön")
+                    </a>
+                    <button type="button" class="btn btn-light border" onclick="history.back()">
+                        <i class="bi bi-arrow-left"></i> Önceki sayfa
+                    </button>
+                    @if (!oturumVar)
+                    {
+                        <a class="btn btn-light border" asp-controller="Account" asp-action="Login">
+                            <i class="bi bi-box-arrow-in-right"></i> Giriş yap
+                        </a>
+                    }
+                </div>
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+                @if (Model.ShowRequestId)
+                {
+                    <div class="err-ref">Takip numarası: <code>@Model.RequestId</code></div>
+                }
+            </div>
+        </div>
+
+        <div class="err-foot">ServiceDesk · ISO 9001 IT Servis Masası · SEN0421 · SDS-07</div>
+    </div>
+</body>
+</html>

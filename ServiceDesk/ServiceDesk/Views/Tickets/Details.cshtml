@@ -33,32 +33,41 @@
             <div class="panel-body">
                 <partial name="_CommentThread" model="Model.Comments" />
 
-                <form asp-action="AddComment" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="mt-3 pt-3 border-top">
-                    <textarea name="body" class="form-control mb-2" rows="3" required maxlength="4000"
-                              placeholder="Kullanıcıya yanıt yazın veya ekibe iç not bırakın..."></textarea>
-                    <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
-                        <div class="form-check mb-0">
-                            <input class="form-check-input" type="checkbox" name="isInternal" value="true" id="isInternal" />
-                            <label class="form-check-label small" for="isInternal">
-                                İç not <span class="text-muted">(kullanıcı görmez)</span>
-                            </label>
+                @* Kapanmış talebe yazışma eklenmez (iç not dahil): kayıt kapandıktan
+                   sonra üzerine not düşmek denetim izini bulanıklaştırır.
+                   Aynı kural TicketsController.AddComment içinde de uygulanıyor. *@
+                @if (Model.Status == TicketStatus.Closed)
+                {
+                    <div class="alert alert-light border small mt-3 mb-0 d-flex gap-2 align-items-start">
+                        <i class="bi bi-lock mt-1"></i>
+                        <div>
+                            Talep kapandığı için yazışma kapalı; mesaj, iç not ve dosya eklenemez.
+                            Konuya devam edilecekse talebi <strong>yeniden açın</strong>.
                         </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <label class="small text-muted mb-0" for="workMinutes">Harcanan süre</label>
-                            <input type="number" name="workMinutes" id="workMinutes" min="1" max="10000" step="1"
-                                   class="form-control form-control-sm" style="width:90px" placeholder="dk" />
-                        </div>
-                        <button class="btn btn-primary btn-sm ms-auto">Gönder</button>
                     </div>
-                    @if (Model.Status != TicketStatus.Closed)
-                    {
+                }
+                else
+                {
+                    <form asp-action="AddComment" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="mt-3 pt-3 border-top">
+                        <textarea name="body" class="form-control mb-2" rows="3" required maxlength="4000"
+                                  placeholder="Kullanıcıya yanıt yazın veya ekibe iç not bırakın..."></textarea>
+                        <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" name="isInternal" value="true" id="isInternal" />
+                                <label class="form-check-label small" for="isInternal">
+                                    İç not <span class="text-muted">(kullanıcı görmez)</span>
+                                </label>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="small text-muted mb-0" for="workMinutes">Harcanan süre</label>
+                                <input type="number" name="workMinutes" id="workMinutes" min="1" max="10000" step="1"
+                                       class="form-control form-control-sm" style="width:90px" placeholder="dk" />
+                            </div>
+                            <button class="btn btn-primary btn-sm ms-auto">Gönder</button>
+                        </div>
                         <partial name="_UploadField" />
-                    }
-                    else
-                    {
-                        <div class="small text-muted">Talep kapalı olduğu için dosya eklenemez.</div>
-                    }
-                </form>
+                    </form>
+                }
             </div>
         </div>
 
@@ -248,18 +257,44 @@
     <div class="col-lg-4">
         @if (Model.ApprovalStatus == ApprovalStatus.Pending)
         {
+            @* Yetki kuralı ApprovalPolicy'de; yetkisi olmayan rol düğmeyi
+               hiç görmez (sunucu tarafı da aynı kuralı uygular) *@
+            var onayVerebilir = ApprovalPolicy.CanDecide(Model, Me.User!, approve: true);
+            var reddedebilir = ApprovalPolicy.CanDecide(Model, Me.User!, approve: false);
+
             <div class="panel mb-3" style="border-color:#f3dcae">
                 <div class="panel-head">Onay gerekiyor</div>
                 <div class="panel-body">
                     <p class="small text-muted">Bu değişiklik talebi onaylanmadan işleme alınamaz.</p>
-                    <form method="post">
-                        <input type="hidden" name="returnUrl" value="@Url.Action("Details", new { id = Model.Id })" />
-                        <textarea name="note" class="form-control mb-2" rows="2" placeholder="Not (isteğe bağlı)"></textarea>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-success flex-fill" asp-controller="Approvals" asp-action="Approve" asp-route-id="@Model.Id">Onayla</button>
-                            <button class="btn btn-outline-danger flex-fill" asp-controller="Approvals" asp-action="Reject" asp-route-id="@Model.Id">Reddet</button>
-                        </div>
-                    </form>
+                    @if (onayVerebilir.Allowed || reddedebilir.Allowed)
+                    {
+                        <form method="post">
+                            <input type="hidden" name="returnUrl" value="@Url.Action("Details", new { id = Model.Id })" />
+                            <textarea name="note" class="form-control mb-2" rows="2" placeholder="Not (isteğe bağlı)"></textarea>
+                            <div class="d-flex gap-2">
+                                @if (onayVerebilir.Allowed)
+                                {
+                                    <button class="btn btn-success flex-fill" asp-controller="Approvals" asp-action="Approve" asp-route-id="@Model.Id">
+                                        @(ApprovalPolicy.IsFinalStep(Model) ? "Onayla" : "1. onayı ver")
+                                    </button>
+                                }
+                                @if (reddedebilir.Allowed)
+                                {
+                                    <button class="btn btn-outline-danger flex-fill" asp-controller="Approvals" asp-action="Reject" asp-route-id="@Model.Id">Reddet</button>
+                                }
+                            </div>
+                        </form>
+                        @if (!onayVerebilir.Allowed || !reddedebilir.Allowed)
+                        {
+                            <div class="small text-muted mt-2">
+                                @(onayVerebilir.Allowed ? reddedebilir.Error : onayVerebilir.Error)
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="small text-muted"><i class="bi bi-lock"></i> @onayVerebilir.Error</div>
+                    }
                 </div>
             </div>
         }

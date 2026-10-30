@@ -51,9 +51,20 @@
             @if (n.IsOverdue) { <span class="tag tag-red">termin geçti</span> }
             @if (n.TicketId != null)
             {
-                <a class="small text-decoration-none ms-auto" asp-controller="Tickets" asp-action="Details" asp-route-id="@n.TicketId">
-                    @(n.Ticket == null ? "#" + n.TicketId : Ui.TicketNo(n.Ticket))
-                </a>
+                @* Talep arşivlendiyse (soft-delete) sorguya düşmez: ölü bağlantı
+                   yerine durumu yazıyoruz *@
+                @if (n.Ticket == null)
+                {
+                    <span class="small text-muted ms-auto" title="Talep arşivlendi">
+                        #@n.TicketId · arşivlenmiş talep
+                    </span>
+                }
+                else
+                {
+                    <a class="small text-decoration-none ms-auto" asp-controller="Tickets" asp-action="Details" asp-route-id="@n.TicketId">
+                        @Ui.TicketNo(n.Ticket)
+                    </a>
+                }
             }
         </div>
         <div class="panel-body">
@@ -63,15 +74,23 @@
                 @if (n.ClosedAt != null) { <text> · Kapanış: @AppTime.ToLocal(n.ClosedAt)?.ToString("dd.MM.yyyy HH:mm")</text> }
             </div>
 
-            <form asp-action="Update" asp-route-id="@n.Id" method="post">
+            @* Kapatma için zorunlu iki alan: işaretleri ve sunucu kontrolü
+               (NonconformitiesController.Update) aynı kuralı uygular *@
+            <form asp-action="Update" asp-route-id="@n.Id" method="post" data-nc-form>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label small text-muted mb-1">Kök neden</label>
-                        <textarea name="rootCause" rows="2" class="form-control form-control-sm">@n.RootCause</textarea>
+                        <label class="form-label small text-muted mb-1" for="rc@(n.Id)">
+                            Kök neden <span class="text-danger" title="Kapatmak için zorunlu">*</span>
+                        </label>
+                        <textarea name="rootCause" id="rc@(n.Id)" rows="2" class="form-control form-control-sm"
+                                  data-nc-required>@n.RootCause</textarea>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small text-muted mb-1">Düzeltici faaliyet</label>
-                        <textarea name="correctiveAction" rows="2" class="form-control form-control-sm">@n.CorrectiveAction</textarea>
+                        <label class="form-label small text-muted mb-1" for="ca@(n.Id)">
+                            Düzeltici faaliyet <span class="text-danger" title="Kapatmak için zorunlu">*</span>
+                        </label>
+                        <textarea name="correctiveAction" id="ca@(n.Id)" rows="2" class="form-control form-control-sm"
+                                  data-nc-required>@n.CorrectiveAction</textarea>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small text-muted mb-1">Sorumlu</label>
@@ -90,12 +109,13 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small text-muted mb-1">Durum</label>
-                        <select name="status" class="form-select form-select-sm">
+                        <select name="status" class="form-select form-select-sm" data-nc-status>
                             @foreach (var s in Enum.GetValues<NonconformityStatus>())
                             {
                                 <option value="@s" selected="@(s == n.Status)">@Ui.NonconformityStatusText(s)</option>
                             }
                         </select>
+                        <div class="form-text small">Kapalı: <span class="text-danger">*</span> alanları zorunlu</div>
                     </div>
                     <div class="col-md-3 d-flex align-items-end gap-2">
                         <div class="form-check mb-1">
@@ -109,4 +129,23 @@
             </form>
         </div>
     </div>
+}
+
+@section Scripts {
+    <script>
+        // "Kapalı" seçildiğinde kök neden ve düzeltici faaliyet tarayıcıda da
+        // zorunlu olur; asıl kontrol sunucuda (Update action) yapılır.
+        document.querySelectorAll('[data-nc-form]').forEach(function (form) {
+            var durum = form.querySelector('[data-nc-status]');
+            var alanlar = form.querySelectorAll('[data-nc-required]');
+            if (!durum) return;
+
+            function uygula() {
+                var kapali = durum.value === 'Closed';
+                alanlar.forEach(function (a) { a.required = kapali; });
+            }
+            durum.addEventListener('change', uygula);
+            uygula();
+        });
+    </script>
 }

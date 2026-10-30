@@ -142,6 +142,14 @@ public class PortalController : Controller
         return PartialView("_DetailsPartial", ticket);
     }
 
+    // Portaldaki her okuma ve yazma bu iki kontrolden geçer:
+    //   1) Talep oturumdaki kullanıcıya mı ait (RequesterId == me.Id)
+    //   2) Talep arşivlenmiş mi (global query filter: IsDeleted)
+    // Başkasının talebi "bulunamadı" sayılır; var olup olmadığı sızdırılmaz,
+    // bu yüzden 403 değil 404 dönüyoruz.
+    private Task<Ticket?> FindMyTicketAsync(int id) =>
+        _db.Tickets.FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
+
     private async Task<Ticket?> LoadPortalTicketAsync(int id)
     {
         var ticket = await _db.Tickets
@@ -162,6 +170,15 @@ public class PortalController : Controller
             .Where(q => q.IsActive && q.Template!.IsActive)
             .OrderBy(q => q.SortOrder)
             .ToListAsync();
+
+        // İç notlar kullanıcıya gösterilmez. Not gizlenirken ekinin talebin
+        // "Ekler" listesinde görünmesi dosya adını sızdırıyordu; ek de
+        // listeden çıkarılır (indirme yolu AttachmentPolicy ile ayrıca kapalı).
+        var icNotIdleri = ticket.Comments.Where(c => c.IsInternal).Select(c => c.Id).ToHashSet();
+
+        ticket.Attachments = ticket.Attachments
+            .Where(a => a.CommentId == null || !icNotIdleri.Contains(a.CommentId.Value))
+            .ToList();
 
         ticket.Comments = ticket.Comments
             .Where(c => !c.IsInternal)
@@ -184,13 +201,14 @@ public class PortalController : Controller
     [RequestSizeLimit(60 * 1024 * 1024)]
     public async Task<IActionResult> AddComment(int id, string? body, List<IFormFile>? files, string? returnTo)
     {
-        var ticket = await _db.Tickets
-            .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
+        var ticket = await FindMyTicketAsync(id);
         if (ticket == null) return NotFound();
 
+        // Kapanmış talebin yazışması kapalıdır (aynı kural yönetim tarafında da
+        // uygulanıyor: TicketsController.AddComment)
         if (ticket.Status == TicketStatus.Closed)
         {
-            TempData["Err"] = "Kapanmış talebe mesaj yazılamaz.";
+            TempData["Err"] = "Kapanmış talebe mesaj yazılamaz. Yeni bir talep açabilirsiniz.";
             return BackToTicket(id, returnTo);
         }
 
@@ -248,7 +266,7 @@ public class PortalController : Controller
         var ticket = await _db.Tickets
             .Include(t => t.Attachments)
             .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
-        if (ticket == null) return NotFound();
+        if (ticket == null) return NotFound();   // başkasının talebi: bulunamadı
 
         if (ticket.Status == TicketStatus.Closed)
         {
@@ -273,8 +291,7 @@ public class PortalController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Feedback(int id, string? comment, string? returnTo)
     {
-        var ticket = await _db.Tickets
-            .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
+        var ticket = await FindMyTicketAsync(id);
         if (ticket == null) return NotFound();
 
         if (ticket.Status is not (TicketStatus.Resolved or TicketStatus.Closed))
