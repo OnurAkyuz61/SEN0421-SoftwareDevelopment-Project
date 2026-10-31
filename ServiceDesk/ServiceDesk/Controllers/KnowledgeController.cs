@@ -22,7 +22,7 @@ public class KnowledgeController : Controller
         _current = current;
     }
 
-    public async Task<IActionResult> Index(string? q, int? categoryId)
+    public async Task<IActionResult> Index(string? q, int? categoryId, int page = 1)
     {
         var query = _db.KnowledgeArticles.AsNoTracking().Include(a => a.Category).AsQueryable();
 
@@ -39,9 +39,12 @@ public class KnowledgeController : Controller
         ViewBag.Categories = await _db.Categories.AsNoTracking()
             .Where(c => c.IsActive).OrderBy(c => c.SortOrder).ToListAsync();
 
-        return View(await query
+        var (list, pager) = await query
             .OrderByDescending(a => a.UsedCount).ThenBy(a => a.Title)
-            .ToListAsync());
+            .ToPageAsync(page);
+
+        ViewBag.Pager = pager;
+        return View(list);
     }
 
     public async Task<IActionResult> Details(int id)

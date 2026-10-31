@@ -6,6 +6,7 @@
     Layout = Me.IsStaff ? "_Layout" : "_PortalLayout";
     var kategoriler = (List<Category>)ViewBag.Categories;
     var seciliKategori = ViewBag.CategoryId as int?;
+    var pager = (PagerInfo)ViewBag.Pager;
 }
 
 <div class="d-flex flex-wrap align-items-end gap-3 mb-4">
@@ -37,6 +38,10 @@
         <i class="bi bi-journal-text fs-4 d-block mb-2"></i> Bu aramaya uyan makale yok
     </div></div>
 }
+else
+{
+    <div class="text-muted small mb-2">@pager.TotalCount makale · sayfa @pager.Page / @pager.TotalPages</div>
+}
 
 <div class="row g-3">
     @foreach (var a in Model)
@@ -61,3 +66,10 @@
         </div>
     }
 </div>
+
+@if (Model.Any())
+{
+    <div class="panel mt-3">
+        <partial name="_Pager" model="pager" />
+    </div>
+}
