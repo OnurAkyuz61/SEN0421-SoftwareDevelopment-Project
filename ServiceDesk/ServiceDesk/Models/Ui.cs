@@ -1,4 +1,4 @@
-namespace ServiceDesk.Models;
+﻿namespace ServiceDesk.Models;
 
 // Arayüzde etiket renkleri (site.css .tag-*) ve Türkçe metinler
 public static class Ui
@@ -56,7 +56,16 @@ public static class Ui
         LoginResult.NoPhone => "Telefon tanımsız",
         LoginResult.OtpFailed => "OTP hatalı",
         LoginResult.OtpExpired => "OTP süresi doldu",
+        LoginResult.DevLogin => "Geliştirme girişi",
         _ => "Çok fazla deneme"
+    };
+
+    public static string LoginResultTag(LoginResult r) => r switch
+    {
+        LoginResult.Success => "tag-green",
+        LoginResult.DevLogin => "tag-blue",
+        LoginResult.NoPhone or LoginResult.OtpExpired => "tag-amber",
+        _ => "tag-red"
     };
 
     public static string RoleText(UserRole r) => r switch

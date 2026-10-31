@@ -1,4 +1,4 @@
-@model ProfilePageVm
+﻿@model ProfilePageVm
 @inject CurrentUser Me
 @{
     ViewData["Title"] = "Profilim";
@@ -31,7 +31,7 @@
                             <label asp-for="Profile.PhoneNumber" class="form-label"></label>
                             <input asp-for="Profile.PhoneNumber" class="form-control" autocomplete="tel" placeholder="+90 5xx xxx xx xx" />
                             <span asp-validation-for="Profile.PhoneNumber" class="text-danger small"></span>
-                            <div class="form-text">OTP doğrulaması bu numaraya gönderilir.</div>
+                            <div class="form-text">OTP doğrulaması bu numaraya gönderilir; numara silinemez, yalnızca değiştirilebilir.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Rol</label>

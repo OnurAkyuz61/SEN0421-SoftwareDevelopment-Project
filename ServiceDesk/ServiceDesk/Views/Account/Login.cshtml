@@ -1,5 +1,4 @@
-@model LoginVm
-@inject IWebHostEnvironment Env
+﻿@model LoginVm
 @{
     Layout = "_AuthLayout";
     ViewData["Title"] = "Giriş";
@@ -82,10 +81,11 @@ else if (reason == "logout")
 @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────────────────
    Test hesabına şifre ve OTP olmadan girer. Giriş formundan ayrı bir form
    olduğu için tarayıcı parola gönderimi algılamaz; "bu şifre bir veri
-   sızıntısında bulundu" uyarısı çıkmaz. Yalnızca Development'ta görünür,
+   sızıntısında bulundu" uyarısı çıkmaz. Yalnızca Development'ta ve bu
+   bilgisayardan açıldığında görünür (DevelopmentOnlyAttribute ile aynı kural),
    sunucu tarafında da ayrıca kilitli. Canlıya çıkmadan önce bu blok,
    auth.css'teki .dev-* stilleri ve AccountController.DevLogin silinecek. *@
-@if (Env.IsDevelopment())
+@if (ServiceDesk.Filters.DevelopmentOnlyAttribute.IsAllowed(Context))
 {
     <form asp-action="DevLogin" method="post" class="dev-box">
         <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />

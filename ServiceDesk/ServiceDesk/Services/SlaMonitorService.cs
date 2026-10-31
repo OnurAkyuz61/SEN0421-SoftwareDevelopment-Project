@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Models;
 
@@ -38,6 +38,12 @@ public class SlaMonitorService : BackgroundService
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 break;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Tarama sürerken bir kullanıcı aynı talebi güncelledi; kullanıcının
+                // değişikliği korunur, talep bir sonraki turda yeniden değerlendirilir
+                _log.LogInformation("SLA taraması eşzamanlı bir talep güncellemesine denk geldi; sonraki turda tekrar denenecek");
             }
             catch (Exception ex)
             {

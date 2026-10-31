@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
@@ -52,14 +52,71 @@ public class UsersController : Controller
         ViewBag.Active = active;
         ViewBag.PassiveCount = await _db.Users.CountAsync(u => !u.IsActive);
 
-        // Son giriş denemeleri: güvenlik denetim izi
-        ViewBag.LoginAttempts = await _db.LoginAttempts.AsNoTracking()
-            .OrderByDescending(l => l.AttemptedAt).Take(20).ToListAsync();
+        // Son giriş denemeleri: güvenlik denetim izi. Kimin hangi IP'den, hangi
+        // e-postayla ve ne sonuçla giriş denediği hassas bir kayıttır (var olmayan
+        // hesaplara yapılan denemeler, kilitlenen hesaplar). Liste sayfası destek
+        // personeline de açık olduğu için bu bölüm yalnızca yöneticiye yüklenir.
+        if (_current.User!.Role == UserRole.Admin)
+            ViewBag.LoginAttempts = await _db.LoginAttempts.AsNoTracking()
+                .OrderByDescending(l => l.AttemptedAt).Take(20).ToListAsync();
 
         return View(await query
             .OrderBy(u => u.Role).ThenBy(u => u.FirstName)
             .ToListAsync());
     }
+
+    // Giriş denemesi denetim izinin tamamı: yalnızca yönetici.
+    // Filtreler: e-posta (içerir), sonuç, yalnızca başarısızlar, tarih aralığı.
+    [HttpGet]
+    [AuthorizeRole(UserRole.Admin)]
+    public async Task<IActionResult> LoginAttempts(string? q, LoginResult? result, bool failedOnly = false,
+                                                   DateTime? from = null, DateTime? to = null)
+    {
+        const int Limit = 500;
+        var query = _db.LoginAttempts.AsNoTracking().Include(l => l.User).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var ara = q.Trim().ToLowerInvariant();
+            query = query.Where(l => l.Email.Contains(ara) || (l.IpAddress != null && l.IpAddress.Contains(ara)));
+        }
+        if (result != null) query = query.Where(l => l.Result == result);
+        if (failedOnly) query = query.Where(l => l.Result != LoginResult.Success && l.Result != LoginResult.DevLogin);
+        // Form yerel tarih gönderir, kayıtlar UTC
+        if (from != null)
+        {
+            var bas = AppTime.ToUtc(from.Value.Date);
+            query = query.Where(l => l.AttemptedAt >= bas);
+        }
+        if (to != null)
+        {
+            var bit = AppTime.ToUtc(to.Value.Date.AddDays(1));
+            query = query.Where(l => l.AttemptedAt < bit);
+        }
+
+        ViewBag.Q = q;
+        ViewBag.Result = result;
+        ViewBag.FailedOnly = failedOnly;
+        ViewBag.From = from;
+        ViewBag.To = to;
+        ViewBag.Limit = Limit;
+        ViewBag.Total = await query.CountAsync();
+
+        // Son 24 saatin özeti: kilitlenen hesaplar ve en çok başarısız deneme alan adresler
+        var gun = AppTime.UtcNow.AddDays(-1);
+        ViewBag.Failed24h = await _db.LoginAttempts.CountAsync(l => l.AttemptedAt >= gun &&
+            l.Result != LoginResult.Success && l.Result != LoginResult.DevLogin);
+        ViewBag.Locked24h = await _db.LoginAttempts.CountAsync(l => l.AttemptedAt >= gun && l.Result == LoginResult.LockedOut);
+        ViewBag.TopTargets = await _db.LoginAttempts.AsNoTracking()
+            .Where(l => l.AttemptedAt >= gun && l.Result != LoginResult.Success && l.Result != LoginResult.DevLogin)
+            .GroupBy(l => l.Email)
+            .Select(g => new LoginTargetRow(g.Key, g.Count()))
+            .OrderByDescending(x => x.Count).Take(5).ToListAsync();
+
+        return View(await query.OrderByDescending(l => l.AttemptedAt).Take(Limit).ToListAsync());
+    }
+
+    public record LoginTargetRow(string Email, int Count);
 
     // Oluşturma ve düzenleme aynı ekran: id boşsa yeni kayıt
     [HttpGet]
@@ -95,7 +152,7 @@ public class UsersController : Controller
         }
 
         vm.Email = vm.Email.Trim();
-        var phone = string.IsNullOrWhiteSpace(vm.PhoneNumber) ? null : vm.PhoneNumber.Trim();
+        var phone = PhoneRules.Normalize(vm.PhoneNumber);
 
         // Şifre yeni kayıtta zorunlu; düzenlemede boş bırakılırsa değişmez
         if (vm.IsNew && string.IsNullOrEmpty(vm.Password))
@@ -104,8 +161,19 @@ public class UsersController : Controller
         if (await _db.Users.AnyAsync(u => u.Email == vm.Email && u.Id != vm.Id))
             ModelState.AddModelError(nameof(vm.Email), "Bu e-posta adresi başka bir hesapta kayıtlı");
 
-        if (phone != null && await _db.Users.AnyAsync(u => u.PhoneNumber == phone && u.Id != vm.Id))
+        if (PhoneRules.Validate(phone) is { } phoneError)
+            ModelState.AddModelError(nameof(vm.PhoneNumber), phoneError);
+        else if (phone != null && await PhoneTakenAsync(phone, vm.Id))
             ModelState.AddModelError(nameof(vm.PhoneNumber), "Bu telefon numarası başka bir hesapta kayıtlı");
+
+        // Aktif hesabın kayıtlı numarası boşaltılamaz: OTP gidecek yer kalmaz ve
+        // kişi giriş yapamaz. (Telefonsuz yeni hesap açmak hâlâ mümkün; listede
+        // "telefon yok" uyarısıyla görünür.)
+        if (user != null && PhoneRules.WouldLockOut(user.PhoneNumber, phone, vm.IsActive))
+        {
+            ModelState.AddModelError(nameof(vm.PhoneNumber), PhoneRules.RemoveBlockedMessage);
+            phone = user.PhoneNumber;
+        }
 
         // Ekip seçildiyse gerçekten var olmalı ve seçilen birime bağlı olmalı
         if (vm.TeamId != null)
@@ -140,6 +208,17 @@ public class UsersController : Controller
         {
             ModelState.AddModelError(string.Empty,
                 "Bu hesap sistemdeki tek aktif yönetici. Önce başka bir yöneticiyi yetkilendirin.");
+        }
+
+        // Ekip lideri yalnızca aktif Destek / Yönetici olabilir (CatalogRules.CanLeadTeam).
+        // Liderin rolü Kullanıcı'ya düşürülür ya da hesabı pasifleştirilirse
+        // ekip, eskalasyonu alamayan bir lidere bağlı kalırdı.
+        if (user != null && (vm.Role == UserRole.User || !vm.IsActive) &&
+            await LedTeamNamesAsync(user.Id) is { Count: > 0 } liderOlduguEkipler)
+        {
+            ModelState.AddModelError(vm.Role == UserRole.User ? nameof(vm.Role) : nameof(vm.IsActive),
+                $"Bu kişi {string.Join(", ", liderOlduguEkipler)} ekibinin lideri. " +
+                "Önce Katalog ekranından liderliği başka bir Destek/Yönetici hesabına devredin.");
         }
 
         if (!ModelState.IsValid)
@@ -193,6 +272,11 @@ public class UsersController : Controller
         {
             TempData["Err"] = "Sistemdeki tek aktif yönetici pasifleştirilemez.";
         }
+        else if (!isActive && await LedTeamNamesAsync(user.Id) is { Count: > 0 } ekipler)
+        {
+            TempData["Err"] = $"{user.FullName} {string.Join(", ", ekipler)} ekibinin lideri; " +
+                              "pasifleştirmeden önce Katalog ekranından liderliği devredin.";
+        }
         else if (user.IsActive == isActive)
         {
             TempData["Ok"] = $"{user.FullName} hesabı zaten {(isActive ? "aktif" : "pasif")}.";
@@ -212,6 +296,17 @@ public class UsersController : Controller
 
     private Task<bool> OtherActiveAdminExistsAsync(int exceptUserId) =>
         _db.Users.AnyAsync(u => u.Id != exceptUserId && u.Role == UserRole.Admin && u.IsActive);
+
+    private async Task<bool> PhoneTakenAsync(string phone, int exceptUserId)
+    {
+        var others = await _db.Users.AsNoTracking()
+            .Where(u => u.Id != exceptUserId && u.PhoneNumber != null)
+            .Select(u => u.PhoneNumber).ToListAsync();
+        return others.Any(o => PhoneRules.Normalize(o) == phone);
+    }
+
+    private Task<List<string>> LedTeamNamesAsync(int userId) =>
+        _db.Teams.Where(t => t.LeadUserId == userId).OrderBy(t => t.Name).Select(t => t.Name).ToListAsync();
 
     private async Task LoadFormListsAsync()
     {

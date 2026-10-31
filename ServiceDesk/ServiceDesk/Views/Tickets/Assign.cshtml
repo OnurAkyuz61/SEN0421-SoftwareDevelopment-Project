@@ -1,4 +1,4 @@
-@model Ticket
+﻿@model Ticket
 @inject CurrentUser Me
 @{
     ViewData["Title"] = "Talep Ata";
@@ -64,6 +64,7 @@
                             {
                                 <form asp-action="Assign" asp-route-id="@Model.Id" method="post" class="d-inline">
                                     <input type="hidden" name="assigneeId" value="@u.Id" />
+                                    <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(Model.RowVersion)" />
                                     <button class="btn btn-sm btn-outline-primary">Ata</button>
                                 </form>
                             }
@@ -78,6 +79,7 @@
         <div class="panel-body border-top">
             @* assigneeId gönderilmezse atama kaldırılır *@
             <form asp-action="Assign" asp-route-id="@Model.Id" method="post">
+                <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(Model.RowVersion)" />
                 <button class="btn btn-sm btn-outline-danger"><i class="bi bi-person-x"></i> Atamayı kaldır</button>
             </form>
         </div>

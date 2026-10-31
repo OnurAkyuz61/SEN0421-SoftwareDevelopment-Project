@@ -1,9 +1,10 @@
-@model List<Category>
+﻿@model List<Category>
 @{
     ViewData["Title"] = "Katalog Yönetimi";
     var birimler = (List<Department>)ViewBag.Departments;
     var ekipler = (List<Team>)ViewBag.Teams;
     var sayilar = (Dictionary<int, int>)ViewBag.TicketCounts;
+    var liderAdaylari = (List<AppUser>)ViewBag.LeadCandidates;
 }
 
 <div class="mb-4">
@@ -11,6 +12,7 @@
     <div class="text-muted">
         Kategori, birim ve ekipler veritabanında tutulur; buradan yönetilir.
         Kayıtlar silinmez, pasifleştirilir — geçmiş talepler bağlı kalır.
+        İsimler benzersizdir; pasif bir kaydın adı da yeniden kullanılamaz.
     </div>
 </div>
 
@@ -30,7 +32,7 @@
                     <tr>
                         <form asp-action="SaveCategory" method="post">
                             <input type="hidden" name="id" value="@c.Id" />
-                            <td><input name="name" value="@c.Name" class="form-control form-control-sm" required /></td>
+                            <td><input name="name" value="@c.Name" class="form-control form-control-sm" required maxlength="@CatalogRules.MaxNameLength" /></td>
                             <td>
                                 <select name="defaultTeamId" class="form-select form-select-sm">
                                     <option value="">-</option>
@@ -56,7 +58,7 @@
                 <tr class="table-light">
                     <form asp-action="SaveCategory" method="post">
                         <input type="hidden" name="id" value="0" />
-                        <td><input name="name" class="form-control form-control-sm" placeholder="Yeni kategori" required /></td>
+                        <td><input name="name" class="form-control form-control-sm" placeholder="Yeni kategori" required maxlength="@CatalogRules.MaxNameLength" /></td>
                         <td>
                             <select name="defaultTeamId" class="form-select form-select-sm">
                                 <option value="">-</option>
@@ -87,7 +89,7 @@
                             <tr>
                                 <form asp-action="SaveDepartment" method="post">
                                     <input type="hidden" name="id" value="@d.Id" />
-                                    <td><input name="name" value="@d.Name" class="form-control form-control-sm" required /></td>
+                                    <td><input name="name" value="@d.Name" class="form-control form-control-sm" required maxlength="@CatalogRules.MaxNameLength" /></td>
                                     <td style="width:90px">
                                         <div class="form-check mb-0">
                                             <input class="form-check-input" type="checkbox" name="isActive" value="true"
@@ -105,7 +107,7 @@
                             <form asp-action="SaveDepartment" method="post">
                                 <input type="hidden" name="id" value="0" />
                                 <input type="hidden" name="isActive" value="true" />
-                                <td><input name="name" class="form-control form-control-sm" placeholder="Yeni birim" required /></td>
+                                <td><input name="name" class="form-control form-control-sm" placeholder="Yeni birim" required maxlength="@CatalogRules.MaxNameLength" /></td>
                                 <td></td>
                                 <td class="text-end"><button class="btn btn-sm btn-primary">Ekle</button></td>
                             </form>
@@ -119,7 +121,7 @@
     @* ── Ekipler ─────────────────────────────────────────────────────── *@
     <div class="col-lg-7">
         <div class="panel h-100">
-            <div class="panel-head">Ekipler</div>
+            <div class="panel-head">Ekipler <span class="text-muted small fw-normal">lider yalnızca Destek / Yönetici olabilir</span></div>
             <div class="table-responsive">
                 <table class="table table-sm mb-0 align-middle">
                     <tbody>
@@ -128,7 +130,7 @@
                             <tr>
                                 <form asp-action="SaveTeam" method="post">
                                     <input type="hidden" name="id" value="@t.Id" />
-                                    <td><input name="name" value="@t.Name" class="form-control form-control-sm" required /></td>
+                                    <td><input name="name" value="@t.Name" class="form-control form-control-sm" required maxlength="@CatalogRules.MaxNameLength" /></td>
                                     <td style="width:170px">
                                         <select name="departmentId" class="form-select form-select-sm">
                                             @foreach (var d in birimler)
@@ -136,6 +138,28 @@
                                                 <option value="@d.Id" selected="@(d.Id == t.DepartmentId)">@d.Name</option>
                                             }
                                         </select>
+                                    </td>
+                                    <td style="width:180px">
+                                        @* Lider yalnızca aktif Destek / Yönetici olabilir. Mevcut lider bu
+                                           şartı artık sağlamıyorsa (pasifleşti, rolü düşürüldü) seçili
+                                           ama uyarılı görünür; kaydetmeden önce değiştirilmesi gerekir. *@
+                                        @{ var liderGecersiz = t.LeadUser != null && !CatalogRules.CanLeadTeam(t.LeadUser); }
+                                        <select name="leadUserId" class="form-select form-select-sm @(liderGecersiz ? "is-invalid" : "")"
+                                                title="Ekip lideri (yalnızca Destek / Yönetici)">
+                                            <option value="">Lider yok</option>
+                                            @if (liderGecersiz)
+                                            {
+                                                <option value="@t.LeadUser!.Id" selected>@t.LeadUser!.FullName (geçersiz)</option>
+                                            }
+                                            @foreach (var u in liderAdaylari)
+                                            {
+                                                <option value="@u.Id" selected="@(u.Id == t.LeadUserId)">@u.FullName · @Ui.RoleText(u.Role)</option>
+                                            }
+                                        </select>
+                                        @if (liderGecersiz)
+                                        {
+                                            <div class="invalid-feedback">Lider artık aktif Destek/Yönetici değil.</div>
+                                        }
                                     </td>
                                     <td style="width:90px">
                                         <div class="form-check mb-0">
@@ -154,10 +178,16 @@
                             <form asp-action="SaveTeam" method="post">
                                 <input type="hidden" name="id" value="0" />
                                 <input type="hidden" name="isActive" value="true" />
-                                <td><input name="name" class="form-control form-control-sm" placeholder="Yeni ekip" required /></td>
+                                <td><input name="name" class="form-control form-control-sm" placeholder="Yeni ekip" required maxlength="@CatalogRules.MaxNameLength" /></td>
                                 <td>
                                     <select name="departmentId" class="form-select form-select-sm">
                                         @foreach (var d in birimler) { <option value="@d.Id">@d.Name</option> }
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="leadUserId" class="form-select form-select-sm" title="Ekip lideri (yalnızca Destek / Yönetici)">
+                                        <option value="">Lider yok</option>
+                                        @foreach (var u in liderAdaylari) { <option value="@u.Id">@u.FullName · @Ui.RoleText(u.Role)</option> }
                                     </select>
                                 </td>
                                 <td></td>

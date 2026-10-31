@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
@@ -121,10 +121,16 @@ public class AccountController : Controller
     // gitmediği için tarayıcının "bu şifre bir veri sızıntısında bulundu"
     // uyarısı da çıkmaz.
     //
-    // İKİ KAT KİLİTLİ: yalnızca Development ortamında ve yalnızca seed
-    // hesapları için çalışır. Canlıya çıkmadan önce bu action ve giriş
-    // sayfasındaki dev bloğu silinecek.
+    // ÜÇ KAT KİLİTLİ:
+    //   1. [DevelopmentOnly]: ortam Development değilse ya da istek bu
+    //      bilgisayardan gelmiyorsa action hiç çalışmadan 404 döner.
+    //   2. Action içinde ortam bir kez daha kontrol edilir (filtre yanlışlıkla
+    //      kaldırılırsa diye).
+    //   3. Yalnızca seed hesapları için çalışır.
+    // Her kullanım giriş denetim izine "Geliştirme girişi" olarak yazılır.
+    // Canlıya çıkmadan önce bu action ve giriş sayfasındaki dev bloğu silinecek.
     [HttpPost]
+    [DevelopmentOnly]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DevLogin(string? email, string? returnUrl)
     {
@@ -141,6 +147,7 @@ public class AccountController : Controller
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
         if (user == null) return NotFound();
 
+        await _audit.RecordAsync(user.Email, LoginResult.DevLogin, user.Id);
         StartSession(user);
 
         TempData["Ok"] = $"Geliştirme girişi: {user.FullName} ({Ui.RoleText(user.Role)})";

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
@@ -117,10 +117,11 @@ public class KnowledgeController : Controller
     // Talebi bu makaleyle çözüldü olarak işaretler; makalenin kullanım sayacı artar
     [HttpPost, ValidateAntiForgeryToken]
     [AuthorizeRole(UserRole.Agent, UserRole.Admin)]
-    public async Task<IActionResult> LinkToTicket(int ticketId, int? articleId)
+    public async Task<IActionResult> LinkToTicket(int ticketId, int? articleId, string? rowVersion)
     {
         var ticket = await _db.Tickets.FirstOrDefaultAsync(t => t.Id == ticketId);
         if (ticket == null) return NotFound();
+        if (TicketConcurrency.Expect(_db, ticket, rowVersion)) return await ConflictAsync(ticketId);
 
         // Aynı makale tekrar seçilirse sayaç şişmesin
         if (ticket.ResolvedByArticleId == articleId)
@@ -141,9 +142,23 @@ public class KnowledgeController : Controller
         }
 
         ticket.ResolvedByArticleId = articleId;
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            TicketConcurrency.DiscardChanges(_db);
+            return await ConflictAsync(ticketId);
+        }
 
         TempData["Ok"] = articleId == null ? "Makale bağlantısı kaldırıldı." : "Talep makaleye bağlandı.";
+        return RedirectToAction("Details", "Tickets", new { id = ticketId });
+    }
+
+    private async Task<IActionResult> ConflictAsync(int ticketId)
+    {
+        TempData["Err"] = await TicketConcurrency.ConflictMessageAsync(_db, ticketId, _current.User?.Id);
         return RedirectToAction("Details", "Tickets", new { id = ticketId });
     }
 

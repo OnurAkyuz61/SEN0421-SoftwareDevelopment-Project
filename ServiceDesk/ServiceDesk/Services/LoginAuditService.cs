@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Models;
 
@@ -54,6 +54,9 @@ public class LoginAuditService
         foreach (var r in attempts)
         {
             if (r == LoginResult.Success) break;
+            // Geliştirme girişi ne başarısızlıktır ne de sayacı sıfırlar:
+            // kaba kuvvet denemesini "temizleyen" bir arka kapı olmamalı
+            if (r == LoginResult.DevLogin) continue;
             failures++;
         }
         return failures;

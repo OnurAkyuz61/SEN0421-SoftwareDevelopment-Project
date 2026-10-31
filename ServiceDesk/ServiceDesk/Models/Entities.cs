@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using ServiceDesk.Services;
 
 namespace ServiceDesk.Models;
@@ -544,7 +544,9 @@ public class Attachment
     public long Size { get; set; }
     public DateTime UploadedAt { get; set; } = AppTime.UtcNow;
 
-    public bool IsImage => ContentType.StartsWith("image/");
+    // Tarayıcıda gösterilebilen güvenli görsel mi? Kaydedilen içerik türüne değil
+    // (eski kayıtlarda istemciden geliyordu) diskteki dosyanın uzantısına bakılır.
+    public bool IsImage => UploadPolicy.IsInlineImage(StoredFileName);
 }
 
 public enum UserRole
@@ -607,7 +609,9 @@ public enum LoginResult
     [Display(Name = "Telefon tanımsız")] NoPhone = 3,
     [Display(Name = "OTP hatalı")] OtpFailed = 4,
     [Display(Name = "OTP süresi doldu")] OtpExpired = 5,
-    [Display(Name = "Çok fazla deneme")] LockedOut = 6
+    [Display(Name = "Çok fazla deneme")] LockedOut = 6,
+    // Yalnızca Development'ta, şifre ve OTP atlanarak yapılan giriş
+    [Display(Name = "Geliştirme girişi")] DevLogin = 7
 }
 
 // Giriş denemesi denetim izi. Hem güvenlik kaydı hem de deneme

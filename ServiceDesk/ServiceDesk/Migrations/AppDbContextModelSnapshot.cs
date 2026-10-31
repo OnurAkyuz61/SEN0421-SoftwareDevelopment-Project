@@ -202,6 +202,9 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("DefaultTeamId");
 
+                    b.HasIndex("Name")
+                        .IsUnique();
+
                     b.HasIndex("ParentId");
 
                     b.HasIndex("IsActive", "SortOrder");
@@ -351,6 +354,9 @@ namespace ServiceDesk.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Departments");
 
@@ -1100,6 +1106,9 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("DepartmentId");
 
                     b.HasIndex("LeadUserId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Teams");
 

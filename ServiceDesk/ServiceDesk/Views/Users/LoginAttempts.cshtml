@@ -1,0 +1,134 @@
+@model List<LoginAttempt>
+@using ServiceDesk.Controllers
+@{
+    ViewData["Title"] = "Giriş Denemeleri";
+    var secilenSonuc = (LoginResult?)ViewBag.Result;
+    var yalnizBasarisiz = (bool)ViewBag.FailedOnly;
+    var bas = (DateTime?)ViewBag.From;
+    var bit = (DateTime?)ViewBag.To;
+    var toplam = (int)ViewBag.Total;
+    var limit = (int)ViewBag.Limit;
+    var hedefler = (List<UsersController.LoginTargetRow>)ViewBag.TopTargets;
+}
+
+<a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Kullanıcılar</a>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mt-2 mb-3">
+    <div class="me-auto">
+        <h4 class="fw-bold mb-0">Giriş denemeleri</h4>
+        <div class="text-muted small">
+            Güvenlik denetim izi · yalnızca yöneticiler görür ·
+            @LoginAuditService.MaxFailedAttempts başarısız denemeden sonra hesap @LoginAuditService.Window.TotalMinutes dakika kapanır
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-sm-4">
+        <div class="panel h-100"><div class="panel-body">
+            <div class="text-muted small">Son 24 saatte başarısız</div>
+            <div class="fs-3 fw-bold">@ViewBag.Failed24h</div>
+        </div></div>
+    </div>
+    <div class="col-sm-4">
+        <div class="panel h-100"><div class="panel-body">
+            <div class="text-muted small">Son 24 saatte kilitlenme</div>
+            <div class="fs-3 fw-bold @((int)ViewBag.Locked24h > 0 ? "text-danger" : "")">@ViewBag.Locked24h</div>
+        </div></div>
+    </div>
+    <div class="col-sm-4">
+        <div class="panel h-100"><div class="panel-body">
+            <div class="text-muted small mb-1">En çok hedeflenen hesaplar (24 saat)</div>
+            @if (!hedefler.Any())
+            {
+                <div class="small text-muted">Başarısız deneme yok</div>
+            }
+            @foreach (var h in hedefler)
+            {
+                <div class="d-flex small">
+                    <a class="text-truncate me-2" asp-action="LoginAttempts" asp-route-q="@h.Email" asp-route-failedOnly="true">@h.Email</a>
+                    <span class="ms-auto tag tag-red">@h.Count</span>
+                </div>
+            }
+        </div></div>
+    </div>
+</div>
+
+<form asp-action="LoginAttempts" method="get" class="panel mb-3">
+    <div class="panel-body d-flex flex-wrap gap-2 align-items-end">
+        <div>
+            <label class="form-label small text-muted mb-1" for="q">E-posta / IP</label>
+            <input id="q" name="q" value="@ViewBag.Q" class="form-control form-control-sm" style="min-width:220px" />
+        </div>
+        <div>
+            <label class="form-label small text-muted mb-1" for="result">Sonuç</label>
+            <select id="result" name="result" class="form-select form-select-sm">
+                <option value="">Tümü</option>
+                @foreach (var r in Enum.GetValues<LoginResult>())
+                {
+                    <option value="@r" selected="@(secilenSonuc == r)">@Ui.LoginResultText(r)</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="form-label small text-muted mb-1" for="from">Başlangıç</label>
+            <input id="from" name="from" type="date" value="@bas?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" />
+        </div>
+        <div>
+            <label class="form-label small text-muted mb-1" for="to">Bitiş</label>
+            <input id="to" name="to" type="date" value="@bit?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" />
+        </div>
+        <div class="form-check mb-1">
+            <input class="form-check-input" type="checkbox" name="failedOnly" value="true" id="failedOnly" checked="@yalnizBasarisiz" />
+            <label class="form-check-label small" for="failedOnly">Yalnızca başarısızlar</label>
+        </div>
+        <button class="btn btn-sm btn-secondary"><i class="bi bi-funnel"></i> Filtrele</button>
+        <a asp-action="LoginAttempts" class="btn btn-sm btn-light border">Temizle</a>
+    </div>
+</form>
+
+<div class="panel">
+    <div class="panel-head">
+        @toplam kayıt
+        @if (toplam > limit)
+        {
+            <span class="text-muted small fw-normal">· en yeni @limit tanesi gösteriliyor, daraltmak için filtreleyin</span>
+        }
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead><tr><th>E-posta</th><th>Hesap</th><th>Sonuç</th><th>IP</th><th class="text-end">Zaman</th></tr></thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">Bu filtrede kayıt yok</td></tr>
+                }
+                @foreach (var l in Model)
+                {
+                    <tr>
+                        <td class="small">@l.Email</td>
+                        <td class="small">
+                            @if (l.User != null)
+                            {
+                                <a asp-action="Edit" asp-route-id="@l.User.Id">@l.User.FullName</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td><span class="tag @Ui.LoginResultTag(l.Result)">@Ui.LoginResultText(l.Result)</span></td>
+                        <td class="small text-muted">
+                            @if (l.IpAddress != null)
+                            {
+                                <a class="text-muted" asp-action="LoginAttempts" asp-route-q="@l.IpAddress">@l.IpAddress</a>
+                            }
+                            else { <span>-</span> }
+                        </td>
+                        <td class="text-end small text-muted">@AppTime.ToLocal(l.AttemptedAt).ToString("dd.MM.yyyy HH:mm:ss")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

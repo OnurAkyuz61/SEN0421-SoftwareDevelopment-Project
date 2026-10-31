@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Models;
@@ -72,6 +72,14 @@ if (!app.Environment.IsDevelopment())
 // değil, ne olduğunu anlatan ve kullanıcıyı kendi alanına geri gönderen
 // sayfayı gösterir. Durum kodu korunur.
 app.UseStatusCodePagesWithReExecute("/Home/Error", "?code={0}");
+
+// Tarayıcı, sunucunun bildirdiği içerik türünü "tahmin" ederek değiştiremez
+// (ör. HTML içeren bir metin dosyasını sayfa gibi çalıştıramaz)
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    await next();
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

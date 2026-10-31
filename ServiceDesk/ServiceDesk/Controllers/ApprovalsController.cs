@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
@@ -40,18 +40,25 @@ public class ApprovalsController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> Approve(int id, string? note, string? returnUrl) => Decide(id, true, note, returnUrl);
+    public Task<IActionResult> Approve(int id, string? note, string? returnUrl, string? rowVersion) =>
+        Decide(id, true, note, returnUrl, rowVersion);
 
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> Reject(int id, string? note, string? returnUrl) => Decide(id, false, note, returnUrl);
+    public Task<IActionResult> Reject(int id, string? note, string? returnUrl, string? rowVersion) =>
+        Decide(id, false, note, returnUrl, rowVersion);
 
-    private async Task<IActionResult> Decide(int id, bool approve, string? note, string? returnUrl)
+    private async Task<IActionResult> Decide(int id, bool approve, string? note, string? returnUrl, string? rowVersion)
     {
         var t = await _db.Tickets
             .Include(x => x.ChangeDetail)
             .Include(x => x.Approvals)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (t == null) return NotFound();
+
+        // Karar, kişinin gördüğü plana ve risk seviyesine verilir: arada plan
+        // değiştiyse ya da başka bir onaycı karar verdiyse karar uygulanmaz.
+        // İki onaycının aynı anda aynı adımı onaylaması da burada yakalanır.
+        if (TicketConcurrency.Expect(_db, t, rowVersion)) return await ConflictAsync(id);
 
         var me = _current.User!;
 
@@ -116,10 +123,26 @@ public class ApprovalsController : Controller
                 t.Id, exceptUserId: me.Id);
         }
 
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (Exception ex) when (ex is DbUpdateConcurrencyException ||
+                                   ex is DbUpdateException u && AppDbContext.IsUniqueViolation(u))
+        {
+            // Başka bir onaycı aynı anda karar verdi ya da aynı kişi iki sekmeden onayladı
+            TicketConcurrency.DiscardChanges(_db);
+            return await ConflictAsync(id);
+        }
         await _notify.DeliverPendingEmailsAsync();
 
         TempData["Ok"] = $"{Ui.TicketNo(t)} {mesaj}.";
         return Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl!) : RedirectToAction(nameof(Index));
+    }
+
+    private async Task<IActionResult> ConflictAsync(int id)
+    {
+        TempData["Err"] = await TicketConcurrency.ConflictMessageAsync(_db, id, _current.User?.Id);
+        return RedirectToAction("Details", "Tickets", new { id });
     }
 }

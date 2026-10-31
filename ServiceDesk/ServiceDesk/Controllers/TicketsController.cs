@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
@@ -103,10 +103,11 @@ public class TicketsController : Controller
     // Durum butonları: İşleme al / Çözüldü / Kapat / Yeniden aç.
     // Geçişe izin verilip verilmediği TicketWorkflow'da kontrol edilir.
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> ChangeStatus(int id, TicketStatus status)
+    public async Task<IActionResult> ChangeStatus(int id, TicketStatus status, string? rowVersion)
     {
         var ticket = await _db.Tickets.FindAsync(id);
         if (ticket == null) return NotFound();
+        if (TicketConcurrency.Expect(_db, ticket, rowVersion)) return await ConflictAsync(id);
 
         var karar = TicketWorkflow.CanTransition(ticket, status);
         if (!karar.Allowed)
@@ -120,7 +121,7 @@ public class TicketsController : Controller
             ticket.AssigneeId = _current.User!.Id;
 
         TicketWorkflow.Apply(ticket, status, AppTime.UtcNow);
-        await _db.SaveChangesAsync();
+        if (!await TrySaveAsync()) return await ConflictAsync(id);
 
         TempData["Ok"] = karar.Reopened
             ? "Talep yeniden açıldı."
@@ -158,10 +159,11 @@ public class TicketsController : Controller
 
     // Talebi seçilen personele atar. assigneeId boş gelirse atama kaldırılır.
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Assign(int id, int? assigneeId)
+    public async Task<IActionResult> Assign(int id, int? assigneeId, string? rowVersion)
     {
         var ticket = await _db.Tickets.FindAsync(id);
         if (ticket == null) return NotFound();
+        if (TicketConcurrency.Expect(_db, ticket, rowVersion)) return await ConflictAsync(id);
 
         // Talep yalnızca aktif destek personeline atanabilir
         if (assigneeId != null &&
@@ -181,7 +183,7 @@ public class TicketsController : Controller
                     $"Size atandı: {Ui.TicketNo(ticket)} {ticket.Title}",
                     $"Hedef çözüm: {AppTime.ToLocal(ticket.SlaDueAt):dd.MM.yyyy HH:mm}", ticket.Id);
 
-            await _db.SaveChangesAsync();
+            if (!await TrySaveAsync()) return await ConflictAsync(id);
             await _notify.DeliverPendingEmailsAsync();
         }
 
@@ -194,13 +196,14 @@ public class TicketsController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateChangeDetail(
         int id, RiskLevel risk, DateTime? plannedStart, DateTime? plannedEnd,
-        string? implementationPlan, string? rollbackPlan, string? impactAnalysis)
+        string? implementationPlan, string? rollbackPlan, string? impactAnalysis, string? rowVersion)
     {
         var ticket = await _db.Tickets
             .Include(t => t.ChangeDetail)
             .Include(t => t.Approvals)
             .FirstOrDefaultAsync(t => t.Id == id);
         if (ticket == null) return NotFound();
+        if (TicketConcurrency.Expect(_db, ticket, rowVersion)) return await ConflictAsync(id);
 
         if (ticket.Type != TicketType.Change)
         {
@@ -233,7 +236,10 @@ public class TicketsController : Controller
         detail.UpdatedAt = AppTime.UtcNow;
         detail.UpdatedById = _current.User!.Id;
 
-        await _db.SaveChangesAsync();
+        // Plan ayrı tabloda; talebin sürümü yine de ilerlemeli ki aynı planı
+        // açık tutan diğer kişi üzerine yazamasın
+        TicketConcurrency.Touch(_db, ticket);
+        if (!await TrySaveAsync()) return await ConflictAsync(id);
 
         TempData["Ok"] = "Değişiklik planı kaydedildi.";
         return RedirectToAction(nameof(Details), new { id });
@@ -243,10 +249,11 @@ public class TicketsController : Controller
     // sorgulara düşmez. Yalnızca yönetici yapabilir (ISO 9001 md. 7.5).
     [HttpPost, ValidateAntiForgeryToken]
     [AuthorizeRole(UserRole.Admin)]
-    public async Task<IActionResult> SoftDelete(int id, string? reason)
+    public async Task<IActionResult> SoftDelete(int id, string? reason, string? rowVersion)
     {
         var ticket = await _db.Tickets.FindAsync(id);
         if (ticket == null) return NotFound();
+        if (TicketConcurrency.Expect(_db, ticket, rowVersion)) return await ConflictAsync(id);
 
         // Neden zorunlu ve talebin üzerine kaydedilir
         reason = reason?.Trim();
@@ -271,7 +278,7 @@ public class TicketsController : Controller
             ChangedAt = AppTime.UtcNow
         });
 
-        await _db.SaveChangesAsync();
+        if (!await TrySaveAsync()) return await ConflictAsync(id);
 
         TempData["Ok"] = $"{Ui.TicketNo(ticket)} arşivlendi. Kayıt silinmedi, listelerde görünmüyor.";
         return RedirectToAction(nameof(Index));
@@ -342,9 +349,42 @@ public class TicketsController : Controller
                 $"Talebinize yanıt: {Ui.TicketNo(ticket)} {ticket.Title}",
                 $"{_current.User!.FullName} yanıt yazdı.", ticket.Id);
 
-        await _db.SaveChangesAsync();
+        // Mesaj eklemek bir düzenleme değil, eklemedir: arada talep başkası
+        // tarafından güncellendiyse mesaj kaybolmamalı. Talebin güncel hali
+        // okunur, ilk yanıt işareti yeniden uygulanır ve bir kez daha denenir.
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await _db.Entry(ticket).ReloadAsync();
+            TicketWorkflow.MarkFirstResponse(ticket, isInternal, AppTime.UtcNow);
+            await _db.SaveChangesAsync();
+        }
 
         TempData["Ok"] = isInternal ? "İç not eklendi." : "Yanıtınız talebe eklendi.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    // Kayıt sırasında yakalanan çakışma (bkz. TicketConcurrency): false döner
+    private async Task<bool> TrySaveAsync()
+    {
+        try
+        {
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            TicketConcurrency.DiscardChanges(_db);
+            return false;
+        }
+    }
+
+    private async Task<IActionResult> ConflictAsync(int id)
+    {
+        TempData["Err"] = await TicketConcurrency.ConflictMessageAsync(_db, id, _current.User?.Id);
         return RedirectToAction(nameof(Details), new { id });
     }
 }

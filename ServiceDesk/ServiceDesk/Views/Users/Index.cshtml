@@ -1,4 +1,4 @@
-@model List<AppUser>
+﻿@model List<AppUser>
 @inject CurrentUser Me
 @{
     ViewData["Title"] = "Kullanıcılar";
@@ -136,10 +136,15 @@
     </div>
 </div>
 
+@* Giriş denemesi kayıtları hassas güvenlik verisidir: yalnızca yönetici görür
+   (UsersController de yalnızca yöneticiye yükler) *@
+@if (yonetici && ViewBag.LoginAttempts is List<LoginAttempt>)
+{
 <div class="panel mt-4">
-    <div class="panel-head">
-        Son giriş denemeleri
-        <span class="text-muted small fw-normal">güvenlik denetim izi · @LoginAuditService.MaxFailedAttempts başarısız denemeden sonra hesap @LoginAuditService.Window.TotalMinutes dakika kapanır</span>
+    <div class="panel-head d-flex align-items-center gap-2">
+        <span>Son giriş denemeleri
+        <span class="text-muted small fw-normal">güvenlik denetim izi · @LoginAuditService.MaxFailedAttempts başarısız denemeden sonra hesap @LoginAuditService.Window.TotalMinutes dakika kapanır</span></span>
+        <a asp-action="LoginAttempts" class="btn btn-sm btn-outline-secondary ms-auto"><i class="bi bi-shield-lock"></i> Tümü</a>
     </div>
     <div class="table-responsive">
         <table class="table table-sm mb-0">
@@ -155,7 +160,7 @@
                     <tr>
                         <td class="small">@l.Email</td>
                         <td>
-                            <span class="tag @(l.IsSuccess ? "tag-green" : "tag-red")">@Ui.LoginResultText(l.Result)</span>
+                            <span class="tag @Ui.LoginResultTag(l.Result)">@Ui.LoginResultText(l.Result)</span>
                         </td>
                         <td class="small text-muted">@(l.IpAddress ?? "-")</td>
                         <td class="text-end small text-muted">@AppTime.ToLocal(l.AttemptedAt).ToString("dd.MM.yyyy HH:mm:ss")</td>
@@ -165,3 +170,4 @@
         </table>
     </div>
 </div>
+}

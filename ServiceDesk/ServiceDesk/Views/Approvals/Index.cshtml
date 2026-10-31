@@ -1,4 +1,4 @@
-@model List<Ticket>
+﻿@model List<Ticket>
 @inject CurrentUser Me
 @{
     ViewData["Title"] = "Onaylar";
@@ -52,6 +52,7 @@
                             @if (onay.Allowed || red.Allowed)
                             {
                                 <form method="post" class="d-flex gap-2">
+                                    <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(t.RowVersion)" />
                                     <input name="note" class="form-control form-control-sm" placeholder="Not (isteğe bağlı)" />
                                     @if (onay.Allowed)
                                     {

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
@@ -40,16 +40,28 @@ public class ProfileController : Controller
         if (!TryValidateModel(vm, nameof(ProfilePageVm.Profile)))
             return View("Index", Page(FillReadOnly(vm, me), new ChangePasswordVm()));
 
-        var phone = string.IsNullOrWhiteSpace(vm.PhoneNumber) ? null : vm.PhoneNumber.Trim();
-        if (phone != null)
+        var phoneKey = $"{nameof(ProfilePageVm.Profile)}.{nameof(vm.PhoneNumber)}";
+        var phone = PhoneRules.Normalize(vm.PhoneNumber);
+
+        // Numara silinirse bir sonraki girişte OTP gönderilecek yer kalmaz ve
+        // kullanıcı kendi hesabına giremez: boşaltmak yerine değiştirmeli
+        if (PhoneRules.WouldLockOut(me.PhoneNumber, phone, me.IsActive))
         {
-            var taken = await _db.Users.AnyAsync(u => u.PhoneNumber == phone && u.Id != me.Id);
-            if (taken)
-            {
-                ModelState.AddModelError($"{nameof(ProfilePageVm.Profile)}.{nameof(vm.PhoneNumber)}",
-                    "Bu telefon numarası başka bir hesapta kayıtlı.");
-                return View("Index", Page(FillReadOnly(vm, me), new ChangePasswordVm()));
-            }
+            ModelState.AddModelError(phoneKey, PhoneRules.RemoveBlockedMessage);
+            vm.PhoneNumber = me.PhoneNumber;
+            return View("Index", Page(FillReadOnly(vm, me), new ChangePasswordVm()));
+        }
+
+        if (PhoneRules.Validate(phone) is { } phoneError)
+        {
+            ModelState.AddModelError(phoneKey, phoneError);
+            return View("Index", Page(FillReadOnly(vm, me), new ChangePasswordVm()));
+        }
+
+        if (phone != null && await PhoneTakenAsync(phone, me.Id))
+        {
+            ModelState.AddModelError(phoneKey, "Bu telefon numarası başka bir hesapta kayıtlı.");
+            return View("Index", Page(FillReadOnly(vm, me), new ChangePasswordVm()));
         }
 
         me.FirstName = vm.FirstName.Trim();
@@ -83,6 +95,16 @@ public class ProfileController : Controller
 
         TempData["Ok"] = "Şifreniz değiştirildi.";
         return RedirectToAction(nameof(Index));
+    }
+
+    // Kayıtlı numaralar farklı biçimlerde girilmiş olabilir ("0532 123 45 67"):
+    // karşılaştırma normalize edilmiş halleri üzerinden yapılır
+    private async Task<bool> PhoneTakenAsync(string phone, int exceptUserId)
+    {
+        var others = await _db.Users.AsNoTracking()
+            .Where(u => u.Id != exceptUserId && u.PhoneNumber != null)
+            .Select(u => u.PhoneNumber).ToListAsync();
+        return others.Any(o => PhoneRules.Normalize(o) == phone);
     }
 
     private static ProfilePageVm Page(ProfileVm profile, ChangePasswordVm password) =>

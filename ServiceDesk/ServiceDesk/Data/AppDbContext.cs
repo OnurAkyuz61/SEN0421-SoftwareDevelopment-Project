@@ -199,6 +199,13 @@ public class AppDbContext : DbContext
         mb.Entity<Ticket>().HasIndex(t => t.CategoryId);
         mb.Entity<Category>().HasIndex(c => new { c.IsActive, c.SortOrder });
 
+        // Katalog isimleri benzersiz (pasif kayıtlar dahil). Asıl kontrol
+        // CatalogController'da anlaşılır mesajla yapılır; indeks aynı anda
+        // gelen iki kaydın ikisinin de geçmesini engeller.
+        mb.Entity<Category>().HasIndex(c => c.Name).IsUnique();
+        mb.Entity<Department>().HasIndex(d => d.Name).IsUnique();
+        mb.Entity<Team>().HasIndex(t => t.Name).IsUnique();
+
         // ── Talep numarası ve yumuşak silme ──────────────────────────────
         mb.Entity<Ticket>().HasIndex(t => t.Number).IsUnique()
           .HasFilter("[Number] IS NOT NULL");
@@ -512,6 +519,10 @@ public class AppDbContext : DbContext
 
         return logs;
     }
+
+    // SQL Server benzersiz indeks / anahtar ihlali (2601, 2627)
+    public static bool IsUniqueViolation(DbUpdateException ex) =>
+        ex.InnerException is Microsoft.Data.SqlClient.SqlException { Number: 2601 or 2627 };
 
     private string UserName(int? id) =>
         id == null ? "Atanmadı" : Users.Find(id)?.FullName ?? $"#{id}";
