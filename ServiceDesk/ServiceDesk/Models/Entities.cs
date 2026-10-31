@@ -312,7 +312,8 @@ public class Holiday
     public string Name { get; set; } = "";
 }
 
-// Eskalasyon kuralı: süresi dolan talep hangi gecikmede hangi role yükselir
+// Eskalasyon kuralı: süresi dolan talep hangi gecikmede hangi role yeniden
+// atanır ve bildirilir (bkz. SlaMonitorService).
 public class EscalationRule
 {
     public int Id { get; set; }
@@ -320,10 +321,11 @@ public class EscalationRule
     [Display(Name = "Seviye")]
     public int Level { get; set; }
 
-    // SLA bitişinden kaç dakika sonra devreye girer (0 = ihlal anında)
+    // SLA bitişinden kaç dakika sonra yeniden atama + bildirim (0 = ihlal anında)
     [Display(Name = "Gecikme (dk)")]
     public int AfterMinutes { get; set; }
 
+    // Talebin devredileceği rol; uygun aktif kişi seçilir, role de bildirim gider
     [Display(Name = "Hedef rol")]
     public UserRole TargetRole { get; set; }
 

@@ -21,7 +21,7 @@
                 <label asp-for="AfterMinutes" class="form-label"></label>
                 <input asp-for="AfterMinutes" class="form-control" type="number" min="0" />
                 <span asp-validation-for="AfterMinutes" class="text-danger small"></span>
-                <div class="form-text">SLA bitişinden kaç dakika sonra tetiklenir. 0 = ihlal anında.</div>
+                <div class="form-text">SLA bitişinden kaç dakika sonra yeniden atama ve bildirim tetiklenir. 0 = ihlal anında.</div>
             </div>
 
             <div class="mb-3">
@@ -33,6 +33,10 @@
                     }
                 </select>
                 <span asp-validation-for="TargetRole" class="text-danger small"></span>
+                <div class="form-text">
+                    Talep bu roldeki bir kişiye yeniden atanır (üzerinde en az açık talep olan aktif hesap);
+                    aynı role eskalasyon bildirimi de gider. Uygun kişi yoksa yalnızca bildirim gönderilir, atama değişmez.
+                </div>
             </div>
 
             <div class="form-check mb-4">

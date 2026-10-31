@@ -3,7 +3,10 @@
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <div class="me-auto">
-        <div class="text-muted small">SLA süresi aşıldıktan sonra talebin hangi gecikmede hangi role bildirileceği.</div>
+        <div class="text-muted small">
+            SLA süresi aşıldıktan sonra talep, belirlenen gecikmede hedef roldeki bir kişiye yeniden atanır
+            ve o role bildirim gider. Atanan kişi, o rolde üzerinde en az açık talep olan aktif hesaptır.
+        </div>
     </div>
     <a asp-action="Edit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Yeni kural</a>
 </div>
