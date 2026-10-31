@@ -27,7 +27,7 @@ public class TicketsController : Controller
 
     // Filtreler: arama metni, durum, öncelik, tür, kategori, oluşturma tarihi aralığı
     public async Task<IActionResult> Index(string? q, TicketStatus? status, Priority? priority,
-        TicketType? type, int? categoryId, DateTime? from, DateTime? to)
+        TicketType? type, int? categoryId, DateTime? from, DateTime? to, int page = 1)
     {
         var query = _db.Tickets.Include(t => t.Assignee).Include(t => t.Category).AsQueryable();
         if (!string.IsNullOrWhiteSpace(q))
@@ -58,9 +58,12 @@ public class TicketsController : Controller
             .Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToListAsync();
 
         // İhlal işaretleme ve eskalasyon artık SlaMonitorService'in işi;
-        // bu sayfa yalnızca okur
-        var list = await query.AsNoTracking().OrderByDescending(t => t.CreatedAt).ToListAsync();
+        // bu sayfa yalnızca okur. Liste sayfalanır (Paging.DefaultPageSize).
+        var (list, pager) = await query.AsNoTracking()
+            .OrderByDescending(t => t.CreatedAt)
+            .ToPageAsync(page);
 
+        ViewBag.Pager = pager;
         return View(list);
     }
 

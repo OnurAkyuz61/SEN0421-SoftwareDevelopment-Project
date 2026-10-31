@@ -213,6 +213,14 @@
 }
 .panel-body { padding: 1.15rem; }
 
+/* ---------- Sayfalama ---------- */
+.pager {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: .6rem; padding: .75rem 1.15rem; border-top: 1px solid var(--sd-border);
+}
+.pager-links { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; }
+.pager .btn.disabled { pointer-events: none; opacity: .45; }
+
 .stat {
     position: relative; height: 100%;
     background: var(--sd-surface); border: 1px solid var(--sd-border); border-radius: 12px;

@@ -1,0 +1,50 @@
+@model PagerInfo
+@* Ortak sayfalama çubuğu. Tek sayfadaysa gizlenir; filtre query string'i korunur. *@
+@if (Model.TotalPages <= 1) { return; }
+
+@{
+    var bas = Math.Max(1, Model.Page - 2);
+    var bit = Math.Min(Model.TotalPages, bas + 4);
+    if (bit - bas < 4) bas = Math.Max(1, bit - 4);
+}
+
+<nav class="pager" aria-label="Sayfalama">
+    <span class="pager-info text-muted small">
+        @Model.FromItem–@Model.ToItem / @Model.TotalCount
+    </span>
+    <div class="pager-links">
+        @if (Model.HasPrev)
+        {
+            <a class="btn btn-sm btn-light border" href="@Paging.Url(Context.Request, Model.Page - 1)" rel="prev">
+                <i class="bi bi-chevron-left"></i> Önceki
+            </a>
+        }
+        else
+        {
+            <span class="btn btn-sm btn-light border disabled"><i class="bi bi-chevron-left"></i> Önceki</span>
+        }
+
+        @for (var p = bas; p <= bit; p++)
+        {
+            if (p == Model.Page)
+            {
+                <span class="btn btn-sm btn-primary" aria-current="page">@p</span>
+            }
+            else
+            {
+                <a class="btn btn-sm btn-light border" href="@Paging.Url(Context.Request, p)">@p</a>
+            }
+        }
+
+        @if (Model.HasNext)
+        {
+            <a class="btn btn-sm btn-light border" href="@Paging.Url(Context.Request, Model.Page + 1)" rel="next">
+                Sonraki <i class="bi bi-chevron-right"></i>
+            </a>
+        }
+        else
+        {
+            <span class="btn btn-sm btn-light border disabled">Sonraki <i class="bi bi-chevron-right"></i></span>
+        }
+    </div>
+</nav>

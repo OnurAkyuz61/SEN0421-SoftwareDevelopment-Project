@@ -51,9 +51,17 @@
     </div>
 </form>
 
+@{
+    var pager = (PagerInfo)ViewBag.Pager;
+}
 <!-- TABLO -->
 <div class="panel">
-    <div class="panel-head"><span>@Model.Count kayıt</span></div>
+    <div class="panel-head">
+        <span>
+            @if (pager.TotalCount == 0) { <text>Kayıt yok</text> }
+            else { <text>@pager.TotalCount kayıt · sayfa @pager.Page / @pager.TotalPages</text> }
+        </span>
+    </div>
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>
@@ -91,4 +99,5 @@
             </tbody>
         </table>
     </div>
+    <partial name="_Pager" model="pager" />
 </div>
