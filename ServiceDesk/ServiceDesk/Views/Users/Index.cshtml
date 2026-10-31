@@ -7,13 +7,14 @@
     var pasifSayi = (int)ViewBag.PassiveCount;
     var yonetici = Me.Role == UserRole.Admin;
     var buSayfa = Context.Request.Path + Context.Request.QueryString;
+    var pager = (PagerInfo)ViewBag.Pager;
 }
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <div class="me-auto">
         <h4 class="fw-bold mb-0">Kullanıcı yönetimi</h4>
         <div class="text-muted small">
-            @Model.Count kayıt listeleniyor · pasif hesap: @pasifSayi ·
+            @pager.TotalCount kayıt · pasif hesap: @pasifSayi ·
             kayıtlar silinmez, pasifleştirilir
         </div>
     </div>
@@ -56,7 +57,12 @@
 </form>
 
 <div class="panel">
-    <div class="panel-head">@Model.Count kullanıcı</div>
+    <div class="panel-head">
+        <span>
+            @if (pager.TotalCount == 0) { <text>Kullanıcı yok</text> }
+            else { <text>@pager.TotalCount kullanıcı · sayfa @pager.Page / @pager.TotalPages</text> }
+        </span>
+    </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead>
@@ -134,6 +140,7 @@
             </tbody>
         </table>
     </div>
+    <partial name="_Pager" model="pager" />
 </div>
 
 @* Giriş denemesi kayıtları hassas güvenlik verisidir: yalnızca yönetici görür

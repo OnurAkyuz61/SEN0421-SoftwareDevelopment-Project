@@ -31,7 +31,7 @@ public class UsersController : Controller
         _hasher = hasher;
     }
 
-    public async Task<IActionResult> Index(string? q, UserRole? role, bool? active)
+    public async Task<IActionResult> Index(string? q, UserRole? role, bool? active, int page = 1)
     {
         var query = _db.Users.AsNoTracking()
             .Include(u => u.Department)
@@ -60,9 +60,12 @@ public class UsersController : Controller
             ViewBag.LoginAttempts = await _db.LoginAttempts.AsNoTracking()
                 .OrderByDescending(l => l.AttemptedAt).Take(20).ToListAsync();
 
-        return View(await query
+        var (list, pager) = await query
             .OrderBy(u => u.Role).ThenBy(u => u.FirstName)
-            .ToListAsync());
+            .ToPageAsync(page);
+
+        ViewBag.Pager = pager;
+        return View(list);
     }
 
     // Giriş denemesi denetim izinin tamamı: yalnızca yönetici.
