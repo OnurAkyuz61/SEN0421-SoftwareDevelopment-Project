@@ -9,60 +9,41 @@ ASP.NET Core 8 MVC + Entity Framework Core (Code First) + SQL Server LocalDB + B
 dotnet run
 ```
 
-## Kurulum (elle – derste gösterilecek komutlar)
+## Kurulum (elle)
 ```
 dotnet restore
 dotnet tool restore
-dotnet ef migrations add InitialCreate
 dotnet ef database update
 dotnet run
 ```
-> Sadece .NET 9 kuruluysa önce: `set DOTNET_ROLL_FORWARD=Major`
+> Sadece .NET 9/10 kuruluysa önce: `set DOTNET_ROLL_FORWARD=Major` (Windows) / `export DOTNET_ROLL_FORWARD=Major` (macOS/Linux)
+
+## Testler
+```
+cd ..
+dotnet test ServiceDesk.Tests/ServiceDesk.Tests.csproj
+```
 
 ## Uygulama bölümleri
 | Bölüm | Adres | Kim kullanır |
 |---|---|---|
 | Karşılama | `/` | Herkes (giriş noktası) |
 | Giriş + OTP | `/Account/Login` | Herkes |
+| Şifre sıfırlama | `/Account/ForgotPassword` | Herkes |
 | Kullanıcı Portalı | `/Portal` | Son kullanıcı: talep açar, dosya / ekran görüntüsü yükler, takip eder, anket doldurur |
-| Yönetim Paneli | `/Dashboard` | Yönetici / Destek: grafikler, onaylar, atama, SLA, anketler, kullanıcılar |
+| Bilgi Bankası | `/Knowledge` | Herkes (yazma: Destek/Yönetici) |
+| Yönetim Paneli | `/Dashboard` | Yönetici / Destek: KPI, onaylar, atama, SLA, anketler, kullanıcılar |
+| Talepler | `/Tickets` | Destek / Yönetici (filtre + sayfalama) |
+| Arşiv | `/Tickets/Archived` | Destek / Yönetici (soft-delete edilmiş talepler) |
+| Profil | `/Profile` | Oturum açmış herkes |
 
-## Klasör yapısı
-| Dosya | İçerik |
-|---|---|
-| `Models/Entities.cs` | Ticket, Attachment, SlaPolicy, Feedback, AppUser + enum'lar |
-| `Models/DashboardVm.cs` | Yönetim paneli KPI ve grafik verisi |
-| `Models/Ui.cs` | Etiket renkleri ve Türkçe metinler |
-| `Data/AppDbContext.cs` | DbContext, ilişkiler, seed verisi |
-| `Services/FileStorage.cs` | Dosya yükleme (Uploads/ klasörü, uzantı + boyut kontrolü) |
-| `Services/NotificationService.cs` | SLA / onay / yeni talep bildirimleri |
-| `Controllers/PortalController.cs` | Kullanıcı portalı |
-| `Controllers/AttachmentsController.cs` | Ek dosyayı açma / indirme |
-| `Controllers/DashboardController.cs` | Yönetim: genel bakış (KPI + grafikler) |
-| `Controllers/TicketsController.cs` | Yönetim: talep listesi, atama, durum |
-| `Controllers/ApprovalsController.cs` | Yönetim: değişiklik onay / red |
-| `Controllers/SurveysController.cs` | Yönetim: memnuniyet anketleri |
-| `Controllers/UsersController.cs` | Yönetim: kullanıcı listesi |
-| `Controllers/AccountController.cs` | Giriş + OTP doğrulama, oturum açma / kapatma |
-| `Services/AuthSettings.cs` | Oturum ve OTP süreleri / sınırları, session anahtarları |
-| `Views/Shared/_Layout.cshtml` | Yönetim paneli düzeni (sidebar) |
-| `Views/Shared/_PortalLayout.cshtml` | Kullanıcı portalı düzeni (üst menü + chatbot) |
-| `Views/Shared/_AuthLayout.cshtml` | Giriş / OTP ekranlarının düzeni (marka paneli + adım göstergesi) |
-| `Views/Shared/_ThemeHead.cshtml` | Tüm layout'larda ortak font + CSS bağlantıları |
-| `Views/Shared/_SessionTimeout.cshtml` | "Oturumunuz kapanmak üzere" penceresi |
-| `wwwroot/css/theme.css` | Ortak tema: renk, yazı tipi, Bootstrap ayarları (renk değişikliği sadece burada) |
-| `wwwroot/css/site.css` | Yönetim paneli ve portal bileşenleri |
-| `wwwroot/css/auth.css` | Giriş ve OTP ekranları |
-| `wwwroot/js/site.js` | Mobil menü, oturum süresi uyarısı |
-| `wwwroot/js/auth.js` | Şifre göster, Caps Lock uyarısı, 6 haneli kod kutuları, geri sayım |
-| `wwwroot/js/upload.js` | Sürükle-bırak, Ctrl+V ile ekran görüntüsü yapıştırma |
-| `Uploads/` | Yüklenen dosyalar (git'e eklenmez) |
-
-## Login bağlanırken yapılacaklar
-- OTP sonrası role göre yönlendirme: `Admin/Agent` → `Dashboard`, `User` → `Portal`
-- `PortalController`: listeyi oturumdaki kullanıcıya göre filtrele, `RequesterId` / `RequesterName` alanlarını oturumdan doldur
-- Yönetim controller'larına (Dashboard, Tickets, Approvals, Surveys, Users, Notifications) sadece Admin/Agent erişsin
-- Karşılama sayfasındaki ve menülerdeki `GEÇİCİ` linkler kaldırılacak
+## Auth ve roller
+- Akış: e-posta + şifre → OTP kanalı (SMS/WhatsApp simülasyonu) → 6 haneli kod → oturum
+- OTP sonrası yönlendirme: `Admin`/`Agent` → `Dashboard`, `User` → `Portal`
+- Yetki: `[AuthorizeRole(...)]` — yönetim controller’ları yalnızca Destek/Yönetici
+- DevLogin ve OTP demo kodu: yalnızca Development + bu bilgisayar (`DevelopmentOnlyAttribute`)
+- E-posta gönderimi: `LoggingEmailSender` (SMTP yok; bağlantı Development’ta ekranda gösterilebilir)
+- Yeni şifre kuralı (`PasswordRules`): en az 8 karakter + büyük/küçük harf + rakam + özel karakter
 
 ## Oturum (session) kuralları
 Değerler `appsettings.json` → `Auth` bölümünden değiştirilebilir.
@@ -77,17 +58,72 @@ Değerler `appsettings.json` → `Auth` bölümünden değiştirilebilir.
 | Bir girişte en fazla kod gönderimi | 4 |
 | Aynı kod için en fazla hatalı deneme | 5 |
 
-## Paketler
-- Chart.js 4.4.1 (`wwwroot/lib/chartjs`, yerel)
-- Microsoft.EntityFrameworkCore.SqlServer 8.0.10
-- Microsoft.EntityFrameworkCore.Design 8.0.10
-- Microsoft.EntityFrameworkCore.Tools 8.0.10
-- dotnet-ef 8.0.10 (yerel araç, `.config/dotnet-tools.json`)
-
-## SLA politikası (seed)
+## SLA ve eskalasyon
 | Öncelik | Çözüm süresi |
 |---|---|
 | Critical | 4 saat |
 | High | 8 saat |
 | Medium | 24 saat |
 | Low | 72 saat |
+
+`SlaMonitorService` dakikada bir tarar: yaklaşan SLA uyarısı, ihlal işareti, uygunsuzluk kaydı ve eskalasyon kuralına göre **yeniden atama + bildirim** (hedef rolde en az açık talebi olan aktif hesap).
+
+## Önemli davranışlar
+- **Soft-delete:** Talep silinmez; arşivlenir. Normal listelerde görünmez; `/Tickets/Archived` ve detayda salt okunur açılır.
+- **Sayfalama:** Talepler, kullanıcılar, bilgi bankası, anketler — sayfa başına 20 (`Paging` / `_Pager`).
+- **Dosya yükleme:** Uzantı + içerik imzası (`UploadPolicy`); görseller güvenli başlıklarla sunulur.
+- **Eşzamanlı düzenleme:** `Ticket.RowVersion` + `TicketConcurrency`.
+- **Katalog:** Kategori / birim / ekip adları benzersiz; ekip lideri yalnızca aktif Agent/Admin.
+- **Chatbot:** UI iskeleti var, henüz API yok; layout’lardan gizlendi (`_ChatbotPartial`).
+
+## Klasör yapısı
+| Dosya / klasör | İçerik |
+|---|---|
+| `Models/Entities.cs` | Ticket, Attachment, SlaPolicy, AppUser, Change*, Survey*, NC, Knowledge + enum’lar |
+| `Models/Ui.cs` | Etiket renkleri ve Türkçe metinler |
+| `Data/AppDbContext.cs` | DbContext, ilişkiler, seed, soft-delete query filter |
+| `Data/DevDataSeeder.cs` | Development demo kullanıcı / örnek veri |
+| `Services/SlaMonitorService.cs` | SLA tarama + eskalasyon (arka plan) |
+| `Services/SlaCalculator.cs` / `TicketSlaService.cs` | İş takvimi ile SLA süreleri |
+| `Services/UploadPolicy.cs` / `FileStorage.cs` | Dosya doğrulama ve saklama |
+| `Services/PasswordRules.cs` / `PhoneRules.cs` / `CatalogRules.cs` | Doğrulama kuralları |
+| `Services/Paging.cs` | Ortak sayfalama |
+| `Services/TicketConcurrency.cs` | Eşzamanlı düzenleme |
+| `Services/ApprovalPolicy.cs` / `TicketWorkflow.cs` | Onay ve durum geçişleri |
+| `Services/NotificationService.cs` | Uygulama içi (+ e-posta stub) bildirimler |
+| `Services/EmailSender.cs` | Loglayan e-posta gönderici |
+| `Filters/AuthorizeRoleAttribute.cs` | Rol bazlı erişim |
+| `Filters/DevelopmentOnlyAttribute.cs` | DevLogin / demo OTP kilidi |
+| `Controllers/PortalController.cs` | Kullanıcı portalı |
+| `Controllers/TicketsController.cs` | Liste, detay, atama, durum, arşiv |
+| `Controllers/ApprovalsController.cs` | Değişiklik onay / red |
+| `Controllers/AccountController.cs` | Giriş, OTP, şifre sıfırlama |
+| `Controllers/UsersController.cs` | Kullanıcı CRUD + giriş denemeleri (Admin) |
+| `Controllers/CatalogController.cs` | Kategori / birim / ekip |
+| `Controllers/EscalationRulesController.cs` | Eskalasyon kuralları |
+| `Controllers/KnowledgeController.cs` | Bilgi bankası |
+| `Controllers/NonconformitiesController.cs` | Uygunsuzluklar |
+| `Controllers/SurveysController.cs` | Memnuniyet anket sonuçları |
+| `Views/Shared/_Layout.cshtml` | Yönetim paneli (sidebar) |
+| `Views/Shared/_PortalLayout.cshtml` | Kullanıcı portalı |
+| `Views/Shared/_AuthLayout.cshtml` | Giriş / OTP |
+| `Views/Shared/_Pager.cshtml` | Ortak sayfalama çubuğu |
+| `Views/Shared/_SessionTimeout.cshtml` | Oturum süresi uyarısı |
+| `wwwroot/css/theme.css` | Ortak tema değişkenleri |
+| `wwwroot/css/site.css` / `auth.css` | Panel, portal, giriş stilleri |
+| `wwwroot/js/site.js` / `auth.js` / `upload.js` | Menü, OTP UI, sürükle-bırak yükleme |
+| `Uploads/` | Yüklenen dosyalar (git’e eklenmez) |
+
+## Demo hesaplar (Development)
+| E-posta | Şifre | Rol |
+|---|---|---|
+| `admin@servicedesk.local` | `admin123` | Yönetici |
+| `agent@servicedesk.local` | `agent123` | Destek |
+| `user@servicedesk.local` | `user123` | Kullanıcı |
+
+## Paketler
+- Chart.js 4.4.1 (`wwwroot/lib/chartjs`, yerel)
+- Microsoft.EntityFrameworkCore.SqlServer 8.0.10
+- Microsoft.EntityFrameworkCore.Design 8.0.10
+- Microsoft.EntityFrameworkCore.Tools 8.0.10
+- dotnet-ef 8.0.10 (yerel araç, `.config/dotnet-tools.json`)
