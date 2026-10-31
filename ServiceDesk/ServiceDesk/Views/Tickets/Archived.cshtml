@@ -1,0 +1,68 @@
+@model List<Ticket>
+@{
+    ViewData["Title"] = "Arşivlenmiş talepler";
+    var pager = (PagerInfo)ViewBag.Pager;
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="me-auto">
+        <a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Aktif talepler</a>
+        <h4 class="fw-bold mb-0 mt-1">Arşivlenmiş talepler</h4>
+        <div class="text-muted small">
+            Soft-delete: kayıt silinmedi, normal listelerde görünmüyor (ISO 9001 md. 7.5).
+        </div>
+    </div>
+</div>
+
+<form method="get" class="panel panel-body mb-3">
+    <div class="d-flex flex-wrap gap-2 align-items-end">
+        <div class="flex-grow-1" style="min-width:220px">
+            <label class="form-label small text-muted mb-1">Ara</label>
+            <input name="q" value="@ViewBag.Q" class="form-control" placeholder="No, konu, talep eden, arşiv nedeni" />
+        </div>
+        <button class="btn btn-primary"><i class="bi bi-search"></i> Ara</button>
+        <a asp-action="Archived" class="btn btn-light border" title="Temizle"><i class="bi bi-x-lg"></i></a>
+    </div>
+</form>
+
+<div class="panel">
+    <div class="panel-head">
+        <span>
+            @if (pager.TotalCount == 0) { <text>Arşivde kayıt yok</text> }
+            else { <text>@pager.TotalCount arşiv kaydı · sayfa @pager.Page / @pager.TotalPages</text> }
+        </span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>No</th><th>Konu</th><th>Durum</th>
+                    <th>Arşivleyen</th><th>Neden</th><th class="text-end">Tarih</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-5">Arşivlenmiş talep bulunamadı</td></tr>
+                }
+                @foreach (var t in Model)
+                {
+                    <tr>
+                        <td class="text-muted small">@Ui.TicketNo(t)</td>
+                        <td>
+                            <a class="fw-semibold text-decoration-none" asp-action="Details" asp-route-id="@t.Id">@t.Title</a>
+                            <div class="small text-muted">@Ui.TypeText(t.Type) · @t.RequesterName · @Ui.CategoryText(t.Category)</div>
+                        </td>
+                        <td><span class="tag @Ui.StatusTag(t.Status)">@Ui.StatusText(t.Status)</span></td>
+                        <td class="small">@(t.DeletedBy?.FullName ?? "-")</td>
+                        <td class="small text-muted" style="max-width:280px">@(t.DeleteReason ?? "-")</td>
+                        <td class="text-end small text-muted text-nowrap">
+                            @(t.DeletedAt == null ? "-" : AppTime.ToLocal(t.DeletedAt.Value).ToString("dd.MM.yyyy HH:mm"))
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pager" model="pager" />
+</div>

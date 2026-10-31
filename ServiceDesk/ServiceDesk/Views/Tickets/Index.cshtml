@@ -1,6 +1,11 @@
 @model List<Ticket>
 @{ ViewData["Title"] = "Talepler"; }
 
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="me-auto text-muted small">Aktif talepler · arşivlenenler listede görünmez</div>
+    <a asp-action="Archived" class="btn btn-sm btn-light border"><i class="bi bi-archive"></i> Arşiv</a>
+</div>
+
 <!-- FİLTRE -->
 <form method="get" class="panel panel-body mb-3">
     <div class="row g-2 align-items-end">

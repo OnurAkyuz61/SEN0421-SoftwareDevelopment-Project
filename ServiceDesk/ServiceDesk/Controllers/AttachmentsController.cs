@@ -36,9 +36,10 @@ public class AttachmentsController : Controller
     public async Task<IActionResult> Get(int id, bool download = false)
     {
         // Mesaj da yükleniyor: iç nota eklenmiş dosya talep sahibine kapalıdır.
-        // Arşivlenmiş (soft-delete) talebin eki global filtre sayesinde
-        // sorguya hiç düşmez.
+        // Arşivlenmiş talebin eki de destek ekibinin arşiv detayından açılabilsin
+        // diye filtre yok sayılır; son kullanıcıya AttachmentPolicy engeller.
         var a = await _db.Attachments.AsNoTracking()
+            .IgnoreQueryFilters()
             .Include(x => x.Ticket)
             .Include(x => x.Comment)
             .FirstOrDefaultAsync(x => x.Id == id);

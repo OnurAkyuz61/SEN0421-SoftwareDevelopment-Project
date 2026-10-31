@@ -45,6 +45,7 @@
                 <nav class="nav flex-column">
                     <a class="nav-link @Act("Dashboard")" aria-current="@Cur("Dashboard")" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid-1x2"></i><span>Genel Bakış</span></a>
                     <a class="nav-link @Act("Tickets")" aria-current="@Cur("Tickets")" asp-controller="Tickets" asp-action="Index"><i class="bi bi-inbox"></i><span>Talepler</span></a>
+                    <a class="nav-link" asp-controller="Tickets" asp-action="Archived"><i class="bi bi-archive"></i><span>Arşiv</span></a>
                     <a class="nav-link @Act("Approvals")" aria-current="@Cur("Approvals")" asp-controller="Approvals" asp-action="Index">
                         <i class="bi bi-check2-square"></i><span>Onaylar</span>
                         @if (pendingCount > 0) { <span class="nav-count" title="Onay bekleyen">@pendingCount</span> }

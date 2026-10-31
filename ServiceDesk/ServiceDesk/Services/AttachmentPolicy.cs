@@ -16,8 +16,10 @@ public static class AttachmentPolicy
     // Include(a => a.Ticket) ve Include(a => a.Comment)
     public static bool CanView(Attachment file, AppUser user)
     {
-        // Arşivlenmiş talebin eki sorgulara hiç düşmez; yine de savunmada kalalım
         if (file.Ticket == null) return false;
+
+        // Arşivlenmiş talep: yalnızca destek / yönetici (arşiv ekranı); son kullanıcıya kapalı
+        if (file.Ticket.IsDeleted && user.Role == UserRole.User) return false;
 
         // Destek ve yönetici her eke erişir (iç notlar da onların işi)
         if (user.Role != UserRole.User) return true;

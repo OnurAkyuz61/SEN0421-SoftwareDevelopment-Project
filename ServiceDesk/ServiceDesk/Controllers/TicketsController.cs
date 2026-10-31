@@ -67,13 +67,43 @@ public class TicketsController : Controller
         return View(list);
     }
 
+    // Soft-delete edilmiş talepler (ISO 9001 md. 7.5: kayıt korunur, listeden
+    // kalkar). Global query filter IgnoreQueryFilters ile aşılır.
+    public async Task<IActionResult> Archived(string? q, int page = 1)
+    {
+        var query = _db.Tickets.IgnoreQueryFilters().AsNoTracking()
+            .Include(t => t.DeletedBy)
+            .Include(t => t.Category)
+            .Where(t => t.IsDeleted);
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var ara = q.Trim();
+            query = query.Where(t => t.Title.Contains(ara) || t.RequesterName.Contains(ara)
+                || (t.Number != null && t.Number.Contains(ara))
+                || (t.DeleteReason != null && t.DeleteReason.Contains(ara)));
+        }
+
+        ViewBag.Q = q;
+        var (list, pager) = await query
+            .OrderByDescending(t => t.DeletedAt)
+            .ToPageAsync(page);
+
+        ViewBag.Pager = pager;
+        return View(list);
+    }
+
     public async Task<IActionResult> Details(int id)
     {
+        // Arşivlenmiş talepler de açılsın diye filtre yok sayılır; IsDeleted
+        // ise görünüm salt okunur moda geçer.
         var ticket = await _db.Tickets
+            .IgnoreQueryFilters()
             .Include(t => t.Survey)!.ThenInclude(r => r!.Answers).ThenInclude(a => a.Question)
             .Include(t => t.Attachments)
             .Include(t => t.Assignee)
             .Include(t => t.Requester)
+            .Include(t => t.DeletedBy)
             .Include(t => t.Comments).ThenInclude(c => c.Author)
             .Include(t => t.Comments).ThenInclude(c => c.Attachments)
             .Include(t => t.History).ThenInclude(h => h.ChangedBy)
@@ -94,11 +124,13 @@ public class TicketsController : Controller
         ticket.History = ticket.History.OrderByDescending(h => h.ChangedAt).ToList();
         ticket.Escalations = ticket.Escalations.OrderByDescending(e => e.OccurredAt).ToList();
 
-        // Çözüm makalesi seçimi için yayımlanmış makaleler
-        ViewBag.Articles = await _db.KnowledgeArticles.AsNoTracking()
-            .Where(a => a.IsPublished)
-            .OrderBy(a => a.Title)
-            .ToListAsync();
+        // Çözüm makalesi seçimi için yayımlanmış makaleler (arşivde gerekmez)
+        ViewBag.Articles = ticket.IsDeleted
+            ? new List<KnowledgeArticle>()
+            : await _db.KnowledgeArticles.AsNoTracking()
+                .Where(a => a.IsPublished)
+                .OrderBy(a => a.Title)
+                .ToListAsync();
 
         return View(ticket);
     }
@@ -283,8 +315,8 @@ public class TicketsController : Controller
 
         if (!await TrySaveAsync()) return await ConflictAsync(id);
 
-        TempData["Ok"] = $"{Ui.TicketNo(ticket)} arşivlendi. Kayıt silinmedi, listelerde görünmüyor.";
-        return RedirectToAction(nameof(Index));
+        TempData["Ok"] = $"{Ui.TicketNo(ticket)} arşivlendi. Kayıt silinmedi; Arşiv ekranından görülebilir.";
+        return RedirectToAction(nameof(Archived));
     }
 
     // Destek personelinin yazışması. İç not işaretlenirse kullanıcı göremez.
