@@ -1,5 +1,4 @@
 @model OtpVerifyVm
-@inject IWebHostEnvironment Env
 @inject Microsoft.Extensions.Options.IOptions<AuthSettings> AuthOpt
 @{
     Layout = "_AuthLayout";
@@ -8,8 +7,10 @@
 
     var channelLabel = Model.Channel == OtpDeliveryChannel.WhatsApp ? "WhatsApp" : "SMS";
     var channelIcon = Model.Channel == OtpDeliveryChannel.WhatsApp ? "bi-whatsapp" : "bi-chat-dots";
-    // Tek yerden okunur: hem aşağıdaki demo kutusu hem geliştirme otomatik doldurması kullanır
-    var demoCode = TempData["OtpDemoCode"] as string;
+    // Demo kod yalnızca Development + yerel istekte gelir (AccountController.SendCode)
+    var showDemo = ServiceDesk.Filters.DevelopmentOnlyAttribute.IsAllowed(Context);
+    var demoCode = showDemo ? TempData["OtpDemoCode"] as string : null;
+    if (!showDemo) TempData.Remove("OtpDemoCode"); // yanlışlıkla sızmışsa tüketilmesin
     var codeErrors = ViewData.ModelState[nameof(Model.Code)]?.Errors.Select(e => e.ErrorMessage).ToList() ?? new();
     var lifetime = AuthOpt.Value.OtpLifetimeSeconds;
 }
@@ -25,11 +26,11 @@
     <div class="auth-alert info" role="status"><i class="bi bi-info-circle-fill"></i><span>@info</span></div>
 }
 
-@* SMS / WhatsApp API bağlanana kadar kod ekranda gösterilir *@
+@* Yalnızca Development + yerel istek: SMS/WhatsApp API yokken kodu ekranda göster *@
 @if (demoCode != null)
 {
     <div class="demo-code">
-        <span><i class="bi bi-cone-striped me-1"></i> Demo kod <span class="opacity-75">(API bağlanınca kalkacak)</span></span>
+        <span><i class="bi bi-cone-striped me-1"></i> Geliştirme · demo kod <span class="opacity-75">(Production’da görünmez)</span></span>
         <b>@demoCode</b>
     </div>
 }
@@ -103,9 +104,9 @@
 @section Scripts {
     @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────────────
        Demo kodu kutulara otomatik yazar; auth.js 6 hane dolunca formu kendisi
-       gönderdiği için giriş tamamlanır. Yalnızca Development'ta çalışır,
-       canlıya çıkmadan önce bu blok silinecek. *@
-    @if (Env.IsDevelopment() && demoCode != null && !codeErrors.Any())
+       gönderdiği için giriş tamamlanır. DevLogin ile aynı kural: yalnızca
+       Development + bu bilgisayar. *@
+    @if (demoCode != null && !codeErrors.Any())
     {
         <script>
             window.addEventListener('load', function () {

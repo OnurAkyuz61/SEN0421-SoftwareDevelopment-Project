@@ -245,8 +245,12 @@ public class AccountController : Controller
 
         var masked = MaskPhone(Session.GetString(SessionKeys.PendingPhone)!);
 
-        // Gerçek SMS / WhatsApp API buraya bağlanacak; şimdilik simülasyon
-        TempData["OtpDemoCode"] = code;
+        // Gerçek SMS / WhatsApp API buraya bağlanacak. Kod yalnızca Development'ta
+        // ve bu bilgisayardan açıldığında ekranda gösterilir (şifre sıfırlama
+        // demo bağlantısı ve DevLogin ile aynı kural: DevelopmentOnlyAttribute).
+        if (DevelopmentOnlyAttribute.IsAllowed(HttpContext))
+            TempData["OtpDemoCode"] = code;
+
         TempData["OtpSentInfo"] = channel == OtpDeliveryChannel.WhatsApp
             ? $"Kod WhatsApp ile {masked} numarasına gönderildi."
             : $"Kod SMS ile {masked} numarasına gönderildi.";
