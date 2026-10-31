@@ -1,6 +1,8 @@
-@* CHATBOT – ŞİMDİLİK SADECE TASARIM
-   Mesaj gönderme, dosya ekleme ve hızlı yanıtlar çalışmaz (hepsi disabled).
-   Aktifleştirirken: input/butonlardaki "disabled" kaldırılacak, mesajlar bir API'ye gönderilecek. *@
+@* CHATBOT – ŞİMDİLİK GİZLİ
+   Mesaj gönderme çalışmadığı için layout'lardan (_Layout / _PortalLayout) çıkarıldı;
+   sağ altta bozuk bir "Destek Asistanı" düğmesi görünmesin diye.
+   Aktifleştirirken: input/butonlardaki "disabled" kaldırılacak, mesajlar bir API'ye
+   bağlanacak, ardından layout'lara <partial name="_ChatbotPartial" /> yeniden eklenecek. *@
 <button class="chat-fab" type="button" data-bs-toggle="collapse" data-bs-target="#chatPanel"
         aria-controls="chatPanel" aria-expanded="false" title="Destek Asistanı">
     <i class="bi bi-chat-dots"></i><span class="d-none d-sm-inline">Destek Asistanı</span>
