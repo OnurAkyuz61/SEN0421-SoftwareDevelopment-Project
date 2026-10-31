@@ -154,9 +154,12 @@ public class UsersController : Controller
         vm.Email = vm.Email.Trim();
         var phone = PhoneRules.Normalize(vm.PhoneNumber);
 
-        // Şifre yeni kayıtta zorunlu; düzenlemede boş bırakılırsa değişmez
+        // Şifre yeni kayıtta zorunlu; düzenlemede boş bırakılırsa değişmez.
+        // Doluysa karmaşıklık kuralları (PasswordRules / StrongPassword) uygulanır.
         if (vm.IsNew && string.IsNullOrEmpty(vm.Password))
             ModelState.AddModelError(nameof(vm.Password), "Yeni hesap için şifre belirleyin");
+        else if (!string.IsNullOrEmpty(vm.Password) && PasswordRules.Validate(vm.Password) is { } pwdErr)
+            ModelState.AddModelError(nameof(vm.Password), pwdErr);
 
         if (await _db.Users.AnyAsync(u => u.Email == vm.Email && u.Id != vm.Id))
             ModelState.AddModelError(nameof(vm.Email), "Bu e-posta adresi başka bir hesapta kayıtlı");

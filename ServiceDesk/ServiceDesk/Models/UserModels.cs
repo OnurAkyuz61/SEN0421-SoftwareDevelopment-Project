@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ServiceDesk.Services;
 
 namespace ServiceDesk.Models;
 
@@ -47,9 +48,11 @@ public class UserFormVm
     public bool IsActive { get; set; } = true;
 
     // Yeni kayıtta zorunlu, düzenlemede boş bırakılırsa şifre değişmez
-    // (zorunluluk UsersController içinde kontrol edilir)
+    // (zorunluluk UsersController içinde kontrol edilir). Boş değerde
+    // StrongPassword geçerlidir; doluysa karmaşıklık kuralları uygulanır.
     [DataType(DataType.Password)]
-    [StringLength(128, MinimumLength = 8, ErrorMessage = "Şifre en az 8 karakter olmalı")]
+    [StringLength(PasswordRules.MaxLength)]
+    [StrongPassword]
     [Display(Name = "Şifre")]
     public string? Password { get; set; }
 

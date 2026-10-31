@@ -63,7 +63,7 @@
                 <div class="panel-head">
                     Şifre
                     <span class="text-muted small fw-normal">
-                        @(Model.IsNew ? "en az 8 karakter" : "boş bırakılırsa mevcut şifre değişmez")
+                        @(Model.IsNew ? "yeni hesap için zorunlu" : "boş bırakılırsa mevcut şifre değişmez")
                     </span>
                 </div>
                 <div class="panel-body">
@@ -80,8 +80,8 @@
                         </div>
                     </div>
                     <div class="form-text mt-2">
-                        Şifrenin kendisi saklanmaz; yalnızca özeti tutulur. Kullanıcı giriş ekranındaki
-                        &quot;Şifremi unuttum&quot; akışıyla şifresini kendisi de değiştirebilir.
+                        @PasswordRules.Hint Şifrenin kendisi saklanmaz; yalnızca özeti tutulur.
+                        Kullanıcı giriş ekranındaki &quot;Şifremi unuttum&quot; akışıyla şifresini kendisi de değiştirebilir.
                     </div>
                 </div>
             </div>

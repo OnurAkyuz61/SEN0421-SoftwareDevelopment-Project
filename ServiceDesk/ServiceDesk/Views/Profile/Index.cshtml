@@ -62,6 +62,7 @@
                         <label asp-for="Password.NewPassword" class="form-label"></label>
                         <input asp-for="Password.NewPassword" class="form-control" autocomplete="new-password" />
                         <span asp-validation-for="Password.NewPassword" class="text-danger small"></span>
+                        <div class="form-text">@PasswordRules.Hint</div>
                     </div>
                     <div class="mb-3">
                         <label asp-for="Password.ConfirmPassword" class="form-label"></label>

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ServiceDesk.Services;
 
 namespace ServiceDesk.Models;
 
@@ -31,7 +32,8 @@ public class ChangePasswordVm
     public string CurrentPassword { get; set; } = "";
 
     [Required(ErrorMessage = "Yeni şifrenizi girin"), DataType(DataType.Password)]
-    [StringLength(128, MinimumLength = 8, ErrorMessage = "Şifre en az 8 karakter olmalı")]
+    [StringLength(PasswordRules.MaxLength)]
+    [StrongPassword]
     [Display(Name = "Yeni şifre")]
     public string NewPassword { get; set; } = "";
 
