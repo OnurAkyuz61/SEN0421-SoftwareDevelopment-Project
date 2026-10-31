@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
 using ServiceDesk.Models;
+using ServiceDesk.Services;
 
 namespace ServiceDesk.Controllers;
 
@@ -13,22 +14,17 @@ public class SurveysController : Controller
     private readonly AppDbContext _db;
     public SurveysController(AppDbContext db) => _db = db;
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1)
     {
-        var list = await _db.SurveyResponses
-            .AsNoTracking()
-            .Include(r => r.Ticket)
-            .Include(r => r.SubmittedBy)
-            .Include(r => r.Answers).ThenInclude(a => a.Question)
-            .OrderByDescending(r => r.CreatedAt)
+        // KPI'lar tüm yanıtlardan; tablo yalnızca ilgili sayfa (Paging)
+        var tumPuanlar = await _db.SurveyAnswers.AsNoTracking()
+            .Select(a => new { a.QuestionId, a.Score })
             .ToListAsync();
 
-        var tumPuanlar = list.SelectMany(r => r.Answers).ToList();
-
         ViewBag.Avg = tumPuanlar.Count == 0 ? 0 : Math.Round(tumPuanlar.Average(a => a.Score), 2);
-        // 1..5 puan dağılımı
         ViewBag.Dist = Enumerable.Range(1, 5)
             .Select(s => tumPuanlar.Count(a => a.Score == s)).ToArray();
+        ViewBag.TotalResponses = await _db.SurveyResponses.CountAsync();
 
         // Soru bazında ortalama: hangi boyutta zayıfız
         ViewBag.ByQuestion = await _db.SurveyQuestions
@@ -43,7 +39,6 @@ public class SurveysController : Controller
             })
             .ToListAsync();
 
-        // Ortalamalar bellekte hesaplanır (soru sayısı az)
         foreach (var qa in (List<QuestionAverage>)ViewBag.ByQuestion)
         {
             var puanlar = tumPuanlar.Where(a => a.QuestionId == qa.Count).Select(a => a.Score).ToList();
@@ -51,6 +46,15 @@ public class SurveysController : Controller
             qa.Average = puanlar.Count == 0 ? 0 : Math.Round(puanlar.Average(), 2);
         }
 
+        var (list, pager) = await _db.SurveyResponses
+            .AsNoTracking()
+            .Include(r => r.Ticket)
+            .Include(r => r.SubmittedBy)
+            .Include(r => r.Answers).ThenInclude(a => a.Question)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToPageAsync(page);
+
+        ViewBag.Pager = pager;
         return View(list);
     }
 }

@@ -6,6 +6,8 @@
     var dist = (int[])ViewBag.Dist;
     var byQuestion = (List<QuestionAverage>)ViewBag.ByQuestion;
     var toplam = dist.Sum();
+    var toplamYanit = (int)ViewBag.TotalResponses;
+    var pager = (PagerInfo)ViewBag.Pager;
 }
 
 <div class="row g-3 mb-3">
@@ -16,7 +18,7 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat"><div class="label">Değerlendirme</div><div class="value">@Model.Count</div></div>
+        <div class="stat"><div class="label">Değerlendirme</div><div class="value">@toplamYanit</div></div>
     </div>
     <div class="col-md-6">
         <div class="panel h-100">
@@ -60,7 +62,12 @@
 </div>
 
 <div class="panel">
-    <div class="panel-head">Değerlendirmeler</div>
+    <div class="panel-head">
+        <span>
+            @if (pager.TotalCount == 0) { <text>Değerlendirme yok</text> }
+            else { <text>@pager.TotalCount değerlendirme · sayfa @pager.Page / @pager.TotalPages</text> }
+        </span>
+    </div>
     <div class="table-responsive">
         <table class="table table-hover">
             <thead><tr><th>Talep</th><th>Dolduran</th><th>Puanlar</th><th>Yorum</th><th class="text-end">Tarih</th></tr></thead>
@@ -93,4 +100,5 @@
             </tbody>
         </table>
     </div>
+    <partial name="_Pager" model="pager" />
 </div>
