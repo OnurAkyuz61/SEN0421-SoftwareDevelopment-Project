@@ -33,6 +33,11 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("DailyDigestEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
 
@@ -48,6 +53,9 @@ namespace ServiceDesk.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastDigestSentAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -83,6 +91,83 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("TeamId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.ApprovalChainRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("MinPriority")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("RequiredSteps")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Risk")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("ApprovalChainRules");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.ApprovalDelegation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DelegateId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DelegatorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DelegatorId");
+
+                    b.HasIndex("DelegateId", "StartsAt", "EndsAt");
+
+                    b.ToTable("ApprovalDelegations");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Attachment", b =>
@@ -132,6 +217,51 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("UploadedById");
 
                     b.ToTable("Attachments");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.AuditLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Action")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Detail")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<int?>("TicketId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Action", "CreatedAt");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.BusinessCalendar", b =>
@@ -282,6 +412,14 @@ namespace ServiceDesk.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int?>("OnBehalfOfId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Round")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<int>("Step")
                         .HasColumnType("int");
 
@@ -292,7 +430,9 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("ApproverId");
 
-                    b.HasIndex("TicketId", "Step", "ApproverId")
+                    b.HasIndex("OnBehalfOfId");
+
+                    b.HasIndex("TicketId", "Round", "Step", "ApproverId")
                         .IsUnique();
 
                     b.ToTable("ChangeApprovals");
@@ -303,13 +443,33 @@ namespace ServiceDesk.Migrations
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CabMeetingAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CabMeetingUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("ImpactAnalysis")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<string>("ImplementationNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("ImplementationPlan")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime?>("ImplementationStartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ImplementationStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ImplementedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("PlannedEnd")
                         .HasColumnType("datetime2");
@@ -323,6 +483,9 @@ namespace ServiceDesk.Migrations
                     b.Property<string>("RollbackPlan")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime?>("RolledBackAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -398,6 +561,9 @@ namespace ServiceDesk.Migrations
                     b.Property<int?>("EscalatedToId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsManual")
+                        .HasColumnType("bit");
+
                     b.Property<int>("Level")
                         .HasColumnType("int");
 
@@ -411,14 +577,30 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime>("OccurredAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("PriorityAfter")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PriorityBefore")
+                        .HasColumnType("int");
+
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
+
+                    b.Property<int?>("TriggeredById")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("UsedFallback")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EscalatedToId");
 
+                    b.HasIndex("OccurredAt");
+
                     b.HasIndex("TicketId");
+
+                    b.HasIndex("TriggeredById");
 
                     b.ToTable("EscalationRecords");
                 });
@@ -434,16 +616,32 @@ namespace ServiceDesk.Migrations
                     b.Property<int>("AfterMinutes")
                         .HasColumnType("int");
 
+                    b.Property<int?>("FallbackRole")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FallbackUserId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<int>("Level")
                         .HasColumnType("int");
 
+                    b.Property<bool>("RaisePriority")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<int>("TargetRole")
                         .HasColumnType("int");
 
+                    b.Property<int>("TargetType")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("FallbackUserId");
 
                     b.HasIndex("Level")
                         .IsUnique();
@@ -457,7 +655,9 @@ namespace ServiceDesk.Migrations
                             AfterMinutes = 0,
                             IsActive = true,
                             Level = 1,
-                            TargetRole = 1
+                            RaisePriority = true,
+                            TargetRole = 1,
+                            TargetType = 0
                         },
                         new
                         {
@@ -465,7 +665,9 @@ namespace ServiceDesk.Migrations
                             AfterMinutes = 120,
                             IsActive = true,
                             Level = 2,
-                            TargetRole = 2
+                            RaisePriority = true,
+                            TargetRole = 2,
+                            TargetType = 0
                         });
                 });
 
@@ -752,19 +954,31 @@ namespace ServiceDesk.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("int");
+
                     b.Property<int>("Channel")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsFailed")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsSent")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastAttemptAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("NextAttemptAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("datetime2");
@@ -778,6 +992,10 @@ namespace ServiceDesk.Migrations
 
                     b.Property<DateTime?>("SentAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("TemplateKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int?>("TicketId")
                         .HasColumnType("int");
@@ -796,7 +1014,99 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("RecipientId", "ReadAt", "CreatedAt");
 
+                    b.HasIndex("Channel", "IsSent", "IsFailed", "NextAttemptAt");
+
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.NotificationPreference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Email")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("InApp")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Sms")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Type")
+                        .IsUnique();
+
+                    b.ToTable("NotificationPreferences");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.OtpDeliveryLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<string>("MaskedPhone")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ProviderMessageId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SendNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("StatusUpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderMessageId");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("OtpDeliveryLogs");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.PasswordResetToken", b =>
@@ -1144,7 +1454,15 @@ namespace ServiceDesk.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int>("ApprovalRound")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<int>("ApprovalStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ApprovalStepsRequired")
                         .HasColumnType("int");
 
                     b.Property<int?>("AssignedTeamId")
@@ -1193,6 +1511,9 @@ namespace ServiceDesk.Migrations
 
                     b.Property<bool>("IsSlaBreached")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastApprovalReminderAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Number")
                         .HasMaxLength(20)
@@ -1370,6 +1691,35 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Team");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.ApprovalChainRule", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.ApprovalDelegation", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "Delegate")
+                        .WithMany()
+                        .HasForeignKey("DelegateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.AppUser", "Delegator")
+                        .WithMany()
+                        .HasForeignKey("DelegatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Delegate");
+
+                    b.Navigation("Delegator");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.Attachment", b =>
                 {
                     b.HasOne("ServiceDesk.Models.TicketComment", "Comment")
@@ -1393,6 +1743,16 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Ticket");
 
                     b.Navigation("UploadedBy");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.AuditLog", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Category", b =>
@@ -1420,6 +1780,11 @@ namespace ServiceDesk.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ServiceDesk.Models.AppUser", "OnBehalfOf")
+                        .WithMany()
+                        .HasForeignKey("OnBehalfOfId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
                         .WithMany("Approvals")
                         .HasForeignKey("TicketId")
@@ -1427,6 +1792,8 @@ namespace ServiceDesk.Migrations
                         .IsRequired();
 
                     b.Navigation("Approver");
+
+                    b.Navigation("OnBehalfOf");
 
                     b.Navigation("Ticket");
                 });
@@ -1462,9 +1829,26 @@ namespace ServiceDesk.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ServiceDesk.Models.AppUser", "TriggeredBy")
+                        .WithMany()
+                        .HasForeignKey("TriggeredById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("EscalatedTo");
 
                     b.Navigation("Ticket");
+
+                    b.Navigation("TriggeredBy");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.EscalationRule", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "FallbackUser")
+                        .WithMany()
+                        .HasForeignKey("FallbackUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("FallbackUser");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Holiday", b =>
@@ -1549,6 +1933,27 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Recipient");
 
                     b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.NotificationPreference", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.OtpDeliveryLog", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.PasswordResetToken", b =>

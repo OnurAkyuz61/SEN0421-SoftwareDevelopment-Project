@@ -94,4 +94,60 @@ public static class Ui
 
     public static string FileSize(long bytes) =>
         bytes < 1024 * 1024 ? $"{Math.Max(1, bytes / 1024.0):0.#} KB" : $"{bytes / 1024.0 / 1024.0:0.#} MB";
+
+    public static string ImplementationText(ImplementationStatus s) => s switch
+    {
+        ImplementationStatus.InProgress => "Uygulanıyor",
+        ImplementationStatus.Implemented => "Uygulandı",
+        ImplementationStatus.Failed => "Başarısız",
+        ImplementationStatus.RolledBack => "Geri alındı",
+        _ => "Başlamadı"
+    };
+
+    public static string ImplementationTag(ImplementationStatus s) => s switch
+    {
+        ImplementationStatus.InProgress => "tag-blue",
+        ImplementationStatus.Implemented => "tag-green",
+        ImplementationStatus.Failed => "tag-red",
+        ImplementationStatus.RolledBack => "tag-amber",
+        _ => "tag-gray"
+    };
+
+    public static string EscalationTargetText(EscalationTarget t) =>
+        t == EscalationTarget.TeamLead ? "Ekip lideri" : "Rol";
+
+    public static string OtpStatusText(OtpDeliveryStatus s) => s switch
+    {
+        OtpDeliveryStatus.Queued => "Kuyrukta",
+        OtpDeliveryStatus.Sent => "Gönderildi",
+        OtpDeliveryStatus.Delivered => "Teslim edildi",
+        OtpDeliveryStatus.Read => "Okundu",
+        OtpDeliveryStatus.Disabled => "Kanal kapalı",
+        _ => "Başarısız"
+    };
+
+    public static string OtpStatusTag(OtpDeliveryStatus s) => s switch
+    {
+        OtpDeliveryStatus.Delivered or OtpDeliveryStatus.Read => "tag-green",
+        OtpDeliveryStatus.Sent or OtpDeliveryStatus.Queued => "tag-blue",
+        OtpDeliveryStatus.Disabled => "tag-gray",
+        _ => "tag-red"
+    };
+
+    public static string AuditActionText(AuditAction a) => a switch
+    {
+        AuditAction.OtpFailed => "OTP hatalı kod",
+        AuditAction.OtpExpired => "OTP süresi doldu",
+        AuditAction.OtpAttemptsExceeded => "OTP deneme sınırı",
+        AuditAction.OtpSendLimitExceeded => "OTP gönderim sınırı",
+        AuditAction.OtpDeliveryFailed => "OTP gönderilemedi",
+        AuditAction.AccountLocked => "Hesap kilitlendi",
+        AuditAction.ManualEscalation => "Manuel eskalasyon",
+        AuditAction.DelegationCreated => "Vekalet verildi",
+        AuditAction.DelegationRevoked => "Vekalet kaldırıldı",
+        AuditAction.ChangeResubmitted => "Yeniden onaya gönderildi",
+        AuditAction.ChangeImplementationUpdated => "Uygulama durumu",
+        AuditAction.RateLimited => "İstek sınırı aşıldı",
+        _ => a.ToString()
+    };
 }

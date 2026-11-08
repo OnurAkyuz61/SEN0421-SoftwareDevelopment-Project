@@ -96,6 +96,24 @@ public class ChangeDetail
     [StringLength(4000), Display(Name = "Etki analizi")]
     public string? ImpactAnalysis { get; set; }
 
+    // Yüksek riskli değişiklikler için CAB (Change Advisory Board) toplantı kaydı.
+    // Nihai onay, ayar açıksa bu bağlantı girilmeden verilemez (ApprovalPolicy).
+    [StringLength(500), Display(Name = "CAB toplantı kaydı")]
+    public string? CabMeetingUrl { get; set; }
+
+    [Display(Name = "CAB toplantı tarihi")]
+    public DateTime? CabMeetingAt { get; set; }
+
+    // Onay sonrası uygulama / geri alma durumu (ChangeImplementationRules)
+    [Display(Name = "Uygulama durumu")]
+    public ImplementationStatus ImplementationStatus { get; set; } = ImplementationStatus.NotStarted;
+    public DateTime? ImplementationStartedAt { get; set; }
+    public DateTime? ImplementedAt { get; set; }
+    public DateTime? RolledBackAt { get; set; }
+
+    [StringLength(1000), Display(Name = "Uygulama notu")]
+    public string? ImplementationNote { get; set; }
+
     public DateTime UpdatedAt { get; set; } = AppTime.UtcNow;
     public int? UpdatedById { get; set; }
     public AppUser? UpdatedBy { get; set; }
@@ -110,11 +128,20 @@ public class ChangeApproval
     public int TicketId { get; set; }
     public Ticket? Ticket { get; set; }
 
+    // Reddedilip düzeltilerek yeniden onaya gönderilen talepte her gönderim
+    // yeni bir tur açar; önceki turun kararları geçmiş olarak kalır
+    [Display(Name = "Tur")]
+    public int Round { get; set; } = 1;
+
     [Display(Name = "Adım")]
     public int Step { get; set; }
 
     public int ApproverId { get; set; }
     public AppUser? Approver { get; set; }
+
+    // Vekaleten verilen kararda yetkiyi devreden yönetici
+    public int? OnBehalfOfId { get; set; }
+    public AppUser? OnBehalfOf { get; set; }
 
     public ApprovalStatus Decision { get; set; }
     public DateTime DecidedAt { get; set; } = AppTime.UtcNow;
@@ -178,6 +205,16 @@ public class Ticket
     public string? ApprovalNote { get; set; }
     public DateTime? ApprovalDecidedAt { get; set; }
 
+    // Kaçıncı onay turu (1 = ilk gönderim; her yeniden gönderimde artar)
+    public int ApprovalRound { get; set; } = 1;
+
+    // Onay zinciri kuralına (ApprovalChainRule) göre çözümlenmiş adım sayısı.
+    // Boşsa risk bazlı varsayılan uygulanır (yüksek risk 2, diğerleri 1).
+    public int? ApprovalStepsRequired { get; set; }
+
+    // Onay bekleyen değişiklik için son hatırlatmanın zamanı (ApprovalReminderService)
+    public DateTime? LastApprovalReminderAt { get; set; }
+
     // Hangi SLA politikası uygulandı: politika sonradan değişse bile
     // bu talebin hangi taahhüde göre ölçüldüğü kayıtlı kalır
     public int? SlaPolicyId { get; set; }
@@ -238,9 +275,17 @@ public class Ticket
     public ChangeDetail? ChangeDetail { get; set; }
     public List<ChangeApproval> Approvals { get; set; } = new();
 
-    // Yüksek riskli değişiklik iki onaydan geçer, diğerleri birden
+    // Zincir kuralı çözümlendiyse o, yoksa risk bazlı varsayılan:
+    // yüksek riskli değişiklik iki onaydan geçer, diğerleri birden
     public int RequiredApprovalSteps =>
+        ApprovalStepsRequired is > 0 ? ApprovalStepsRequired.Value : DefaultApprovalSteps;
+
+    public int DefaultApprovalSteps =>
         Type == TicketType.Change && ChangeDetail?.Risk == RiskLevel.High ? 2 : 1;
+
+    // Geçerli turdaki onay kararları
+    public IEnumerable<ChangeApproval> CurrentRoundApprovals =>
+        Approvals.Where(a => a.Round == ApprovalRound);
 
     // Henüz çözülmemiş ve süresi dolmuş mu (ekranda anlık uyarı için).
     // Kalıcı ihlal bilgisi IsSlaBreached kolonunda.
@@ -329,7 +374,29 @@ public class EscalationRule
     [Display(Name = "Hedef rol")]
     public UserRole TargetRole { get; set; }
 
+    // Hedef: roldeki en az yüklü kişi ya da talebin ekibinin lideri
+    [Display(Name = "Hedef türü")]
+    public EscalationTarget TargetType { get; set; } = EscalationTarget.Role;
+
+    // Hedefte uygun kişi yoksa: önce yedek kişi, sonra yedek rol denenir
+    [Display(Name = "Yedek kişi")]
+    public int? FallbackUserId { get; set; }
+    public AppUser? FallbackUser { get; set; }
+
+    [Display(Name = "Yedek rol")]
+    public UserRole? FallbackRole { get; set; }
+
+    // Eskalasyon sonrası öncelik bir kademe artırılsın mı (Kritik'te durur)
+    [Display(Name = "Önceliği artır")]
+    public bool RaisePriority { get; set; } = true;
+
     public bool IsActive { get; set; } = true;
+}
+
+public enum EscalationTarget
+{
+    [Display(Name = "Rol")] Role = 0,
+    [Display(Name = "Ekip lideri")] TeamLead = 1
 }
 
 // Gerçekleşen eskalasyon kaydı: bool bayrak değil, olayın kendisi
@@ -353,6 +420,18 @@ public class EscalationRecord
 
     [StringLength(300)]
     public string? Note { get; set; }
+
+    // Elle (endpoint üzerinden) mi tetiklendi; tetikleyen kişi
+    public bool IsManual { get; set; }
+    public int? TriggeredById { get; set; }
+    public AppUser? TriggeredBy { get; set; }
+
+    // Hedefte kimse bulunamayıp yedek kurala düşüldü mü
+    public bool UsedFallback { get; set; }
+
+    // Eskalasyonla öncelik değiştiyse önceki / sonraki değer
+    public Priority? PriorityBefore { get; set; }
+    public Priority? PriorityAfter { get; set; }
 }
 
 public enum NotificationType
@@ -364,7 +443,10 @@ public enum NotificationType
     [Display(Name = "Onay bekliyor")] ApprovalPending = 4,
     [Display(Name = "Onay kararı")] ApprovalDecided = 5,
     [Display(Name = "Yeni mesaj")] NewComment = 6,
-    [Display(Name = "Yeni talep")] NewTicket = 7
+    [Display(Name = "Yeni talep")] NewTicket = 7,
+    [Display(Name = "Günlük özet")] DailyDigest = 8,
+    [Display(Name = "Onay hatırlatma")] ApprovalReminder = 9,
+    [Display(Name = "Değişiklik uygulaması")] ChangeImplementation = 10
 }
 
 public enum NotificationChannel { InApp = 0, Email = 1, Sms = 2 }
@@ -400,6 +482,19 @@ public class Notification
 
     [StringLength(300)]
     public string? SendError { get; set; }
+
+    // Yeniden deneme kuyruğu (DeliveryRetryPolicy): kaç kez denendi, bir
+    // sonraki deneme ne zaman. Sınır aşılınca IsFailed = true olur ve kayıt
+    // kuyruktan çıkar (yönetici bildirim listesinde görür).
+    public int AttemptCount { get; set; }
+    public DateTime? LastAttemptAt { get; set; }
+    public DateTime? NextAttemptAt { get; set; }
+    public bool IsFailed { get; set; }
+
+    // E-posta şablonu seçimi (EmailTemplates): "escalation.l2", "sla.breach" gibi.
+    // Boşsa bildirim türünün varsayılan şablonu kullanılır.
+    [StringLength(50)]
+    public string? TemplateKey { get; set; }
 }
 
 // ── Müşteri memnuniyeti (ISO 9001 md. 9.1.2) ─────────────────────────────
@@ -596,6 +691,11 @@ public class AppUser
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; }
+
+    // Günlük özet e-postası (DailyDigestService)
+    [Display(Name = "Günlük özet e-postası")]
+    public bool DailyDigestEnabled { get; set; } = true;
+    public DateTime? LastDigestSentAt { get; set; }
 
     [Display(Name = "Ad Soyad")]
     public string FullName => $"{FirstName} {LastName}".Trim();

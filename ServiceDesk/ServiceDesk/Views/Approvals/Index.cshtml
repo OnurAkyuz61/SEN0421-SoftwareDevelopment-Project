@@ -3,61 +3,151 @@
 @{
     ViewData["Title"] = "Onaylar";
     var history = (List<Ticket>)ViewBag.History;
+    var f = (ServiceDesk.Controllers.ApprovalFilter)ViewBag.Filter;
+    var pager = (PagerInfo)ViewBag.Pager;
+    var ctx = (ApprovalContext)ViewBag.Context;
+    var categories = (List<Category>)ViewBag.Categories;
     var ben = Me.User!;
+    var here = Context.Request.Path + Context.Request.QueryString;
 }
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <h4 class="fw-bold mb-0 me-auto">Değişiklik onayları</h4>
+    @if (ben.Role == UserRole.Admin)
+    {
+        <a asp-action="Delegations" class="btn btn-sm btn-outline-secondary"><i class="bi bi-person-badge"></i> Vekalet</a>
+        <a asp-controller="ApprovalChainRules" asp-action="Index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-diagram-3"></i> Zincir kuralları</a>
+    }
+</div>
 
 <div class="alert alert-light border small d-flex gap-2 align-items-start">
     <i class="bi bi-info-circle mt-1"></i>
     <div>
-        Nihai onayı ve reddi yalnızca <strong>yönetici</strong> verir; destek personeli
-        yüksek riskli değişikliğin birinci (ara) onayını verebilir.
-        Kimse kendi açtığı değişikliği karara bağlayamaz.
+        Nihai onayı ve reddi <strong>yönetici</strong> ya da yöneticiden <strong>vekalet</strong> almış personel verir;
+        ara adımları destek personeli onaylayabilir. Kimse kendi açtığı değişikliği karara bağlayamaz.
+        Planlanan uygulama penceresi geçmiş değişiklik onaylanamaz@(ctx.Settings.RequireCabForHighRisk ? "; yüksek riskli değişikliğin nihai onayı CAB toplantı kaydı ister" : "").
+        @if (ctx.Delegators.Any())
+        {
+            <div class="mt-1 text-primary"><i class="bi bi-person-check"></i> Şu an vekaleten yetkilisiniz: @string.Join(", ", ctx.Delegators.Select(d => d.FullName))</div>
+        }
     </div>
 </div>
 
+<form method="get" class="panel mb-3">
+    <div class="panel-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Ara</label>
+                <input name="q" value="@f.Q" class="form-control form-control-sm" placeholder="Başlık, no, talep eden" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Risk</label>
+                <select name="risk" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                    @foreach (var r in Enum.GetValues<RiskLevel>()) { <option value="@r" selected="@(f.Risk == r)">@Ui.RiskText(r)</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Öncelik</label>
+                <select name="priority" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                    @foreach (var p in Enum.GetValues<Priority>()) { <option value="@p" selected="@(f.Priority == p)">@Ui.PriorityText(p)</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Kategori</label>
+                <select name="categoryId" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                    @foreach (var c in categories) { <option value="@c.Id" selected="@(f.CategoryId == c.Id)">@c.Name</option> }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Sıralama</label>
+                <select name="sort" class="form-select form-select-sm">
+                    <option value="" selected="@(f.Sort == null)">En eski önce</option>
+                    <option value="newest" selected="@(f.Sort == "newest")">En yeni önce</option>
+                    <option value="planned" selected="@(f.Sort == "planned")">Planlanan başlangıç</option>
+                    <option value="priority" selected="@(f.Sort == "priority")">Öncelik</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Açılış (başlangıç)</label>
+                <input type="date" name="from" value="@f.From?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Açılış (bitiş)</label>
+                <input type="date" name="to" value="@f.To?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-5 d-flex gap-3 pb-1">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="resubmitted" value="true" id="fResub" checked="@(f.Resubmitted == true)" />
+                    <label class="form-check-label small" for="fResub">Yeniden gönderilenler</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="windowPassed" value="true" id="fWin" checked="@(f.WindowPassed == true)" />
+                    <label class="form-check-label small" for="fWin">Penceresi geçmiş</label>
+                </div>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button class="btn btn-sm btn-primary flex-fill"><i class="bi bi-funnel"></i> Filtrele</button>
+                <a asp-action="Index" class="btn btn-sm btn-light border">Temizle</a>
+            </div>
+        </div>
+    </div>
+</form>
+
 <div class="panel mb-3">
-    <div class="panel-head">Onay bekleyen değişiklik talepleri <span class="tag tag-amber">@Model.Count</span></div>
+    <div class="panel-head">Onay bekleyen değişiklik talepleri <span class="tag tag-amber">@pager.TotalCount</span></div>
     <div class="table-responsive">
         <table class="table">
-            <thead><tr><th>No</th><th>Talep</th><th>Öncelik</th><th style="width:340px">Karar</th></tr></thead>
+            <thead><tr><th>No</th><th>Talep</th><th>Öncelik</th><th style="width:360px">Karar</th></tr></thead>
             <tbody>
-                @if (!Model.Any()) { <tr><td colspan="4" class="text-center text-muted py-5">Onay bekleyen talep yok</td></tr> }
+                @if (!Model.Any()) { <tr><td colspan="4" class="text-center text-muted py-5">Kritere uyan onay bekleyen talep yok</td></tr> }
                 @foreach (var t in Model)
                 {
+                    var d = t.ChangeDetail;
+                    var pencereGecti = d?.PlannedEnd != null && d.PlannedEnd < ctx.NowUtc;
                     <tr>
                         <td class="text-muted">@Ui.TicketNo(t)</td>
                         <td>
                             <a asp-controller="Tickets" asp-action="Details" asp-route-id="@t.Id" class="fw-semibold text-decoration-none">@t.Title</a>
                             <div class="small text-muted">@t.RequesterName · @Ui.CategoryText(t.Category) · @AppTime.ToLocal(t.CreatedAt).ToString("dd.MM.yyyy HH:mm")</div>
-                            <div class="small mt-1">
-                                @if (t.ChangeDetail != null)
+                            <div class="small mt-1 d-flex flex-wrap gap-1 align-items-center">
+                                @if (d != null)
                                 {
-                                    <span class="tag @(t.ChangeDetail.Risk == RiskLevel.High ? "tag-red" : t.ChangeDetail.Risk == RiskLevel.Medium ? "tag-amber" : "tag-gray")">@Ui.RiskText(t.ChangeDetail.Risk) risk</span>
+                                    <span class="tag @(d.Risk == RiskLevel.High ? "tag-red" : d.Risk == RiskLevel.Medium ? "tag-amber" : "tag-gray")">@Ui.RiskText(d.Risk) risk</span>
                                 }
-                                else
+                                <span class="text-muted">@t.CurrentRoundApprovals.Count(a => a.Decision == ApprovalStatus.Approved) / @t.RequiredApprovalSteps onay</span>
+                                @if (t.ApprovalRound > 1) { <span class="tag tag-blue">@t.ApprovalRound. tur</span> }
+                                @if (d?.PlannedStart != null)
                                 {
-                                    <span class="tag tag-gray">plan yok</span>
+                                    <span class="@(pencereGecti ? "text-danger" : "text-muted")">
+                                        <i class="bi bi-calendar-event"></i> @AppTime.ToLocal(d.PlannedStart)?.ToString("dd.MM HH:mm") – @AppTime.ToLocal(d.PlannedEnd)?.ToString("dd.MM HH:mm")
+                                    </span>
                                 }
-                                <span class="text-muted ms-1">@t.Approvals.Count(a => a.Decision == ApprovalStatus.Approved) / @t.RequiredApprovalSteps onay</span>
+                                @if (d?.Risk == RiskLevel.High)
+                                {
+                                    @if (string.IsNullOrWhiteSpace(d.CabMeetingUrl)) { <span class="tag tag-gray">CAB kaydı yok</span> }
+                                    else { <a href="@d.CabMeetingUrl" target="_blank" rel="noopener noreferrer" class="tag tag-green text-decoration-none">CAB kaydı</a> }
+                                }
                             </div>
                         </td>
                         <td><span class="tag @Ui.PriorityTag(t.Priority)">@Ui.PriorityText(t.Priority)</span></td>
                         <td>
-                            @* Yetkisi olmayan rol için düğme hiç basılmaz; sunucu
-                               tarafında ApprovalsController aynı kuralı uygular *@
                             @{
-                                var onay = ApprovalPolicy.CanDecide(t, ben, approve: true);
-                                var red = ApprovalPolicy.CanDecide(t, ben, approve: false);
+                                var onay = ApprovalPolicy.CanDecide(t, ben, approve: true, ctx);
+                                var red = ApprovalPolicy.CanDecide(t, ben, approve: false, ctx);
                             }
                             @if (onay.Allowed || red.Allowed)
                             {
                                 <form method="post" class="d-flex gap-2">
                                     <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(t.RowVersion)" />
-                                    <input name="note" class="form-control form-control-sm" placeholder="Not (isteğe bağlı)" />
+                                    <input type="hidden" name="returnUrl" value="@here" />
+                                    <input name="note" class="form-control form-control-sm" placeholder="Not (redde zorunlu)" />
                                     @if (onay.Allowed)
                                     {
-                                        <button class="btn btn-sm btn-success" asp-action="Approve" asp-route-id="@t.Id">
-                                            @(ApprovalPolicy.IsFinalStep(t) ? "Onayla" : "1. onayı ver")
+                                        <button class="btn btn-sm btn-success text-nowrap" asp-action="Approve" asp-route-id="@t.Id">
+                                            @(ApprovalPolicy.IsFinalStep(t) ? "Onayla" : $"{ApprovalPolicy.NextStep(t)}. onayı ver")
                                         </button>
                                     }
                                     @if (red.Allowed)
@@ -65,6 +155,10 @@
                                         <button class="btn btn-sm btn-outline-danger" asp-action="Reject" asp-route-id="@t.Id">Reddet</button>
                                     }
                                 </form>
+                                @if (onay.OnBehalfOf != null || red.OnBehalfOf != null)
+                                {
+                                    <div class="small text-primary mt-1"><i class="bi bi-person-badge"></i> @((onay.OnBehalfOf ?? red.OnBehalfOf)!.FullName) adına vekaleten</div>
+                                }
                                 @if (!onay.Allowed || !red.Allowed)
                                 {
                                     <div class="small text-muted mt-1">@(onay.Allowed ? red.Error : onay.Error)</div>
@@ -81,8 +175,9 @@
         </table>
     </div>
 </div>
+<partial name="_Pager" model="pager" />
 
-<div class="panel">
+<div class="panel mt-3">
     <div class="panel-head">Son kararlar</div>
     <div class="table-responsive">
         <table class="table">

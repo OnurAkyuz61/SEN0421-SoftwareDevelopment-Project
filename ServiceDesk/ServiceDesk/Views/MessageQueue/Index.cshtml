@@ -1,0 +1,65 @@
+@model List<Notification>
+@{
+    ViewData["Title"] = "E-posta / SMS kuyruğu";
+    var state = ViewBag.State as string;
+    var pager = (PagerInfo)ViewBag.Pager;
+    var counts = (ServiceDesk.Controllers.MessageQueueController.QueueCounts)ViewBag.Counts;
+    string Btn(string? s) => state == s ? "btn-secondary" : "btn-outline-secondary";
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <h4 class="fw-bold mb-0 me-auto">E-posta / SMS kuyruğu</h4>
+    <div class="btn-group btn-group-sm">
+        <a class="btn @Btn(null)" asp-action="Index">Gönderilmemiş</a>
+        <a class="btn @Btn("pending")" asp-action="Index" asp-route-state="pending">Bekleyen (@counts.Pending)</a>
+        <a class="btn @Btn("retrying")" asp-action="Index" asp-route-state="retrying">Yeniden denenen (@counts.Retrying)</a>
+        <a class="btn @Btn("failed")" asp-action="Index" asp-route-state="failed">Başarısız (@counts.Failed)</a>
+        <a class="btn @Btn("sent")" asp-action="Index" asp-route-state="sent">Gönderilen</a>
+    </div>
+</div>
+
+<div class="alert alert-light border small">
+    <i class="bi bi-info-circle"></i>
+    Gönderim istek içinde değil, arka plandaki kuyruk worker'ında yapılır. Başarısız gönderim
+    üstel aralıklarla yeniden denenir; deneme sınırı dolan kayıt "başarısız" olur ve buradan elle yeniden kuyruğa alınabilir.
+</div>
+
+<div class="panel">
+    <div class="table-responsive">
+        <table class="table table-sm mb-0">
+            <thead><tr><th>Kanal</th><th>Alıcı</th><th>Konu</th><th>Deneme</th><th>Durum</th><th>Sonraki deneme</th><th></th></tr></thead>
+            <tbody>
+                @if (!Model.Any()) { <tr><td colspan="7" class="text-center text-muted py-4">Kayıt yok</td></tr> }
+                @foreach (var n in Model)
+                {
+                    <tr>
+                        <td><span class="tag tag-gray">@n.Channel</span></td>
+                        <td>@(n.Recipient?.FullName ?? "-")</td>
+                        <td>
+                            <div>@n.Title</div>
+                            <div class="small text-muted">@NotificationService.TypeText(n.Type) · @AppTime.ToLocal(n.CreatedAt).ToString("dd.MM.yyyy HH:mm")</div>
+                        </td>
+                        <td>@n.AttemptCount</td>
+                        <td>
+                            @if (n.IsSent) { <span class="tag tag-green">gönderildi</span> }
+                            else if (n.IsFailed) { <span class="tag tag-red">başarısız</span> }
+                            else if (n.AttemptCount > 0) { <span class="tag tag-amber">yeniden denenecek</span> }
+                            else { <span class="tag tag-blue">bekliyor</span> }
+                            @if (!string.IsNullOrEmpty(n.SendError)) { <div class="small text-danger">@n.SendError</div> }
+                        </td>
+                        <td class="small text-muted">@(AppTime.ToLocal(n.NextAttemptAt)?.ToString("dd.MM HH:mm:ss") ?? "-")</td>
+                        <td class="text-end">
+                            @if (!n.IsSent)
+                            {
+                                <form asp-action="Retry" asp-route-id="@n.Id" method="post">
+                                    <button class="btn btn-sm btn-outline-primary">Şimdi dene</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<partial name="_Pager" model="pager" />

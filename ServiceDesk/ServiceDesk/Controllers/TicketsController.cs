@@ -1,9 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
+using ServiceDesk.Services.Approvals;
+using ServiceDesk.Services.Escalations;
+using ServiceDesk.Services.Notifications;
 
 namespace ServiceDesk.Controllers;
 
@@ -16,16 +20,127 @@ public class TicketsController : Controller
     private readonly FileStorage _files;
     private readonly CurrentUser _current;
     private readonly NotificationService _notify;
+    private readonly EscalationService _escalation;
+    private readonly ApprovalAuthority _authority;
+    private readonly ApprovalChainResolver _chain;
+    private readonly ChangeResubmissionService _resubmit;
+    private readonly AuditService _audit;
 
-    public TicketsController(AppDbContext db, FileStorage files, CurrentUser current, NotificationService notify)
+    public TicketsController(AppDbContext db, FileStorage files, CurrentUser current, NotificationService notify,
+                             EscalationService escalation, ApprovalAuthority authority,
+                             ApprovalChainResolver chain, ChangeResubmissionService resubmit, AuditService audit)
     {
         _db = db;
         _files = files;
         _current = current;
         _notify = notify;
+        _escalation = escalation;
+        _authority = authority;
+        _chain = chain;
+        _resubmit = resubmit;
+        _audit = audit;
+    }
+
+    // ───── Manuel eskalasyon ─────────────────────────────────────────────
+    // SLA dolmasını beklemeden talebi bir sonraki eskalasyon seviyesine
+    // yükseltir. Gerekçe zorunlu; hedef kişi seçilmezse kuralın hedefi
+    // (rol / ekip lideri / yedek) uygulanır.
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Escalate(int id, string? reason, int? targetUserId)
+    {
+        reason = reason?.Trim();
+        if (string.IsNullOrEmpty(reason) || reason.Length < 5 || reason.Length > 250)
+        {
+            TempData["Err"] = "Eskalasyon gerekçesi 5–250 karakter olmalı.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var (ok, message) = await _escalation.EscalateManuallyAsync(id, _current.User!.Id, reason, targetUserId);
+        TempData[ok ? "Ok" : "Err"] = message;
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    // ───── Onay sonrası uygulama / geri alma ─────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateImplementation(int id, ImplementationStatus status, string? note, string? rowVersion)
+    {
+        var ticket = await _db.Tickets.Include(t => t.ChangeDetail).FirstOrDefaultAsync(t => t.Id == id);
+        if (ticket == null) return NotFound();
+        if (TicketConcurrency.Expect(_db, ticket, rowVersion)) return await ConflictAsync(id);
+
+        var karar = ChangeImplementationRules.CanMove(ticket, status, AppTime.UtcNow);
+        if (!karar.Allowed)
+        {
+            TempData["Err"] = karar.Error;
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // Başarısızlık ve geri alma not ister: denetimde "neden" sorusunun cevabı
+        if (status is ImplementationStatus.Failed or ImplementationStatus.RolledBack && string.IsNullOrWhiteSpace(note))
+        {
+            TempData["Err"] = "Başarısız uygulama ve geri alma için açıklama zorunludur.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var d = ticket.ChangeDetail!;
+        var eski = d.ImplementationStatus;
+        ChangeImplementationRules.Apply(d, status, AppTime.UtcNow, note?[..Math.Min(1000, note.Length)]);
+        d.UpdatedAt = AppTime.UtcNow;
+        d.UpdatedById = _current.User!.Id;
+
+        _db.TicketHistories.Add(new TicketHistory
+        {
+            TicketId = id, Field = "Uygulama",
+            OldValue = Ui.ImplementationText(eski), NewValue = Ui.ImplementationText(status),
+            ChangedById = _current.User!.Id, ChangedAt = AppTime.UtcNow
+        });
+
+        // Uygulama başlayınca talep işleme alınır; uygulandıysa çözülür
+        if (status == ImplementationStatus.InProgress && ticket.Status == TicketStatus.New
+            && TicketWorkflow.CanTransition(ticket, TicketStatus.InProgress).Allowed)
+            TicketWorkflow.Apply(ticket, TicketStatus.InProgress, AppTime.UtcNow);
+        if (status is ImplementationStatus.Implemented or ImplementationStatus.RolledBack
+            && TicketWorkflow.IsOpen(ticket.Status)
+            && TicketWorkflow.CanTransition(ticket, TicketStatus.Resolved).Allowed)
+            TicketWorkflow.Apply(ticket, TicketStatus.Resolved, AppTime.UtcNow);
+
+        _audit.Queue(AuditAction.ChangeImplementationUpdated, _current.User!.Id,
+            detail: $"{Ui.ImplementationText(eski)} → {Ui.ImplementationText(status)}. {note}", ticketId: id);
+
+        _notify.Queue(ticket.RequesterId, NotificationType.ChangeImplementation,
+            $"Değişiklik {Ui.ImplementationText(status).ToLowerInvariant()}: {Ui.TicketNo(ticket)} {ticket.Title}",
+            string.IsNullOrWhiteSpace(note) ? $"Uygulama durumu: {Ui.ImplementationText(status)}." : note!,
+            ticket.Id, EmailTemplates.ChangeImplementation);
+
+        TicketConcurrency.Touch(_db, ticket);
+        if (!await TrySaveAsync()) return await ConflictAsync(id);
+        _notify.SignalDelivery();
+
+        TempData["Ok"] = $"Uygulama durumu \"{Ui.ImplementationText(status)}\" olarak güncellendi.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    // ───── Reddedileni düzeltip yeniden gönderme (destek talep adına) ────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Resubmit(int id, string? correctionNote, string? description,
+        RiskLevel? risk, DateTime? plannedStart, DateTime? plannedEnd, string? rowVersion)
+    {
+        var ticket = await _db.Tickets.Include(t => t.ChangeDetail).Include(t => t.Approvals)
+            .FirstOrDefaultAsync(t => t.Id == id);
+        if (ticket == null) return NotFound();
+        if (TicketConcurrency.Expect(_db, ticket, rowVersion)) return await ConflictAsync(id);
+
+        var (ok, message) = await _resubmit.ResubmitAsync(ticket, _current.User!, correctionNote ?? "",
+            description, risk,
+            plannedStart == null ? null : AppTime.ToUtc(plannedStart.Value),
+            plannedEnd == null ? null : AppTime.ToUtc(plannedEnd.Value));
+
+        TempData[ok ? "Ok" : "Err"] = message;
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     // Filtreler: arama metni, durum, öncelik, tür, kategori, oluşturma tarihi aralığı
+    [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> Index(string? q, TicketStatus? status, Priority? priority,
         TicketType? type, int? categoryId, DateTime? from, DateTime? to, int page = 1)
     {
@@ -69,6 +184,7 @@ public class TicketsController : Controller
 
     // Soft-delete edilmiş talepler (ISO 9001 md. 7.5: kayıt korunur, listeden
     // kalkar). Global query filter IgnoreQueryFilters ile aşılır.
+    [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> Archived(string? q, int page = 1)
     {
         var query = _db.Tickets.IgnoreQueryFilters().AsNoTracking()
@@ -108,11 +224,13 @@ public class TicketsController : Controller
             .Include(t => t.Comments).ThenInclude(c => c.Attachments)
             .Include(t => t.History).ThenInclude(h => h.ChangedBy)
             .Include(t => t.Escalations).ThenInclude(e => e.EscalatedTo)
+            .Include(t => t.Escalations).ThenInclude(e => e.TriggeredBy)
             .Include(t => t.SlaPolicy)
             .Include(t => t.Category)
             .Include(t => t.AssignedTeam)
             .Include(t => t.ChangeDetail)
             .Include(t => t.Approvals).ThenInclude(a => a.Approver)
+            .Include(t => t.Approvals).ThenInclude(a => a.OnBehalfOf)
             .AsNoTracking()
             // Birden fazla koleksiyon include ediliyor: tek sorgu kartezyen
             // çarpım üretir, ayrı sorgulara bölünür
@@ -123,6 +241,15 @@ public class TicketsController : Controller
         ticket.Comments = ticket.Comments.OrderBy(c => c.CreatedAt).ToList();
         ticket.History = ticket.History.OrderByDescending(h => h.ChangedAt).ToList();
         ticket.Escalations = ticket.Escalations.OrderByDescending(e => e.OccurredAt).ToList();
+
+        // Onay düğmeleri ve manuel eskalasyon formu için
+        ViewBag.ApprovalContext = await _authority.ContextForAsync(_current.User!);
+        ViewBag.MaxResubmissions = _resubmit.MaxResubmissions;
+        ViewBag.EscalationStaff = ticket.IsDeleted
+            ? new List<AppUser>()
+            : await _db.Users.AsNoTracking()
+                .Where(u => u.IsActive && u.Role != UserRole.User && u.Id != ticket.AssigneeId)
+                .OrderBy(u => u.Role).ThenBy(u => u.FirstName).ToListAsync();
 
         // Çözüm makalesi seçimi için yayımlanmış makaleler (arşivde gerekmez)
         ViewBag.Articles = ticket.IsDeleted
@@ -219,7 +346,7 @@ public class TicketsController : Controller
                     $"Hedef çözüm: {AppTime.ToLocal(ticket.SlaDueAt):dd.MM.yyyy HH:mm}", ticket.Id);
 
             if (!await TrySaveAsync()) return await ConflictAsync(id);
-            await _notify.DeliverPendingEmailsAsync();
+            _notify.SignalDelivery();
         }
 
         TempData["Ok"] = assigneeId == null ? "Atama kaldırıldı." : "Talep atandı.";
@@ -231,8 +358,24 @@ public class TicketsController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateChangeDetail(
         int id, RiskLevel risk, DateTime? plannedStart, DateTime? plannedEnd,
-        string? implementationPlan, string? rollbackPlan, string? impactAnalysis, string? rowVersion)
+        string? implementationPlan, string? rollbackPlan, string? impactAnalysis, string? rowVersion,
+        string? cabMeetingUrl = null, DateTime? cabMeetingAt = null)
     {
+        if (plannedStart != null && plannedEnd != null && plannedEnd <= plannedStart)
+        {
+            TempData["Err"] = "Planlanan bitiş, başlangıçtan sonra olmalı.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        cabMeetingUrl = string.IsNullOrWhiteSpace(cabMeetingUrl) ? null : cabMeetingUrl.Trim();
+        if (cabMeetingUrl != null && (cabMeetingUrl.Length > 500
+            || !Uri.TryCreate(cabMeetingUrl, UriKind.Absolute, out var cabUri)
+            || (cabUri.Scheme != Uri.UriSchemeHttps && cabUri.Scheme != Uri.UriSchemeHttp)))
+        {
+            TempData["Err"] = "CAB toplantı kaydı geçerli bir http(s) bağlantısı olmalı.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         var ticket = await _db.Tickets
             .Include(t => t.ChangeDetail)
             .Include(t => t.Approvals)
@@ -268,8 +411,14 @@ public class TicketsController : Controller
         detail.ImplementationPlan = implementationPlan;
         detail.RollbackPlan = rollbackPlan;
         detail.ImpactAnalysis = impactAnalysis;
+        detail.CabMeetingUrl = cabMeetingUrl;
+        detail.CabMeetingAt = cabMeetingAt == null ? null : AppTime.ToUtc(cabMeetingAt.Value);
         detail.UpdatedAt = AppTime.UtcNow;
         detail.UpdatedById = _current.User!.Id;
+
+        // Onay başlamadıysa zincir kuralları (kategori / öncelik / risk) yeniden çözülür
+        if (ticket.ApprovalStatus == ApprovalStatus.Pending && !TicketWorkflow.IsApprovalStarted(ticket))
+            await _chain.ApplyAsync(ticket);
 
         // Plan ayrı tabloda; talebin sürümü yine de ilerlemeli ki aynı planı
         // açık tutan diğer kişi üzerine yazamasın

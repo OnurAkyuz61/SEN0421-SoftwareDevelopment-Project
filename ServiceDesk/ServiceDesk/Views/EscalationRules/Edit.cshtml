@@ -2,43 +2,75 @@
 @{
     ViewData["Title"] = Model.Id == 0 ? "Yeni eskalasyon kuralı" : $"Seviye {Model.Level} düzenle";
     var staffRoles = new[] { UserRole.Agent, UserRole.Admin };
+    var staff = (List<AppUser>)ViewBag.Staff;
 }
 
-<div class="panel" style="max-width:520px">
+<div class="panel" style="max-width:620px">
     <div class="panel-head">@ViewData["Title"]</div>
     <div class="panel-body">
         <form asp-action="Edit" method="post" novalidate>
             <input type="hidden" asp-for="Id" />
 
-            <div class="mb-3">
-                <label asp-for="Level" class="form-label"></label>
-                <input asp-for="Level" class="form-control" type="number" min="1" />
-                <span asp-validation-for="Level" class="text-danger small"></span>
-                <div class="form-text">Düşük seviye önce uygulanır; her seviye tek olmalıdır.</div>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="AfterMinutes" class="form-label"></label>
-                <input asp-for="AfterMinutes" class="form-control" type="number" min="0" />
-                <span asp-validation-for="AfterMinutes" class="text-danger small"></span>
-                <div class="form-text">SLA bitişinden kaç dakika sonra yeniden atama ve bildirim tetiklenir. 0 = ihlal anında.</div>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="TargetRole" class="form-label"></label>
-                <select asp-for="TargetRole" class="form-select">
-                    @foreach (var role in staffRoles)
-                    {
-                        <option value="@role">@Ui.RoleText(role)</option>
-                    }
-                </select>
-                <span asp-validation-for="TargetRole" class="text-danger small"></span>
-                <div class="form-text">
-                    Talep bu roldeki bir kişiye yeniden atanır (üzerinde en az açık talep olan aktif hesap);
-                    aynı role eskalasyon bildirimi de gider. Uygun kişi yoksa yalnızca bildirim gönderilir, atama değişmez.
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Level" class="form-label"></label>
+                    <input asp-for="Level" class="form-control" type="number" min="1" />
+                    <span asp-validation-for="Level" class="text-danger small"></span>
+                    <div class="form-text">Düşük seviye önce uygulanır; her seviye tek olmalıdır.</div>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="AfterMinutes" class="form-label"></label>
+                    <input asp-for="AfterMinutes" class="form-control" type="number" min="0" />
+                    <span asp-validation-for="AfterMinutes" class="text-danger small"></span>
+                    <div class="form-text">SLA bitişinden kaç dakika sonra. 0 = ihlal anında.</div>
                 </div>
             </div>
 
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="TargetType" class="form-label"></label>
+                    <select asp-for="TargetType" class="form-select">
+                        @foreach (var t in Enum.GetValues<EscalationTarget>()) { <option value="@t">@Ui.EscalationTargetText(t)</option> }
+                    </select>
+                    <div class="form-text">Ekip lideri: talebin ekibinin lideri (Katalog → Ekipler). Lider yoksa yedek kurala düşülür.</div>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="TargetRole" class="form-label"></label>
+                    <select asp-for="TargetRole" class="form-select">
+                        @foreach (var role in staffRoles) { <option value="@role">@Ui.RoleText(role)</option> }
+                    </select>
+                    <span asp-validation-for="TargetRole" class="text-danger small"></span>
+                    <div class="form-text">Rol hedefinde: bu roldeki en az açık talebi olan aktif kişi; role bildirim de gider.</div>
+                </div>
+            </div>
+
+            <div class="border rounded p-3 mb-3 bg-light">
+                <div class="fw-semibold small mb-2">Yedek atama (hedefte uygun kişi yoksa)</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="FallbackUserId" class="form-label small"></label>
+                        <select asp-for="FallbackUserId" class="form-select form-select-sm">
+                            <option value="">Yok</option>
+                            @foreach (var u in staff) { <option value="@u.Id">@u.FullName (@Ui.RoleText(u.Role))</option> }
+                        </select>
+                        <span asp-validation-for="FallbackUserId" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="FallbackRole" class="form-label small"></label>
+                        <select asp-for="FallbackRole" class="form-select form-select-sm">
+                            <option value="">Yok</option>
+                            @foreach (var role in staffRoles) { <option value="@role">@Ui.RoleText(role)</option> }
+                        </select>
+                        <span asp-validation-for="FallbackRole" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="form-text">Sıra: hedef → yedek kişi → yedek rol. Hiçbiri yoksa atama değişmez, yalnızca bildirim gider.</div>
+            </div>
+
+            <div class="form-check mb-2">
+                <input asp-for="RaisePriority" class="form-check-input" />
+                <label asp-for="RaisePriority" class="form-check-label">Eskalasyon sonrası önceliği bir kademe artır (Kritik'te durur)</label>
+            </div>
             <div class="form-check mb-4">
                 <input asp-for="IsActive" class="form-check-input" />
                 <label asp-for="IsActive" class="form-check-label">Kural aktif</label>

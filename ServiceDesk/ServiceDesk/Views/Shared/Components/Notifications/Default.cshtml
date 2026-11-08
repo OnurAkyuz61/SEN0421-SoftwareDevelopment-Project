@@ -1,20 +1,21 @@
-@model List<Notification>
+@model ServiceDesk.ViewComponents.BellVm
+@{
+    var count = Model.UnreadCount;
+    var badge = count > 9 ? "9+" : count.ToString();
+}
 
-<div class="dropdown">
+<div class="dropdown" data-bell data-unread-url="@Url.Action("UnreadCount", "Notifications")" data-poll="@Model.PollSeconds">
     <button class="btn btn-light position-relative bell" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
-            aria-expanded="false" title="Bildirimler" aria-label="Bildirimler@(Model.Any() ? $", {Model.Count} okunmamış" : "")">
-        <i class="bi bi-bell@(Model.Any() ? "-fill" : "")"></i>
-        @if (Model.Any())
-        {
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                @(Model.Count > 9 ? "9+" : Model.Count.ToString())
-            </span>
-        }
+            aria-expanded="false" title="Bildirimler" aria-label="Bildirimler@(count > 0 ? $", {count} okunmamış" : "")">
+        <i class="bi bi-bell@(count > 0 ? "-fill" : "")" data-bell-icon></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger @(count > 0 ? "" : "d-none")" data-bell-badge>
+            @badge
+        </span>
     </button>
     <div class="dropdown-menu dropdown-menu-end shadow notif-menu">
         <div class="notif-menu-head">
             <span class="fw-semibold">Bildirimler</span>
-            @if (Model.Any())
+            @if (count > 0)
             {
                 <form asp-controller="Notifications" asp-action="MarkRead" method="post" class="m-0">
                     <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
@@ -23,7 +24,7 @@
             }
         </div>
 
-        @if (!Model.Any())
+        @if (!Model.Items.Any())
         {
             <div class="notif-empty">
                 <i class="bi bi-bell-slash"></i>
@@ -33,7 +34,7 @@
         else
         {
             <div class="notif-list">
-                @foreach (var n in Model.Take(6))
+                @foreach (var n in Model.Items)
                 {
                     <a class="notif-item" asp-controller="Notifications" asp-action="Open" asp-route-id="@n.Id">
                         <span class="notif-icon text-@NotificationService.Color(n.Type)">
@@ -47,8 +48,45 @@
                     </a>
                 }
             </div>
+            @if (count > Model.Items.Count)
+            {
+                <div class="small text-muted px-3 py-1">+@(count - Model.Items.Count) okunmamış daha</div>
+            }
         }
 
         <a class="notif-footer" asp-controller="Notifications" asp-action="Index">Tüm bildirimleri gör</a>
     </div>
 </div>
+
+<script>
+    // Hafif sayaç yoklaması: sayfa görünürken PollSeconds'ta bir yalnızca
+    // okunmamış sayısı alınır; değiştiyse rozet güncellenir.
+    (function () {
+        var root = document.currentScript.previousElementSibling;
+        if (!root || !root.hasAttribute('data-bell')) return;
+        var url = root.getAttribute('data-unread-url');
+        var poll = Math.max(15, parseInt(root.getAttribute('data-poll') || '60', 10)) * 1000;
+        var badge = root.querySelector('[data-bell-badge]');
+        var icon = root.querySelector('[data-bell-icon]');
+
+        function apply(n) {
+            badge.textContent = n > 9 ? '9+' : String(n);
+            badge.classList.toggle('d-none', n === 0);
+            icon.className = 'bi bi-bell' + (n > 0 ? '-fill' : '');
+            document.querySelectorAll('[data-unread-count]').forEach(function (el) {
+                el.textContent = n > 0 ? '(' + n + ')' : '';
+            });
+        }
+
+        function tick() {
+            if (document.hidden) return;
+            fetch(url, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin', redirect: 'error' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (d) { if (d && typeof d.count === 'number') apply(d.count); })
+                .catch(function () { /* oturum kapanmış olabilir; sessiz geç */ });
+        }
+
+        setInterval(tick, poll);
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) tick(); });
+    })();
+</script>

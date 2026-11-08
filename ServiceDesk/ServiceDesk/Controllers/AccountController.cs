@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using ServiceDesk.Services.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ServiceDesk.Data;
@@ -31,11 +33,14 @@ public class AccountController : Controller
     private readonly LoginAuditService _audit;
     private readonly IEmailSender _email;
     private readonly AuthSettings _cfg;
+    private readonly OtpDeliveryService _otp;
+    private readonly AuditService _auditLog;
 
     public AccountController(AppDbContext db, IPasswordHasher<AppUser> hasher,
                              CurrentUser current, IWebHostEnvironment env,
                              LoginAuditService audit, IEmailSender email,
-                             IOptions<AuthSettings> cfg)
+                             IOptions<AuthSettings> cfg, OtpDeliveryService otp,
+                             AuditService auditLog)
     {
         _db = db;
         _hasher = hasher;
@@ -44,6 +49,8 @@ public class AccountController : Controller
         _audit = audit;
         _email = email;
         _cfg = cfg.Value;
+        _otp = otp;
+        _auditLog = auditLog;
     }
 
     private ISession Session => HttpContext.Session;
@@ -178,6 +185,10 @@ public class AccountController : Controller
         if (!HasPendingLogin()) return RedirectToAction(nameof(Login));
 
         Enum.TryParse<OtpDeliveryChannel>(Session.GetString(SessionKeys.Channel), out var last);
+        var enabled = _otp.EnabledChannels();
+        if (!enabled.Contains(last) && enabled.Count > 0) last = enabled[0];
+
+        ViewBag.EnabledChannels = enabled;
         return View(new OtpChannelVm
         {
             MaskedPhone = MaskPhone(Session.GetString(SessionKeys.PendingPhone)!),
@@ -187,38 +198,49 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult OtpChannel(OtpChannelVm vm)
+    [EnableRateLimiting(RateLimitPolicies.Otp)]
+    public async Task<IActionResult> OtpChannel(OtpChannelVm vm)
     {
         if (!HasPendingLogin()) return RedirectToAction(nameof(Login));
 
         vm.MaskedPhone = MaskPhone(Session.GetString(SessionKeys.PendingPhone)!);
+        ViewBag.EnabledChannels = _otp.EnabledChannels();
+
+        if (ModelState.IsValid && !_otp.IsChannelEnabled(vm.Channel))
+            ModelState.AddModelError(nameof(vm.Channel), "Bu kanal şu anda kullanılamıyor; başka bir kanal seçin.");
         if (!ModelState.IsValid) return View(vm);
 
-        return SendCode(vm.Channel);
+        return await SendCodeAsync(vm.Channel);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult ResendOtp()
+    [EnableRateLimiting(RateLimitPolicies.Otp)]
+    public async Task<IActionResult> ResendOtp()
     {
         if (!HasPendingLogin()) return RedirectToAction(nameof(Login));
 
         if (!Enum.TryParse<OtpDeliveryChannel>(Session.GetString(SessionKeys.Channel), out var channel))
             return RedirectToAction(nameof(OtpChannel));
 
-        return SendCode(channel);
+        return await SendCodeAsync(channel);
     }
 
-    // Kodu üretir, session'a yazar ve (şimdilik) ekranda gösterir.
+    // Kodu üretir, session'a yazar ve seçilen kanaldan gönderir
+    // (OtpDeliveryService: SMS / WhatsApp, her deneme veritabanına yazılır).
     // Bekleme süresi ve toplam gönderim sınırı sunucu tarafında uygulanır;
     // butonu devre dışı bırakmak yalnızca görsel kolaylıktır.
-    private IActionResult SendCode(OtpDeliveryChannel channel)
+    private async Task<IActionResult> SendCodeAsync(OtpDeliveryChannel channel)
     {
         var now = DateTime.UtcNow;
         var sendCount = Session.GetInt32(SessionKeys.SendCount) ?? 0;
+        var pendingId = Session.GetInt32(SessionKeys.PendingUserId)!.Value;
+        var email = await PendingEmailAsync(pendingId);
 
         if (sendCount >= _cfg.OtpMaxSends)
         {
+            await _auditLog.WriteAsync(AuditAction.OtpSendLimitExceeded, pendingId, email,
+                $"{sendCount} kod gönderildi, sınır {_cfg.OtpMaxSends}; bekleyen giriş iptal edildi.");
             ClearPendingLogin();
             TempData["Err"] = "Çok fazla kod istendi. Güvenliğiniz için lütfen yeniden giriş yapın.";
             return RedirectToAction(nameof(Login));
@@ -235,19 +257,32 @@ public class AccountController : Controller
 
         // Kriptografik olarak güvenli 6 haneli kod (000000–999999)
         var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6", CultureInfo.InvariantCulture);
+        var phone = Session.GetString(SessionKeys.PendingPhone)!;
+        var masked = MaskPhone(phone);
+
+        // Gönderim sayılır (başarısız da olsa): sağlayıcıya sınırsız istek atılamasın
+        Session.SetInt32(SessionKeys.SendCount, sendCount + 1);
+
+        var delivery = await _otp.SendAsync(pendingId, email, phone, channel, code,
+            _cfg.OtpLifetimeSeconds, sendCount + 1);
+
+        if (delivery.Status is OtpDeliveryStatus.Failed or OtpDeliveryStatus.Disabled)
+        {
+            TempData["Err"] = channel == OtpDeliveryChannel.WhatsApp
+                ? "Kod WhatsApp ile gönderilemedi. Lütfen SMS kanalını deneyin."
+                : "Kod SMS ile gönderilemedi. Lütfen WhatsApp kanalını deneyin veya biraz sonra tekrar deneyin.";
+            return RedirectToAction(nameof(OtpChannel));
+        }
 
         Session.SetString(SessionKeys.Code, code);
         Session.SetString(SessionKeys.Channel, channel.ToString());
         SetTime(SessionKeys.ExpiresAt, now.AddSeconds(_cfg.OtpLifetimeSeconds));
         SetTime(SessionKeys.SentAt, now);
-        Session.SetInt32(SessionKeys.SendCount, sendCount + 1);
         Session.SetInt32(SessionKeys.Attempts, 0);
 
-        var masked = MaskPhone(Session.GetString(SessionKeys.PendingPhone)!);
-
-        // Gerçek SMS / WhatsApp API buraya bağlanacak. Kod yalnızca Development'ta
-        // ve bu bilgisayardan açıldığında ekranda gösterilir (şifre sıfırlama
-        // demo bağlantısı ve DevLogin ile aynı kural: DevelopmentOnlyAttribute).
+        // Kod yalnızca Development'ta ve bu bilgisayardan açıldığında ekranda da
+        // gösterilir (şifre sıfırlama demo bağlantısı ve DevLogin ile aynı kural:
+        // DevelopmentOnlyAttribute). Gönderim yine stub servisten geçer ve loglanır.
         if (DevelopmentOnlyAttribute.IsAllowed(HttpContext))
             TempData["OtpDemoCode"] = code;
 
@@ -273,6 +308,7 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting(RateLimitPolicies.Otp)]
     public async Task<IActionResult> OtpVerify(OtpVerifyVm vm)
     {
         if (!HasPendingLogin()) return RedirectToAction(nameof(Login));
@@ -284,12 +320,15 @@ public class AccountController : Controller
         if (!ModelState.IsValid) return View(vm);
 
         var pendingId = Session.GetInt32(SessionKeys.PendingUserId);
-        var email = await _db.Users.Where(u => u.Id == pendingId).Select(u => u.Email).FirstOrDefaultAsync() ?? "";
+        var email = await PendingEmailAsync(pendingId);
+        Enum.TryParse<OtpDeliveryChannel>(Session.GetString(SessionKeys.Channel), out var usedChannel);
 
         // Süresi dolan kod bir daha kullanılamaz
         if (GetTime(SessionKeys.ExpiresAt) is not { } expires || DateTime.UtcNow > expires)
         {
             await _audit.RecordAsync(email, LoginResult.OtpExpired, pendingId);
+            await _auditLog.WriteAsync(AuditAction.OtpExpired, pendingId, email,
+                $"Süresi dolmuş kod girildi (kanal: {usedChannel}).");
             Session.Remove(SessionKeys.Code);
             vm.SecondsLeft = 0;
             ModelState.AddModelError(nameof(vm.Code), "Kodun süresi doldu. Yeni kod isteyin.");
@@ -308,9 +347,17 @@ public class AccountController : Controller
         {
             await _audit.RecordAsync(email, LoginResult.OtpFailed, pendingId);
 
+            // Başarısız OTP denemesi denetim kaydına ayrıntısıyla yazılır:
+            // kaçıncı deneme, hangi kanal, kalan hak (kodun kendisi yazılmaz)
+            _auditLog.Queue(AuditAction.OtpFailed, pendingId, email,
+                $"Hatalı OTP: deneme {attempts}/{_cfg.OtpMaxAttempts}, kanal {usedChannel}.");
+
             // Hesap genelindeki deneme sınırı (LoginAuditService)
             if (await _audit.IsLockedOutAsync(email))
             {
+                _auditLog.Queue(AuditAction.AccountLocked, pendingId, email,
+                    $"Art arda başarısız denemeler nedeniyle giriş {LoginAuditService.Window.TotalMinutes:0} dakika kapatıldı.");
+                await _db.SaveChangesAsync();
                 ClearPendingLogin();
                 TempData["Err"] = "Çok fazla hatalı kod girildi. Lütfen daha sonra yeniden giriş yapın.";
                 return RedirectToAction(nameof(Login));
@@ -319,11 +366,15 @@ public class AccountController : Controller
             // Bu koda özel deneme sınırı
             if (attempts >= _cfg.OtpMaxAttempts)
             {
+                _auditLog.Queue(AuditAction.OtpAttemptsExceeded, pendingId, email,
+                    $"Kod için {_cfg.OtpMaxAttempts} hatalı deneme; kod geçersiz kılındı.");
+                await _db.SaveChangesAsync();
                 Session.Remove(SessionKeys.Code);
                 TempData["Err"] = "Bu kod için deneme hakkınız doldu. Yeni bir kod isteyin.";
                 return RedirectToAction(nameof(OtpChannel));
             }
 
+            await _db.SaveChangesAsync();
             vm.AttemptsLeft = _cfg.OtpMaxAttempts - attempts;
             ModelState.AddModelError(nameof(vm.Code),
                 $"Kod hatalı. {vm.AttemptsLeft} deneme hakkınız kaldı.");
@@ -478,6 +529,9 @@ public class AccountController : Controller
     }
 
     // ───── Yardımcılar ───────────────────────────────────────────────────
+
+    private async Task<string> PendingEmailAsync(int? pendingId) =>
+        await _db.Users.Where(u => u.Id == pendingId).Select(u => u.Email).FirstOrDefaultAsync() ?? "";
 
     // Bekleyen giriş var mı? Süresi dolduysa temizler ve kullanıcıya söyler.
     private bool HasPendingLogin()

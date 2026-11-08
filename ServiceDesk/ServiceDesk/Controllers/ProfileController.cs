@@ -16,19 +16,53 @@ public class ProfileController : Controller
     private readonly AppDbContext _db;
     private readonly CurrentUser _current;
     private readonly IPasswordHasher<AppUser> _hasher;
+    private readonly NotificationService _notify;
 
-    public ProfileController(AppDbContext db, CurrentUser current, IPasswordHasher<AppUser> hasher)
+    public ProfileController(AppDbContext db, CurrentUser current, IPasswordHasher<AppUser> hasher,
+                             NotificationService notify)
     {
         _db = db;
         _current = current;
         _hasher = hasher;
+        _notify = notify;
+    }
+
+    // Bildirim tercihleri: tür bazında uygulama içi / e-posta / SMS ve günlük özet.
+    // Kilitli kanallar (ör. onay bekleyen değişikliğin uygulama içi kaydı)
+    // NotificationService.SavePreferencesAsync içinde yeniden zorlanır.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Preferences(List<NotificationPreferenceInput>? prefs, bool dailyDigest)
+    {
+        var me = await _db.Users.FirstAsync(u => u.Id == _current.Id);
+
+        await _notify.SavePreferencesAsync(me.Id, (prefs ?? new()).Select(p => new NotificationPreference
+        {
+            Type = p.Type, InApp = p.InApp, Email = p.Email, Sms = p.Sms
+        }));
+
+        me.DailyDigestEnabled = dailyDigest;
+        await _db.SaveChangesAsync();
+
+        TempData["Ok"] = "Bildirim tercihleriniz kaydedildi.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    private async Task<ProfilePageVm> PageAsync(ProfileVm profile, ChangePasswordVm password)
+    {
+        var page = Page(profile, password);
+        var me = _current.User!;
+        page.Preferences = await _notify.GetPreferencesAsync(me.Id);
+        page.DailyDigestEnabled = me.DailyDigestEnabled;
+        page.HasPhone = !string.IsNullOrWhiteSpace(me.PhoneNumber);
+        return page;
     }
 
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
         var me = _current.User!;
-        return View(Page(ToVm(me), new ChangePasswordVm()));
+        return View(await PageAsync(ToVm(me), new ChangePasswordVm()));
     }
 
     [HttpPost]
@@ -38,7 +72,7 @@ public class ProfileController : Controller
         var me = await _db.Users.FirstAsync(u => u.Id == _current.Id);
 
         if (!TryValidateModel(vm, nameof(ProfilePageVm.Profile)))
-            return View("Index", Page(FillReadOnly(vm, me), new ChangePasswordVm()));
+            return View("Index", await PageAsync(FillReadOnly(vm, me), new ChangePasswordVm()));
 
         var phoneKey = $"{nameof(ProfilePageVm.Profile)}.{nameof(vm.PhoneNumber)}";
         var phone = PhoneRules.Normalize(vm.PhoneNumber);
@@ -49,19 +83,19 @@ public class ProfileController : Controller
         {
             ModelState.AddModelError(phoneKey, PhoneRules.RemoveBlockedMessage);
             vm.PhoneNumber = me.PhoneNumber;
-            return View("Index", Page(FillReadOnly(vm, me), new ChangePasswordVm()));
+            return View("Index", await PageAsync(FillReadOnly(vm, me), new ChangePasswordVm()));
         }
 
         if (PhoneRules.Validate(phone) is { } phoneError)
         {
             ModelState.AddModelError(phoneKey, phoneError);
-            return View("Index", Page(FillReadOnly(vm, me), new ChangePasswordVm()));
+            return View("Index", await PageAsync(FillReadOnly(vm, me), new ChangePasswordVm()));
         }
 
         if (phone != null && await PhoneTakenAsync(phone, me.Id))
         {
             ModelState.AddModelError(phoneKey, "Bu telefon numarası başka bir hesapta kayıtlı.");
-            return View("Index", Page(FillReadOnly(vm, me), new ChangePasswordVm()));
+            return View("Index", await PageAsync(FillReadOnly(vm, me), new ChangePasswordVm()));
         }
 
         me.FirstName = vm.FirstName.Trim();
@@ -80,14 +114,14 @@ public class ProfileController : Controller
         var me = await _db.Users.FirstAsync(u => u.Id == _current.Id);
 
         if (!TryValidateModel(vm, nameof(ProfilePageVm.Password)))
-            return View("Index", Page(ToVm(me), vm));
+            return View("Index", await PageAsync(ToVm(me), vm));
 
         if (_hasher.VerifyHashedPassword(me, me.PasswordHash, vm.CurrentPassword)
             == PasswordVerificationResult.Failed)
         {
             ModelState.AddModelError($"{nameof(ProfilePageVm.Password)}.{nameof(vm.CurrentPassword)}",
                 "Mevcut şifre hatalı.");
-            return View("Index", Page(ToVm(me), vm));
+            return View("Index", await PageAsync(ToVm(me), vm));
         }
 
         me.PasswordHash = _hasher.HashPassword(me, vm.NewPassword);

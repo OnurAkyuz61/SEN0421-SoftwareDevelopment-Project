@@ -5,6 +5,9 @@
     Layout = Me.IsStaff ? "_Layout" : "_PortalLayout";
     var unreadOnly = (bool)ViewBag.UnreadOnly;
     var unread = (int)ViewBag.UnreadCount;
+    var pager = (PagerInfo)ViewBag.Pager;
+    var here = Context.Request.Path + Context.Request.QueryString;
+    var pageUnread = Model.Where(n => n.ReadAt == null).Select(n => n.Id).ToList();
 }
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
@@ -14,20 +17,32 @@
         <a class="btn @(unreadOnly ? "btn-outline-secondary" : "btn-secondary")"
            asp-action="Index">Tümü</a>
         <a class="btn @(unreadOnly ? "btn-secondary" : "btn-outline-secondary")"
-           asp-action="Index" asp-route-unreadOnly="true">Okunmamış @(unread > 0 ? $"({unread})" : "")</a>
+           asp-action="Index" asp-route-unreadOnly="true">Okunmamış <span data-unread-count>@(unread > 0 ? $"({unread})" : "")</span></a>
     </div>
 
+    @if (pageUnread.Any())
+    {
+        @* Sayfa bazında toplu okundu: yalnızca ekrandaki kayıtlar *@
+        <form asp-action="MarkPageRead" method="post">
+            @foreach (var id in pageUnread) { <input type="hidden" name="ids" value="@id" /> }
+            <input type="hidden" name="returnUrl" value="@here" />
+            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-check2"></i> Bu sayfayı okundu say (@pageUnread.Count)</button>
+        </form>
+    }
     @if (unread > 0)
     {
         <form asp-action="MarkRead" method="post">
             <input type="hidden" name="returnUrl" value="@Url.Action("Index", new { unreadOnly })" />
-            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-check2-all"></i> Tümünü okundu say</button>
+            <button class="btn btn-sm btn-outline-secondary" title="Tüm okunmamışlar partiler halinde işaretlenir"><i class="bi bi-check2-all"></i> Tümünü okundu say</button>
         </form>
     }
 </div>
 
 <div class="panel">
-    <div class="panel-head">@Model.Count kayıt</div>
+    <div class="panel-head">
+        @pager.TotalCount kayıt
+        @if (pager.TotalCount > 0) { <span class="text-muted small fw-normal">· @pager.FromItem–@pager.ToItem gösteriliyor</span> }
+    </div>
 
     @if (!Model.Any())
     {
@@ -47,13 +62,12 @@
                     <div class="fw-semibold">
                         <a class="text-decoration-none" asp-action="Open" asp-route-id="@n.Id">@n.Title</a>
                         @if (n.ReadAt == null) { <span class="tag tag-blue ms-1">yeni</span> }
-                        @* Talep arşivlendiyse (soft-delete) artık açılamaz *@
                         @if (n.TicketId != null && n.Ticket == null)
                         {
                             <span class="tag tag-gray ms-1" title="İlgili talep arşivlendi">arşivlenmiş talep</span>
                         }
                     </div>
-                    <div class="small text-muted">@n.Message</div>
+                    <div class="small text-muted" style="white-space:pre-line">@n.Message</div>
                 </div>
 
                 <div class="text-end text-nowrap">
@@ -62,7 +76,7 @@
                     {
                         <form asp-action="MarkRead" method="post" class="mt-1">
                             <input type="hidden" name="id" value="@n.Id" />
-                            <input type="hidden" name="returnUrl" value="@Url.Action("Index", new { unreadOnly })" />
+                            <input type="hidden" name="returnUrl" value="@here" />
                             <button class="btn btn-sm btn-link p-0 text-decoration-none">okundu</button>
                         </form>
                     }
@@ -71,3 +85,5 @@
         }
     </div>
 </div>
+
+<partial name="_Pager" model="pager" />

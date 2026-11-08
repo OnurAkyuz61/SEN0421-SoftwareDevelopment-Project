@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Models;
+using ServiceDesk.Services.Escalations;
+using ServiceDesk.Services.Notifications;
 
 namespace ServiceDesk.Services;
 
@@ -66,6 +68,7 @@ public class SlaMonitorService : BackgroundService
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var notify = scope.ServiceProvider.GetRequiredService<NotificationService>();
         var nc = scope.ServiceProvider.GetRequiredService<NonconformityService>();
+        var escalation = scope.ServiceProvider.GetRequiredService<EscalationService>();
 
         var now = AppTime.UtcNow;
         var warnThreshold = now.AddMinutes(WarningMinutesBefore);
@@ -73,6 +76,7 @@ public class SlaMonitorService : BackgroundService
         // Açık ve ilgilenilmesi gereken talepler — filtreleme SQL tarafında
         var tickets = await db.Tickets
             .Include(t => t.Assignee)
+            .Include(t => t.AssignedTeam)
             .Where(t => t.ResolvedAt == null
                         && (t.Status == TicketStatus.New || t.Status == TicketStatus.InProgress)
                         && (t.SlaDueAt <= warnThreshold || t.IsSlaBreached))
@@ -94,8 +98,8 @@ public class SlaMonitorService : BackgroundService
             {
                 var kalan = (int)(t.SlaDueAt - now).TotalMinutes;
                 await NotifyOwnersAsync(db, notify, t, NotificationType.SlaWarning,
-                    $"SLA yaklaşıyor: #{t.Id} {t.Title}",
-                    $"Çözüm süresinin dolmasına {kalan} dakika kaldı.");
+                    $"SLA yaklaşıyor: {Ui.TicketNo(t)} {t.Title}",
+                    $"Çözüm süresinin dolmasına {kalan} dakika kaldı.", EmailTemplates.SlaWarning);
 
                 t.SlaWarningSentAt = now;
                 changed = true;
@@ -110,7 +114,7 @@ public class SlaMonitorService : BackgroundService
 
                 await NotifyOwnersAsync(db, notify, t, NotificationType.SlaBreach,
                     $"SLA ihlali: {Ui.TicketNo(t)} {t.Title}",
-                    "Çözüm süresi aşıldı, talep eskalasyona alındı.");
+                    "Çözüm süresi aşıldı, talep eskalasyona alındı.", EmailTemplates.SlaBreach);
 
                 // İhlal bir kalite kaydı doğurur (ISO 9001 md. 10.2)
                 await nc.QueueForSlaBreachAsync(t);
@@ -123,37 +127,11 @@ public class SlaMonitorService : BackgroundService
             {
                 var overdue = (int)(now - t.SlaDueAt).TotalMinutes;
 
-                foreach (var rule in rules.Where(r => r.Level > t.EscalationLevel && overdue >= r.AfterMinutes))
+                // Kurallar EscalationService'te uygulanır: hedef (rol / ekip lideri),
+                // yedek atama, öncelik artırma ve seviyeye özel bildirim şablonu
+                foreach (var rule in EscalationPolicy.DueRules(rules, t.EscalationLevel, overdue).ToList())
                 {
-                    // Kurala göre yeniden atama: hedef roldeki en az açık talebi olan kişiye.
-                    // Atanan değişikliği AppDbContext tarafından geçmişe otomatik yazılır.
-                    var yeniAtanan = await FindEscalationAssigneeAsync(db, rule.TargetRole, t.AssigneeId, token);
-                    if (yeniAtanan != null)
-                    {
-                        t.Assignee = yeniAtanan;
-                        t.AssigneeId = yeniAtanan.Id;
-                        notify.Queue(yeniAtanan.Id, NotificationType.Assigned,
-                            $"Eskalasyonla size atandı: {Ui.TicketNo(t)} {t.Title}",
-                            $"SLA {overdue} dakika aşıldı; seviye {rule.Level} kuralı gereği talep size devredildi.",
-                            t.Id);
-                    }
-
-                    db.EscalationRecords.Add(new EscalationRecord
-                    {
-                        TicketId = t.Id,
-                        Level = rule.Level,
-                        OccurredAt = now,
-                        MinutesOverdue = overdue,
-                        EscalatedToId = t.AssigneeId,
-                        Note = $"{overdue} dakika gecikme, seviye {rule.Level} ({rule.TargetRole})"
-                    });
-
-                    await notify.QueueToRoleAsync(rule.TargetRole, NotificationType.Escalation,
-                        $"Eskalasyon (seviye {rule.Level}): #{t.Id} {t.Title}",
-                        $"Talep {overdue} dakikadır gecikmede. Atanan: {t.Assignee?.FullName ?? "yok"}.",
-                        t.Id);
-
-                    t.EscalationLevel = rule.Level;
+                    await escalation.ApplyAsync(t, rule, overdue, token: token);
                     changed = true;
                 }
             }
@@ -162,29 +140,18 @@ public class SlaMonitorService : BackgroundService
         if (changed)
         {
             await db.SaveChangesAsync(token);
-            await notify.DeliverPendingEmailsAsync();
+            notify.SignalDelivery();
         }
     }
-
-    // Eskalasyon kuralının hedef rolündeki aktif kişilerden üzerinde en az açık
-    // talep olanı seçer; talebin mevcut sahibi hariç (yoksa null döner, atama değişmez)
-    private static Task<AppUser?> FindEscalationAssigneeAsync(
-        AppDbContext db, UserRole role, int? currentAssigneeId, CancellationToken token) =>
-        db.Users
-            .Where(u => u.IsActive && u.Role == role && u.Id != currentAssigneeId)
-            .OrderBy(u => db.Tickets.Count(x => x.AssigneeId == u.Id
-                && (x.Status == TicketStatus.New || x.Status == TicketStatus.InProgress)))
-            .ThenBy(u => u.Id)
-            .FirstOrDefaultAsync(token);
 
     // Atanan kişi varsa ona, yoksa tüm destek ekibine
     private static async Task NotifyOwnersAsync(
         AppDbContext db, NotificationService notify, Ticket t,
-        NotificationType type, string title, string message)
+        NotificationType type, string title, string message, string? templateKey = null)
     {
         if (t.AssigneeId != null)
-            notify.Queue(t.AssigneeId.Value, type, title, message, t.Id);
+            notify.Queue(t.AssigneeId.Value, type, title, message, t.Id, templateKey);
         else
-            await notify.QueueToRoleAsync(UserRole.Agent, type, title, message, t.Id);
+            await notify.QueueToRoleAsync(UserRole.Agent, type, title, message, t.Id, templateKey: templateKey);
     }
 }

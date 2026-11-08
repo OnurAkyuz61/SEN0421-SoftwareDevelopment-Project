@@ -36,7 +36,52 @@
                     }
                     @if (Model.ApprovalStatus == ApprovalStatus.Rejected)
                     {
-                        <div class="alert alert-danger small mt-3 mb-0">Talebiniz reddedildi. @(Model.ApprovalNote)</div>
+                        var resubmit = ViewBag.CanResubmit as ApprovalPolicy.Decision;
+                        <div class="alert alert-danger small mt-3 mb-0">
+                            Talebiniz reddedildi. <strong>Gerekçe:</strong> @(Model.ApprovalNote)
+                            @if (resubmit?.Allowed == true)
+                            {
+                                <div class="mt-1">Gerekçeye göre talebi düzeltip yeniden onaya gönderebilirsiniz.</div>
+                            }
+                            else if (resubmit != null)
+                            {
+                                <div class="mt-1 text-muted">@resubmit.Error</div>
+                            }
+                        </div>
+
+                        @if (resubmit?.Allowed == true)
+                        {
+                            <form asp-controller="Portal" asp-action="Resubmit" asp-route-id="@Model.Id" method="post" class="mt-3 border rounded p-3 bg-light">
+                                <input type="hidden" name="returnTo" value="@(modal ? "modal" : "")" />
+                                <div class="fw-semibold small mb-2"><i class="bi bi-arrow-repeat"></i> Düzelt ve yeniden gönder</div>
+                                <label class="form-label small text-muted mb-1">Ne değişti? (zorunlu)</label>
+                                <textarea name="correctionNote" rows="2" class="form-control form-control-sm mb-2" minlength="10" maxlength="2000" required
+                                          placeholder="Red gerekçesine göre yaptığınız düzeltme"></textarea>
+                                <label class="form-label small text-muted mb-1">Açıklama (isteğe bağlı güncelleme)</label>
+                                <textarea name="description" rows="3" class="form-control form-control-sm mb-2">@Model.Description</textarea>
+                                <div class="row g-2 mb-2">
+                                    <div class="col">
+                                        <label class="form-label small text-muted mb-1">Yeni planlanan başlangıç</label>
+                                        <input type="datetime-local" name="plannedStart" class="form-control form-control-sm"
+                                               value="@(AppTime.ToLocal(Model.ChangeDetail?.PlannedStart)?.ToString("yyyy-MM-ddTHH:mm"))" />
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label small text-muted mb-1">Yeni planlanan bitiş</label>
+                                        <input type="datetime-local" name="plannedEnd" class="form-control form-control-sm"
+                                               value="@(AppTime.ToLocal(Model.ChangeDetail?.PlannedEnd)?.ToString("yyyy-MM-ddTHH:mm"))" />
+                                    </div>
+                                </div>
+                                <button class="btn btn-sm btn-primary"><i class="bi bi-send"></i> Yeniden onaya gönder</button>
+                            </form>
+                        }
+                    }
+                    @if (Model.ChangeDetail != null && Model.ApprovalStatus == ApprovalStatus.Approved)
+                    {
+                        <div class="alert alert-info small mt-3 mb-0">
+                            Değişiklik onaylandı · Uygulama durumu:
+                            <span class="tag @Ui.ImplementationTag(Model.ChangeDetail.ImplementationStatus)">@Ui.ImplementationText(Model.ChangeDetail.ImplementationStatus)</span>
+                            @if (!string.IsNullOrEmpty(Model.ChangeDetail.ImplementationNote)) { <div class="mt-1">@Model.ChangeDetail.ImplementationNote</div> }
+                        </div>
                     }
                 </div>
             </div>

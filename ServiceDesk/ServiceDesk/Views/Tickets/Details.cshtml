@@ -3,6 +3,9 @@
 @{
     ViewData["Title"] = "Talep " + Ui.TicketNo(Model);
     var arsiv = Model.IsDeleted;
+    var onayBaglami = (ApprovalContext)ViewBag.ApprovalContext;
+    var eskalasyonPersonel = ViewBag.EscalationStaff as List<AppUser> ?? new List<AppUser>();
+    var maxResubmit = (int)(ViewBag.MaxResubmissions ?? 3);
     // Mevcut duruma göre gösterilecek butonlar (Yeni → İşlemde → Çözüldü → Kapandı)
     var sonraki = Model.Status switch
     {
@@ -149,6 +152,8 @@ else
                             <dd class="col-sm-9" style="white-space:pre-line">@(d?.RollbackPlan ?? "-")</dd>
                             <dt class="col-sm-3 text-muted">Etki</dt>
                             <dd class="col-sm-9" style="white-space:pre-line">@(d?.ImpactAnalysis ?? "-")</dd>
+                            <dt class="col-sm-3 text-muted">CAB kaydı</dt>
+                            <dd class="col-sm-9">@(d?.CabMeetingUrl ?? "-")</dd>
                         </dl>
                     }
                     else
@@ -197,6 +202,19 @@ else
                                 <label class="form-label small text-muted mb-1">Etki analizi</label>
                                 <textarea name="impactAnalysis" rows="2" class="form-control form-control-sm">@d?.ImpactAnalysis</textarea>
                             </div>
+                            <div class="col-md-8">
+                                <label class="form-label small text-muted mb-1">
+                                    CAB toplantı kaydı (bağlantı)
+                                    @if (d?.Risk == RiskLevel.High && onayBaglami.Settings.RequireCabForHighRisk) { <span class="text-danger">· yüksek riskte nihai onay için zorunlu</span> }
+                                </label>
+                                <input type="url" name="cabMeetingUrl" maxlength="500" class="form-control form-control-sm"
+                                       placeholder="https://… (toplantı tutanağı / kayıt)" value="@d?.CabMeetingUrl" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small text-muted mb-1">CAB toplantı tarihi</label>
+                                <input type="datetime-local" name="cabMeetingAt" class="form-control form-control-sm"
+                                       value="@(AppTime.ToLocal(d?.CabMeetingAt)?.ToString("yyyy-MM-ddTHH:mm"))" />
+                            </div>
                         </div>
                         <div class="d-flex align-items-center gap-2 mt-3">
                             <button class="btn btn-primary btn-sm">Planı kaydet</button>
@@ -214,7 +232,9 @@ else
                 <div class="panel-head">
                     Onay zinciri
                     <span class="text-muted small fw-normal">
-                        @Model.Approvals.Count(a => a.Decision == ApprovalStatus.Approved) / @Model.RequiredApprovalSteps onay
+                        @Model.CurrentRoundApprovals.Count(a => a.Decision == ApprovalStatus.Approved) / @Model.RequiredApprovalSteps onay
+                        @if (Model.ApprovalRound > 1) { <text>· @Model.ApprovalRound. tur</text> }
+                        @if (Model.ApprovalStepsRequired != null && Model.ApprovalStepsRequired != Model.DefaultApprovalSteps) { <text>· zincir kuralı uygulandı</text> }
                     </span>
                 </div>
                 @if (!Model.Approvals.Any())
@@ -224,14 +244,18 @@ else
                 else
                 {
                     <table class="table table-sm mb-0">
-                        <thead><tr><th>Adım</th><th>Karar</th><th>Veren</th><th>Not</th><th class="text-end">Zaman</th></tr></thead>
+                        <thead><tr><th>Tur</th><th>Adım</th><th>Karar</th><th>Veren</th><th>Not</th><th class="text-end">Zaman</th></tr></thead>
                         <tbody>
-                            @foreach (var a in Model.Approvals.OrderBy(a => a.Step).ThenBy(a => a.DecidedAt))
+                            @foreach (var a in Model.Approvals.OrderBy(a => a.Round).ThenBy(a => a.Step).ThenBy(a => a.DecidedAt))
                             {
-                                <tr>
+                                <tr class="@(a.Round != Model.ApprovalRound ? "text-muted" : "")">
+                                    <td>@a.Round</td>
                                     <td>@a.Step</td>
                                     <td><span class="tag @Ui.ApprovalTag(a.Decision)">@Ui.ApprovalText(a.Decision)</span></td>
-                                    <td>@(a.Approver?.FullName ?? "-")</td>
+                                    <td>
+                                        @(a.Approver?.FullName ?? "-")
+                                        @if (a.OnBehalfOf != null) { <div class="small text-primary">@a.OnBehalfOf.FullName adına (vekalet)</div> }
+                                    </td>
                                     <td class="small text-muted">@a.Note</td>
                                     <td class="text-end small text-muted">@AppTime.ToLocal(a.DecidedAt).ToString("dd.MM.yyyy HH:mm")</td>
                                 </tr>
@@ -240,6 +264,50 @@ else
                     </table>
                 }
             </div>
+
+            @if (Model.ApprovalStatus == ApprovalStatus.Approved && d != null)
+            {
+                var impl = d.ImplementationStatus;
+                var hedefler = Enum.GetValues<ImplementationStatus>()
+                    .Where(s => ChangeImplementationRules.CanMove(Model, s, onayBaglami.NowUtc).Allowed).ToList();
+                <div class="panel mb-3">
+                    <div class="panel-head">
+                        Uygulama / geri alma
+                        <span class="tag @Ui.ImplementationTag(impl)">@Ui.ImplementationText(impl)</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="small text-muted mb-2">
+                            Başladı: @(AppTime.ToLocal(d.ImplementationStartedAt)?.ToString("dd.MM.yyyy HH:mm") ?? "-")
+                            · Uygulandı: @(AppTime.ToLocal(d.ImplementedAt)?.ToString("dd.MM.yyyy HH:mm") ?? "-")
+                            · Geri alındı: @(AppTime.ToLocal(d.RolledBackAt)?.ToString("dd.MM.yyyy HH:mm") ?? "-")
+                        </div>
+                        @if (!string.IsNullOrEmpty(d.ImplementationNote)) { <div class="small mb-2" style="white-space:pre-line">@d.ImplementationNote</div> }
+                        @if (!arsiv && hedefler.Any())
+                        {
+                            <form asp-action="UpdateImplementation" asp-route-id="@Model.Id" method="post" class="d-flex flex-wrap gap-2 align-items-start">
+                                <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(Model.RowVersion)" />
+                                <input name="note" maxlength="1000" class="form-control form-control-sm" style="max-width:360px"
+                                       placeholder="Not (başarısız / geri alma için zorunlu)" />
+                                @foreach (var s in hedefler)
+                                {
+                                    var cls = s switch
+                                    {
+                                        ImplementationStatus.Implemented => "btn-success",
+                                        ImplementationStatus.Failed => "btn-outline-danger",
+                                        ImplementationStatus.RolledBack => "btn-outline-warning",
+                                        _ => "btn-outline-primary"
+                                    };
+                                    <button class="btn btn-sm @cls" name="status" value="@s">@Ui.ImplementationText(s)</button>
+                                }
+                            </form>
+                        }
+                        else if (!arsiv && impl == ImplementationStatus.NotStarted && d.PlannedStart != null)
+                        {
+                            <div class="small text-muted">Uygulama planlanan pencere içinde başlatılabilir (@AppTime.ToLocal(d.PlannedStart)?.ToString("dd.MM.yyyy HH:mm") – @AppTime.ToLocal(d.PlannedEnd)?.ToString("dd.MM.yyyy HH:mm")).</div>
+                        }
+                    </div>
+                </div>
+            }
         }
 
         @if (Model.Escalations.Any())
@@ -247,14 +315,20 @@ else
             <div class="panel mb-3" style="border-color:#f0c2bc">
                 <div class="panel-head">Eskalasyon <span class="text-muted small fw-normal">@Model.Escalations.Count kayıt</span></div>
                 <table class="table table-sm mb-0">
-                    <thead><tr><th>Seviye</th><th>Gecikme</th><th>İlgilenen</th><th class="text-end">Zaman</th></tr></thead>
+                    <thead><tr><th>Seviye</th><th>Tür</th><th>Gecikme</th><th>İlgilenen</th><th>Öncelik</th><th class="text-end">Zaman</th></tr></thead>
                     <tbody>
                         @foreach (var e in Model.Escalations)
                         {
                             <tr>
                                 <td><span class="tag tag-red">Seviye @e.Level</span></td>
+                                <td class="small">
+                                    @if (e.IsManual) { <span class="tag tag-blue" title="@e.Note">manuel</span> <div class="text-muted">@e.TriggeredBy?.FullName</div> }
+                                    else { <span class="tag tag-gray">otomatik</span> }
+                                    @if (e.UsedFallback) { <span class="tag tag-amber" title="Hedefte uygun kişi yoktu">yedek</span> }
+                                </td>
                                 <td>@e.MinutesOverdue dk</td>
                                 <td>@(e.EscalatedTo?.FullName ?? "-")</td>
+                                <td class="small">@(e.PriorityAfter == null ? "-" : $"{Ui.PriorityText(e.PriorityBefore!.Value)} → {Ui.PriorityText(e.PriorityAfter.Value)}")</td>
                                 <td class="text-end small text-muted">@AppTime.ToLocal(e.OccurredAt).ToString("dd.MM.yyyy HH:mm")</td>
                             </tr>
                         }
@@ -360,8 +434,8 @@ else
         {
             @* Yetki kuralı ApprovalPolicy'de; yetkisi olmayan rol düğmeyi
                hiç görmez (sunucu tarafı da aynı kuralı uygular) *@
-            var onayVerebilir = ApprovalPolicy.CanDecide(Model, Me.User!, approve: true);
-            var reddedebilir = ApprovalPolicy.CanDecide(Model, Me.User!, approve: false);
+            var onayVerebilir = ApprovalPolicy.CanDecide(Model, Me.User!, approve: true, onayBaglami);
+            var reddedebilir = ApprovalPolicy.CanDecide(Model, Me.User!, approve: false, onayBaglami);
 
             <div class="panel mb-3" style="border-color:#f3dcae">
                 <div class="panel-head">Onay gerekiyor</div>
@@ -372,12 +446,16 @@ else
                         <form method="post">
                             <input type="hidden" name="returnUrl" value="@Url.Action("Details", new { id = Model.Id })" />
                             <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(Model.RowVersion)" />
-                            <textarea name="note" class="form-control mb-2" rows="2" placeholder="Not (isteğe bağlı)"></textarea>
+                            <textarea name="note" class="form-control mb-2" rows="2" placeholder="Not (redde zorunlu)"></textarea>
+                            @if ((onayVerebilir.OnBehalfOf ?? reddedebilir.OnBehalfOf) is { } vekaletVeren)
+                            {
+                                <div class="small text-primary mb-2"><i class="bi bi-person-badge"></i> @vekaletVeren.FullName adına vekaleten karar vereceksiniz.</div>
+                            }
                             <div class="d-flex gap-2">
                                 @if (onayVerebilir.Allowed)
                                 {
                                     <button class="btn btn-success flex-fill" asp-controller="Approvals" asp-action="Approve" asp-route-id="@Model.Id">
-                                        @(ApprovalPolicy.IsFinalStep(Model) ? "Onayla" : "1. onayı ver")
+                                        @(ApprovalPolicy.IsFinalStep(Model) ? "Onayla" : $"{ApprovalPolicy.NextStep(Model)}. onayı ver")
                                     </button>
                                 }
                                 @if (reddedebilir.Allowed)
@@ -397,6 +475,55 @@ else
                     {
                         <div class="small text-muted"><i class="bi bi-lock"></i> @onayVerebilir.Error</div>
                     }
+                </div>
+            </div>
+        }
+
+        @if (Model.ApprovalStatus == ApprovalStatus.Rejected)
+        {
+            var yenidenGonder = ApprovalPolicy.CanResubmit(Model, Me.User!, maxResubmit);
+            <div class="panel mb-3">
+                <div class="panel-head">Düzelt ve yeniden gönder</div>
+                <div class="panel-body">
+                    @if (yenidenGonder.Allowed)
+                    {
+                        <form asp-action="Resubmit" asp-route-id="@Model.Id" method="post">
+                            <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(Model.RowVersion)" />
+                            <textarea name="correctionNote" rows="2" minlength="10" maxlength="2000" required class="form-control form-control-sm mb-2"
+                                      placeholder="Red gerekçesine göre ne düzeltildi?"></textarea>
+                            <select name="risk" class="form-select form-select-sm mb-2">
+                                <option value="">Risk değişmesin (@Ui.RiskText(Model.ChangeDetail?.Risk ?? RiskLevel.Low))</option>
+                                @foreach (var r in Enum.GetValues<RiskLevel>()) { <option value="@r">Risk: @Ui.RiskText(r)</option> }
+                            </select>
+                            <div class="row g-1 mb-2">
+                                <div class="col"><input type="datetime-local" name="plannedStart" class="form-control form-control-sm" title="Yeni planlanan başlangıç" /></div>
+                                <div class="col"><input type="datetime-local" name="plannedEnd" class="form-control form-control-sm" title="Yeni planlanan bitiş" /></div>
+                            </div>
+                            <button class="btn btn-sm btn-primary w-100"><i class="bi bi-arrow-repeat"></i> Yeniden onaya gönder (@(Model.ApprovalRound + 1). tur)</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="small text-muted"><i class="bi bi-lock"></i> @yenidenGonder.Error</div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (TicketWorkflow.IsOpen(Model.Status))
+        {
+            <div class="panel mb-3" style="border-color:#f0c2bc">
+                <div class="panel-head">Manuel eskalasyon <span class="text-muted small fw-normal">şu an seviye @Model.EscalationLevel</span></div>
+                <div class="panel-body">
+                    <form asp-action="Escalate" asp-route-id="@Model.Id" method="post">
+                        <input name="reason" minlength="5" maxlength="250" required class="form-control form-control-sm mb-2"
+                               placeholder="Gerekçe (ör. müşteri kritik, üretim durdu)" />
+                        <select name="targetUserId" class="form-select form-select-sm mb-2">
+                            <option value="">Kuralın hedefi (rol / ekip lideri / yedek)</option>
+                            @foreach (var u in eskalasyonPersonel) { <option value="@u.Id">@u.FullName (@Ui.RoleText(u.Role))</option> }
+                        </select>
+                        <button class="btn btn-sm btn-outline-danger w-100"><i class="bi bi-arrow-up-circle"></i> Bir üst seviyeye yükselt</button>
+                    </form>
                 </div>
             </div>
         }

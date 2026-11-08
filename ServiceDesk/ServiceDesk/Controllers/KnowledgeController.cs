@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
@@ -22,6 +22,7 @@ public class KnowledgeController : Controller
         _current = current;
     }
 
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> Index(string? q, int? categoryId, int page = 1)
     {
         var query = _db.KnowledgeArticles.AsNoTracking().Include(a => a.Category).AsQueryable();

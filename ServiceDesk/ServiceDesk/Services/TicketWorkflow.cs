@@ -61,9 +61,10 @@ public static class TicketWorkflow
         }
     }
 
-    // Onay süreci başladı mı: en az bir onay/red kararı verilmiş ya da talep karara bağlanmış
+    // Onay süreci başladı mı: geçerli turda en az bir karar verilmiş ya da talep
+    // karara bağlanmış. Yeniden gönderilen talepte önceki turun kararları sayılmaz.
     public static bool IsApprovalStarted(Ticket ticket) =>
-        ticket.Approvals.Count > 0
+        ticket.CurrentRoundApprovals.Any()
         || ticket.ApprovalStatus is ApprovalStatus.Approved or ApprovalStatus.Rejected;
 
     // İlk yanıt yalnızca bir kez işaretlenir ve iç notlar saymaz

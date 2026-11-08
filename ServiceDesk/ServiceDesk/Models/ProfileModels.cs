@@ -47,4 +47,18 @@ public class ProfilePageVm
 {
     public ProfileVm Profile { get; set; } = new();
     public ChangePasswordVm Password { get; set; } = new();
+
+    // Bildirim türü × kanal tercihleri ve günlük özet
+    public List<NotificationPreference> Preferences { get; set; } = new();
+    public bool DailyDigestEnabled { get; set; }
+    public bool HasPhone { get; set; }
+}
+
+// Tercih formundan gelen satır
+public class NotificationPreferenceInput
+{
+    public NotificationType Type { get; set; }
+    public bool InApp { get; set; }
+    public bool Email { get; set; }
+    public bool Sms { get; set; }
 }

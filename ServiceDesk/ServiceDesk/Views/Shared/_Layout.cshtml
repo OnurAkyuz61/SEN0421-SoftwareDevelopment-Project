@@ -70,7 +70,10 @@
                     {
                         <a class="nav-link @Act("EscalationRules")" aria-current="@Cur("EscalationRules")" asp-controller="EscalationRules" asp-action="Index"><i class="bi bi-arrow-up-circle"></i><span>Eskalasyon</span></a>
                         <a class="nav-link @Act("Catalog")" aria-current="@Cur("Catalog")" asp-controller="Catalog" asp-action="Index"><i class="bi bi-tags"></i><span>Katalog</span></a>
+                        <a class="nav-link @Act("MessageQueue")" aria-current="@Cur("MessageQueue")" asp-controller="MessageQueue" asp-action="Index"><i class="bi bi-envelope-exclamation"></i><span>E-posta / SMS kuyruğu</span></a>
+                        <a class="nav-link @Act("Audit")" aria-current="@Cur("Audit")" asp-controller="Audit" asp-action="Index"><i class="bi bi-shield-check"></i><span>Denetim kaydı</span></a>
                     }
+                    <a class="nav-link @Act("Reports")" aria-current="@Cur("Reports")" asp-controller="Reports" asp-action="Escalations"><i class="bi bi-graph-up-arrow"></i><span>Eskalasyon raporu</span></a>
                     <a class="nav-link" asp-controller="Portal" asp-action="Index"><i class="bi bi-box-arrow-up-right"></i><span>Kullanıcı Portalı</span></a>
                 </nav>
             </div>

@@ -4,8 +4,9 @@
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <div class="me-auto">
         <div class="text-muted small">
-            SLA süresi aşıldıktan sonra talep, belirlenen gecikmede hedef roldeki bir kişiye yeniden atanır
-            ve o role bildirim gider. Atanan kişi, o rolde üzerinde en az açık talep olan aktif hesaptır.
+            SLA süresi aşıldıktan sonra talep, belirlenen gecikmede hedefe (roldeki en az yüklü kişi ya da ekip lideri)
+            yeniden atanır ve seviyeye özel şablonla bildirim gider. Hedefte uygun kişi yoksa yedek kişi / yedek rol devreye girer;
+            kural istiyorsa öncelik bir kademe artırılır.
         </div>
     </div>
     <a asp-action="Edit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Yeni kural</a>
@@ -19,7 +20,9 @@
                 <tr>
                     <th>Seviye</th>
                     <th>Gecikme</th>
-                    <th>Hedef rol</th>
+                    <th>Hedef</th>
+                    <th>Yedek</th>
+                    <th>Öncelik</th>
                     <th>Durum</th>
                     <th></th>
                 </tr>
@@ -27,7 +30,7 @@
             <tbody>
                 @if (!Model.Any())
                 {
-                    <tr><td colspan="5" class="text-center text-muted py-4">Henüz kural yok</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-4">Henüz kural yok</td></tr>
                 }
                 @foreach (var r in Model)
                 {
@@ -38,7 +41,15 @@
                             else if (r.AfterMinutes < 60) { <span>@r.AfterMinutes dk sonra</span> }
                             else { <span>@(r.AfterMinutes / 60)s @(r.AfterMinutes % 60)dk sonra</span> }
                         </td>
-                        <td><span class="tag @(r.TargetRole == UserRole.Admin ? "tag-blue" : "tag-green")">@Ui.RoleText(r.TargetRole)</span></td>
+                        <td>
+                            @if (r.TargetType == EscalationTarget.TeamLead) { <span class="tag tag-amber">Ekip lideri</span> }
+                            else { <span class="tag @(r.TargetRole == UserRole.Admin ? "tag-blue" : "tag-green")">@Ui.RoleText(r.TargetRole)</span> }
+                        </td>
+                        <td class="small">
+                            @(r.FallbackUser?.FullName ?? "")@(r.FallbackUser != null && r.FallbackRole != null ? " → " : "")@(r.FallbackRole == null ? "" : Ui.RoleText(r.FallbackRole.Value))
+                            @if (r.FallbackUser == null && r.FallbackRole == null) { <span class="text-muted">-</span> }
+                        </td>
+                        <td class="small">@(r.RaisePriority ? "+1 kademe" : "-")</td>
                         <td>
                             @if (r.IsActive) { <span class="tag tag-green">Aktif</span> }
                             else { <span class="tag tag-gray">Pasif</span> }

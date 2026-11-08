@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
+using ServiceDesk.Services.Approvals;
+using ServiceDesk.Services.Escalations;
+using ServiceDesk.Services.Messaging;
+using ServiceDesk.Services.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,9 +22,44 @@ builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef
 builder.Services.AddScoped<KpiService>();            // dönemsel gösterge hesabı
 builder.Services.AddScoped<NonconformityService>();  // otomatik uygunsuzluk kaydı
 builder.Services.AddScoped<LoginAuditService>();     // giriş denetim izi ve deneme sınırı
-builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>(); // e-posta (şimdilik log)
+builder.Services.AddScoped<AuditService>();          // güvenlik / süreç denetim kaydı
+builder.Services.AddMemoryCache();
+
+// ───── MESAJLAŞMA (SMS / WhatsApp / e-posta) ─────────────────────────────
+// Ayarlar appsettings.json → "Messaging". Gerçek sağlayıcı eklendiğinde
+// yalnızca buradaki kayıt değişir; arayüzler (ISmsSender, IWhatsAppSender,
+// IEmailSender) sabit kalır.
+builder.Services.Configure<MessagingSettings>(builder.Configuration.GetSection(MessagingSettings.Section));
+builder.Services.Configure<NotificationSettings>(builder.Configuration.GetSection(NotificationSettings.Section));
+builder.Services.Configure<ApprovalSettings>(builder.Configuration.GetSection(ApprovalSettings.Section));
+builder.Services.AddSingleton<ISmsSender, LoggingSmsSender>();           // SMS stub (loglar)
+builder.Services.AddSingleton<IWhatsAppSender, LoggingWhatsAppSender>(); // WhatsApp stub (loglar)
+var emailMode = builder.Configuration[$"{MessagingSettings.Section}:Email:Mode"] ?? "Logging";
+if (string.Equals(emailMode, "Smtp", StringComparison.OrdinalIgnoreCase))
+    builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();      // gerçek SMTP
+else
+    builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();   // geliştirme: loga yazar
+builder.Services.AddScoped<OtpDeliveryService>();
+
+// ───── BİLDİRİM KUYRUĞU ─────────────────────────────────────────────────
+builder.Services.AddSingleton<UnreadCountCache>();      // okunmamış sayaç önbelleği
+builder.Services.AddSingleton<MessageQueueSignal>();    // worker'ı uyandırma sinyali
+builder.Services.AddScoped<NotificationDispatcher>();   // e-posta / SMS gönderimi + yeniden deneme
+builder.Services.AddHostedService<MessageQueueWorker>();// ayrı kuyruk worker'ı
+builder.Services.AddHostedService<DailyDigestService>();// günlük özet e-postası
+
+// ───── ESKALASYON VE ONAY ───────────────────────────────────────────────
+builder.Services.AddScoped<EscalationService>();        // otomatik + manuel eskalasyon
+builder.Services.AddScoped<ApprovalAuthority>();        // vekalet + onay bağlamı
+builder.Services.AddScoped<ApprovalChainResolver>();    // zincir kuralı çözümü
+builder.Services.AddScoped<ChangeResubmissionService>();// reddedileni düzeltip yeniden gönderme
+builder.Services.AddHostedService<ApprovalReminderService>(); // onay hatırlatma job'ı
+
 builder.Services.AddHostedService<SlaMonitorService>();   // dakikada bir SLA taraması
 builder.Services.AddHostedService<KpiAggregatorService>();// yarım saatte bir KPI
+
+// ───── İSTEK SINIRI (arama ve OTP uçları) ───────────────────────────────
+builder.Services.AddServiceDeskRateLimiting(builder.Configuration);
 // ───── OTURUM (SESSION) ──────────────────────────────────────────────────
 // Süreler ve OTP sınırları appsettings.json → "Auth" bölümünden gelir
 var authSection = builder.Configuration.GetSection(AuthSettings.Section);
@@ -85,6 +124,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
+app.UseRateLimiter();   // session'dan sonra: bölüm anahtarı kullanıcı / bekleyen girişten üretilir
 app.UseAuthorization();
 
 app.MapControllerRoute(

@@ -4,6 +4,7 @@ using ServiceDesk.Data;
 using ServiceDesk.Filters;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
+using ServiceDesk.Services.Approvals;
 
 namespace ServiceDesk.Controllers;
 
@@ -19,10 +20,13 @@ public class PortalController : Controller
     private readonly TicketSlaService _sla;
     private readonly NotificationService _notify;
     private readonly NonconformityService _nonconformity;
+    private readonly ApprovalChainResolver _chain;
+    private readonly ChangeResubmissionService _resubmit;
 
     public PortalController(AppDbContext db, FileStorage files, CurrentUser current,
                             TicketSlaService sla, NotificationService notify,
-                            NonconformityService nonconformity)
+                            NonconformityService nonconformity, ApprovalChainResolver chain,
+                            ChangeResubmissionService resubmit)
     {
         _db = db;
         _files = files;
@@ -30,6 +34,26 @@ public class PortalController : Controller
         _sla = sla;
         _notify = notify;
         _nonconformity = nonconformity;
+        _chain = chain;
+        _resubmit = resubmit;
+    }
+
+    // Reddedilen değişiklik talebini düzeltip yeniden onaya gönderir (talep sahibi)
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Resubmit(int id, string? correctionNote, string? description,
+        DateTime? plannedStart, DateTime? plannedEnd, string? returnTo)
+    {
+        var ticket = await _db.Tickets.Include(t => t.ChangeDetail).Include(t => t.Approvals)
+            .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
+        if (ticket == null) return NotFound();
+
+        var (ok, message) = await _resubmit.ResubmitAsync(ticket, _current.User!, correctionNote ?? "",
+            description, newRisk: null,
+            plannedStart == null ? null : AppTime.ToUtc(plannedStart.Value),
+            plannedEnd == null ? null : AppTime.ToUtc(plannedEnd.Value));
+
+        TempData[ok ? "Ok" : "Err"] = message;
+        return BackToTicket(id, returnTo);
     }
 
     public async Task<IActionResult> Index()
@@ -96,7 +120,11 @@ public class PortalController : Controller
         // Değişiklik talebinin plan kaydı (risk, takvim, geri alma) talep açılırken oluşur;
         // destek ekibi planı talep detayından doldurur
         if (ticket.Type == TicketType.Change)
+        {
             ticket.ChangeDetail = new ChangeDetail { UpdatedById = me.Id };
+            // Onay adımı sayısı zincir kurallarına göre (kategori / öncelik)
+            await _chain.ApplyAsync(ticket);
+        }
         ticket.Attachments = await _files.SaveAsync(files);
         foreach (var a in ticket.Attachments) a.UploadedById = me.Id;
 
@@ -121,7 +149,7 @@ public class PortalController : Controller
                 $"{me.FullName} tarafından açıldı.", ticket.Id);
         }
         await _db.SaveChangesAsync();
-        await _notify.DeliverPendingEmailsAsync();
+        _notify.SignalDelivery();
 
         TempData["Ok"] = $"Talebiniz alındı. Talep numaranız: {Ui.TicketNo(ticket)}";
         return RedirectToAction(nameof(Details), new { id = ticket.Id });
@@ -159,11 +187,15 @@ public class PortalController : Controller
             .Include(t => t.Comments).ThenInclude(c => c.Author)
             .Include(t => t.Comments).ThenInclude(c => c.Attachments)
             .Include(t => t.Category)
+            .Include(t => t.ChangeDetail)
+            .Include(t => t.Approvals)
             .AsNoTracking()
             .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == id && t.RequesterId == _current.User!.Id);
 
         if (ticket == null) return null;
+
+        ViewBag.CanResubmit = ApprovalPolicy.CanResubmit(ticket, _current.User!, _resubmit.MaxResubmissions);
 
         ViewBag.SurveyQuestions = await _db.SurveyQuestions
             .AsNoTracking()

@@ -1,0 +1,65 @@
+@model ApprovalChainRule
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Yeni onay zinciri kuralı" : $"{Model.Name} düzenle";
+    var categories = (List<Category>)ViewBag.Categories;
+}
+
+<div class="panel" style="max-width:560px">
+    <div class="panel-head">@ViewData["Title"]</div>
+    <div class="panel-body">
+        <form asp-action="Edit" method="post" novalidate>
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="CategoryId" class="form-label"></label>
+                    <select asp-for="CategoryId" class="form-select">
+                        <option value="">Her kategori</option>
+                        @foreach (var c in categories) { <option value="@c.Id">@c.Name</option> }
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="MinPriority" class="form-label"></label>
+                    <select asp-for="MinPriority" class="form-select">
+                        <option value="">Her öncelik</option>
+                        @foreach (var p in Enum.GetValues<Priority>()) { <option value="@p">@Ui.PriorityText(p) ve üzeri</option> }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Risk" class="form-label"></label>
+                    <select asp-for="Risk" class="form-select">
+                        <option value="">Her risk</option>
+                        @foreach (var r in Enum.GetValues<RiskLevel>()) { <option value="@r">@Ui.RiskText(r)</option> }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="RequiredSteps" class="form-label"></label>
+                    <input asp-for="RequiredSteps" type="number" min="1" max="5" class="form-control" />
+                    <span asp-validation-for="RequiredSteps" class="text-danger small"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SortOrder" class="form-label">Sıra</label>
+                    <input asp-for="SortOrder" type="number" class="form-control" />
+                </div>
+            </div>
+
+            <div class="form-check mb-4">
+                <input asp-for="IsActive" class="form-check-input" />
+                <label asp-for="IsActive" class="form-check-label">Kural aktif</label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Kaydet</button>
+                <a asp-action="Index" class="btn btn-light border">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>

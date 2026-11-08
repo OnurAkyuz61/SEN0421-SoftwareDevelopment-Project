@@ -1,0 +1,97 @@
+@model List<ApprovalDelegation>
+@{
+    ViewData["Title"] = "Onay vekaleti";
+    var staff = (List<AppUser>)ViewBag.Staff;
+    var received = (List<ApprovalDelegation>)ViewBag.Received;
+    var now = AppTime.UtcNow;
+    var start = AppTime.ToLocal(now);
+}
+
+<a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Onaylar</a>
+<h4 class="fw-bold mt-2 mb-3">Onay yetkisinin vekaleti</h4>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="panel">
+            <div class="panel-head">Yeni vekalet</div>
+            <div class="panel-body">
+                <p class="small text-muted">
+                    İzin veya yokluk süresince değişiklik onay yetkinizi bir destek personeline ya da başka bir yöneticiye devredin.
+                    Vekil bu süre içinde sizin adınıza nihai onay / red verebilir; karar kaydında "kimin adına" bilgisi tutulur.
+                    Vekil, sizin zaten onay verdiğiniz bir talepte sizin yerinize ikinci kez onay veremez.
+                </p>
+                <form asp-action="Delegate" method="post">
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1">Vekil</label>
+                        <select name="delegateId" class="form-select form-select-sm" required>
+                            <option value="">Seçin…</option>
+                            @foreach (var u in staff) { <option value="@u.Id">@u.FullName (@Ui.RoleText(u.Role))</option> }
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col">
+                            <label class="form-label small text-muted mb-1">Başlangıç</label>
+                            <input type="datetime-local" name="startsAt" class="form-control form-control-sm" value="@start.ToString("yyyy-MM-ddTHH:mm")" required />
+                        </div>
+                        <div class="col">
+                            <label class="form-label small text-muted mb-1">Bitiş</label>
+                            <input type="datetime-local" name="endsAt" class="form-control form-control-sm" value="@start.AddDays(7).ToString("yyyy-MM-ddTHH:mm")" required />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted mb-1">Gerekçe</label>
+                        <input name="reason" maxlength="300" class="form-control form-control-sm" placeholder="Yıllık izin, eğitim…" />
+                    </div>
+                    <button class="btn btn-primary btn-sm"><i class="bi bi-person-badge"></i> Vekalet ver</button>
+                </form>
+            </div>
+        </div>
+
+        @if (received.Any())
+        {
+            <div class="panel mt-3">
+                <div class="panel-head">Size verilen vekaletler</div>
+                <ul class="list-group list-group-flush small">
+                    @foreach (var d in received)
+                    {
+                        <li class="list-group-item">@d.Delegator?.FullName · @AppTime.ToLocal(d.StartsAt).ToString("dd.MM.yyyy HH:mm") – @AppTime.ToLocal(d.EndsAt).ToString("dd.MM.yyyy HH:mm")</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-7">
+        <div class="panel">
+            <div class="panel-head">Verdiğiniz vekaletler</div>
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Vekil</th><th>Dönem</th><th>Durum</th><th></th></tr></thead>
+                <tbody>
+                    @if (!Model.Any()) { <tr><td colspan="4" class="text-center text-muted py-4">Henüz vekalet yok</td></tr> }
+                    @foreach (var d in Model)
+                    {
+                        var aktif = d.IsActiveAt(now);
+                        <tr>
+                            <td>@d.Delegate?.FullName<div class="small text-muted">@d.Reason</div></td>
+                            <td class="small">@AppTime.ToLocal(d.StartsAt).ToString("dd.MM.yyyy HH:mm") – @AppTime.ToLocal(d.EndsAt).ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>
+                                @if (d.RevokedAt != null) { <span class="tag tag-gray">kaldırıldı</span> }
+                                else if (aktif) { <span class="tag tag-green">aktif</span> }
+                                else if (d.StartsAt > now) { <span class="tag tag-blue">planlı</span> }
+                                else { <span class="tag tag-gray">süresi doldu</span> }
+                            </td>
+                            <td class="text-end">
+                                @if (d.RevokedAt == null && d.EndsAt > now)
+                                {
+                                    <form asp-action="Revoke" asp-route-id="@d.Id" method="post">
+                                        <button class="btn btn-sm btn-outline-danger">Kaldır</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

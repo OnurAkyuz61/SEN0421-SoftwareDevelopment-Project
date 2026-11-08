@@ -76,6 +76,75 @@
             </div>
         </div>
     </div>
+
+    <div class="col-12">
+        <div class="panel">
+            <div class="panel-head">Bildirim tercihleri</div>
+            <div class="panel-body">
+                <form asp-action="Preferences" method="post">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-3">
+                            <thead>
+                                <tr>
+                                    <th>Bildirim türü</th>
+                                    <th class="text-center">Uygulama içi</th>
+                                    <th class="text-center">E-posta</th>
+                                    <th class="text-center">SMS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (var i = 0; i < Model.Preferences.Count; i++)
+                                {
+                                    var p = Model.Preferences[i];
+                                    var rule = NotificationChannelPolicy.RuleFor(p.Type);
+                                    <tr>
+                                        <td>
+                                            <i class="bi @NotificationService.Describe(p.Type) text-@NotificationService.Color(p.Type) me-1"></i>
+                                            @NotificationService.TypeText(p.Type)
+                                            <input type="hidden" name="prefs[@i].Type" value="@p.Type" />
+                                        </td>
+                                        <td class="text-center">
+                                            @if (rule.InAppLocked)
+                                            {
+                                                <input type="checkbox" class="form-check-input" checked disabled title="Bu tür için uygulama içi bildirim kapatılamaz" />
+                                                <input type="hidden" name="prefs[@i].InApp" value="true" />
+                                            }
+                                            else
+                                            {
+                                                <input type="checkbox" class="form-check-input" name="prefs[@i].InApp" value="true" checked="@p.InApp" />
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input" name="prefs[@i].Email" value="true" checked="@p.Email" />
+                                        </td>
+                                        <td class="text-center">
+                                            @if (rule.SmsAllowed)
+                                            {
+                                                <input type="checkbox" class="form-check-input" name="prefs[@i].Sms" value="true" checked="@p.Sms"
+                                                       disabled="@(!Model.HasPhone)" title="@(Model.HasPhone ? "" : "Telefon numarası tanımlı değil")" />
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">—</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="dailyDigest" name="dailyDigest" value="true" checked="@Model.DailyDigestEnabled" />
+                        <label class="form-check-label" for="dailyDigest">Her sabah günlük özet e-postası gönder</label>
+                        <div class="form-text">Açık talepleriniz, SLA durumu ve okunmamış bildirimlerin özeti.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-bell"></i> Tercihleri kaydet</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
+using ServiceDesk.Services.Notifications;
 
 namespace ServiceDesk.Data;
 
@@ -11,8 +12,25 @@ public class AppDbContext : DbContext
     // CurrentUser servisi bu context'e bağımlı olduğundan oturum doğrudan okunur.
     private readonly IHttpContextAccessor? _http;
 
-    public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor? http = null)
-        : base(options) => _http = http;
+    // Okunmamış bildirim sayacı önbelleği: bildirim eklenince / okununca
+    // ilgili kullanıcının sayacı burada, kayıttan hemen sonra geçersiz kılınır.
+    // Böylece hangi yoldan (controller, arka plan servisi) yazılırsa yazılsın
+    // önbellek bayat kalmaz.
+    private readonly UnreadCountCache? _unreadCache;
+
+    public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor? http = null,
+                        UnreadCountCache? unreadCache = null)
+        : base(options)
+    {
+        _http = http;
+        _unreadCache = unreadCache;
+    }
+
+    public DbSet<OtpDeliveryLog> OtpDeliveryLogs => Set<OtpDeliveryLog>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
+    public DbSet<ApprovalDelegation> ApprovalDelegations => Set<ApprovalDelegation>();
+    public DbSet<ApprovalChainRule> ApprovalChainRules => Set<ApprovalChainRule>();
 
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<SlaPolicy> SlaPolicies => Set<SlaPolicy>();
@@ -241,8 +259,71 @@ public class AppDbContext : DbContext
           .HasForeignKey(a => a.ApproverId)
           .OnDelete(DeleteBehavior.Restrict);
 
-        // Aynı kişi aynı adımda iki kez karar veremez
-        mb.Entity<ChangeApproval>().HasIndex(a => new { a.TicketId, a.Step, a.ApproverId }).IsUnique();
+        mb.Entity<ChangeApproval>()
+          .HasOne(a => a.OnBehalfOf).WithMany()
+          .HasForeignKey(a => a.OnBehalfOfId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        // Aynı kişi aynı turda aynı adımda iki kez karar veremez
+        // (yeniden gönderilen talepte yeni tur açılır)
+        mb.Entity<ChangeApproval>().HasIndex(a => new { a.TicketId, a.Round, a.Step, a.ApproverId }).IsUnique();
+        mb.Entity<ChangeApproval>().Property(a => a.Round).HasDefaultValue(1);
+        mb.Entity<Ticket>().Property(t => t.ApprovalRound).HasDefaultValue(1);
+        mb.Entity<Ticket>().Ignore(t => t.CurrentRoundApprovals);
+        mb.Entity<Ticket>().Ignore(t => t.DefaultApprovalSteps);
+
+        // ── Mesajlaşma, denetim, tercih ──────────────────────────────────
+        mb.Entity<OtpDeliveryLog>()
+          .HasOne(o => o.User).WithMany()
+          .HasForeignKey(o => o.UserId)
+          .OnDelete(DeleteBehavior.SetNull);
+        mb.Entity<OtpDeliveryLog>().HasIndex(o => new { o.UserId, o.CreatedAt });
+        mb.Entity<OtpDeliveryLog>().HasIndex(o => o.ProviderMessageId);
+
+        mb.Entity<AuditLog>()
+          .HasOne(a => a.User).WithMany()
+          .HasForeignKey(a => a.UserId)
+          .OnDelete(DeleteBehavior.SetNull);
+        mb.Entity<AuditLog>().HasIndex(a => new { a.Action, a.CreatedAt });
+        mb.Entity<AuditLog>().HasIndex(a => new { a.UserId, a.CreatedAt });
+
+        mb.Entity<NotificationPreference>()
+          .HasOne(p => p.User).WithMany()
+          .HasForeignKey(p => p.UserId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<NotificationPreference>().HasIndex(p => new { p.UserId, p.Type }).IsUnique();
+
+        // Kuyruk worker'ı bu sırayla okur: gönderilmemiş, başarısız sayılmamış, zamanı gelmiş
+        mb.Entity<Notification>().HasIndex(n => new { n.Channel, n.IsSent, n.IsFailed, n.NextAttemptAt });
+
+        mb.Entity<ApprovalDelegation>()
+          .HasOne(d => d.Delegator).WithMany()
+          .HasForeignKey(d => d.DelegatorId)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<ApprovalDelegation>()
+          .HasOne(d => d.Delegate).WithMany()
+          .HasForeignKey(d => d.DelegateId)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<ApprovalDelegation>().HasIndex(d => new { d.DelegateId, d.StartsAt, d.EndsAt });
+
+        mb.Entity<ApprovalChainRule>()
+          .HasOne(r => r.Category).WithMany()
+          .HasForeignKey(r => r.CategoryId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<EscalationRule>()
+          .HasOne(r => r.FallbackUser).WithMany()
+          .HasForeignKey(r => r.FallbackUserId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<EscalationRecord>()
+          .HasOne(e => e.TriggeredBy).WithMany()
+          .HasForeignKey(e => e.TriggeredById)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<EscalationRecord>().HasIndex(e => e.OccurredAt);
+
+        mb.Entity<AppUser>().Property(u => u.DailyDigestEnabled).HasDefaultValue(true);
+        mb.Entity<EscalationRule>().Property(r => r.RaisePriority).HasDefaultValue(true);
 
         // ── ISO kalite katmanı ───────────────────────────────────────────
         mb.Entity<SurveyQuestion>()
@@ -469,13 +550,35 @@ public class AppDbContext : DbContext
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         TicketHistories.AddRange(BuildHistory());
-        return await base.SaveChangesAsync(cancellationToken);
+        var touched = NotificationRecipientsTouched();
+        var result = await base.SaveChangesAsync(cancellationToken);
+        InvalidateUnread(touched);
+        return result;
     }
 
     public override int SaveChanges()
     {
         TicketHistories.AddRange(BuildHistory());
-        return base.SaveChanges();
+        var touched = NotificationRecipientsTouched();
+        var result = base.SaveChanges();
+        InvalidateUnread(touched);
+        return result;
+    }
+
+    // Uygulama içi bildirimi eklenen / okunan / silinen kullanıcılar
+    private List<int> NotificationRecipientsTouched() =>
+        _unreadCache == null
+            ? new List<int>()
+            : ChangeTracker.Entries<Notification>()
+                .Where(e => e.Entity.Channel == NotificationChannel.InApp
+                            && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+                .Select(e => e.Entity.RecipientId)
+                .Distinct()
+                .ToList();
+
+    private void InvalidateUnread(List<int> userIds)
+    {
+        foreach (var id in userIds) _unreadCache?.Invalidate(id);
     }
 
     private List<TicketHistory> BuildHistory()

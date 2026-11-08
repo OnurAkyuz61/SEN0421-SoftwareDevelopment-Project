@@ -15,7 +15,17 @@
 <div class="phone-chip"><i class="bi bi-phone"></i> @Model.MaskedPhone</div>
 
 <form asp-action="OtpChannel" method="post" data-auth-form>
+    @{
+        // Yapılandırmada kapalı kanal (Messaging:Sms:Enabled / WhatsApp:Enabled) gösterilmez
+        var enabled = ViewBag.EnabledChannels as IReadOnlyList<OtpDeliveryChannel> ?? Enum.GetValues<OtpDeliveryChannel>();
+    }
+    @if (enabled.Count == 0)
+    {
+        <div class="alert alert-danger small">Şu anda hiçbir doğrulama kanalı etkin değil. Lütfen yöneticinize başvurun.</div>
+    }
     <div class="channel-list" role="radiogroup" aria-label="Kodun gönderileceği kanal">
+        @if (enabled.Contains(OtpDeliveryChannel.Sms))
+        {
         <label class="channel sms">
             <input type="radio" name="Channel" value="Sms" @(Model.Channel == OtpDeliveryChannel.Sms ? "checked" : null) />
             <span class="ch-icon"><i class="bi bi-chat-dots-fill"></i></span>
@@ -25,7 +35,10 @@
             </span>
             <span class="tick"><i class="bi bi-check-lg"></i></span>
         </label>
+        }
 
+        @if (enabled.Contains(OtpDeliveryChannel.WhatsApp))
+        {
         <label class="channel wa">
             <input type="radio" name="Channel" value="WhatsApp" @(Model.Channel == OtpDeliveryChannel.WhatsApp ? "checked" : null) />
             <span class="ch-icon"><i class="bi bi-whatsapp"></i></span>
@@ -35,6 +48,7 @@
             </span>
             <span class="tick"><i class="bi bi-check-lg"></i></span>
         </label>
+        }
     </div>
 
     <span asp-validation-for="Channel" class="field-error mb-3"></span>
@@ -48,7 +62,7 @@
     @* ───── GELİŞTİRME KOLAYLIĞI ─────────────────────────────────────────
        Kanal seçimini atlayıp doğrudan SMS ile ilerler.
        Canlıya çıkmadan önce bu blok silinecek. *@
-    @if (Env.IsDevelopment())
+    @if (Env.IsDevelopment() && enabled.Contains(OtpDeliveryChannel.Sms))
     {
         <button type="submit" name="Channel" value="Sms" class="dev-btn wide">
             <i class="bi bi-wrench-adjustable"></i> Geliştirme · SMS ile hızlı devam
