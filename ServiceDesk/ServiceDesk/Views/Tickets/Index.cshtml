@@ -49,6 +49,10 @@
             <label class="form-label small text-muted mb-1">Bitiş</label>
             <input type="date" name="to" value="@ViewBag.To" class="form-control" />
         </div>
+        <div class="col-lg-2 col-md-4 col-6">
+            <label class="form-label small text-muted mb-1">Etiket</label>
+            <input name="tag" value="@ViewBag.Tag" class="form-control" placeholder="vpn" />
+        </div>
         <div class="col-lg-2 col-md-4 d-flex gap-2">
             <button class="btn btn-primary flex-fill"><i class="bi bi-funnel"></i> Filtrele</button>
             <a asp-action="Index" class="btn btn-light border" title="Temizle"><i class="bi bi-x-lg"></i></a>
@@ -86,6 +90,8 @@
                             <div class="small text-muted">
                                 @Ui.TypeText(t.Type) · @t.RequesterName
                                 @if (t.ApprovalStatus != ApprovalStatus.NotRequired) { <span class="tag @Ui.ApprovalTag(t.ApprovalStatus) ms-1">@Ui.ApprovalText(t.ApprovalStatus)</span> }
+                                @foreach (var etiket in t.TagList) { <span class="tag tag-blue ms-1">#@etiket</span> }
+                                @if (t.CancelRequestedAt != null) { <span class="tag tag-red ms-1">İptal istendi</span> }
                             </div>
                         </td>
                         <td>@Ui.CategoryText(t.Category)</td>

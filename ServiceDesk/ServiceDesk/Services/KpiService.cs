@@ -44,7 +44,9 @@ public class KpiService
                 t.ResolvedAt,
                 t.FirstRespondedAt,
                 t.IsSlaBreached,
-                t.ReopenCount
+                t.ReopenCount,
+                t.FirstResponseDueAt,
+                t.IsFirstResponseBreached
             })
             .ToListAsync();
 
@@ -76,6 +78,12 @@ public class KpiService
         snap.ResolvedTickets = resolved.Count;
         snap.BreachedTickets = tickets.Count(t => t.IsSlaBreached);
         snap.ReopenCount = tickets.Sum(t => t.ReopenCount);
+        // İlk yanıt SLA'sı ayrı gösterge: yalnızca ilk yanıt hedefi olan talepler sayılır
+        var frMeasured = tickets.Where(t => t.FirstResponseDueAt != null).ToList();
+        snap.FirstResponseBreachedTickets = frMeasured.Count(t => t.IsFirstResponseBreached);
+        snap.FirstResponseComplianceRate = frMeasured.Count == 0
+            ? 100m
+            : Math.Round(100m * (frMeasured.Count - snap.FirstResponseBreachedTickets) / frMeasured.Count, 1);
         snap.SlaComplianceRate = tickets.Count == 0
             ? 100m
             : Math.Round(100m * (tickets.Count - snap.BreachedTickets) / tickets.Count, 1);

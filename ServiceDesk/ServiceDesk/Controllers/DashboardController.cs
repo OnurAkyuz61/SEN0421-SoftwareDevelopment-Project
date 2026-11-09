@@ -24,11 +24,16 @@ public class DashboardController : Controller
     {
         var tickets = _db.Tickets.AsNoTracking();
 
-        // Açık talep: henüz çözülmemiş
-        var acik = tickets.Where(t => t.Status == TicketStatus.New || t.Status == TicketStatus.InProgress);
+        // Açık talep: henüz çözülmemiş ("Müşteri bekleniyor" dahil)
+        var acik = tickets.Where(t => t.Status == TicketStatus.New || t.Status == TicketStatus.InProgress
+                                      || t.Status == TicketStatus.WaitingForCustomer);
 
         var toplam = await tickets.CountAsync();
         var ihlalToplam = await tickets.CountAsync(t => t.IsSlaBreached);
+
+        // İlk yanıt SLA'sı çözüm SLA'sından ayrı ölçülür
+        var ilkYanitOlculen = await tickets.CountAsync(t => t.FirstResponseDueAt != null);
+        var ilkYanitIhlal = await tickets.CountAsync(t => t.IsFirstResponseBreached);
 
         // Çözüm ve ilk yanıt süreleri: ortalama SQL tarafında alınır
         var cozulmusSureler = await tickets
@@ -83,6 +88,9 @@ public class DashboardController : Controller
             PendingApproval = await tickets.CountAsync(t => t.ApprovalStatus == ApprovalStatus.Pending),
             Breached = await acik.CountAsync(t => t.IsSlaBreached),
             SlaRate = toplam == 0 ? 100 : Math.Round(100.0 * (toplam - ihlalToplam) / toplam, 1),
+            FirstResponseSlaRate = ilkYanitOlculen == 0 ? 100
+                : Math.Round(100.0 * (ilkYanitOlculen - ilkYanitIhlal) / ilkYanitOlculen, 1),
+            FirstResponseBreached = ilkYanitIhlal,
             Mttr = cozulmusSureler.Count == 0 ? 0 : Math.Round(cozulmusSureler.Average() / 60.0, 1),
             Csat = puanlar.Count == 0 ? 0 : Math.Round(puanlar.Average(), 2),
 

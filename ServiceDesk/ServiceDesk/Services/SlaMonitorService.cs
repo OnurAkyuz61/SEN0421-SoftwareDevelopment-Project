@@ -15,7 +15,9 @@ namespace ServiceDesk.Services;
 public class SlaMonitorService : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
-    private const int WarningMinutesBefore = 120;   // SLA bitimine 2 saat kala uyar
+    // Politikası olmayan (eski) talepler için varsayılan uyarı eşiği;
+    // diğerlerinde eşik SlaPolicy.WarningMinutesBefore'dan okunur
+    private const int DefaultWarningMinutes = 120;
 
     private readonly IServiceScopeFactory _scopes;
     private readonly ILogger<SlaMonitorService> _log;
@@ -71,15 +73,19 @@ public class SlaMonitorService : BackgroundService
         var escalation = scope.ServiceProvider.GetRequiredService<EscalationService>();
 
         var now = AppTime.UtcNow;
-        var warnThreshold = now.AddMinutes(WarningMinutesBefore);
 
-        // Açık ve ilgilenilmesi gereken talepler — filtreleme SQL tarafında
+        // Açık ve ilgilenilmesi gereken talepler — filtreleme SQL tarafında.
+        // "Müşteri bekleniyor" durumundaki talepler taranmaz: SLA sayacı durmuş.
         var tickets = await db.Tickets
             .Include(t => t.Assignee)
             .Include(t => t.AssignedTeam)
+            .Include(t => t.SlaPolicy)
             .Where(t => t.ResolvedAt == null
                         && (t.Status == TicketStatus.New || t.Status == TicketStatus.InProgress)
-                        && (t.SlaDueAt <= warnThreshold || t.IsSlaBreached))
+                        && (t.SlaDueAt <= now.AddMinutes(t.SlaPolicy != null ? t.SlaPolicy.WarningMinutesBefore : DefaultWarningMinutes)
+                            || t.IsSlaBreached
+                            || (!t.IsFirstResponseBreached && t.FirstRespondedAt == null
+                                && t.FirstResponseDueAt != null && t.FirstResponseDueAt < now)))
             .ToListAsync(token);
 
         if (tickets.Count == 0) return;
@@ -93,8 +99,24 @@ public class SlaMonitorService : BackgroundService
 
         foreach (var t in tickets)
         {
-            // 1) SLA yaklaşıyor uyarısı — talep başına bir kez
-            if (!t.IsSlaBreached && t.SlaDueAt > now && t.SlaWarningSentAt == null)
+            // 0) İlk yanıt ihlali — çözüm ihlalinden ayrı, bir kez işaretlenir
+            if (!t.IsFirstResponseBreached && t.FirstRespondedAt == null
+                && t.FirstResponseDueAt != null && now > t.FirstResponseDueAt)
+            {
+                t.IsFirstResponseBreached = true;
+                t.FirstResponseBreachedAt = now;
+
+                await NotifyOwnersAsync(db, notify, t, NotificationType.SlaBreach,
+                    $"İlk yanıt süresi aşıldı: {Ui.TicketNo(t)} {t.Title}",
+                    "Talebe henüz kullanıcıya görünen bir yanıt yazılmadı.", EmailTemplates.SlaBreach);
+
+                changed = true;
+            }
+
+            // 1) SLA yaklaşıyor uyarısı — talep başına bir kez, eşik politikadan
+            var warnMinutes = t.SlaPolicy?.WarningMinutesBefore ?? DefaultWarningMinutes;
+            if (!t.IsSlaBreached && t.SlaDueAt > now && t.SlaWarningSentAt == null
+                && t.SlaDueAt <= now.AddMinutes(warnMinutes))
             {
                 var kalan = (int)(t.SlaDueAt - now).TotalMinutes;
                 await NotifyOwnersAsync(db, notify, t, NotificationType.SlaWarning,

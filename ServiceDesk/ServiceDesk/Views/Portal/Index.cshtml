@@ -1,7 +1,7 @@
 @model List<Ticket>
 @{
     ViewData["Title"] = "Taleplerim";
-    var open = Model.Count(t => t.Status is TicketStatus.New or TicketStatus.InProgress);
+    var open = Model.Count(t => TicketWorkflow.IsOpen(t.Status));
     var openTicket = Context.Request.Query["open"].ToString();
     var showSurvey = Context.Request.Query["survey"] == "1";
 }

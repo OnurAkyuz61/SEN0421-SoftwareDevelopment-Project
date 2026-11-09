@@ -9,11 +9,14 @@
     // Mevcut duruma göre gösterilecek butonlar (Yeni → İşlemde → Çözüldü → Kapandı)
     var sonraki = Model.Status switch
     {
-        TicketStatus.New => new[] { TicketStatus.InProgress, TicketStatus.Resolved },
-        TicketStatus.InProgress => new[] { TicketStatus.Resolved },
+        TicketStatus.New => new[] { TicketStatus.InProgress, TicketStatus.WaitingForCustomer, TicketStatus.Resolved },
+        TicketStatus.InProgress => new[] { TicketStatus.WaitingForCustomer, TicketStatus.Resolved },
+        TicketStatus.WaitingForCustomer => new[] { TicketStatus.InProgress, TicketStatus.Resolved },
         TicketStatus.Resolved => new[] { TicketStatus.Closed, TicketStatus.InProgress },
         _ => new[] { TicketStatus.InProgress }
     };
+    var kapanisVar = sonraki.Any(TicketWorkflow.IsFinished) && Model.ResolutionCode == null;
+    var takipciAdaylari = ViewBag.FollowerCandidates as List<AppUser> ?? new List<AppUser>();
     // Reddedilen değişiklik talebi işleme alınamaz, sadece kapatılabilir
     if (Model.ApprovalStatus == ApprovalStatus.Rejected)
         sonraki = Model.Status == TicketStatus.Closed ? Array.Empty<TicketStatus>() : new[] { TicketStatus.Closed };
@@ -33,7 +36,9 @@ else
     <span class="tag @Ui.PriorityTag(Model.Priority)">@Ui.PriorityText(Model.Priority)</span>
     <span class="tag @Ui.StatusTag(Model.Status)">@Ui.StatusText(Model.Status)</span>
     @if (Model.ApprovalStatus != ApprovalStatus.NotRequired) { <span class="tag @Ui.ApprovalTag(Model.ApprovalStatus)">@Ui.ApprovalText(Model.ApprovalStatus)</span> }
+    @if (Model.IsFirstResponseBreached) { <span class="tag tag-amber"><i class="bi bi-hourglass-bottom"></i> İlk yanıt ihlali</span> }
     @if (Model.IsSlaBreached) { <span class="tag tag-red"><i class="bi bi-exclamation-triangle"></i> SLA ihlali</span> }
+    @if (Model.SlaPausedAt != null) { <span class="tag tag-gray"><i class="bi bi-pause-circle"></i> SLA durdu</span> }
     @if (arsiv) { <span class="tag tag-gray"><i class="bi bi-archive"></i> Arşivlenmiş</span> }
 </div>
 
@@ -52,6 +57,44 @@ else
                 }
             </div>
         </div>
+        @if (Me.Role == UserRole.Admin)
+        {
+            <form asp-action="Restore" asp-route-id="@Model.Id" method="post" class="ms-auto"
+                  onsubmit="return confirm('Talep arşivden geri yüklensin mi?');">
+                <button class="btn btn-sm btn-outline-success text-nowrap"><i class="bi bi-arrow-counterclockwise"></i> Geri yükle</button>
+            </form>
+        }
+    </div>
+}
+
+@if (Model.MergedIntoTicketId != null)
+{
+    <div class="alert alert-info border d-flex gap-2 align-items-center mb-3">
+        <i class="bi bi-intersect"></i>
+        <div>Bu talep mükerrer olarak birleştirildi.
+            <a asp-action="Details" asp-route-id="@Model.MergedIntoTicketId">Asıl talebe git</a></div>
+    </div>
+}
+
+@if (Model.CancelRequestedAt != null && !arsiv)
+{
+    <div class="alert alert-warning border mb-3">
+        <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-x-octagon mt-1"></i>
+            <div class="flex-grow-1">
+                <strong>Kullanıcı iptal istedi</strong>
+                <span class="small text-muted">· @AppTime.ToLocal(Model.CancelRequestedAt.Value).ToString("dd.MM.yyyy HH:mm")</span>
+                <div class="small mt-1">Neden: @Model.CancelReason</div>
+            </div>
+        </div>
+        <form asp-action="DecideCancel" asp-route-id="@Model.Id" method="post" class="d-flex flex-wrap gap-2 mt-2">
+            <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(Model.RowVersion)" />
+            <input name="note" maxlength="500" class="form-control form-control-sm" style="max-width:420px"
+                   placeholder="Not (redde zorunlu)" />
+            <button name="approve" value="true" class="btn btn-sm btn-danger"
+                    onclick="return confirm('Talep iptal edilip kapatılsın mı?')">İptali onayla</button>
+            <button name="approve" value="false" class="btn btn-sm btn-outline-secondary">Reddet</button>
+        </form>
     </div>
 }
 
@@ -372,7 +415,33 @@ else
                         @if (Model.SlaPolicy != null) { <span class="text-muted small">· @Model.SlaPolicy.Name</span> }
                     </td>
                 </tr>
+                @if (Model.SlaPausedAt != null || Model.SlaPausedMinutes > 0)
+                {
+                    <tr>
+                        <td class="text-muted">SLA duraklaması</td>
+                        <td>
+                            @if (Model.SlaPausedAt != null) { <span class="tag tag-gray">@AppTime.ToLocal(Model.SlaPausedAt.Value).ToString("dd.MM HH:mm")'den beri durdu</span> }
+                            @if (Model.SlaPausedMinutes > 0) { <span class="small text-muted ms-1">toplam @Model.SlaPausedMinutes dk mesai</span> }
+                        </td>
+                    </tr>
+                }
                 <tr><td class="text-muted">Çözülme</td><td>@(AppTime.ToLocal(Model.ResolvedAt)?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td></tr>
+                @if (Model.ResolutionCode != null)
+                {
+                    <tr><td class="text-muted">Çözüm kodu</td><td><span class="tag tag-green">@Ui.ResolutionText(Model.ResolutionCode)</span></td></tr>
+                    <tr><td class="text-muted">Kök neden</td><td style="white-space:pre-line">@Model.RootCause</td></tr>
+                }
+                <tr><td class="text-muted">Toplam efor</td><td>@(Model.WorkMinutesTotal > 0 ? $"{Model.WorkMinutesTotal} dk ({Model.WorkMinutesTotal / 60.0:0.#} saat)" : "-")</td></tr>
+                <tr>
+                    <td class="text-muted">Etiketler</td>
+                    <td>
+                        @foreach (var etiket in Model.TagList)
+                        {
+                            <a asp-action="Index" asp-route-tag="@etiket" class="tag tag-blue text-decoration-none me-1">#@etiket</a>
+                        }
+                        @if (!Model.TagList.Any()) { <text>-</text> }
+                    </td>
+                </tr>
                 <tr><td class="text-muted">Kapanış</td><td>@(AppTime.ToLocal(Model.ClosedAt)?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td></tr>
                 @if (Model.ReopenCount > 0)
                 {
@@ -532,6 +601,13 @@ else
         <div class="panel mb-3">
             <div class="panel-head">Atama işlemleri</div>
             <div class="panel-body">
+                @if (Model.AssigneeId == null && !TicketWorkflow.IsFinished(Model.Status))
+                {
+                    @* Kilitli üstlenme: aynı anda basan ikinci kişi uyarı alır *@
+                    <form asp-action="Claim" asp-route-id="@Model.Id" method="post" class="mb-2">
+                        <button class="btn btn-success btn-sm w-100"><i class="bi bi-hand-index-thumb"></i> Ben alıyorum</button>
+                    </form>
+                }
                 <div class="d-flex gap-2">
                     @if (Model.AssigneeId != Me.Id)
                     {
@@ -546,6 +622,69 @@ else
             </div>
         </div>
 
+        @if (!TicketWorkflow.IsFinished(Model.Status))
+        {
+            <div class="panel mb-3">
+                <div class="panel-head">Öncelik <span class="text-muted small fw-normal">değişince SLA yeniden hesaplanır</span></div>
+                <div class="panel-body">
+                    <form asp-action="ChangePriority" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+                        <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(Model.RowVersion)" />
+                        <select name="priority" class="form-select form-select-sm">
+                            @foreach (var p in Enum.GetValues<Priority>()) { <option value="@p" selected="@(p == Model.Priority)">@Ui.PriorityText(p)</option> }
+                        </select>
+                        <button class="btn btn-sm btn-outline-primary text-nowrap">Değiştir</button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <div class="panel mb-3">
+            <div class="panel-head">Takipçiler (CC) <span class="text-muted small fw-normal">@Model.Followers.Count kişi</span></div>
+            <div class="panel-body">
+                @foreach (var f in Model.Followers.OrderBy(f => f.User?.FirstName))
+                {
+                    <form asp-action="RemoveFollower" asp-route-id="@Model.Id" method="post" class="d-flex align-items-center gap-2 mb-1">
+                        <input type="hidden" name="userId" value="@f.UserId" />
+                        <span class="small flex-grow-1"><i class="bi bi-person"></i> @(f.User?.FullName ?? $"#{f.UserId}")</span>
+                        <button class="btn btn-sm btn-link text-danger p-0" title="Çıkar"><i class="bi bi-x-lg"></i></button>
+                    </form>
+                }
+                <form asp-action="AddFollower" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 mt-2">
+                    <select name="userId" class="form-select form-select-sm" required>
+                        <option value="">Kişi seçin</option>
+                        @foreach (var u in takipciAdaylari) { <option value="@u.Id">@u.FullName (@Ui.RoleText(u.Role))</option> }
+                    </select>
+                    <button class="btn btn-sm btn-outline-primary">Ekle</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="panel mb-3">
+            <div class="panel-head">Etiketler</div>
+            <div class="panel-body">
+                <form asp-action="UpdateTags" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+                    <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(Model.RowVersion)" />
+                    <input name="tags" value="@Model.Tags" maxlength="300" class="form-control form-control-sm" placeholder="vpn, laptop, acil" />
+                    <button class="btn btn-sm btn-outline-primary">Kaydet</button>
+                </form>
+            </div>
+        </div>
+
+        @if (TicketWorkflow.IsOpen(Model.Status))
+        {
+            <div class="panel mb-3">
+                <div class="panel-head">Mükerrer talep</div>
+                <div class="panel-body">
+                    <form asp-action="Merge" asp-route-id="@Model.Id" method="post"
+                          onsubmit="return confirm('Bu talep kapatılıp asıl talebe birleştirilecek. Devam edilsin mi?');">
+                        <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(Model.RowVersion)" />
+                        <input name="target" required class="form-control form-control-sm mb-2" placeholder="Asıl talep no (INC-2026-00012) veya Id" />
+                        <button class="btn btn-sm btn-outline-secondary w-100"><i class="bi bi-intersect"></i> Asıl talebe birleştir</button>
+                    </form>
+                </div>
+            </div>
+        }
+
         <form asp-action="ChangeStatus" asp-route-id="@Model.Id" method="post" class="panel">
             <input type="hidden" name="rowVersion" value="@TicketConcurrency.Encode(Model.RowVersion)" />
             <div class="panel-head">
@@ -553,12 +692,31 @@ else
                 <span class="tag @Ui.StatusTag(Model.Status)">@Ui.StatusText(Model.Status)</span>
             </div>
             <div class="panel-body d-grid gap-2">
+                @if (kapanisVar)
+                {
+                    @* Çözüldü / Kapat için zorunlu; sunucu tarafı TicketWorkflow.ValidateResolution *@
+                    <div class="border rounded p-2 bg-light">
+                        <label class="form-label small text-muted mb-1">Çözüm kodu (kapanışta zorunlu)</label>
+                        <select name="resolutionCode" class="form-select form-select-sm mb-2">
+                            <option value="">Seçiniz</option>
+                            @foreach (var c in Enum.GetValues<ResolutionCode>().Where(c => c is not (ResolutionCode.Duplicate or ResolutionCode.Cancelled)))
+                            {
+                                <option value="@c">@Ui.ResolutionText(c)</option>
+                            }
+                            <option value="@ResolutionCode.Cancelled">@Ui.ResolutionText(ResolutionCode.Cancelled)</option>
+                        </select>
+                        <textarea name="rootCause" rows="2" maxlength="1000" class="form-control form-control-sm"
+                                  placeholder="Kök neden / yapılan çözüm"></textarea>
+                    </div>
+                }
                 @foreach (var s in sonraki)
                 {
                     var (yazi, ikon, renk) = s switch
                     {
                         TicketStatus.InProgress when TicketWorkflow.IsFinished(Model.Status) => ("Yeniden aç", "bi-arrow-counterclockwise", "btn-outline-warning"),
+                        TicketStatus.InProgress when Model.Status == TicketStatus.WaitingForCustomer => ("Devam et (SLA yeniden işler)", "bi-play-circle", "btn-outline-primary"),
                         TicketStatus.InProgress => ("İşleme al", "bi-play-circle", "btn-outline-primary"),
+                        TicketStatus.WaitingForCustomer => ("Müşteri bekleniyor (SLA durur)", "bi-pause-circle", "btn-outline-secondary"),
                         TicketStatus.Resolved => ("Çözüldü", "bi-check2-circle", "btn-success"),
                         _ => ("Kapat", "bi-lock", "btn-outline-secondary")
                     };

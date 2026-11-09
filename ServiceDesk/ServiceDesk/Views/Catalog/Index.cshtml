@@ -161,11 +161,16 @@
                                             <div class="invalid-feedback">Lider artık aktif Destek/Yönetici değil.</div>
                                         }
                                     </td>
-                                    <td style="width:90px">
+                                    <td style="width:130px">
                                         <div class="form-check mb-0">
                                             <input class="form-check-input" type="checkbox" name="isActive" value="true"
                                                    id="team@(t.Id)" checked="@t.IsActive" />
                                             <label class="form-check-label small" for="team@(t.Id)">Aktif</label>
+                                        </div>
+                                        <div class="form-check mb-0" title="Ekibe düşen yeni talepler aktif personele sırayla otomatik atanır">
+                                            <input class="form-check-input" type="checkbox" name="roundRobin" value="true"
+                                                   id="rr@(t.Id)" checked="@t.RoundRobinEnabled" />
+                                            <label class="form-check-label small" for="rr@(t.Id)">Sıralı atama</label>
                                         </div>
                                     </td>
                                     <td class="text-end" style="width:90px">

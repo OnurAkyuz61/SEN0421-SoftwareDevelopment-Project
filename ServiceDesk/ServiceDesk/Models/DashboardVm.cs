@@ -9,7 +9,9 @@ public class DashboardVm
     public int Unassigned { get; set; }
     public int PendingApproval { get; set; }
     public int Breached { get; set; }
-    public double SlaRate { get; set; }
+    public double SlaRate { get; set; }              // çözüm SLA uyumu
+    public double FirstResponseSlaRate { get; set; } // ilk yanıt SLA uyumu (ayrı KPI)
+    public int FirstResponseBreached { get; set; }
     public double Mttr { get; set; }
     public double Csat { get; set; }
 

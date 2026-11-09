@@ -500,6 +500,42 @@ namespace ServiceDesk.Migrations
                     b.ToTable("ChangeDetails");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.ChatbotQuestion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AskCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FirstAskedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsResolved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastAskedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ChatbotQuestions");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.Department", b =>
                 {
                     b.Property<int>("Id")
@@ -507,6 +543,9 @@ namespace ServiceDesk.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BusinessCalendarId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -517,6 +556,8 @@ namespace ServiceDesk.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BusinessCalendarId");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -821,6 +862,13 @@ namespace ServiceDesk.Migrations
 
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
+
+                    b.Property<int>("FirstResponseBreachedTickets")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("FirstResponseComplianceRate")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("decimal(5,1)");
 
                     b.Property<int>("Period")
                         .HasColumnType("int");
@@ -1184,6 +1232,19 @@ namespace ServiceDesk.Migrations
                     b.Property<int>("ResolutionMinutes")
                         .HasColumnType("int");
 
+                    b.Property<int?>("RootPolicyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("WarningMinutesBefore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(120);
+
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessCalendarId");
@@ -1202,7 +1263,9 @@ namespace ServiceDesk.Migrations
                             IsActive = true,
                             Name = "Kritik",
                             Priority = 3,
-                            ResolutionMinutes = 240
+                            ResolutionMinutes = 240,
+                            Version = 1,
+                            WarningMinutesBefore = 120
                         },
                         new
                         {
@@ -1214,7 +1277,9 @@ namespace ServiceDesk.Migrations
                             IsActive = true,
                             Name = "Yüksek",
                             Priority = 2,
-                            ResolutionMinutes = 480
+                            ResolutionMinutes = 480,
+                            Version = 1,
+                            WarningMinutesBefore = 120
                         },
                         new
                         {
@@ -1226,7 +1291,9 @@ namespace ServiceDesk.Migrations
                             IsActive = true,
                             Name = "Orta",
                             Priority = 1,
-                            ResolutionMinutes = 1440
+                            ResolutionMinutes = 1440,
+                            Version = 1,
+                            WarningMinutesBefore = 120
                         },
                         new
                         {
@@ -1238,7 +1305,9 @@ namespace ServiceDesk.Migrations
                             IsActive = true,
                             Name = "Düşük",
                             Priority = 0,
-                            ResolutionMinutes = 4320
+                            ResolutionMinutes = 4320,
+                            Version = 1,
+                            WarningMinutesBefore = 120
                         });
                 });
 
@@ -1403,6 +1472,9 @@ namespace ServiceDesk.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("LastAssignedUserId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("LeadUserId")
                         .HasColumnType("int");
 
@@ -1410,6 +1482,9 @@ namespace ServiceDesk.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("RoundRobinEnabled")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -1428,14 +1503,16 @@ namespace ServiceDesk.Migrations
                             Id = 1,
                             DepartmentId = 1,
                             IsActive = true,
-                            Name = "Son Kullanıcı Desteği"
+                            Name = "Son Kullanıcı Desteği",
+                            RoundRobinEnabled = false
                         },
                         new
                         {
                             Id = 2,
                             DepartmentId = 1,
                             IsActive = true,
-                            Name = "Ağ ve Sistem"
+                            Name = "Ağ ve Sistem",
+                            RoundRobinEnabled = false
                         });
                 });
 
@@ -1471,6 +1548,13 @@ namespace ServiceDesk.Migrations
                     b.Property<int?>("AssigneeId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelRequestedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
@@ -1500,6 +1584,9 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime?>("FirstRespondedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("FirstResponseBreachedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("FirstResponseDueAt")
                         .HasColumnType("datetime2");
 
@@ -1509,11 +1596,17 @@ namespace ServiceDesk.Migrations
                     b.Property<bool>("IsEscalated")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsFirstResponseBreached")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsSlaBreached")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastApprovalReminderAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("MergedIntoTicketId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Number")
                         .HasMaxLength(20)
@@ -1533,11 +1626,18 @@ namespace ServiceDesk.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("ResolutionCode")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("ResolvedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("ResolvedByArticleId")
                         .HasColumnType("int");
+
+                    b.Property<string>("RootCause")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -1550,6 +1650,12 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime>("SlaDueAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("SlaPausedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SlaPausedMinutes")
+                        .HasColumnType("int");
+
                     b.Property<int?>("SlaPolicyId")
                         .HasColumnType("int");
 
@@ -1559,12 +1665,19 @@ namespace ServiceDesk.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<string>("Tags")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
                     b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorkMinutesTotal")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -1633,6 +1746,33 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("TicketId", "CreatedAt");
 
                     b.ToTable("TicketComments");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.TicketFollower", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId", "UserId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("TicketFollowers");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.TicketHistory", b =>
@@ -1814,6 +1954,16 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Ticket");
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Department", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.BusinessCalendar", "BusinessCalendar")
+                        .WithMany()
+                        .HasForeignKey("BusinessCalendarId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BusinessCalendar");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.EscalationRecord", b =>
@@ -2125,6 +2275,25 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Ticket");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.TicketFollower", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
+                        .WithMany("Followers")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Ticket");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.TicketHistory", b =>
                 {
                     b.HasOne("ServiceDesk.Models.AppUser", "ChangedBy")
@@ -2179,6 +2348,8 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Escalations");
+
+                    b.Navigation("Followers");
 
                     b.Navigation("History");
 

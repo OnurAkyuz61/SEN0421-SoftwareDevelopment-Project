@@ -65,6 +65,37 @@ public static class SlaCalculator
         return startUtc.AddMinutes(minutes);
     }
 
+    // İki an arasında geçen mesai dakikası ("Müşteri bekleniyor" duraklaması için).
+    // Takvim yoksa 7x24 sayılır.
+    public static int WorkingMinutesBetween(
+        DateTime startUtc, DateTime endUtc, BusinessCalendar? calendar, IReadOnlySet<DateTime>? holidays = null)
+    {
+        if (endUtc <= startUtc) return 0;
+        if (calendar == null) return (int)(endUtc - startUtc).TotalMinutes;
+
+        var workDays = ParseWorkDays(calendar.WorkDays);
+        if (calendar.WorkEndMinutes <= calendar.WorkStartMinutes || workDays.Count == 0)
+            return (int)(endUtc - startUtc).TotalMinutes;
+
+        var from = AppTime.ToLocal(startUtc);
+        var to = AppTime.ToLocal(endUtc);
+        double total = 0;
+
+        var day = from.Date;
+        for (var guard = 0; day <= to.Date && guard < MaxDaysScanned; guard++, day = day.AddDays(1))
+        {
+            if (!IsWorkingDay(day, workDays, holidays)) continue;
+
+            var workStart = day.AddMinutes(calendar.WorkStartMinutes);
+            var workEnd = day.AddMinutes(calendar.WorkEndMinutes);
+            var s = from > workStart ? from : workStart;
+            var e = to < workEnd ? to : workEnd;
+            if (e > s) total += (e - s).TotalMinutes;
+        }
+
+        return (int)Math.Round(total);
+    }
+
     private static DateTime NextDayStart(DateTime local, BusinessCalendar calendar) =>
         local.Date.AddDays(1).AddMinutes(calendar.WorkStartMinutes);
 

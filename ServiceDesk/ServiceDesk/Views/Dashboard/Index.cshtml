@@ -7,9 +7,10 @@
     <div class="col-xl-3 col-sm-6"><div class="stat @(Model.Unassigned > 0 ? "warn" : "")"><div class="label"><i class="bi bi-person-dash"></i> Atama bekleyen</div><div class="value">@Model.Unassigned</div><div class="hint">Henüz kimseye atanmamış</div></div></div>
     <div class="col-xl-3 col-sm-6"><div class="stat @(Model.PendingApproval > 0 ? "warn" : "")"><div class="label"><i class="bi bi-check2-square"></i> Onay bekleyen</div><div class="value">@Model.PendingApproval</div><div class="hint">Değişiklik talepleri</div></div></div>
     <div class="col-xl-3 col-sm-6"><div class="stat @(Model.Breached > 0 ? "bad" : "")"><div class="label"><i class="bi bi-exclamation-triangle"></i> SLA ihlali</div><div class="value">@Model.Breached</div><div class="hint">Süresi geçmiş açık talep</div></div></div>
-    <div class="col-xl-4 col-sm-4"><div class="stat"><div class="label">SLA uyum oranı</div><div class="value">%@Model.SlaRate</div></div></div>
-    <div class="col-xl-4 col-sm-4"><div class="stat"><div class="label">Ortalama çözüm süresi (MTTR)</div><div class="value">@Model.Mttr <small class="fs-6 text-muted">saat</small></div></div></div>
-    <div class="col-xl-4 col-sm-4"><div class="stat"><div class="label">Müşteri memnuniyeti (CSAT)</div><div class="value">@Model.Csat <small class="fs-6 text-muted">/ 5</small></div></div></div>
+    <div class="col-xl-3 col-sm-6"><div class="stat"><div class="label">İlk yanıt SLA uyumu</div><div class="value">%@Model.FirstResponseSlaRate</div><div class="hint">@Model.FirstResponseBreached talepte ilk yanıt gecikti</div></div></div>
+    <div class="col-xl-3 col-sm-6"><div class="stat"><div class="label">Çözüm SLA uyumu</div><div class="value">%@Model.SlaRate</div></div></div>
+    <div class="col-xl-3 col-sm-6"><div class="stat"><div class="label">Ortalama çözüm süresi (MTTR)</div><div class="value">@Model.Mttr <small class="fs-6 text-muted">saat</small></div></div></div>
+    <div class="col-xl-3 col-sm-6"><div class="stat"><div class="label">Müşteri memnuniyeti (CSAT)</div><div class="value">@Model.Csat <small class="fs-6 text-muted">/ 5</small></div></div></div>
 </div>
 
 <!-- GRAFİKLER -->

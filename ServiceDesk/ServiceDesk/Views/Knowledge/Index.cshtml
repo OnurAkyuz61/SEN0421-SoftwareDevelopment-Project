@@ -16,6 +16,7 @@
     </div>
     @if (Me.IsStaff)
     {
+        <a asp-controller="Chatbot" asp-action="Unanswered" class="btn btn-light border"><i class="bi bi-question-circle"></i> Cevapsız sorular</a>
         <a asp-action="Edit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni Makale</a>
     }
 </div>

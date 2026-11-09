@@ -16,13 +16,28 @@ public static class Ui
     public static string StatusText(TicketStatus s) => s switch
     {
         TicketStatus.New => "Yeni", TicketStatus.InProgress => "İşlemde",
+        TicketStatus.WaitingForCustomer => "Müşteri bekleniyor",
         TicketStatus.Resolved => "Çözüldü", _ => "Kapandı"
     };
 
     public static string StatusTag(TicketStatus s) => s switch
     {
         TicketStatus.New => "tag-blue", TicketStatus.InProgress => "tag-amber",
+        TicketStatus.WaitingForCustomer => "tag-gray",
         TicketStatus.Resolved => "tag-green", _ => "tag-gray"
+    };
+
+    public static string ResolutionText(ResolutionCode? c) => c switch
+    {
+        null => "-",
+        ResolutionCode.Fixed => "Kalıcı çözüm",
+        ResolutionCode.Workaround => "Geçici çözüm",
+        ResolutionCode.Information => "Bilgi verildi",
+        ResolutionCode.UserError => "Kullanıcı hatası",
+        ResolutionCode.CannotReproduce => "Tekrarlanamadı",
+        ResolutionCode.ChangeImplemented => "Değişiklik uygulandı",
+        ResolutionCode.Duplicate => "Mükerrer (birleştirildi)",
+        _ => "İptal edildi"
     };
 
     public static string TypeText(TicketType t) => t == TicketType.Incident ? "Arıza" : "Değişiklik";

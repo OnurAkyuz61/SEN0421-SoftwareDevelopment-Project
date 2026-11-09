@@ -22,11 +22,12 @@ public class PortalController : Controller
     private readonly NonconformityService _nonconformity;
     private readonly ApprovalChainResolver _chain;
     private readonly ChangeResubmissionService _resubmit;
+    private readonly TeamRoundRobin _roundRobin;
 
     public PortalController(AppDbContext db, FileStorage files, CurrentUser current,
                             TicketSlaService sla, NotificationService notify,
                             NonconformityService nonconformity, ApprovalChainResolver chain,
-                            ChangeResubmissionService resubmit)
+                            ChangeResubmissionService resubmit, TeamRoundRobin roundRobin)
     {
         _db = db;
         _files = files;
@@ -36,6 +37,7 @@ public class PortalController : Controller
         _nonconformity = nonconformity;
         _chain = chain;
         _resubmit = resubmit;
+        _roundRobin = roundRobin;
     }
 
     // Reddedilen değişiklik talebini düzeltip yeniden onaya gönderir (talep sahibi)
@@ -114,6 +116,9 @@ public class PortalController : Controller
         ticket.AssignedTeamId = category!.DefaultTeamId;
         await _sla.ApplyPolicyAsync(ticket);
 
+        // Ekipte round-robin açıksa talep sıradaki personele otomatik atanır
+        var otomatikAtanan = await _roundRobin.AssignAsync(ticket);
+
         // Değişiklik talepleri yönetici onayına düşer
         ticket.ApprovalStatus = ticket.Type == TicketType.Change ? ApprovalStatus.Pending : ApprovalStatus.NotRequired;
 
@@ -134,6 +139,12 @@ public class PortalController : Controller
         // Numara Id'den türetilir, bu yüzden ilk kayıttan sonra yazılır
         ticket.Number = Ui.BuildTicketNumber(ticket);
         await _db.SaveChangesAsync();
+
+        if (otomatikAtanan != null)
+            _notify.Queue(otomatikAtanan.Value, NotificationType.Assigned,
+                $"Size atandı: {Ui.TicketNo(ticket)} {ticket.Title}",
+                $"Ekip sırasına göre otomatik atandı. Hedef çözüm: {AppTime.ToLocal(ticket.SlaDueAt):dd.MM.yyyy HH:mm}",
+                ticket.Id);
 
         // Değişiklik talebi onay bekliyor: yöneticiler haberdar edilir
         if (ticket.ApprovalStatus == ApprovalStatus.Pending)
@@ -274,6 +285,11 @@ public class PortalController : Controller
 
         _db.TicketComments.Add(comment);
 
+        // Destek kullanıcıdan bilgi bekliyorduysa yanıtla birlikte talep yeniden
+        // işleme alınır ve SLA sayacı kaldığı yerden devam eder
+        if (ticket.Status == TicketStatus.WaitingForCustomer)
+            await _sla.ApplyStatusAsync(ticket, TicketStatus.InProgress, AppTime.UtcNow);
+
         // İlgilenen varsa ona, yoksa destek ekibine haber ver
         if (ticket.AssigneeId != null)
             _notify.Queue(ticket.AssigneeId.Value, NotificationType.NewComment,
@@ -288,6 +304,94 @@ public class PortalController : Controller
 
         TempData["Ok"] = "Mesajınız iletildi.";
         return BackToTicket(id, returnTo);
+    }
+
+    // Çözülen talebi kullanıcı yeniden açar (sorun devam ediyorsa). Neden zorunlu,
+    // yazışmaya eklenir; yeniden açılma sayacı TicketWorkflow'da artar.
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Reopen(int id, string? reason, string? returnTo)
+    {
+        var ticket = await FindMyTicketAsync(id);
+        if (ticket == null) return NotFound();
+
+        reason = reason?.Trim();
+        string? hata =
+            ticket.Status != TicketStatus.Resolved ? "Yalnızca çözülmüş talepler yeniden açılabilir."
+            : string.IsNullOrEmpty(reason) || reason.Length < 5 ? "Yeniden açma nedenini yazın (en az 5 karakter)."
+            : reason.Length > 1000 ? "Neden en fazla 1000 karakter olabilir."
+            : TicketWorkflow.CanTransition(ticket, TicketStatus.InProgress) is { Allowed: false } k ? k.Error
+            : null;
+        if (hata != null)
+        {
+            TempData["Err"] = hata;
+            return BackToTicket(id, returnTo);
+        }
+
+        await _sla.ApplyStatusAsync(ticket, TicketStatus.InProgress, AppTime.UtcNow);
+
+        _db.TicketComments.Add(new TicketComment
+        {
+            TicketId = id, AuthorId = _current.User!.Id, IsInternal = false,
+            Body = $"Talep kullanıcı tarafından yeniden açıldı. Neden: {reason}"
+        });
+
+        await NotifyOwnersAsync(ticket, $"Talep yeniden açıldı: {Ui.TicketNo(ticket)} {ticket.Title}",
+            $"{_current.User!.FullName}: {reason}");
+
+        await _db.SaveChangesAsync();
+        _notify.SignalDelivery();
+
+        TempData["Ok"] = "Talebiniz yeniden açıldı; destek ekibi tekrar ilgilenecek.";
+        return BackToTicket(id, returnTo);
+    }
+
+    // Kullanıcı açık talebinin iptalini ister; destek onaylarsa talep kapanır
+    // (TicketsController.DecideCancel)
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> RequestCancel(int id, string? reason, string? returnTo)
+    {
+        var ticket = await FindMyTicketAsync(id);
+        if (ticket == null) return NotFound();
+
+        reason = reason?.Trim();
+        string? hata =
+            !TicketWorkflow.IsOpen(ticket.Status) ? "Yalnızca açık talepler için iptal istenebilir."
+            : ticket.CancelRequestedAt != null ? "Bu talep için zaten bekleyen bir iptal isteği var."
+            : string.IsNullOrEmpty(reason) ? "İptal nedenini yazın."
+            : reason.Length > 500 ? "Neden en fazla 500 karakter olabilir."
+            : null;
+        if (hata != null)
+        {
+            TempData["Err"] = hata;
+            return BackToTicket(id, returnTo);
+        }
+
+        ticket.CancelRequestedAt = AppTime.UtcNow;
+        ticket.CancelReason = reason;
+
+        _db.TicketHistories.Add(new TicketHistory
+        {
+            TicketId = id, Field = "İptal isteği", OldValue = "-", NewValue = "Bekliyor",
+            ChangedById = _current.User!.Id, ChangedAt = AppTime.UtcNow
+        });
+
+        await NotifyOwnersAsync(ticket, $"İptal isteği: {Ui.TicketNo(ticket)} {ticket.Title}",
+            $"{_current.User!.FullName} talebin iptalini istedi: {reason}");
+
+        await _db.SaveChangesAsync();
+        _notify.SignalDelivery();
+
+        TempData["Ok"] = "İptal isteğiniz destek ekibine iletildi.";
+        return BackToTicket(id, returnTo);
+    }
+
+    // İlgilenen varsa ona, yoksa destek ekibine
+    private async Task NotifyOwnersAsync(Ticket ticket, string title, string message)
+    {
+        if (ticket.AssigneeId != null)
+            _notify.Queue(ticket.AssigneeId.Value, NotificationType.NewComment, title, message, ticket.Id);
+        else
+            await _notify.QueueToRoleAsync(UserRole.Agent, NotificationType.NewComment, title, message, ticket.Id);
     }
 
     // Açılmış bir talebe sonradan dosya / ekran görüntüsü eklemek için

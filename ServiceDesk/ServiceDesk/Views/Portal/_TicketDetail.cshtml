@@ -1,7 +1,12 @@
 @model Ticket
 @{
     var closed = Model.Status is TicketStatus.Resolved or TicketStatus.Closed;
-    var step = Model.Status switch { TicketStatus.New => 1, TicketStatus.InProgress => 2, _ => 3 };
+    var step = Model.Status switch
+    {
+        TicketStatus.New => 1,
+        TicketStatus.InProgress or TicketStatus.WaitingForCustomer => 2,
+        _ => 3
+    };
     var questions = ViewBag.SurveyQuestions as List<SurveyQuestion>;
     var modal = ViewBag.InModal as bool? == true;
 }
@@ -33,6 +38,47 @@
                     @if (Model.ApprovalStatus == ApprovalStatus.Pending)
                     {
                         <div class="alert alert-warning small mt-3 mb-0">Bu bir değişiklik talebi; işleme alınmadan önce yönetici onayı bekleniyor.</div>
+                    }
+                    @if (Model.Status == TicketStatus.WaitingForCustomer)
+                    {
+                        <div class="alert alert-info small mt-3 mb-0">
+                            <i class="bi bi-chat-left-text"></i> Destek ekibi sizden bilgi bekliyor. Aşağıdan yanıt yazdığınızda talep yeniden işleme alınır.
+                        </div>
+                    }
+                    @if (Model.ResolutionCode == ResolutionCode.Duplicate && Model.MergedIntoTicketId != null)
+                    {
+                        <div class="alert alert-secondary small mt-3 mb-0">Bu talep aynı konudaki başka bir talep ile birleştirildi.</div>
+                    }
+                    @if (Model.CancelRequestedAt != null)
+                    {
+                        <div class="alert alert-warning small mt-3 mb-0">
+                            <i class="bi bi-hourglass-split"></i> İptal isteğiniz destek ekibinin onayını bekliyor.
+                        </div>
+                    }
+                    @if (Model.Status == TicketStatus.Resolved)
+                    {
+                        @* Çözülen talep kullanıcı tarafından yeniden açılabilir *@
+                        <details class="mt-3">
+                            <summary class="small text-muted">Sorun devam ediyor mu? Talebi yeniden açın</summary>
+                            <form asp-controller="Portal" asp-action="Reopen" asp-route-id="@Model.Id" method="post" class="mt-2">
+                                <input type="hidden" name="returnTo" value="@(modal ? "modal" : "details")" />
+                                <textarea name="reason" rows="2" minlength="5" maxlength="1000" required class="form-control form-control-sm mb-2"
+                                          placeholder="Neden yeniden açıyorsunuz?"></textarea>
+                                <button class="btn btn-sm btn-outline-warning"><i class="bi bi-arrow-counterclockwise"></i> Yeniden aç</button>
+                            </form>
+                        </details>
+                    }
+                    @if (TicketWorkflow.IsOpen(Model.Status) && Model.CancelRequestedAt == null)
+                    {
+                        <details class="mt-3">
+                            <summary class="small text-muted">Talebe artık ihtiyacınız yok mu? İptal isteyin</summary>
+                            <form asp-controller="Portal" asp-action="RequestCancel" asp-route-id="@Model.Id" method="post" class="mt-2">
+                                <input type="hidden" name="returnTo" value="@(modal ? "modal" : "details")" />
+                                <textarea name="reason" rows="2" maxlength="500" required class="form-control form-control-sm mb-2"
+                                          placeholder="İptal nedeni"></textarea>
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i> İptal iste</button>
+                            </form>
+                        </details>
                     }
                     @if (Model.ApprovalStatus == ApprovalStatus.Rejected)
                     {

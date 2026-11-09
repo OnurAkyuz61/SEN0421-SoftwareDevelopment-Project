@@ -57,9 +57,33 @@ public class AppDbContext : DbContext
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<ChangeDetail> ChangeDetails => Set<ChangeDetail>();
     public DbSet<ChangeApproval> ChangeApprovals => Set<ChangeApproval>();
+    public DbSet<TicketFollower> TicketFollowers => Set<TicketFollower>();
+    public DbSet<ChatbotQuestion> ChatbotQuestions => Set<ChatbotQuestion>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
+        // ── Takipçi (CC), birim takvimi, SLA eşiği / sürümü ─────────────
+        mb.Entity<TicketFollower>()
+          .HasOne(f => f.Ticket).WithMany(t => t.Followers)
+          .HasForeignKey(f => f.TicketId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<TicketFollower>()
+          .HasOne(f => f.User).WithMany()
+          .HasForeignKey(f => f.UserId)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<TicketFollower>().HasIndex(f => new { f.TicketId, f.UserId }).IsUnique();
+        mb.Entity<TicketFollower>().HasQueryFilter(f => !f.Ticket!.IsDeleted);
+
+        mb.Entity<Department>()
+          .HasOne(d => d.BusinessCalendar).WithMany()
+          .HasForeignKey(d => d.BusinessCalendarId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<SlaPolicy>().Property(p => p.WarningMinutesBefore).HasDefaultValue(120);
+        mb.Entity<SlaPolicy>().Property(p => p.Version).HasDefaultValue(1);
+        mb.Entity<KpiSnapshot>().Property(k => k.FirstResponseComplianceRate).HasPrecision(5, 1);
+        mb.Entity<Ticket>().Ignore(t => t.TagList);
+
         // Ticket 1 - 0..1 SurveyResponse
         mb.Entity<SurveyResponse>()
           .HasOne(r => r.Ticket).WithOne(t => t.Survey)
@@ -618,6 +642,14 @@ public class AppDbContext : DbContext
             var assignee = entry.Property(t => t.AssigneeId);
             if (assignee.IsModified)
                 Add("Atanan", UserName(assignee.OriginalValue), UserName(assignee.CurrentValue));
+
+            var code = entry.Property(t => t.ResolutionCode);
+            if (code.IsModified)
+                Add("Çözüm kodu", Ui.ResolutionText(code.OriginalValue), Ui.ResolutionText(code.CurrentValue));
+
+            var tags = entry.Property(t => t.Tags);
+            if (tags.IsModified)
+                Add("Etiketler", Cut(tags.OriginalValue), Cut(tags.CurrentValue));
         }
 
         return logs;
@@ -626,6 +658,9 @@ public class AppDbContext : DbContext
     // SQL Server benzersiz indeks / anahtar ihlali (2601, 2627)
     public static bool IsUniqueViolation(DbUpdateException ex) =>
         ex.InnerException is Microsoft.Data.SqlClient.SqlException { Number: 2601 or 2627 };
+
+    // Geçmiş kolonları 100 karakter
+    private static string? Cut(string? s) => s == null || s.Length <= 100 ? s : s[..100];
 
     private string UserName(int? id) =>
         id == null ? "Atanmadı" : Users.Find(id)?.FullName ?? $"#{id}";

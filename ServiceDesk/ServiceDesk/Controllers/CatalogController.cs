@@ -104,7 +104,8 @@ public class CatalogController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> SaveTeam(int id, string? name, int departmentId, int? leadUserId, bool isActive)
+    public async Task<IActionResult> SaveTeam(int id, string? name, int departmentId, int? leadUserId, bool isActive,
+                                              bool roundRobin = false)
     {
         name = CatalogRules.NormalizeName(name);
         if (NameError("Ekip", name) is { } hata) return Fail(hata);
@@ -143,6 +144,7 @@ public class CatalogController : Controller
         ekip.DepartmentId = departmentId;
         ekip.LeadUserId = leadUserId;
         ekip.IsActive = isActive;
+        ekip.RoundRobinEnabled = roundRobin;   // yeni talepler ekipte sırayla otomatik atanır
 
         return await SaveAsync(ekip.Name, "ekip");
     }

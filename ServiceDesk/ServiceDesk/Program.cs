@@ -19,6 +19,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CurrentUser>();           // oturumdaki kullanıcı
 builder.Services.AddScoped<NotificationService>();   // bildirim okuma / yazma
 builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef tarihler
+builder.Services.AddScoped<TeamRoundRobin>();        // ekip bazlı otomatik (sıralı) atama
 builder.Services.AddScoped<KpiService>();            // dönemsel gösterge hesabı
 builder.Services.AddScoped<NonconformityService>();  // otomatik uygunsuzluk kaydı
 builder.Services.AddScoped<LoginAuditService>();     // giriş denetim izi ve deneme sınırı

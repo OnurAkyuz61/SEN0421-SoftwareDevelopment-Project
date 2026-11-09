@@ -1,0 +1,68 @@
+@model List<ChatbotQuestion>
+@{
+    ViewData["Title"] = "Cevapsız sorular";
+    var pager = (PagerInfo)ViewBag.Pager;
+    var cozulenler = (bool)ViewBag.Resolved;
+    var makaleler = (List<KnowledgeArticle>)ViewBag.Articles;
+}
+
+<div class="d-flex flex-wrap align-items-end gap-2 mb-3">
+    <div class="me-auto">
+        <a asp-controller="Knowledge" asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Bilgi Bankası</a>
+        <h4 class="fw-bold mb-0 mt-1">Chatbot'un cevaplayamadığı sorular</h4>
+        <div class="text-muted small">Bilgi bankasında karşılığı olmayan sorular. En çok sorulanlar üstte; eksik makaleyi yazıp soruyu kapatın.</div>
+    </div>
+    <a asp-action="Unanswered" asp-route-resolved="false" class="btn btn-sm @(cozulenler ? "btn-light border" : "btn-primary")">Açık</a>
+    <a asp-action="Unanswered" asp-route-resolved="true" class="btn btn-sm @(cozulenler ? "btn-primary" : "btn-light border")">Ele alınan</a>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <span>@(pager.TotalCount == 0 ? "Kayıt yok" : $"{pager.TotalCount} soru")</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr><th>Soru</th><th class="text-center">Sorulma</th><th>İlk</th><th>Son</th><th style="width:340px"></th></tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-5">Soru bulunamadı</td></tr>
+                }
+                @foreach (var q in Model)
+                {
+                    <tr>
+                        <td>@q.Text</td>
+                        <td class="text-center"><span class="tag @(q.AskCount >= 3 ? "tag-red" : "tag-gray")">@q.AskCount</span></td>
+                        <td class="small text-muted text-nowrap">@AppTime.ToLocal(q.FirstAskedAt).ToString("dd.MM.yyyy HH:mm")</td>
+                        <td class="small text-muted text-nowrap">@AppTime.ToLocal(q.LastAskedAt).ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>
+                            @if (q.IsResolved)
+                            {
+                                <span class="small text-muted">
+                                    @AppTime.ToLocal(q.ResolvedAt)?.ToString("dd.MM.yyyy")
+                                    @if (q.ArticleId != null)
+                                    {
+                                        <text>· </text><a asp-controller="Knowledge" asp-action="Details" asp-route-id="@q.ArticleId">makale</a>
+                                    }
+                                </span>
+                            }
+                            else
+                            {
+                                <form asp-action="Resolve" asp-route-id="@q.Id" method="post" class="d-flex gap-2">
+                                    <select name="articleId" class="form-select form-select-sm">
+                                        <option value="">Makale bağlama</option>
+                                        @foreach (var a in makaleler) { <option value="@a.Id">@a.Title</option> }
+                                    </select>
+                                    <button class="btn btn-sm btn-outline-success text-nowrap">Ele alındı</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pager" model="pager" />
+</div>

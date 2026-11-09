@@ -5,7 +5,22 @@ namespace ServiceDesk.Models;
 
 public enum TicketType { [Display(Name = "Arıza")] Incident, [Display(Name = "Değişiklik")] Change }
 public enum Priority { [Display(Name = "Düşük")] Low, [Display(Name = "Orta")] Medium, [Display(Name = "Yüksek")] High, [Display(Name = "Kritik")] Critical }
-public enum TicketStatus { New, InProgress, Resolved, Closed }
+// WaitingForCustomer: kullanıcıdan bilgi bekleniyor, SLA sayacı durur.
+// Sona eklendi ki mevcut kayıtların sayısal değerleri değişmesin.
+public enum TicketStatus { New, InProgress, Resolved, Closed, WaitingForCustomer }
+
+// Talep çözülürken / kapatılırken seçilen zorunlu çözüm kodu
+public enum ResolutionCode
+{
+    [Display(Name = "Kalıcı çözüm")] Fixed = 0,
+    [Display(Name = "Geçici çözüm")] Workaround = 1,
+    [Display(Name = "Bilgi verildi")] Information = 2,
+    [Display(Name = "Kullanıcı hatası")] UserError = 3,
+    [Display(Name = "Tekrarlanamadı")] CannotReproduce = 4,
+    [Display(Name = "Değişiklik uygulandı")] ChangeImplemented = 5,
+    [Display(Name = "Mükerrer (birleştirildi)")] Duplicate = 6,
+    [Display(Name = "İptal edildi")] Cancelled = 7
+}
 
 // Kurum birimi: talepler ve göstergeler birim bazında kırılabilsin diye
 public class Department
@@ -16,6 +31,10 @@ public class Department
     public string Name { get; set; } = "";
 
     public bool IsActive { get; set; } = true;
+
+    // Birime özel mesai takvimi. Boşsa SLA politikasının takvimi kullanılır.
+    public int? BusinessCalendarId { get; set; }
+    public BusinessCalendar? BusinessCalendar { get; set; }
 
     public List<Team> Teams { get; set; } = new();
 }
@@ -36,6 +55,10 @@ public class Team
     public AppUser? LeadUser { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    // Round-robin: ekibe düşen yeni talep sıradaki aktif personele otomatik atanır
+    public bool RoundRobinEnabled { get; set; }
+    public int? LastAssignedUserId { get; set; }
 }
 
 // Talep kategorisi. Enum yerine tablo: yeni kategori eklemek artık
@@ -246,6 +269,40 @@ public class Ticket
     public bool IsEscalated { get; set; }
     public int EscalationLevel { get; set; }
 
+    // İlk yanıt süresinin aşılması çözüm ihlalinden ayrı işaretlenir
+    public bool IsFirstResponseBreached { get; set; }
+    public DateTime? FirstResponseBreachedAt { get; set; }
+
+    // "Müşteri bekleniyor" durumunda SLA sayacı durur. Duraklama başlangıcı ve
+    // toplam duraklanan mesai dakikası tutulur; öncelik değişince yeniden
+    // hesaplamada bu süre hedefe eklenir.
+    public DateTime? SlaPausedAt { get; set; }
+    public int SlaPausedMinutes { get; set; }
+
+    // Çözüm / kapanışta zorunlu
+    [Display(Name = "Çözüm kodu")]
+    public ResolutionCode? ResolutionCode { get; set; }
+
+    [StringLength(1000), Display(Name = "Kök neden")]
+    public string? RootCause { get; set; }
+
+    // Portaldan gelen iptal isteği; destek onaylarsa talep kapanır
+    public DateTime? CancelRequestedAt { get; set; }
+
+    [StringLength(500), Display(Name = "İptal nedeni")]
+    public string? CancelReason { get; set; }
+
+    // Mükerrer talep birleştirildiyse asıl talep
+    public int? MergedIntoTicketId { get; set; }
+
+    // Virgülle ayrılmış etiketler: "vpn,laptop,acil"
+    [StringLength(300), Display(Name = "Etiketler")]
+    public string? Tags { get; set; }
+
+    // Yazışmalarda girilen harcanan sürelerin talep bazında toplamı (dk)
+    [Display(Name = "Toplam efor (dk)")]
+    public int WorkMinutesTotal { get; set; }
+
     // Kayıt silinmez, pasifleştirilir (ISO 9001 md. 7.5: kayıtların korunması).
     // Global query filter sayesinde silinmiş talep sorgulara hiç düşmez.
     public bool IsDeleted { get; set; }
@@ -270,6 +327,10 @@ public class Ticket
     public List<TicketComment> Comments { get; set; } = new();
     public List<TicketHistory> History { get; set; } = new();
     public List<EscalationRecord> Escalations { get; set; } = new();
+    public List<TicketFollower> Followers { get; set; } = new();
+
+    public IEnumerable<string> TagList =>
+        (Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     // Yalnızca Değişiklik taleplerinde dolu olur
     public ChangeDetail? ChangeDetail { get; set; }
@@ -289,7 +350,7 @@ public class Ticket
 
     // Henüz çözülmemiş ve süresi dolmuş mu (ekranda anlık uyarı için).
     // Kalıcı ihlal bilgisi IsSlaBreached kolonunda.
-    public bool IsOverdueNow => ResolvedAt == null && AppTime.UtcNow > SlaDueAt;
+    public bool IsOverdueNow => ResolvedAt == null && SlaPausedAt == null && AppTime.UtcNow > SlaDueAt;
 }
 
 // Hizmet seviyesi taahhüdü: önceliğe (ve isteğe bağlı olarak talep türüne) göre
@@ -323,6 +384,15 @@ public class SlaPolicy
     public DateTime EffectiveFrom { get; set; }
     public DateTime? EffectiveTo { get; set; }
     public bool IsActive { get; set; } = true;
+
+    // SLA bitimine kaç dakika kala uyarı gönderilir
+    [Display(Name = "Uyarı eşiği (dk)")]
+    public int WarningMinutesBefore { get; set; } = 120;
+
+    // Sürümleme: politika güncellenince eski satır kapanır (EffectiveTo),
+    // aynı kökten yeni sürüm açılır. İlk sürümde RootPolicyId boştur.
+    public int Version { get; set; } = 1;
+    public int? RootPolicyId { get; set; }
 }
 
 // Mesai takvimi: SLA sayacı yalnızca çalışma saatlerinde ilerler
@@ -784,6 +854,12 @@ public class KpiSnapshot
     public int BreachedTickets { get; set; }
     public int ReopenCount { get; set; }
 
+    // İlk yanıt SLA'sı çözüm SLA'sından ayrı ölçülür
+    public int FirstResponseBreachedTickets { get; set; }
+
+    [Display(Name = "İlk yanıt SLA uyumu (%)")]
+    public decimal FirstResponseComplianceRate { get; set; }
+
     [Display(Name = "SLA uyumu (%)")]
     public decimal SlaComplianceRate { get; set; }
 
@@ -875,4 +951,38 @@ public class KnowledgeArticle
 
     // Bu makaleyle kaç talep çözüldü: makalenin gerçek faydası
     public int UsedCount { get; set; }
+}
+
+// Talebi takip eden (CC) kullanıcı: talebe yazılan yanıtlardan haberdar olur
+public class TicketFollower
+{
+    public int Id { get; set; }
+
+    public int TicketId { get; set; }
+    public Ticket? Ticket { get; set; }
+
+    public int UserId { get; set; }
+    public AppUser? User { get; set; }
+
+    public DateTime AddedAt { get; set; } = AppTime.UtcNow;
+}
+
+// Chatbot'un bilgi bankasında karşılık bulamadığı soru. Aynı soru tekrar
+// sorulursa yeni satır açılmaz, sayaç artar; yönetim bu listeden hangi
+// makalelerin eksik olduğunu görür.
+public class ChatbotQuestion
+{
+    public int Id { get; set; }
+
+    [Required, StringLength(500), Display(Name = "Soru")]
+    public string Text { get; set; } = "";
+
+    public int AskCount { get; set; } = 1;
+    public DateTime FirstAskedAt { get; set; } = AppTime.UtcNow;
+    public DateTime LastAskedAt { get; set; } = AppTime.UtcNow;
+
+    // Eksik makale yazıldıysa / soru ele alındıysa
+    public bool IsResolved { get; set; }
+    public DateTime? ResolvedAt { get; set; }
+    public int? ArticleId { get; set; }
 }
