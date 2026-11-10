@@ -1,4 +1,4 @@
-@model List<Nonconformity>
+﻿@model List<Nonconformity>
 @{
     ViewData["Title"] = "Uygunsuzluklar";
     var staff = (List<AppUser>)ViewBag.Staff;
@@ -45,7 +45,7 @@
     <div class="panel mb-3 @(n.IsOverdue ? "border-danger" : "")">
         <div class="panel-head">
             <span>#@n.Id · @Ui.NonconformitySourceText(n.Source)</span>
-            <span class="tag @(n.Status == NonconformityStatus.Closed ? "tag-green" : n.Status == NonconformityStatus.InProgress ? "tag-amber" : "tag-red")">
+            <span class="tag @Ui.NonconformityStatusTag(n.Status)">
                 @Ui.NonconformityStatusText(n.Status)
             </span>
             @if (n.IsOverdue) { <span class="tag tag-red">termin geçti</span> }

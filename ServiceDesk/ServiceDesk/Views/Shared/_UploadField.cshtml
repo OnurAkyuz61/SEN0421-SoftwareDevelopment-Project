@@ -1,9 +1,18 @@
+@model UploadKind?
+@inject FileStorage Files
 @* Dosya / ekran görüntüsü yükleme alanı (wwwroot/js/upload.js ile çalışır).
-   Aynı sayfada birden fazla kez kullanılabilsin diye id'ler benzersiz üretilir. *@
+   Aynı sayfada birden fazla kez kullanılabilsin diye id'ler benzersiz üretilir.
+
+   Model, ekin nereye yükleneceğini söyler: boyut sınırı talep ekiyle yorum eki
+   için ayrı tanımlıdır (appsettings.json → Uploads). Sınırlar data-* ile
+   betiğe geçer; istemci kontrolü yalnızca kolaylık, asıl denetim sunucuda
+   (FileStorage.Validate + AttachmentQuota). *@
 @{
     var uid = "up" + Guid.NewGuid().ToString("N")[..8];
+    var cfg = Files.Settings;
+    var maxBytes = cfg.MaxBytesFor(Model ?? UploadKind.Ticket);
 }
-<div data-upload>
+<div data-upload data-max-files="@cfg.MaxFiles" data-max-bytes="@maxBytes">
     <input type="file" name="files" multiple class="d-none" id="@(uid)-file"
            accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.log,.zip" />
     <input type="file" accept="image/*" class="d-none" id="@(uid)-shot" data-image-picker />
@@ -16,7 +25,9 @@
             <label for="@(uid)-file" class="btn btn-outline-secondary btn-sm mb-0"><i class="bi bi-paperclip"></i> Dosya Seç</label>
             <label for="@(uid)-shot" class="btn btn-outline-secondary btn-sm mb-0"><i class="bi bi-camera"></i> Ekran Görüntüsü</label>
         </div>
-        <div class="small text-muted mt-3">PNG, JPG, PDF, Word, Excel, TXT, ZIP · en fazla 5 dosya · dosya başına 10 MB</div>
+        <div class="small text-muted mt-3">
+            PNG, JPG, PDF, Word, Excel, TXT, ZIP · en fazla @cfg.MaxFiles dosya · dosya başına @Ui.FileSize(maxBytes)
+        </div>
         <ul class="file-list"></ul>
     </div>
 </div>

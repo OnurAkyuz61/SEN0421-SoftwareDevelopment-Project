@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    ServiceDesk — uygulama bileşenleri
    Renk / yazı tipi / ölçü değerleri theme.css'teki değişkenlerden gelir.
    ========================================================================== */
@@ -286,6 +286,13 @@
 .attach .thumb i { font-size: 2rem; color: var(--sd-muted); }
 .attach .meta { padding: .4rem .55rem; font-size: .78rem; }
 .attach .meta div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Kaldırma düğmesi kartın üstünde durur; kart <a> olduğu için form kardeş öğe */
+.attach-item { position: relative; }
+.attach-del { position: absolute; top: .3rem; right: .3rem; margin: 0; opacity: 0; transition: opacity .15s; }
+.attach-item:hover .attach-del, .attach-del:focus-within { opacity: 1; }
+/* Taraması temiz olmayan dosya: tıklanamaz, soluk */
+.attach-blocked { cursor: not-allowed; opacity: .75; }
+.attach-blocked .thumb i { color: var(--sd-danger, #dc3545); }
 
 /* ---------- Kullanıcı portalı ---------- */
 .portal-body { display: flex; flex-direction: column; min-height: 100vh; }

@@ -186,10 +186,25 @@ namespace ServiceDesk.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedById")
+                        .HasColumnType("int");
+
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ScanStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ScannedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
@@ -211,6 +226,8 @@ namespace ServiceDesk.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CommentId");
+
+                    b.HasIndex("DeletedById");
 
                     b.HasIndex("TicketId");
 
@@ -1767,10 +1784,10 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId");
+
                     b.HasIndex("TicketId", "UserId")
                         .IsUnique();
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("TicketFollowers");
                 });
@@ -1867,6 +1884,11 @@ namespace ServiceDesk.Migrations
                         .HasForeignKey("CommentId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("ServiceDesk.Models.AppUser", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
                         .WithMany("Attachments")
                         .HasForeignKey("TicketId")
@@ -1879,6 +1901,8 @@ namespace ServiceDesk.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Comment");
+
+                    b.Navigation("DeletedBy");
 
                     b.Navigation("Ticket");
 

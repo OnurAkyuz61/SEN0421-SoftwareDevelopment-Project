@@ -13,7 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// ───── EK DOSYALAR (Uploads/) ────────────────────────────────────────────
+// Boyut sınırları ve kota appsettings.json → "Uploads" bölümünden gelir.
+builder.Services.Configure<UploadSettings>(builder.Configuration.GetSection(UploadSettings.Section));
+builder.Services.AddSingleton<IAttachmentScanner, LoggingAttachmentScanner>(); // antivirüs stub (loglar)
 builder.Services.AddSingleton<FileStorage>(); // talep ekleri (Uploads/ klasörü)
+builder.Services.AddScoped<AttachmentQuota>();        // kullanıcı / talep başına depolama kotası
 builder.Services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CurrentUser>();           // oturumdaki kullanıcı

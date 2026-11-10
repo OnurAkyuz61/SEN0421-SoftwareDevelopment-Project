@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
@@ -27,7 +27,7 @@ namespace ServiceDesk.Controllers;
 // siteden ön kontrol (CORS) olmadan gönderemez.
 [ApiController]
 [Route("api/sla")]
-[AuthorizeRole(UserRole.Admin)]
+[ApiAuthorizeRole(UserRole.Admin)]
 public class SlaAdminController : ControllerBase
 {
     private const int MaxMinutes = 365 * 24 * 60;

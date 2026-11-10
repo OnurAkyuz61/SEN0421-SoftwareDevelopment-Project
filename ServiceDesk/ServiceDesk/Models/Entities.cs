@@ -711,9 +711,37 @@ public class Attachment
     public long Size { get; set; }
     public DateTime UploadedAt { get; set; } = AppTime.UtcNow;
 
+    // ── Antivirüs taraması (IAttachmentScanner) ─────────────────────────
+    // Dosya diske yazıldıktan hemen sonra taranır; sonuç burada kalıcı olur.
+    // Temiz (ya da tarama kapsamı dışı) olmayan dosya indirilemez:
+    // AttachmentPolicy.IsServable + AttachmentsController.Get.
+    public AttachmentScanStatus ScanStatus { get; set; } = AttachmentScanStatus.Pending;
+    public DateTime? ScannedAt { get; set; }
+
+    // ── Yumuşak silme ───────────────────────────────────────────────────
+    // Kayıt silinmez, işaretlenir (ISO 9001 md. 7.5: kayıtların korunması):
+    // dosya diskte kalır ama listelere ve indirmeye düşmez. Global query
+    // filter sayesinde silinmiş ek sorgulara hiç girmez.
+    // Kimin kaldırdığı AttachmentPolicy.CanDelete ile birlikte denetim izidir.
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedById { get; set; }
+    public AppUser? DeletedBy { get; set; }
+
     // Tarayıcıda gösterilebilen güvenli görsel mi? Kaydedilen içerik türüne değil
     // (eski kayıtlarda istemciden geliyordu) diskteki dosyanın uzantısına bakılır.
     public bool IsImage => UploadPolicy.IsInlineImage(StoredFileName);
+}
+
+// Ek dosyanın tarama durumu. Yalnızca Clean ve Skipped servis edilir;
+// Pending / Suspicious / Failed "henüz güvenli değil" sayılır.
+public enum AttachmentScanStatus
+{
+    [Display(Name = "Taranmadı")] Pending = 0,
+    [Display(Name = "Temiz")] Clean = 1,
+    [Display(Name = "Şüpheli")] Suspicious = 2,
+    [Display(Name = "Taranamadı")] Failed = 3,
+    [Display(Name = "Tarama kapsamı dışı")] Skipped = 4
 }
 
 public enum UserRole

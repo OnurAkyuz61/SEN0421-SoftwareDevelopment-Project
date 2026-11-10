@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
@@ -103,6 +103,14 @@ public class AppDbContext : DbContext
           .HasOne(a => a.UploadedBy)
           .WithMany()
           .HasForeignKey(a => a.UploadedById)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        // Attachment N - 0..1 AppUser (eki kaldıran). Denetim izi olduğu için
+        // kullanıcı silinemez; ayrılan personel IsActive = false ile pasifleşir.
+        mb.Entity<Attachment>()
+          .HasOne(a => a.DeletedBy)
+          .WithMany()
+          .HasForeignKey(a => a.DeletedById)
           .OnDelete(DeleteBehavior.Restrict);
 
         // Ticket 1 - N TicketComment (talep silinirse yazışma da silinir)
@@ -436,7 +444,10 @@ public class AppDbContext : DbContext
         mb.Entity<Ticket>().HasQueryFilter(t => !t.IsDeleted);
         mb.Entity<ChangeDetail>().HasQueryFilter(d => !d.Ticket!.IsDeleted);
         mb.Entity<ChangeApproval>().HasQueryFilter(a => !a.Ticket!.IsDeleted);
-        mb.Entity<Attachment>().HasQueryFilter(a => !a.Ticket!.IsDeleted);
+        // Ekin kendi yumuşak silmesi de burada: kaldırılan dosya hiçbir
+        // listeye, sayıma ve indirmeye düşmez (AttachmentsController.Get
+        // IgnoreQueryFilters kullandığı için koşulu orada elle yazıyor).
+        mb.Entity<Attachment>().HasQueryFilter(a => !a.IsDeleted && !a.Ticket!.IsDeleted);
         mb.Entity<SurveyResponse>().HasQueryFilter(r => !r.Ticket!.IsDeleted);
         mb.Entity<SurveyAnswer>().HasQueryFilter(a => !a.Response!.Ticket!.IsDeleted);
         mb.Entity<TicketComment>().HasQueryFilter(c => !c.Ticket!.IsDeleted);

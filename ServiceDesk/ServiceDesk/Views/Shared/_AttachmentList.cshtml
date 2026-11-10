@@ -1,5 +1,20 @@
 @model List<Attachment>
-@* Talep ekleri: resimler küçük önizleme, diğerleri dosya ikonu *@
+@inject CurrentUser Me
+@* Talep ekleri: resimler küçük önizleme, diğerleri dosya ikonu.
+
+   Tarama (IAttachmentScanner) temiz sonuçlanmayan dosya indirilemez, bu yüzden
+   bağlantı da verilmez: durum etiketi gösterilir. Kaldırma hakkı
+   AttachmentPolicy.CanDelete'ten gelir — ek listesi hem portalda hem yönetim
+   tarafında aynı partial'la çizildiği için kural tek yerde kalır.
+
+   Politika ekin talebini (ve mesaja eklendiyse mesajını) ister; bunlar talep
+   detayı sorgusunda Include edildiği için EF ilişkileri bağlar. Bağlanmazsa
+   CanDelete false döner, yani düğme görünmez — açık tarafa düşmez. *@
+@{
+    // Kaldırma formu portal popup'ı içinden gönderilirse liste aynı talebi
+    // yeniden açar (ViewBag.InModal: Portal/_DetailsPartial)
+    var returnTo = ViewBag.InModal as bool? == true ? "modal" : null;
+}
 @if (!Model.Any())
 {
     <div class="text-muted small">Ek dosya yok.</div>
@@ -9,22 +24,52 @@ else
     <div class="attach-grid">
         @foreach (var f in Model)
         {
-            <a class="attach" asp-controller="Attachments" asp-action="Get" asp-route-id="@f.Id" target="_blank" title="@f.FileName">
-                <div class="thumb">
-                    @if (f.IsImage)
-                    {
-                        <img src="@Url.Action("Get", "Attachments", new { id = f.Id })" alt="@f.FileName" loading="lazy" />
-                    }
-                    else
-                    {
-                        <i class="bi @(f.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? "bi-file-earmark-pdf" : "bi-file-earmark")"></i>
-                    }
-                </div>
-                <div class="meta">
-                    <div class="fw-semibold">@f.FileName</div>
-                    <div class="text-muted">@Ui.FileSize(f.Size)</div>
-                </div>
-            </a>
+            var servable = AttachmentPolicy.IsServable(f);
+            var deletable = Me.User != null && AttachmentPolicy.CanDelete(f, Me.User);
+
+            <div class="attach-item">
+                @if (servable)
+                {
+                    <a class="attach" asp-controller="Attachments" asp-action="Get" asp-route-id="@f.Id" target="_blank" title="@f.FileName">
+                        <div class="thumb">
+                            @if (f.IsImage)
+                            {
+                                <img src="@Url.Action("Get", "Attachments", new { id = f.Id })" alt="@f.FileName" loading="lazy" />
+                            }
+                            else
+                            {
+                                <i class="bi @(f.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? "bi-file-earmark-pdf" : "bi-file-earmark")"></i>
+                            }
+                        </div>
+                        <div class="meta">
+                            <div class="fw-semibold">@f.FileName</div>
+                            <div class="text-muted">@Ui.FileSize(f.Size)</div>
+                        </div>
+                    </a>
+                }
+                else
+                {
+                    @* Taranmamış / şüpheli dosya: bağlantı yok, neden yazılı *@
+                    <div class="attach attach-blocked" title="@f.FileName">
+                        <div class="thumb"><i class="bi bi-shield-exclamation"></i></div>
+                        <div class="meta">
+                            <div class="fw-semibold">@f.FileName</div>
+                            <div><span class="tag @Ui.ScanStatusTag(f.ScanStatus)">@Ui.ScanStatusText(f.ScanStatus)</span></div>
+                        </div>
+                    </div>
+                }
+
+                @if (deletable)
+                {
+                    <form asp-controller="Attachments" asp-action="Delete" asp-route-id="@f.Id" method="post" class="attach-del">
+                        <input type="hidden" name="returnTo" value="@returnTo" />
+                        <button class="btn btn-sm btn-light border text-danger" title="Dosyayı kaldır"
+                                onclick="return confirm('&quot;@f.FileName&quot; kaldırılsın mı? Dosya listelerden çıkar.');">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                }
+            </div>
         }
     </div>
 }

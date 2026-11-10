@@ -50,6 +50,13 @@ public static class Ui
         NonconformityStatus.Closed => "Kapalı", NonconformityStatus.InProgress => "İşlemde", _ => "Açık"
     };
 
+    // Renk eşlemesi Nonconformities/Index görünümünün içinde satır arasında
+    // duruyordu; etiket rengi de metin gibi tek yerden okunsun diye buraya alındı
+    public static string NonconformityStatusTag(NonconformityStatus s) => s switch
+    {
+        NonconformityStatus.Closed => "tag-green", NonconformityStatus.InProgress => "tag-amber", _ => "tag-red"
+    };
+
     public static string NonconformitySourceText(NonconformitySource s) => s switch
     {
         NonconformitySource.SlaBreach => "SLA ihlali",
@@ -105,6 +112,23 @@ public static class Ui
     {
         ApprovalStatus.Pending => "tag-amber", ApprovalStatus.Approved => "tag-green",
         ApprovalStatus.Rejected => "tag-red", _ => "tag-gray"
+    };
+
+    public static string ScanStatusText(AttachmentScanStatus s) => s switch
+    {
+        AttachmentScanStatus.Clean => "Temiz",
+        AttachmentScanStatus.Suspicious => "Şüpheli",
+        AttachmentScanStatus.Failed => "Taranamadı",
+        AttachmentScanStatus.Skipped => "Tarama kapsamı dışı",
+        _ => "Taranıyor"
+    };
+
+    public static string ScanStatusTag(AttachmentScanStatus s) => s switch
+    {
+        AttachmentScanStatus.Clean or AttachmentScanStatus.Skipped => "tag-green",
+        AttachmentScanStatus.Suspicious => "tag-red",
+        AttachmentScanStatus.Failed => "tag-amber",
+        _ => "tag-gray"
     };
 
     public static string FileSize(long bytes) =>

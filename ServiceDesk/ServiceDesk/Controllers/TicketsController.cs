@@ -26,11 +26,12 @@ public class TicketsController : Controller
     private readonly ChangeResubmissionService _resubmit;
     private readonly AuditService _audit;
     private readonly TicketSlaService _sla;
+    private readonly AttachmentQuota _quota;
 
     public TicketsController(AppDbContext db, FileStorage files, CurrentUser current, NotificationService notify,
                              EscalationService escalation, ApprovalAuthority authority,
                              ApprovalChainResolver chain, ChangeResubmissionService resubmit, AuditService audit,
-                             TicketSlaService sla)
+                             TicketSlaService sla, AttachmentQuota quota)
     {
         _db = db;
         _files = files;
@@ -42,6 +43,7 @@ public class TicketsController : Controller
         _resubmit = resubmit;
         _audit = audit;
         _sla = sla;
+        _quota = quota;
     }
 
     private AppUser Me => _current.User!;
@@ -547,7 +549,9 @@ public class TicketsController : Controller
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        var fileError = FileStorage.Validate(files);
+        // Yorum eki sınırı (talep ekinden ayrı) + talep ve kullanıcı kotası
+        var fileError = _files.Validate(files, UploadKind.Comment)
+                        ?? await _quota.CheckAsync(_current.User!.Id, id, files);
         if (fileError != null)
         {
             TempData["Err"] = fileError;

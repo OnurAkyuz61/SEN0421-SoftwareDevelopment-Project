@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
@@ -23,11 +23,13 @@ public class PortalController : Controller
     private readonly ApprovalChainResolver _chain;
     private readonly ChangeResubmissionService _resubmit;
     private readonly TeamRoundRobin _roundRobin;
+    private readonly AttachmentQuota _quota;
 
     public PortalController(AppDbContext db, FileStorage files, CurrentUser current,
                             TicketSlaService sla, NotificationService notify,
                             NonconformityService nonconformity, ApprovalChainResolver chain,
-                            ChangeResubmissionService resubmit, TeamRoundRobin roundRobin)
+                            ChangeResubmissionService resubmit, TeamRoundRobin roundRobin,
+                            AttachmentQuota quota)
     {
         _db = db;
         _files = files;
@@ -38,6 +40,7 @@ public class PortalController : Controller
         _chain = chain;
         _resubmit = resubmit;
         _roundRobin = roundRobin;
+        _quota = quota;
     }
 
     // Reddedilen değişiklik talebini düzeltip yeniden onaya gönderir (talep sahibi)
@@ -101,7 +104,9 @@ public class PortalController : Controller
         var category = await _db.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == ticket.CategoryId && c.IsActive);
         if (category == null) ModelState.AddModelError(nameof(Ticket.CategoryId), "Geçerli bir kategori seçin.");
 
-        var fileError = FileStorage.Validate(files);
+        // Talep eki sınırı + kullanıcı kotası (yeni talep: ticketId henüz yok)
+        var fileError = _files.Validate(files, UploadKind.Ticket)
+                        ?? await _quota.CheckAsync(me.Id, ticketId: null, files);
         if (fileError != null) ModelState.AddModelError("files", fileError);
 
         if (!ModelState.IsValid)
@@ -261,7 +266,9 @@ public class PortalController : Controller
             return BackToTicket(id, returnTo);
         }
 
-        var fileError = FileStorage.Validate(files);
+        // Yorum eki sınırı (talep ekinden ayrı) + talep ve kullanıcı kotası
+        var fileError = _files.Validate(files, UploadKind.Comment)
+                        ?? await _quota.CheckAsync(_current.User!.Id, id, files);
         if (fileError != null)
         {
             TempData["Err"] = fileError;
@@ -410,7 +417,8 @@ public class PortalController : Controller
             return BackToTicket(id, returnTo);
         }
 
-        var err = FileStorage.Validate(files);
+        var err = _files.Validate(files, UploadKind.Ticket)
+                  ?? await _quota.CheckAsync(_current.User!.Id, id, files);
         if (err != null) TempData["Err"] = err;
         else if (files is { Count: > 0 })
         {

@@ -1,4 +1,4 @@
-@model Ticket
+﻿@model Ticket
 @inject CurrentUser Me
 @{ ViewData["Title"] = "Yeni Talep"; }
 
@@ -52,7 +52,7 @@
 
             <div class="col-12">
                 <label class="form-label fw-semibold">Ekler</label>
-                <partial name="_UploadField" />
+                <partial name="_UploadField" model="UploadKind.Ticket" />
             </div>
         </div>
     </div>
