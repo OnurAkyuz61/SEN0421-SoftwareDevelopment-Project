@@ -26,6 +26,9 @@ builder.Services.AddScoped<NotificationService>();   // bildirim okuma / yazma
 builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef tarihler
 builder.Services.AddScoped<TeamRoundRobin>();        // ekip bazlı otomatik (sıralı) atama
 builder.Services.AddScoped<KpiService>();            // dönemsel gösterge hesabı
+// Uygunsuzluk eşikleri (ortalama + kritik soru puanı) ve termin:
+// appsettings.json → "Quality"
+builder.Services.Configure<QualitySettings>(builder.Configuration.GetSection(QualitySettings.Section));
 builder.Services.AddScoped<NonconformityService>();  // otomatik uygunsuzluk kaydı
 builder.Services.AddScoped<LoginAuditService>();     // giriş denetim izi ve deneme sınırı
 builder.Services.AddScoped<AuditService>();          // güvenlik / süreç denetim kaydı
@@ -63,6 +66,17 @@ builder.Services.AddHostedService<ApprovalReminderService>(); // onay hatırlatm
 
 builder.Services.AddHostedService<SlaMonitorService>();   // dakikada bir SLA taraması
 builder.Services.AddHostedService<KpiAggregatorService>();// yarım saatte bir KPI
+
+// ───── MEMNUNİYET ANKETİ ────────────────────────────────────────────────
+// Hatırlatma gecikmesi ve anketin doldurulma süresi (TTL) appsettings.json →
+// "Survey" bölümünden gelir; PortalController süresi dolan anketi reddeder.
+builder.Services.Configure<SurveySettings>(builder.Configuration.GetSection(SurveySettings.Section));
+builder.Services.AddHostedService<SurveyReminderService>();   // anket hatırlatma e-postası
+
+// ───── EK DOSYA BAKIM JOB'LARI ──────────────────────────────────────────
+// Süreler ve açma / kapama appsettings.json → "Uploads" bölümünden gelir.
+builder.Services.AddHostedService<AttachmentRetentionService>();   // saklama süresi dolan ekleri kalıcı sil
+builder.Services.AddHostedService<OrphanAttachmentScanService>();  // kaydı olmayan dosyaları raporla
 
 // ───── İSTEK SINIRI (arama ve OTP uçları) ───────────────────────────────
 builder.Services.AddServiceDeskRateLimiting(builder.Configuration);

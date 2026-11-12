@@ -320,6 +320,18 @@ public class Ticket
 
     public SurveyResponse? Survey { get; set; }
 
+    // ── Memnuniyet anketi penceresi ─────────────────────────────────────
+    // Anket daveti talep çözüldüğü anda açılır (TicketWorkflow.Apply) ve
+    // yapılandırmadaki süre (Survey:ExpiresAfterDays) sonunda kapanır:
+    // aylar sonra doldurulan anket, hizmetin o günkü halini ölçmez.
+    // Talep yeniden açılırsa pencere de sıfırlanır, yeni çözümde yeniden başlar.
+    public DateTime? SurveyInvitedAt { get; set; }
+
+    // Hatırlatma e-postasının gittiği an (SurveyReminderService). Dolu olan
+    // talebe ikinci hatırlatma gönderilmez — iş birden fazla turda çalışsa,
+    // uygulama yeniden başlasa da kullanıcı tek hatırlatma alır.
+    public DateTime? SurveyReminderSentAt { get; set; }
+
     // Talep bir bilgi bankası makalesiyle çözüldüyse
     public int? ResolvedByArticleId { get; set; }
     public KnowledgeArticle? ResolvedByArticle { get; set; }
@@ -516,7 +528,9 @@ public enum NotificationType
     [Display(Name = "Yeni talep")] NewTicket = 7,
     [Display(Name = "Günlük özet")] DailyDigest = 8,
     [Display(Name = "Onay hatırlatma")] ApprovalReminder = 9,
-    [Display(Name = "Değişiklik uygulaması")] ChangeImplementation = 10
+    [Display(Name = "Değişiklik uygulaması")] ChangeImplementation = 10,
+    [Display(Name = "Anket hatırlatma")] SurveyReminder = 11,
+    [Display(Name = "Uygunsuzluk açıldı")] NonconformityOpened = 12
 }
 
 public enum NotificationChannel { InApp = 0, Email = 1, Sms = 2 }
@@ -899,6 +913,21 @@ public class KpiSnapshot
 
     [Display(Name = "Memnuniyet")]
     public decimal CsatAverage { get; set; }
+
+    // Memnuniyet ölçümünün kendi kalitesi: ortalama tek başına yeterli değil.
+    // 4,8 ortalama, iki yanıttan geliyorsa dönemi temsil etmez; ISO 9001
+    // md. 9.1.2 müşteri algısının İZLENMESİNİ ister, tek bir sayıyı değil.
+    [Display(Name = "Anket yanıtı")]
+    public int SurveyResponseCount { get; set; }
+
+    // Yanıt oranı: dönemde çözülen taleplerin kaçı değerlendirilmiş (%)
+    [Display(Name = "Anket yanıt oranı (%)")]
+    public decimal CsatResponseRate { get; set; }
+
+    // Eşik altı (uygunsuzluk doğuran) değerlendirme sayısı: ortalama
+    // yükselse de şikâyet sayısı artıyorsa bu kolonda görünür
+    [Display(Name = "Düşük puanlı yanıt")]
+    public int LowCsatCount { get; set; }
 
     public DateTime CalculatedAt { get; set; } = AppTime.UtcNow;
 }

@@ -399,6 +399,7 @@ public class AppDbContext : DbContext
         mb.Entity<KpiSnapshot>().Property(k => k.AvgResolutionHours).HasPrecision(9, 1);
         mb.Entity<KpiSnapshot>().Property(k => k.AvgFirstResponseHours).HasPrecision(9, 1);
         mb.Entity<KpiSnapshot>().Property(k => k.CsatAverage).HasPrecision(3, 2);
+        mb.Entity<KpiSnapshot>().Property(k => k.CsatResponseRate).HasPrecision(5, 1);
 
         mb.Entity<Nonconformity>()
           .HasOne(n => n.Ticket).WithMany()

@@ -9,6 +9,13 @@
     };
     var questions = ViewBag.SurveyQuestions as List<SurveyQuestion>;
     var modal = ViewBag.InModal as bool? == true;
+
+    // Anket penceresi (SurveyPolicy): süresi dolduysa form yerine bilgi
+    // gösterilir. Kuralın kendisi PortalController.Feedback'te de uygulanır;
+    // burada yalnızca sonucu okuyoruz.
+    var surveyExpired = ViewBag.SurveyExpired as bool? == true;
+    var surveyDeadline = ViewBag.SurveyDeadline as DateTime?;
+    var surveyOpen = Model.Survey == null && closed && questions is { Count: > 0 } && !surveyExpired;
 }
 
 <div class="ticket-detail @(modal ? "ticket-detail-modal" : "")">
@@ -220,7 +227,7 @@
                     </div>
                 </div>
             }
-            else if (closed && questions is { Count: > 0 })
+            else if (surveyOpen)
             {
                 <div class="panel border-primary-subtle">
                     <div class="panel-head">Hizmeti değerlendirin</div>
@@ -229,6 +236,37 @@
                         <button type="button" class="btn btn-primary w-100" data-open-survey="@Model.Id">
                             <i class="bi bi-star"></i> Değerlendirme anketini aç
                         </button>
+                        @if (surveyDeadline is { } son)
+                        {
+                            <div class="small text-muted mt-2">
+                                <i class="bi bi-clock-history"></i>
+                                Son @SurveyPolicy.RemainingText(son, AppTime.UtcNow) ·
+                                @AppTime.ToLocal(son).ToString("dd.MM.yyyy HH:mm") tarihine kadar
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else if (closed && surveyExpired && questions is { Count: > 0 })
+            {
+                @* Süresi dolan anket: form kaldırılır, nedeni yazılır — kullanıcı
+                   düğmeyi arayıp "çalışmıyor" sanmasın *@
+                <div class="panel">
+                    <div class="panel-head">Değerlendirme</div>
+                    <div class="panel-body">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-hourglass-bottom text-muted fs-5"></i>
+                            <div class="small text-muted">
+                                <div class="fw-semibold text-body mb-1">Anket süresi doldu</div>
+                                Bu talebin değerlendirme süresi
+                                @if (surveyDeadline is { } gecen)
+                                {
+                                    <text>@AppTime.ToLocal(gecen).ToString("dd.MM.yyyy") tarihinde </text>
+                                }
+                                doldu, anket artık doldurulamıyor.
+                                Görüşünüzü iletmek için yeni bir talep açabilirsiniz.
+                            </div>
+                        </div>
                     </div>
                 </div>
             }
@@ -236,8 +274,8 @@
     </div>
 </div>
 
-@* Anket formu ayrı modalda; kapalı + henüz puanlanmamış taleplerde *@
-@if (Model.Survey == null && closed && questions is { Count: > 0 })
+@* Anket formu ayrı modalda; kapalı, henüz puanlanmamış ve süresi geçmemiş taleplerde *@
+@if (surveyOpen)
 {
     <div class="modal fade" id="surveyModal-@Model.Id" tabindex="-1" aria-labelledby="surveyTitle-@Model.Id" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -250,7 +288,8 @@
                     </div>
                     <div class="modal-body">
                         <p class="small text-muted">@Ui.TicketNo(Model) · @Model.Title</p>
-                        @foreach (var q in questions)
+                        @* surveyOpen zaten soru listesinin dolu olmasını şart koşuyor *@
+                        @foreach (var q in questions!)
                         {
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold mb-1">@q.Text</label>

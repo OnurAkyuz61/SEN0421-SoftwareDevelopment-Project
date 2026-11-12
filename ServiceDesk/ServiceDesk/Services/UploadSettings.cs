@@ -29,6 +29,12 @@ public class UploadSettings
 
     public ScannerSettings Scanner { get; set; } = new();
 
+    // Yumuşak silinmiş eklerin kalıcı temizliği (AttachmentRetentionService)
+    public RetentionSettings Retention { get; set; } = new();
+
+    // Uploads/ içindeki sahipsiz dosya taraması (OrphanAttachmentScanService)
+    public OrphanScanSettings OrphanScan { get; set; } = new();
+
     public long MaxBytesFor(UploadKind kind) =>
         kind == UploadKind.Comment ? CommentMaxBytes : TicketMaxBytes;
 }
@@ -57,4 +63,56 @@ public class ScannerSettings
     public string? ApiUrl { get; set; }
     public string? ApiKey { get; set; }
     public int TimeoutSeconds { get; set; } = 30;
+}
+
+// Kaldırılan ekin ne kadar süre diskte bekletileceği: "Uploads:Retention".
+//
+// Ek kaldırıldığında kayıt silinmez, işaretlenir (Attachment.IsDeleted) ve
+// dosya diskte durur — yanlışlıkla silmenin geri alınabilmesi ve denetimde
+// "ne kaldırıldı" sorusunun cevaplanabilmesi için. Bu süre dolduğunda dosya
+// artık savunulabilir bir kayıt değil, yalnızca yer tutuyor demektir:
+// AttachmentRetentionService diskten ve tablodan kalıcı olarak siler
+// (ISO 9001 md. 7.5.3: kayıtların elden çıkarılması da tanımlı olmalıdır).
+public class RetentionSettings
+{
+    // false ise temizlik job'ı hiç çalışmaz; kaldırılan dosyalar süresiz birikir
+    public bool Enabled { get; set; } = true;
+
+    // Kaldırılmasından kaç gün sonra kalıcı olarak silinsin
+    public int Days { get; set; } = 90;
+
+    // Taramanın tekrar aralığı (dakika). Varsayılan: günde bir
+    public int SweepMinutes { get; set; } = 1440;
+
+    // Bir turda en fazla kaç ek temizlensin. Birikmiş eski kayıtlar tek
+    // hamlede değil, turlara bölünerek silinir ki uzun süren bir işlem
+    // veritabanını ve diski meşgul etmesin.
+    public int BatchSize { get; set; } = 200;
+}
+
+// Sahipsiz dosya taraması: "Uploads:OrphanScan".
+//
+// Uploads/ klasöründe Attachments tablosunda karşılığı olmayan dosyalar
+// birikebilir: yükleme sırasında isteğin yarıda kesilmesi, elle kopyalanan
+// dosyalar, veritabanının geri yüklenip diskin olduğu gibi kalması. Bunlar
+// hiçbir ekrandan görünmez ama diski doldurur.
+public class OrphanScanSettings
+{
+    public bool Enabled { get; set; } = true;
+
+    // Taramanın tekrar aralığı (dakika). Varsayılan: günde bir
+    public int ScanMinutes { get; set; } = 1440;
+
+    // Dosya bu yaşa gelmeden sahipsiz sayılmaz. Dosya diske, ek kaydından
+    // ÖNCE yazılır (FileStorage.SaveAsync); süren bir yüklemeyi sahipsiz
+    // sanmamak için yeni dosyalara dokunulmaz.
+    public int MinAgeMinutes { get; set; } = 60;
+
+    // Varsayılan KAPALI: ilk sürüm yalnızca rapor eder. Açılmadan önce
+    // raporun doğruluğu loglardan doğrulanmalıdır — burada yanlış pozitif,
+    // kullanıcının gerçek dosyasını silmek demektir.
+    public bool DeleteFiles { get; set; }
+
+    // Rapor satırında en fazla kaç dosya adı yazılsın (log şişmesin)
+    public int MaxReported { get; set; } = 20;
 }

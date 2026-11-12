@@ -92,5 +92,18 @@ public class FileStorage
         return list;
     }
 
-    public string PathOf(Attachment a) => Path.Combine(_root, a.StoredFileName);
+    public string PathOf(Attachment a) => PathOf(a.StoredFileName);
+
+    // Bakım job'ları (AttachmentRetentionService / OrphanAttachmentScanService)
+    // klasörün kendisini gezmek zorunda: kökü tek yerden alsınlar
+    public string Root => _root;
+
+    public string PathOf(string storedFileName) => Path.Combine(_root, storedFileName);
+
+    // Diskteki ad guid + uzantıdır. Alt klasör ya da ".." içeren bir ad
+    // beklenmez; silme yapan taraf buradan geçmeden dosyaya dokunmaz ki
+    // bozuk bir kayıt Uploads dışında bir dosyayı silmeye yol açmasın.
+    public static bool IsSafeStoredName(string? storedFileName) =>
+        !string.IsNullOrWhiteSpace(storedFileName)
+        && Path.GetFileName(storedFileName) == storedFileName;
 }

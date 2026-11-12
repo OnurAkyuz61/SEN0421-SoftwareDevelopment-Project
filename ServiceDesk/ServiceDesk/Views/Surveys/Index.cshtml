@@ -1,5 +1,6 @@
 @model List<SurveyResponse>
 @using ServiceDesk.Controllers
+@inject CurrentUser Me
 @{
     ViewData["Title"] = "Memnuniyet Anketleri";
     var avg = (double)ViewBag.Avg;
@@ -8,6 +9,16 @@
     var toplam = dist.Sum();
     var toplamYanit = (int)ViewBag.TotalResponses;
     var pager = (PagerInfo)ViewBag.Pager;
+}
+
+@* Şablon yönetimi yalnızca yöneticide; Destek sonuçları görür ama soruları değiştiremez *@
+@if (Me.Role == UserRole.Admin)
+{
+    <div class="d-flex justify-content-end mb-3">
+        <a asp-action="Templates" class="btn btn-light border btn-sm">
+            <i class="bi bi-ui-checks"></i> Anket şablonları
+        </a>
+    </div>
 }
 
 <div class="row g-3 mb-3">

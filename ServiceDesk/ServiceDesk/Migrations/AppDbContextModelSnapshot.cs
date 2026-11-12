@@ -90,7 +90,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.ApprovalChainRule", b =>
@@ -128,7 +128,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("ApprovalChainRules");
+                    b.ToTable("ApprovalChainRules", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.ApprovalDelegation", b =>
@@ -167,7 +167,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("DelegateId", "StartsAt", "EndsAt");
 
-                    b.ToTable("ApprovalDelegations");
+                    b.ToTable("ApprovalDelegations", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Attachment", b =>
@@ -233,7 +233,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("UploadedById");
 
-                    b.ToTable("Attachments");
+                    b.ToTable("Attachments", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.AuditLog", b =>
@@ -278,7 +278,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("UserId", "CreatedAt");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.BusinessCalendar", b =>
@@ -307,7 +307,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BusinessCalendars");
+                    b.ToTable("BusinessCalendars", (string)null);
 
                     b.HasData(
                         new
@@ -356,7 +356,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("IsActive", "SortOrder");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
 
                     b.HasData(
                         new
@@ -452,7 +452,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("TicketId", "Round", "Step", "ApproverId")
                         .IsUnique();
 
-                    b.ToTable("ChangeApprovals");
+                    b.ToTable("ChangeApprovals", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.ChangeDetail", b =>
@@ -514,7 +514,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("ChangeDetails");
+                    b.ToTable("ChangeDetails", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.ChatbotQuestion", b =>
@@ -550,7 +550,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ChatbotQuestions");
+                    b.ToTable("ChatbotQuestions", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Department", b =>
@@ -579,7 +579,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Departments");
+                    b.ToTable("Departments", (string)null);
 
                     b.HasData(
                         new
@@ -660,7 +660,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("TriggeredById");
 
-                    b.ToTable("EscalationRecords");
+                    b.ToTable("EscalationRecords", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.EscalationRule", b =>
@@ -704,7 +704,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("Level")
                         .IsUnique();
 
-                    b.ToTable("EscalationRules");
+                    b.ToTable("EscalationRules", (string)null);
 
                     b.HasData(
                         new
@@ -753,7 +753,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("BusinessCalendarId", "Date")
                         .IsUnique();
 
-                    b.ToTable("Holidays");
+                    b.ToTable("Holidays", (string)null);
 
                     b.HasData(
                         new
@@ -848,7 +848,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("KnowledgeArticles");
+                    b.ToTable("KnowledgeArticles", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.KpiSnapshot", b =>
@@ -877,6 +877,10 @@ namespace ServiceDesk.Migrations
                         .HasPrecision(3, 2)
                         .HasColumnType("decimal(3,2)");
 
+                    b.Property<decimal>("CsatResponseRate")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("decimal(5,1)");
+
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
 
@@ -886,6 +890,9 @@ namespace ServiceDesk.Migrations
                     b.Property<decimal>("FirstResponseComplianceRate")
                         .HasPrecision(5, 1)
                         .HasColumnType("decimal(5,1)");
+
+                    b.Property<int>("LowCsatCount")
+                        .HasColumnType("int");
 
                     b.Property<int>("Period")
                         .HasColumnType("int");
@@ -906,6 +913,9 @@ namespace ServiceDesk.Migrations
                         .HasPrecision(5, 1)
                         .HasColumnType("decimal(5,1)");
 
+                    b.Property<int>("SurveyResponseCount")
+                        .HasColumnType("int");
+
                     b.Property<int>("TotalTickets")
                         .HasColumnType("int");
 
@@ -917,7 +927,7 @@ namespace ServiceDesk.Migrations
                         .IsUnique()
                         .HasFilter("[DepartmentId] IS NOT NULL");
 
-                    b.ToTable("KpiSnapshots");
+                    b.ToTable("KpiSnapshots", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.LoginAttempt", b =>
@@ -952,7 +962,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("Email", "AttemptedAt");
 
-                    b.ToTable("LoginAttempts");
+                    b.ToTable("LoginAttempts", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Nonconformity", b =>
@@ -1008,7 +1018,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("Status", "DueAt");
 
-                    b.ToTable("Nonconformities");
+                    b.ToTable("Nonconformities", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Notification", b =>
@@ -1081,7 +1091,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("Channel", "IsSent", "IsFailed", "NextAttemptAt");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.NotificationPreference", b =>
@@ -1115,7 +1125,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("UserId", "Type")
                         .IsUnique();
 
-                    b.ToTable("NotificationPreferences");
+                    b.ToTable("NotificationPreferences", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.OtpDeliveryLog", b =>
@@ -1171,7 +1181,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("UserId", "CreatedAt");
 
-                    b.ToTable("OtpDeliveryLogs");
+                    b.ToTable("OtpDeliveryLogs", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.PasswordResetToken", b =>
@@ -1206,7 +1216,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PasswordResetTokens");
+                    b.ToTable("PasswordResetTokens", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.SlaPolicy", b =>
@@ -1268,7 +1278,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("Priority", "IsActive");
 
-                    b.ToTable("SlaPolicies");
+                    b.ToTable("SlaPolicies", (string)null);
 
                     b.HasData(
                         new
@@ -1352,7 +1362,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("ResponseId", "QuestionId")
                         .IsUnique();
 
-                    b.ToTable("SurveyAnswers");
+                    b.ToTable("SurveyAnswers", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.SurveyQuestion", b =>
@@ -1381,7 +1391,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("TemplateId");
 
-                    b.ToTable("SurveyQuestions");
+                    b.ToTable("SurveyQuestions", (string)null);
 
                     b.HasData(
                         new
@@ -1443,7 +1453,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("TicketId")
                         .IsUnique();
 
-                    b.ToTable("SurveyResponses");
+                    b.ToTable("SurveyResponses", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.SurveyTemplate", b =>
@@ -1464,7 +1474,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SurveyTemplates");
+                    b.ToTable("SurveyTemplates", (string)null);
 
                     b.HasData(
                         new
@@ -1512,7 +1522,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Teams");
+                    b.ToTable("Teams", (string)null);
 
                     b.HasData(
                         new
@@ -1682,6 +1692,12 @@ namespace ServiceDesk.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("SurveyInvitedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SurveyReminderSentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Tags")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
@@ -1725,7 +1741,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("Status", "SlaDueAt");
 
-                    b.ToTable("Tickets");
+                    b.ToTable("Tickets", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.TicketComment", b =>
@@ -1762,7 +1778,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("TicketId", "CreatedAt");
 
-                    b.ToTable("TicketComments");
+                    b.ToTable("TicketComments", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.TicketFollower", b =>
@@ -1789,7 +1805,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("TicketId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("TicketFollowers");
+                    b.ToTable("TicketFollowers", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.TicketHistory", b =>
@@ -1828,7 +1844,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("TicketId", "ChangedAt");
 
-                    b.ToTable("TicketHistories");
+                    b.ToTable("TicketHistories", (string)null);
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.AppUser", b =>

@@ -187,6 +187,8 @@ public static class Ui
         AuditAction.ChangeResubmitted => "Yeniden onaya gönderildi",
         AuditAction.ChangeImplementationUpdated => "Uygulama durumu",
         AuditAction.RateLimited => "İstek sınırı aşıldı",
+        AuditAction.AttachmentPurged => "Ek dosya kalıcı silindi",
+        AuditAction.AttachmentOrphanDeleted => "Sahipsiz dosya silindi",
         _ => a.ToString()
     };
 }

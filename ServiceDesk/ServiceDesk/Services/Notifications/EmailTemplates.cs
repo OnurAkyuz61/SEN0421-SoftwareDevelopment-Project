@@ -30,6 +30,8 @@ public static class EmailTemplates
     public const string NewTicket = "ticket.new";
     public const string ChangeImplementation = "change.implementation";
     public const string Digest = "digest";
+    public const string SurveyReminder = "survey.reminder";
+    public const string NonconformityOpened = "nonconformity.opened";
 
     // Eskalasyon seviyesine göre şablon anahtarı: 1, 2 ve 3 ve üzeri ayrı
     public static string Escalation(int level) => $"escalation.l{Math.Clamp(level, 1, 3)}";
@@ -47,6 +49,8 @@ public static class EmailTemplates
         NotificationType.NewTicket => NewTicket,
         NotificationType.ChangeImplementation => ChangeImplementation,
         NotificationType.DailyDigest => Digest,
+        NotificationType.SurveyReminder => SurveyReminder,
+        NotificationType.NonconformityOpened => NonconformityOpened,
         _ => Comment
     };
 
@@ -88,6 +92,12 @@ public static class EmailTemplates
         ChangeImplementation => new("Değişiklik uygulama durumu güncellendi",
             "Onaylanan değişikliğin uygulama / geri alma durumu değişti.",
             "#0369a1", "🛠️", "Uygulama", "Ayrıntılar"),
+        NonconformityOpened => new("Adınıza bir uygunsuzluk kaydı açıldı",
+            "Aşağıdaki talepte kalite kaydı doğuran bir durum tespit edildi. Kök neden ve düzeltici faaliyetin termin tarihine kadar girilmesi gerekiyor (ISO 9001 md. 10.2).",
+            "#b45309", "📌", "Uygunsuzluk", "Kaydı incele"),
+        SurveyReminder => new("Talebinizi değerlendirmeyi unuttunuz mu?",
+            "Çözülen talebiniz için kısa bir memnuniyet anketi bekliyor. Birkaç soruluk bu değerlendirme, hizmetin nerede iyileştirilmesi gerektiğini görmemizi sağlıyor.",
+            "#0f766e", "⭐", "Anket hatırlatma", "Anketi doldur"),
         Digest => new("Günlük özetiniz",
             "Son 24 saatte size ait talepler ve bildirimler:",
             "#334155", "📋", "Günlük özet", "Panele git"),

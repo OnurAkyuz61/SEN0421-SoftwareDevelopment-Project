@@ -280,12 +280,15 @@ public class NotificationService
         NotificationType.ChangeImplementation => "bi-tools",
         NotificationType.DailyDigest => "bi-card-list",
         NotificationType.NewTicket => "bi-plus-circle",
+        NotificationType.SurveyReminder => "bi-star",
+        NotificationType.NonconformityOpened => "bi-clipboard2-x",
         _ => "bi-chat-left-text"
     };
 
     public static string Color(NotificationType type) => type switch
     {
         NotificationType.SlaBreach or NotificationType.Escalation => "danger",
+        NotificationType.NonconformityOpened => "warning",
         NotificationType.SlaWarning or NotificationType.ApprovalPending or NotificationType.ApprovalReminder => "warning",
         NotificationType.NewTicket => "success",
         _ => "primary"
@@ -304,6 +307,8 @@ public class NotificationService
         NotificationType.DailyDigest => "Günlük özet",
         NotificationType.ApprovalReminder => "Onay hatırlatma",
         NotificationType.ChangeImplementation => "Değişiklik uygulaması",
+        NotificationType.SurveyReminder => "Anket hatırlatma",
+        NotificationType.NonconformityOpened => "Uygunsuzluk açıldı",
         _ => type.ToString()
     };
 }

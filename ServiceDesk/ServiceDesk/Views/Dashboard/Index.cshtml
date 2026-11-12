@@ -35,6 +35,88 @@
     </div>
 </div>
 
+<!-- DÖNEMSEL ANKET SONUCU (ISO 9001 md. 9.1.2) -->
+@* Ortalama tek başına yanıltıcı: yanıt sayısı ve oranı olmadan 4,8 ile 2
+   yanıttan gelen 4,8 ayırt edilemez. Dört kolon birlikte okunur. *@
+<div class="row g-3 mb-3">
+    <div class="col-12">
+        <div class="panel">
+            <div class="panel-head">
+                <span>
+                    Dönemsel memnuniyet
+                    <span class="small text-muted fw-normal">aylık anket sonucu · son @Model.MonthlyKpi.Count dönem</span>
+                </span>
+                <a asp-controller="Surveys" asp-action="Index" class="small fw-normal">Anketler</a>
+            </div>
+            @if (!Model.MonthlyKpi.Any())
+            {
+                <div class="panel-body text-muted small">
+                    Henüz dönemsel ölçüm yok. Göstergeler yarım saatte bir hesaplanır (KpiAggregatorService).
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Dönem</th>
+                                <th class="text-end">Memnuniyet</th>
+                                <th class="text-end">Yanıt</th>
+                                <th class="text-end">Yanıt oranı</th>
+                                <th class="text-end">Düşük puanlı</th>
+                                <th class="text-end">Çözülen talep</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var k in Model.MonthlyKpi)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@AppTime.ToLocal(k.PeriodStart).ToString("MMMM yyyy")</td>
+                                    <td class="text-end">
+                                        @if (k.SurveyResponseCount == 0)
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="tag @(k.CsatAverage >= 4 ? "tag-green" : k.CsatAverage >= 3 ? "tag-amber" : "tag-red")">
+                                                @k.CsatAverage.ToString("0.00") / 5
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-end">@k.SurveyResponseCount</td>
+                                    <td class="text-end @(k.SurveyResponseCount == 0 ? "text-muted" : "")">
+                                        %@k.CsatResponseRate.ToString("0.#")
+                                    </td>
+                                    <td class="text-end">
+                                        @if (k.LowCsatCount > 0)
+                                        {
+                                            <span class="tag tag-red" title="Ortalaması @Model.LowCsatThreshold.ToString("0.0") altında kalan yanıt">
+                                                @k.LowCsatCount
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">0</span>
+                                        }
+                                    </td>
+                                    <td class="text-end small text-muted">@k.ResolvedTickets</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel-body py-2 small text-muted">
+                    Yanıt oranı = değerlendirilen / dönemde çözülen talep.
+                    Düşük puanlı yanıt, ortalaması @Model.LowCsatThreshold.ToString("0.0") altında kalan değerlendirmedir;
+                    her biri otomatik uygunsuzluk kaydı doğurur (md. 10.2).
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
 <!-- BEKLEYEN İŞLER -->
 <div class="row g-3">
     <div class="col-xl-6">

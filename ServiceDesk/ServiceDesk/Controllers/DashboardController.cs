@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
+using Microsoft.Extensions.Options;
 using ServiceDesk.Filters;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
@@ -18,7 +19,13 @@ public class DashboardController : Controller
     private const int TrendDays = 14;    // günlük grafik penceresi
 
     private readonly AppDbContext _db;
-    public DashboardController(AppDbContext db) => _db = db;
+    private readonly QualitySettings _quality;
+
+    public DashboardController(AppDbContext db, IOptions<QualitySettings> quality)
+    {
+        _db = db;
+        _quality = quality.Value;
+    }
 
     public async Task<IActionResult> Index()
     {
@@ -120,9 +127,14 @@ public class DashboardController : Controller
                 .Include(r => r.Ticket).Include(r => r.Answers)
                 .OrderByDescending(r => r.CreatedAt).Take(ListSize).ToListAsync(),
 
-            MonthlyKpi = await _db.KpiSnapshots.AsNoTracking()
+            // Dönemsel ölçüm (md. 9.1.1): son 6 ayın dondurulmuş göstergeleri.
+            // Eskiden yeniye sıralanır ki panelde aylar soldan sağa / yukarıdan
+            // aşağıya takvim sırasında okunsun.
+            MonthlyKpi = (await _db.KpiSnapshots.AsNoTracking()
                 .Where(k => k.Period == KpiPeriod.Monthly && k.DepartmentId == null)
-                .OrderByDescending(k => k.PeriodStart).Take(6).ToListAsync(),
+                .OrderByDescending(k => k.PeriodStart).Take(6).ToListAsync())
+                .OrderBy(k => k.PeriodStart).ToList(),
+            LowCsatThreshold = _quality.LowSatisfactionThreshold,
             OpenNonconformities = await _db.Nonconformities
                 .CountAsync(n => n.Status != NonconformityStatus.Closed),
             OverdueNonconformities = await _db.Nonconformities
