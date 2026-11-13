@@ -34,5 +34,24 @@ public sealed record ApiPage<T>(
             pager.HasPrev, pager.HasNext);
 }
 
+// Sayfalanmayan, sabit boyutlu liste: { items: [...] }
+//
+// Öneri ve global arama sonuçları sayfalanmaz (ilk 5 sonuç gösterilir),
+// dolayısıyla ApiPage'in page / totalPages alanlarının karşılığı yoktur;
+// orada uydurulmuş bir totalCount göndermek istemciyi yanıltırdı. Kabuk
+// yine "items" olduğu için istemci tarafı aynı okuyucuyla yetinir.
+public sealed record ApiItems<T>(IReadOnlyList<T> Items)
+{
+    public static ApiItems<T> From(IReadOnlyList<T> items) => new(items);
+}
+
+// Arama sonuçlarının bir türü (talep / makale): kaç sonuç var, ilk kaçı
+// gösteriliyor. Items'ın türü gruba göre değiştiği için jenerik.
+public sealed record ApiSearchGroup<T>(
+    string Type,
+    string TypeText,
+    int TotalCount,
+    IReadOnlyList<T> Items);
+
 // Hata gövdesi: { "error": "..." }
 public sealed record ApiError(string Error);

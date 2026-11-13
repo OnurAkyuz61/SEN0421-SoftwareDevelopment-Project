@@ -1,0 +1,53 @@
+@model KnowledgeArticleRevision
+@inject CurrentUser Me
+@{
+    var makale = (KnowledgeArticle)ViewBag.Article;
+    ViewData["Title"] = $"{makale.Title} · {Model.VersionNo}. sürüm";
+
+    // Bu sürüm makalenin şu anki halinden farklı mı: aynıysa "geri dön"
+    // düğmesi gösterilmez
+    var farkli = KnowledgePublishing.DiffersFrom(Model, makale);
+    var duzenleyebilir = KnowledgePublishing.CanEdit(makale, Me.User).Allowed;
+}
+
+<a asp-action="Details" asp-route-id="@makale.Id" class="text-decoration-none small">
+    <i class="bi bi-arrow-left"></i> Makaleye dön
+</a>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mt-2 mb-3">
+    <h4 class="fw-bold mb-0 me-auto">@Model.Title</h4>
+    <span class="tag tag-gray">@Model.VersionNo. sürüm</span>
+    @if (Model.Category != null) { <span class="tag tag-blue">@Model.Category.Name</span> }
+</div>
+
+<div class="alert alert-secondary small">
+    <i class="bi bi-clock-history"></i>
+    Makalenin arşivlenmiş bir sürümünü görüyorsunuz; güncel hali
+    <a asp-action="Details" asp-route-id="@makale.Id">burada</a>.
+    @if (!string.IsNullOrWhiteSpace(Model.Note)) { <text> (@Model.Note)</text> }
+</div>
+
+<div class="panel">
+    <div class="panel-body" style="white-space:pre-line;line-height:1.7">@Model.Body</div>
+</div>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+    <div class="small text-muted me-auto">
+        @(Model.CreatedBy?.FullName ?? "-") · @AppTime.ToLocal(Model.CreatedAt).ToString("dd.MM.yyyy HH:mm")
+    </div>
+    @if (farkli && duzenleyebilir)
+    {
+        <form asp-action="Revert" method="post"
+              onsubmit="return confirm('@Model.VersionNo. sürüme geri dönülecek. Makalenin şu anki hali yeni sürüm olarak geçmişte kalır. Onaylıyor musunuz?');">
+            <input type="hidden" name="id" value="@makale.Id" />
+            <input type="hidden" name="revisionId" value="@Model.Id" />
+            <button class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-counterclockwise"></i> Bu sürüme geri dön
+            </button>
+        </form>
+    }
+    else if (!farkli)
+    {
+        <span class="tag tag-green">makalenin güncel hali</span>
+    }
+</div>

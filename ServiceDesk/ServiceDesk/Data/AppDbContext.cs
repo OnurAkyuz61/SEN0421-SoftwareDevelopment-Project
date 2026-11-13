@@ -41,6 +41,8 @@ public class AppDbContext : DbContext
     public DbSet<KpiSnapshot> KpiSnapshots => Set<KpiSnapshot>();
     public DbSet<Nonconformity> Nonconformities => Set<Nonconformity>();
     public DbSet<KnowledgeArticle> KnowledgeArticles => Set<KnowledgeArticle>();
+    public DbSet<KnowledgeArticleRevision> KnowledgeArticleRevisions => Set<KnowledgeArticleRevision>();
+    public DbSet<KnowledgeArticleFeedback> KnowledgeArticleFeedbacks => Set<KnowledgeArticleFeedback>();
     public DbSet<LoginAttempt> LoginAttempts => Set<LoginAttempt>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<AppUser> Users => Set<AppUser>();
@@ -420,6 +422,51 @@ public class AppDbContext : DbContext
           .HasOne(a => a.Author).WithMany()
           .HasForeignKey(a => a.AuthorId)
           .OnDelete(DeleteBehavior.Restrict);
+        // Onaya gönderen / onaylayan: kullanıcı pasifleşse de kayıt durur
+        mb.Entity<KnowledgeArticle>()
+          .HasOne(a => a.SubmittedBy).WithMany()
+          .HasForeignKey(a => a.SubmittedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<KnowledgeArticle>()
+          .HasOne(a => a.ApprovedBy).WithMany()
+          .HasForeignKey(a => a.ApprovedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        // Yayın kuyruğu ve listeleme bu kolonun üzerinden geçer
+        mb.Entity<KnowledgeArticle>().HasIndex(a => a.Status);
+
+        // Sürüm geçmişi: makale silinirse geçmişi de gider (makalesiz sürüm
+        // kaydının anlamı yok), yazan kullanıcı ise korunur.
+        mb.Entity<KnowledgeArticleRevision>()
+          .HasOne(r => r.Article).WithMany(a => a.Revisions)
+          .HasForeignKey(r => r.ArticleId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<KnowledgeArticleRevision>()
+          .HasOne(r => r.CreatedBy).WithMany()
+          .HasForeignKey(r => r.CreatedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<KnowledgeArticleRevision>()
+          .HasOne(r => r.Category).WithMany()
+          .HasForeignKey(r => r.CategoryId)
+          .OnDelete(DeleteBehavior.Restrict);
+        // Sürüm numarası makale içinde tekrar etmez: eşzamanlı iki kaydetme
+        // aynı numarayı üretmeye çalışırsa veritabanı reddeder.
+        mb.Entity<KnowledgeArticleRevision>()
+          .HasIndex(r => new { r.ArticleId, r.VersionNo }).IsUnique();
+
+        // Okuyucu oyu: makale silinirse oyları da gider, kullanıcı korunur
+        mb.Entity<KnowledgeArticleFeedback>()
+          .HasOne(f => f.Article).WithMany(a => a.Feedbacks)
+          .HasForeignKey(f => f.ArticleId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<KnowledgeArticleFeedback>()
+          .HasOne(f => f.User).WithMany()
+          .HasForeignKey(f => f.UserId)
+          .OnDelete(DeleteBehavior.Restrict);
+        // Kullanıcı başına tek oy: kural uygulama katmanında DEĞİL burada,
+        // veritabanında. İki istek aynı anda gelse bile ikincisi reddedilir
+        // (controller bu ihlali "zaten oy verilmiş" olarak ele alır).
+        mb.Entity<KnowledgeArticleFeedback>()
+          .HasIndex(f => new { f.ArticleId, f.UserId }).IsUnique();
 
         mb.Entity<Ticket>()
           .HasOne(t => t.ResolvedByArticle).WithMany()

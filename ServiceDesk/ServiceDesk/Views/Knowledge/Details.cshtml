@@ -3,6 +3,18 @@
 @{
     ViewData["Title"] = Model.Title;
     Layout = Me.IsStaff ? "_Layout" : "_PortalLayout";
+
+    // Hangi düğmelerin görüneceğine kuralın kendisi karar verir; görünüm
+    // rol listesi tutmaz (bkz. KnowledgePublishing)
+    var duzenleyebilir = KnowledgePublishing.CanEdit(Model, Me.User).Allowed;
+    var onayaGonderebilir = KnowledgePublishing.CanSubmit(Model, Me.User).Allowed;
+    var karar = KnowledgePublishing.CanDecide(Model, Me.User);
+    var surumler = Model.Revisions.OrderByDescending(r => r.VersionNo).ToList();
+
+    // Kullanıcının kendi oyu (yoksa null) ve olumsuz oy yüzdesi
+    var oyum = ViewBag.MyVote as bool?;
+    var oySayisi = KnowledgeUsagePolicy.TotalVotes(Model.HelpfulCount, Model.NotHelpfulCount);
+    var olumsuzYuzde = KnowledgeUsagePolicy.NotHelpfulPercent(Model.HelpfulCount, Model.NotHelpfulCount);
 }
 
 <a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Bilgi Bankası</a>
@@ -10,8 +22,11 @@
 <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mb-3">
     <h4 class="fw-bold mb-0 me-auto">@Model.Title</h4>
     @if (Model.Category != null) { <span class="tag tag-blue">@Model.Category.Name</span> }
-    @if (!Model.IsPublished) { <span class="tag tag-gray">taslak</span> }
-    @if (Me.IsStaff)
+    @if (Me.IsStaff || Model.Status != KnowledgeArticleStatus.Published)
+    {
+        <span class="tag @Ui.KnowledgeStatusTag(Model.Status)">@Ui.KnowledgeStatusText(Model.Status)</span>
+    }
+    @if (duzenleyebilir)
     {
         <a class="btn btn-outline-secondary btn-sm" asp-action="Edit" asp-route-id="@Model.Id">
             <i class="bi bi-pencil"></i> Düzenle
@@ -19,12 +34,184 @@
     }
 </div>
 
+@if (Me.IsStaff && Model.Status == KnowledgeArticleStatus.Rejected && !string.IsNullOrWhiteSpace(Model.RejectionNote))
+{
+    <div class="alert alert-danger">
+        <div class="fw-semibold mb-1"><i class="bi bi-x-circle"></i> Makale reddedildi</div>
+        <div style="white-space:pre-line">@Model.RejectionNote</div>
+        <div class="small text-muted mt-1">
+            @(Model.ApprovedBy?.FullName ?? "-") · @AppTime.ToLocal(Model.ApprovedAt)?.ToString("dd.MM.yyyy HH:mm")
+        </div>
+    </div>
+}
+
+@if (Me.IsStaff && Model.Status != KnowledgeArticleStatus.Published)
+{
+    <div class="alert alert-warning small">
+        <i class="bi bi-eye-slash"></i>
+        Bu makale yayında değil: son kullanıcı göremez, chatbot önermez ve talebin
+        çözümü olarak gösterilemez.
+    </div>
+}
+
 <div class="panel">
     <div class="panel-body" style="white-space:pre-line;line-height:1.7">@Model.Body</div>
 </div>
 
+@* ───── Okuyucu geri bildirimi (md. 9.1.2) ──────────────────────────────
+   Yalnızca yayındaki makale oylanır; taslak henüz okunacak belge değil. *@
+@if (Model.Status == KnowledgeArticleStatus.Published && Me.IsAuthenticated)
+{
+    <div class="panel mt-3">
+        <div class="panel-body d-flex flex-wrap align-items-center gap-3">
+            <div class="me-auto">
+                <div class="fw-semibold">Bu makale sorununuzu çözdü mü?</div>
+                <div class="small text-muted">
+                    @if (oySayisi == 0)
+                    {
+                        <text>Henüz geri bildirim yok. İlk siz değerlendirin.</text>
+                    }
+                    else
+                    {
+                        <text>
+                            @Model.HelpfulCount kişi faydalı, @Model.NotHelpfulCount kişi faydalı değil dedi
+                            (@olumsuzYuzde% olumsuz).
+                        </text>
+                    }
+                    @if (oyum != null) { <text> · Oyunuz: <strong>@(oyum == true ? "faydalı" : "faydalı değil")</strong>, değiştirebilirsiniz.</text> }
+                </div>
+            </div>
+
+            <form asp-action="Feedback" method="post" class="d-flex gap-2">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button name="helpful" value="true"
+                        class="btn btn-sm @(oyum == true ? "btn-success" : "btn-outline-success")">
+                    <i class="bi bi-hand-thumbs-up"></i> Faydalı
+                </button>
+                <button name="helpful" value="false"
+                        class="btn btn-sm @(oyum == false ? "btn-danger" : "btn-outline-danger")">
+                    <i class="bi bi-hand-thumbs-down"></i> Faydalı değil
+                </button>
+            </form>
+        </div>
+    </div>
+}
+
+@* ───── Yayın onay süreci (md. 7.5.2) ───────────────────────────────── *@
+@if (Me.IsStaff && (onayaGonderebilir || karar.Allowed || Model.Status == KnowledgeArticleStatus.PendingApproval))
+{
+    <div class="panel mt-3">
+        <div class="panel-head">Yayın onayı</div>
+        <div class="panel-body">
+            @if (Model.SubmittedAt != null)
+            {
+                <div class="small text-muted mb-3">
+                    <i class="bi bi-send"></i>
+                    @(Model.SubmittedBy?.FullName ?? "-") tarafından
+                    @AppTime.ToLocal(Model.SubmittedAt)?.ToString("dd.MM.yyyy HH:mm") tarihinde onaya gönderildi.
+                </div>
+            }
+
+            @if (onayaGonderebilir)
+            {
+                <form asp-action="Submit" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button class="btn btn-primary"><i class="bi bi-send"></i> Onaya gönder</button>
+                </form>
+                <div class="form-text">Yönetici onayladıktan sonra makale son kullanıcıya görünür.</div>
+            }
+
+            @if (karar.Allowed)
+            {
+                <form asp-action="Approve" method="post" class="d-inline me-2">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button class="btn btn-success"><i class="bi bi-check-lg"></i> Onayla ve yayına al</button>
+                </form>
+
+                <button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#redKutusu">
+                    <i class="bi bi-x-lg"></i> Reddet
+                </button>
+
+                <div class="collapse mt-3" id="redKutusu">
+                    <form asp-action="Reject" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <label class="form-label small text-muted" for="note">Red gerekçesi</label>
+                        <textarea name="note" id="note" rows="3" class="form-control mb-2" maxlength="500" required
+                                  placeholder="Yazarın neyi düzeltmesi gerektiğini yazın"></textarea>
+                        <button class="btn btn-danger btn-sm"><i class="bi bi-x-lg"></i> Reddet</button>
+                    </form>
+                </div>
+            }
+            else if (Model.Status == KnowledgeArticleStatus.PendingApproval)
+            {
+                <div class="text-muted small"><i class="bi bi-hourglass-split"></i> @karar.Error</div>
+            }
+        </div>
+    </div>
+}
+
+@* ───── Sürüm geçmişi (md. 7.5.3.2) ─────────────────────────────────── *@
+@if (Me.IsStaff && surumler.Count > 0)
+{
+    <div class="panel mt-3">
+        <div class="panel-head">Sürüm geçmişi (@surumler.Count)</div>
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th style="width:70px">Sürüm</th>
+                    <th>Başlık</th>
+                    <th style="width:160px">Kaydeden</th>
+                    <th style="width:140px">Tarih</th>
+                    <th style="width:200px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in surumler)
+                {
+                    var guncel = r.VersionNo == surumler[0].VersionNo;
+                    <tr>
+                        <td class="fw-semibold">@r.VersionNo</td>
+                        <td>
+                            @r.Title
+                            @if (guncel) { <span class="tag tag-green ms-1">güncel</span> }
+                            @if (!string.IsNullOrWhiteSpace(r.Note)) { <div class="small text-muted">@r.Note</div> }
+                        </td>
+                        <td class="small">@(r.CreatedBy?.FullName ?? "-")</td>
+                        <td class="small text-muted">@AppTime.ToLocal(r.CreatedAt).ToString("dd.MM.yyyy HH:mm")</td>
+                        <td class="text-end">
+                            <a class="btn btn-light border btn-sm" asp-action="Revision"
+                               asp-route-id="@Model.Id" asp-route-revisionId="@r.Id">
+                                <i class="bi bi-eye"></i> Gör
+                            </a>
+                            @if (!guncel && duzenleyebilir)
+                            {
+                                <form asp-action="Revert" method="post" class="d-inline"
+                                      onsubmit="return confirm('@r.VersionNo. sürüme geri dönülecek. Makalenin şu anki hali yeni sürüm olarak geçmişte kalır. Onaylıyor musunuz?');">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <input type="hidden" name="revisionId" value="@r.Id" />
+                                    <button class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Geri dön
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
 <div class="small text-muted mt-3">
     @(Model.Author?.FullName ?? "-") · @AppTime.ToLocal(Model.CreatedAt).ToString("dd.MM.yyyy")
     @if (Model.UpdatedAt != null) { <text> · güncellendi @AppTime.ToLocal(Model.UpdatedAt)?.ToString("dd.MM.yyyy")</text> }
+    @if (Model.Status == KnowledgeArticleStatus.Published && Model.ApprovedAt != null)
+    {
+        <text> · onaylayan @(Model.ApprovedBy?.FullName ?? "-"), @AppTime.ToLocal(Model.ApprovedAt)?.ToString("dd.MM.yyyy")</text>
+    }
     · @Model.UsedCount talepte kullanıldı
+    @if (Model.LastUsedAt != null)
+    {
+        <text> (son: @AppTime.ToLocal(Model.LastUsedAt)?.ToString("dd.MM.yyyy"))</text>
+    }
 </div>

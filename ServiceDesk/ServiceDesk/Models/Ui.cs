@@ -65,6 +65,22 @@ public static class Ui
         _ => "Elle açıldı"
     };
 
+    public static string KnowledgeStatusText(KnowledgeArticleStatus s) => s switch
+    {
+        KnowledgeArticleStatus.Draft => "Taslak",
+        KnowledgeArticleStatus.PendingApproval => "Onay bekliyor",
+        KnowledgeArticleStatus.Published => "Yayında",
+        _ => "Reddedildi"
+    };
+
+    public static string KnowledgeStatusTag(KnowledgeArticleStatus s) => s switch
+    {
+        KnowledgeArticleStatus.Draft => "tag-gray",
+        KnowledgeArticleStatus.PendingApproval => "tag-amber",
+        KnowledgeArticleStatus.Published => "tag-green",
+        _ => "tag-red"
+    };
+
     public static string RiskText(RiskLevel r) => r switch
     {
         RiskLevel.High => "Yüksek", RiskLevel.Medium => "Orta", _ => "Düşük"

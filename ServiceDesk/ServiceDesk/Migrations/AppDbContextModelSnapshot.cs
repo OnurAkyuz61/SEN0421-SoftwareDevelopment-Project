@@ -90,7 +90,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.ApprovalChainRule", b =>
@@ -128,7 +128,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("ApprovalChainRules", (string)null);
+                    b.ToTable("ApprovalChainRules");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.ApprovalDelegation", b =>
@@ -167,7 +167,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("DelegateId", "StartsAt", "EndsAt");
 
-                    b.ToTable("ApprovalDelegations", (string)null);
+                    b.ToTable("ApprovalDelegations");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Attachment", b =>
@@ -233,7 +233,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("UploadedById");
 
-                    b.ToTable("Attachments", (string)null);
+                    b.ToTable("Attachments");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.AuditLog", b =>
@@ -278,7 +278,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("UserId", "CreatedAt");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.BusinessCalendar", b =>
@@ -307,7 +307,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BusinessCalendars", (string)null);
+                    b.ToTable("BusinessCalendars");
 
                     b.HasData(
                         new
@@ -356,7 +356,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("IsActive", "SortOrder");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
 
                     b.HasData(
                         new
@@ -452,7 +452,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("TicketId", "Round", "Step", "ApproverId")
                         .IsUnique();
 
-                    b.ToTable("ChangeApprovals", (string)null);
+                    b.ToTable("ChangeApprovals");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.ChangeDetail", b =>
@@ -514,7 +514,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("ChangeDetails", (string)null);
+                    b.ToTable("ChangeDetails");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.ChatbotQuestion", b =>
@@ -550,7 +550,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ChatbotQuestions", (string)null);
+                    b.ToTable("ChatbotQuestions");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Department", b =>
@@ -579,7 +579,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Departments", (string)null);
+                    b.ToTable("Departments");
 
                     b.HasData(
                         new
@@ -660,7 +660,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("TriggeredById");
 
-                    b.ToTable("EscalationRecords", (string)null);
+                    b.ToTable("EscalationRecords");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.EscalationRule", b =>
@@ -704,7 +704,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("Level")
                         .IsUnique();
 
-                    b.ToTable("EscalationRules", (string)null);
+                    b.ToTable("EscalationRules");
 
                     b.HasData(
                         new
@@ -753,7 +753,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("BusinessCalendarId", "Date")
                         .IsUnique();
 
-                    b.ToTable("Holidays", (string)null);
+                    b.ToTable("Holidays");
 
                     b.HasData(
                         new
@@ -815,6 +815,12 @@ namespace ServiceDesk.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ApprovedById")
+                        .HasColumnType("int");
+
                     b.Property<int>("AuthorId")
                         .HasColumnType("int");
 
@@ -828,8 +834,27 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("bit");
+                    b.Property<int>("HelpfulCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NotHelpfulCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RejectionNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("SubmittedById")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -844,11 +869,98 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ApprovedById");
+
                     b.HasIndex("AuthorId");
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("KnowledgeArticles", (string)null);
+                    b.HasIndex("Status");
+
+                    b.HasIndex("SubmittedById");
+
+                    b.ToTable("KnowledgeArticles");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticleFeedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsHelpful")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ArticleId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("KnowledgeArticleFeedbacks");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticleRevision", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("VersionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("ArticleId", "VersionNo")
+                        .IsUnique();
+
+                    b.ToTable("KnowledgeArticleRevisions");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.KpiSnapshot", b =>
@@ -927,7 +1039,7 @@ namespace ServiceDesk.Migrations
                         .IsUnique()
                         .HasFilter("[DepartmentId] IS NOT NULL");
 
-                    b.ToTable("KpiSnapshots", (string)null);
+                    b.ToTable("KpiSnapshots");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.LoginAttempt", b =>
@@ -962,7 +1074,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("Email", "AttemptedAt");
 
-                    b.ToTable("LoginAttempts", (string)null);
+                    b.ToTable("LoginAttempts");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Nonconformity", b =>
@@ -1018,7 +1130,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("Status", "DueAt");
 
-                    b.ToTable("Nonconformities", (string)null);
+                    b.ToTable("Nonconformities");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Notification", b =>
@@ -1091,7 +1203,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("Channel", "IsSent", "IsFailed", "NextAttemptAt");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.NotificationPreference", b =>
@@ -1125,7 +1237,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("UserId", "Type")
                         .IsUnique();
 
-                    b.ToTable("NotificationPreferences", (string)null);
+                    b.ToTable("NotificationPreferences");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.OtpDeliveryLog", b =>
@@ -1181,7 +1293,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("UserId", "CreatedAt");
 
-                    b.ToTable("OtpDeliveryLogs", (string)null);
+                    b.ToTable("OtpDeliveryLogs");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.PasswordResetToken", b =>
@@ -1216,7 +1328,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PasswordResetTokens", (string)null);
+                    b.ToTable("PasswordResetTokens");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.SlaPolicy", b =>
@@ -1278,7 +1390,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("Priority", "IsActive");
 
-                    b.ToTable("SlaPolicies", (string)null);
+                    b.ToTable("SlaPolicies");
 
                     b.HasData(
                         new
@@ -1362,7 +1474,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("ResponseId", "QuestionId")
                         .IsUnique();
 
-                    b.ToTable("SurveyAnswers", (string)null);
+                    b.ToTable("SurveyAnswers");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.SurveyQuestion", b =>
@@ -1391,7 +1503,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("TemplateId");
 
-                    b.ToTable("SurveyQuestions", (string)null);
+                    b.ToTable("SurveyQuestions");
 
                     b.HasData(
                         new
@@ -1453,7 +1565,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("TicketId")
                         .IsUnique();
 
-                    b.ToTable("SurveyResponses", (string)null);
+                    b.ToTable("SurveyResponses");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.SurveyTemplate", b =>
@@ -1474,7 +1586,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SurveyTemplates", (string)null);
+                    b.ToTable("SurveyTemplates");
 
                     b.HasData(
                         new
@@ -1522,7 +1634,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Teams", (string)null);
+                    b.ToTable("Teams");
 
                     b.HasData(
                         new
@@ -1741,7 +1853,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("Status", "SlaDueAt");
 
-                    b.ToTable("Tickets", (string)null);
+                    b.ToTable("Tickets");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.TicketComment", b =>
@@ -1778,7 +1890,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("TicketId", "CreatedAt");
 
-                    b.ToTable("TicketComments", (string)null);
+                    b.ToTable("TicketComments");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.TicketFollower", b =>
@@ -1805,7 +1917,7 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("TicketId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("TicketFollowers", (string)null);
+                    b.ToTable("TicketFollowers");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.TicketHistory", b =>
@@ -1844,7 +1956,7 @@ namespace ServiceDesk.Migrations
 
                     b.HasIndex("TicketId", "ChangedAt");
 
-                    b.ToTable("TicketHistories", (string)null);
+                    b.ToTable("TicketHistories");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.AppUser", b =>
@@ -2054,6 +2166,11 @@ namespace ServiceDesk.Migrations
 
             modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticle", b =>
                 {
+                    b.HasOne("ServiceDesk.Models.AppUser", "ApprovedBy")
+                        .WithMany()
+                        .HasForeignKey("ApprovedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.AppUser", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
@@ -2065,9 +2182,63 @@ namespace ServiceDesk.Migrations
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("ServiceDesk.Models.AppUser", "SubmittedBy")
+                        .WithMany()
+                        .HasForeignKey("SubmittedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ApprovedBy");
+
                     b.Navigation("Author");
 
                     b.Navigation("Category");
+
+                    b.Navigation("SubmittedBy");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticleFeedback", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.KnowledgeArticle", "Article")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticleRevision", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.KnowledgeArticle", "Article")
+                        .WithMany("Revisions")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ServiceDesk.Models.AppUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.KpiSnapshot", b =>
@@ -2365,6 +2536,13 @@ namespace ServiceDesk.Migrations
             modelBuilder.Entity("ServiceDesk.Models.Department", b =>
                 {
                     b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticle", b =>
+                {
+                    b.Navigation("Feedbacks");
+
+                    b.Navigation("Revisions");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.SurveyResponse", b =>

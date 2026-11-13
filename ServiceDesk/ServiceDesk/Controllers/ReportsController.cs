@@ -26,6 +26,41 @@ public sealed record EscalationSummary(
     List<(string Name, int Count)> ByTarget,
     List<(string Team, int Count)> ByTeam);
 
+// Kullanılmayan makale raporunun eşikleri. Varsayılanlar KnowledgeUsagePolicy'de;
+// kurum "kaç gün eski sayılır" kararını sorgu dizesinden değiştirebilir.
+public class KnowledgeUsageFilter
+{
+    public int StaleDays { get; set; } = KnowledgeUsagePolicy.DefaultStaleDays;
+    public int MinVotes { get; set; } = KnowledgeUsagePolicy.DefaultMinVotes;
+    public int NotHelpfulPercent { get; set; } = KnowledgeUsagePolicy.DefaultNotHelpfulPercent;
+
+    // false: yayındaki bütün makaleler listelenir (karşılaştırma için)
+    public bool OnlyIssues { get; set; } = true;
+
+    // Dışarıdan gelen değer sınırlanır: 0 gün verilse her makale "eski"
+    // görünür, 1000 gün verilse rapor hiç dolmaz
+    public void Normalize()
+    {
+        StaleDays = Math.Clamp(StaleDays, 1, 3650);
+        MinVotes = Math.Clamp(MinVotes, 1, 1000);
+        NotHelpfulPercent = Math.Clamp(NotHelpfulPercent, 1, 100);
+    }
+}
+
+public sealed record KnowledgeUsageRow(
+    int Id, string Title, string? Category, int UsedCount, DateTime? LastUsedAt,
+    DateTime CreatedAt, int HelpfulCount, int NotHelpfulCount, KnowledgeUsageIssue Issues)
+{
+    public int TotalVotes => KnowledgeUsagePolicy.TotalVotes(HelpfulCount, NotHelpfulCount);
+    public int? NotHelpfulPercent => KnowledgeUsagePolicy.NotHelpfulPercent(HelpfulCount, NotHelpfulCount);
+    public IReadOnlyList<string> Reasons => KnowledgeUsagePolicy.Describe(Issues);
+}
+
+public sealed record KnowledgeUsageReport(
+    List<KnowledgeUsageRow> Rows,
+    int PublishedTotal, int NeverUsed, int Stale, int Negative, int NoVotes,
+    List<ChatbotQuestion> Questions, int QuestionTotal, int QuestionAskTotal);
+
 // Eskalasyon geçmişi raporu (ISO 9001 md. 9.1.3: analiz ve değerlendirme).
 // Hangi seviyede ne kadar eskalasyon oldu, ne kadarı elle tetiklendi,
 // kaçında yedek kurala düşüldü, hangi ekip ve kişilere yığıldı.
@@ -129,6 +164,74 @@ public class ReportsController : Controller
 
         var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
         return File(bytes, "text/csv; charset=utf-8", $"eskalasyon-{f.From:yyyyMMdd}-{f.To:yyyyMMdd}.csv");
+    }
+
+    // ───── Kullanılmayan makale raporu ───────────────────────────────────
+    //
+    // "Hangi makale işe yaramıyor" ve "hangi makale eksik" sorularını yan
+    // yana cevaplar (md. 9.1.3 / 10.3):
+    //   • hiç kullanılmamış, son kullanımı eski, olumsuz oy almış makaleler
+    //   • chatbot'un cevaplayamadığı sorular — yazılması gereken makaleler
+    //
+    // Sınıflandırma SQL'de değil bellekte yapılıyor: eşik ve yuvarlama
+    // kuralı tek yerde (KnowledgeUsagePolicy) kalsın. Aynı kural bir de
+    // SQL'e yazılsaydı yüzde yuvarlamasının sınırında iki taraf farklı
+    // karar verir, makale listeye girer ama rozeti görünmezdi. Bilgi
+    // bankası yüz binlerce satırlık bir tablo değil; yayındaki makaleleri
+    // küçük bir projeksiyonla okumak bu rapor için yeterli.
+    public async Task<IActionResult> KnowledgeUsage([FromQuery] KnowledgeUsageFilter f)
+    {
+        f.Normalize();
+        var now = AppTime.UtcNow;
+
+        var yayinda = await _db.KnowledgeArticles.AsNoTracking()
+            .Where(a => a.Status == KnowledgeArticleStatus.Published)
+            .Select(a => new
+            {
+                a.Id, a.Title, Kategori = a.Category == null ? null : a.Category.Name,
+                a.UsedCount, a.LastUsedAt, a.CreatedAt, a.HelpfulCount, a.NotHelpfulCount
+            })
+            .ToListAsync();
+
+        var tumu = yayinda
+            .Select(a => new KnowledgeUsageRow(
+                a.Id, a.Title, a.Kategori, a.UsedCount, a.LastUsedAt, a.CreatedAt,
+                a.HelpfulCount, a.NotHelpfulCount,
+                KnowledgeUsagePolicy.Classify(a.UsedCount, a.CreatedAt, a.LastUsedAt,
+                    a.HelpfulCount, a.NotHelpfulCount, now,
+                    f.StaleDays, f.MinVotes, f.NotHelpfulPercent)))
+            .ToList();
+
+        var rows = (f.OnlyIssues ? tumu.Where(r => r.Issues != KnowledgeUsageIssue.None) : tumu)
+            // Olumsuz geri bildirim en önce: okuyucu doğrudan "bu makale
+            // işime yaramadı" demiş, en acil gözden geçirilecek olan bu.
+            .OrderBy(r => r.Issues.HasFlag(KnowledgeUsageIssue.NegativeFeedback) ? 0 : 1)
+            .ThenBy(r => r.UsedCount)
+            .ThenBy(r => r.LastUsedAt ?? r.CreatedAt)
+            .ToList();
+
+        // Yazılması gereken makaleler: en çok sorulan cevapsız sorular önce
+        var sorular = await _db.ChatbotQuestions.AsNoTracking()
+            .Where(q => !q.IsResolved)
+            .OrderByDescending(q => q.AskCount).ThenByDescending(q => q.LastAskedAt)
+            .Take(20)
+            .ToListAsync();
+
+        var cevapsiz = _db.ChatbotQuestions.Where(q => !q.IsResolved);
+
+        var report = new KnowledgeUsageReport(
+            rows,
+            PublishedTotal: tumu.Count,
+            NeverUsed: tumu.Count(r => r.Issues.HasFlag(KnowledgeUsageIssue.NeverUsed)),
+            Stale: tumu.Count(r => r.Issues.HasFlag(KnowledgeUsageIssue.Stale)),
+            Negative: tumu.Count(r => r.Issues.HasFlag(KnowledgeUsageIssue.NegativeFeedback)),
+            NoVotes: tumu.Count(r => r.TotalVotes == 0),
+            Questions: sorular,
+            QuestionTotal: await cevapsiz.CountAsync(),
+            QuestionAskTotal: await cevapsiz.SumAsync(q => q.AskCount));
+
+        ViewBag.Filter = f;
+        return View(report);
     }
 
     // CSV hücresi: ayırıcı / tırnak / satır sonu kaçışı ve formül enjeksiyonu engeli

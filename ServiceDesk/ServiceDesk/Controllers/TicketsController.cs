@@ -285,11 +285,13 @@ public class TicketsController : Controller
                 .Where(u => u.IsActive && u.Id != ticket.RequesterId && !takipciler.Contains(u.Id))
                 .OrderBy(u => u.FirstName).ThenBy(u => u.LastName).ToListAsync();
 
-        // Çözüm makalesi seçimi için yayımlanmış makaleler (arşivde gerekmez)
+        // Çözüm makalesi seçimi için yayındaki makaleler (arşivde gerekmez).
+        // Taslak ve onay bekleyen makale listeye girmez: kullanıcıya çözüm
+        // olarak gösterilen metin onaylanmış olmalı.
         ViewBag.Articles = ticket.IsDeleted
             ? new List<KnowledgeArticle>()
             : await _db.KnowledgeArticles.AsNoTracking()
-                .Where(a => a.IsPublished)
+                .Where(a => a.Status == KnowledgeArticleStatus.Published)
                 .OrderBy(a => a.Title)
                 .ToListAsync();
 

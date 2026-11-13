@@ -286,9 +286,14 @@ public static class DevDataSeeder
         if (await db.KnowledgeArticles.AnyAsync()) return;
 
         var yazar = staff[0];
+        // Onaylayan: yazardan farklı biri olmalı (KnowledgePublishing: kendi
+        // makalesini onaylayan olmaz). Tek personelli kurulumda yazara düşer;
+        // örnek veri yine de yayında görünür.
+        var onaylayan = staff.FirstOrDefault(u => u.Id != yazar.Id) ?? yazar;
         Category? Kat(string ad) => categories.FirstOrDefault(c => c.Name == ad);
 
-        db.KnowledgeArticles.AddRange(
+        var makaleler = new[]
+        {
             new KnowledgeArticle
             {
                 Title = "Şifre sıfırlama adımları",
@@ -332,7 +337,28 @@ public static class DevDataSeeder
                      + "Talepte beklenen sonucu ve aciliyeti net yazın.",
                 AuthorId = yazar.Id,
                 UsedCount = 2
-            });
+            }
+        };
+
+        // Örnek makaleler yayında başlar: chatbot ve talep çözüm listesi dolu
+        // görünsün. Yayın yönetişimi kaydı da doldurulur — makale "kim
+        // gönderdi, kim onayladı" bilgisi olmadan yayında durmasın (md. 7.5.2).
+        foreach (var m in makaleler)
+        {
+            m.Status = KnowledgeArticleStatus.Published;
+            m.SubmittedById = yazar.Id;
+            m.SubmittedAt = m.CreatedAt;
+            m.ApprovedById = onaylayan.Id;
+            m.ApprovedAt = m.CreatedAt;
+        }
+
+        db.KnowledgeArticles.AddRange(makaleler);
+        await db.SaveChangesAsync();
+
+        // Sürüm geçmişi: yayındaki hal 1. sürüm olarak kaydedilir ki geçmiş
+        // ekranı ve "sürüme geri dön" örnek veriyle de çalışsın
+        db.KnowledgeArticleRevisions.AddRange(makaleler.Select(m =>
+            KnowledgePublishing.Snapshot(m, 1, yazar.Id, m.CreatedAt, "İlk sürüm")));
 
         await db.SaveChangesAsync();
     }

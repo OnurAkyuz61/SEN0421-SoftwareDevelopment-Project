@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
+using ServiceDesk.Services.Search;
 using ServiceDesk.Services.Approvals;
 using ServiceDesk.Services.Escalations;
 using ServiceDesk.Services.Messaging;
@@ -26,6 +27,7 @@ builder.Services.AddScoped<NotificationService>();   // bildirim okuma / yazma
 builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef tarihler
 builder.Services.AddScoped<TeamRoundRobin>();        // ekip bazlı otomatik (sıralı) atama
 builder.Services.AddScoped<KpiService>();            // dönemsel gösterge hesabı
+builder.Services.AddScoped<SearchService>();         // bilgi bankası / talep / global arama
 // Uygunsuzluk eşikleri (ortalama + kritik soru puanı) ve termin:
 // appsettings.json → "Quality"
 builder.Services.Configure<QualitySettings>(builder.Configuration.GetSection(QualitySettings.Section));

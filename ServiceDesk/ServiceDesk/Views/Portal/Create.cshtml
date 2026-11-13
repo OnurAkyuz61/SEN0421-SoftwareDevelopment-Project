@@ -16,8 +16,13 @@
         <div class="row g-3">
             <div class="col-12">
                 <label asp-for="Title" class="form-label fw-semibold">Konu</label>
-                <input asp-for="Title" class="form-control" placeholder="Örn: Yazıcı çıktı vermiyor" />
+                <input asp-for="Title" class="form-control" id="suggestSource" autocomplete="off"
+                       placeholder="Örn: Yazıcı çıktı vermiyor" />
                 <span asp-validation-for="Title" class="text-danger small"></span>
+
+                @* Konu yazılırken bilgi bankası önerisi (api/search/articles).
+                   Kullanıcı talebi göndermeden önce çözümü kendi bulabilsin. *@
+                <div id="suggestBox" class="mt-2" hidden></div>
             </div>
 
             <div class="col-md-4">
@@ -65,4 +70,5 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/upload.js" asp-append-version="true"></script>
+    <script src="~/js/article-suggest.js" asp-append-version="true"></script>
 }

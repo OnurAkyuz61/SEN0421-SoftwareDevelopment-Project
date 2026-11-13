@@ -985,6 +985,21 @@ public class Nonconformity
                              && DueAt != null && AppTime.UtcNow > DueAt;
 }
 
+// Makalenin yayın durumu (md. 7.5.2: dokümante edilmiş bilgi yayımlanmadan
+// önce uygunluğu gözden geçirilip ONAYLANMALIDIR).
+//
+// Eskiden bu bilgi tek bir IsPublished bayrağıydı: makaleyi yazan kişi aynı
+// anda yayımlayabiliyordu, yani gözden geçirme kaydı hiç tutulmuyordu.
+// Durum alanı bayrağın yerini alır ve "kim gönderdi / kim onayladı / neden
+// reddedildi" sorularını cevaplanabilir kılar.
+public enum KnowledgeArticleStatus
+{
+    [Display(Name = "Taslak")] Draft = 0,
+    [Display(Name = "Onay bekliyor")] PendingApproval = 1,
+    [Display(Name = "Yayında")] Published = 2,
+    [Display(Name = "Reddedildi")] Rejected = 3
+}
+
 // Bilgi bankası ve dokümante edilmiş prosedür (md. 7.5)
 public class KnowledgeArticle
 {
@@ -1002,12 +1017,121 @@ public class KnowledgeArticle
     public int AuthorId { get; set; }
     public AppUser? Author { get; set; }
 
-    public bool IsPublished { get; set; } = true;
+    // Yeni makale taslak doğar: yayına ancak onaydan geçerek çıkar.
+    [Display(Name = "Durum")]
+    public KnowledgeArticleStatus Status { get; set; } = KnowledgeArticleStatus.Draft;
+
+    // Onaya gönderim: kim, ne zaman. Reddedilip yeniden gönderilen makalede
+    // son gönderimi gösterir.
+    public DateTime? SubmittedAt { get; set; }
+    public int? SubmittedById { get; set; }
+    public AppUser? SubmittedBy { get; set; }
+
+    // Onay kaydı. Makale yayından onaya geri döndüğünde temizlenir ki
+    // "yayındaki hali kim onayladı" bilgisi yanıltıcı olmasın.
+    public DateTime? ApprovedAt { get; set; }
+    public int? ApprovedById { get; set; }
+    public AppUser? ApprovedBy { get; set; }
+
+    // Red gerekçesi: yazarın neyi düzeltmesi gerektiğini bilmesi için zorunlu
+    [StringLength(500), Display(Name = "Red gerekçesi")]
+    public string? RejectionNote { get; set; }
+
     public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
-    // Bu makaleyle kaç talep çözüldü: makalenin gerçek faydası
+    // Bu makaleyle kaç talep çözüldü: makalenin gerçek faydası.
+    // Sayaç tek SQL UPDATE ile değişir (KnowledgeController.LinkToTicket);
+    // oku-değiştir-yaz yapılmaz, yoksa iki destek personeli aynı anda
+    // makale bağlarsa artışlardan biri kaybolur.
     public int UsedCount { get; set; }
+
+    // Makalenin bir talebi çözmek için EN SON kullanıldığı an. UsedCount
+    // "kaç kez" sorusunu, bu alan "ne zamandan beri" sorusunu cevaplar:
+    // sayacı yüksek ama iki yıldır kullanılmayan makale de gözden
+    // geçirilmeli (kullanılmayan makale raporu).
+    public DateTime? LastUsedAt { get; set; }
+
+    // ── Okuyucu geri bildirimi (md. 9.1.2: geri besleme) ───────────────
+    // Oyların kendisi KnowledgeArticleFeedback'te tutulur; buradaki iki
+    // sayaç özet (denormalize) değerdir: liste ve rapor ekranları her
+    // makale için ayrı COUNT sorgusu çalıştırmasın. Oylarla birlikte tek
+    // SQL UPDATE ile güncellenir.
+    [Display(Name = "Faydalı")]
+    public int HelpfulCount { get; set; }
+
+    [Display(Name = "Faydalı değil")]
+    public int NotHelpfulCount { get; set; }
+
+    // Sürüm geçmişi: her kaydetme yeni bir anlık görüntü bırakır
+    public List<KnowledgeArticleRevision> Revisions { get; set; } = new();
+
+    public List<KnowledgeArticleFeedback> Feedbacks { get; set; } = new();
+}
+
+// Makalenin okuyucu oyu: "faydalı" / "faydalı değil".
+//
+// Bir kullanıcının bir makaleye tek oyu olur (ArticleId + UserId benzersiz);
+// oyunu değiştirebilir ama ikinci kez oy veremez. Oy kimliğe bağlı
+// tutuluyor ki hem kullanıcı kendi oyunu ekranda görebilsin hem de aynı
+// kişi makaleyi tekrar açtığında sayaç şişmesin.
+public class KnowledgeArticleFeedback
+{
+    public int Id { get; set; }
+
+    public int ArticleId { get; set; }
+    public KnowledgeArticle? Article { get; set; }
+
+    public int UserId { get; set; }
+    public AppUser? User { get; set; }
+
+    [Display(Name = "Faydalı")]
+    public bool IsHelpful { get; set; }
+
+    public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+
+    // Oy değiştirildiyse son değişiklik anı
+    public DateTime? UpdatedAt { get; set; }
+}
+
+// Makalenin bir sürümü. Kaydedilen her değişiklikten SONRAKİ hali buraya
+// anlık görüntü olarak yazılır; yayımlanmış bir prosedürün ne zaman nasıl
+// değiştiğinin kaydı ISO 9001 md. 7.5.3.2'nin (değişikliklerin kontrolü)
+// istediği izdir.
+//
+// Metin makalenin kendisinde de duruyor, burada tekrar ediyor: amaç tam da
+// bu — makale değişse bile eski sürüm olduğu gibi okunabilsin. Kategori de
+// kopyalanır, çünkü makalenin o günkü sınıflandırması da sürümün parçası.
+public class KnowledgeArticleRevision
+{
+    public int Id { get; set; }
+
+    public int ArticleId { get; set; }
+    public KnowledgeArticle? Article { get; set; }
+
+    // Makale içinde 1'den başlayan sıra numarası (Id değil: kullanıcıya
+    // "3. sürüm" diye gösterilebilen, makaleye özel sayaç)
+    [Display(Name = "Sürüm")]
+    public int VersionNo { get; set; }
+
+    [Required, StringLength(200), Display(Name = "Başlık")]
+    public string Title { get; set; } = "";
+
+    [Required, Display(Name = "İçerik")]
+    public string Body { get; set; } = "";
+
+    public int? CategoryId { get; set; }
+    public Category? Category { get; set; }
+
+    // Sürümü yazan kişi: makalenin yazarı olmak zorunda değil
+    public int CreatedById { get; set; }
+    public AppUser? CreatedBy { get; set; }
+
+    public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+
+    // "2. sürüme geri dönüldü" gibi kısa açıklama
+    [StringLength(200), Display(Name = "Not")]
+    public string? Note { get; set; }
 }
 
 // Talebi takip eden (CC) kullanıcı: talebe yazılan yanıtlardan haberdar olur
