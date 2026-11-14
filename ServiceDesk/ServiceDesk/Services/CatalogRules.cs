@@ -48,6 +48,17 @@ public static class CatalogRules
     public static bool CanLeadTeam(AppUser? user) =>
         user is { IsActive: true } && user.Role is UserRole.Agent or UserRole.Admin;
 
+    // Yeni talep için kategori: kayıt var mı, aktif mi, üstü pasif mi?
+    // Parent yüklenmiş olmalı (üst kontrolü için); yoksa yalnızca kendi IsActive bakılır.
+    public static string? TicketCategoryError(Category? category)
+    {
+        if (category is null) return "Geçerli bir kategori seçin.";
+        if (!category.IsActive) return "Bu kategori pasif; yeni talep açılamaz.";
+        if (category.Parent is { IsActive: false })
+            return "Üst kategori pasif; bu kategoriye yeni talep açılamaz.";
+        return null;
+    }
+
     // Üst kategori ataması: kendisi olamaz, döngü olamaz, hedef gerçekten var olmalı.
     // null = kök kategori (üst yok).
     public static string? ParentError(int categoryId, int? parentId,

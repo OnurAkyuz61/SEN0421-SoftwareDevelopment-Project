@@ -153,4 +153,40 @@ public class CatalogRulesTests
 
         Assert.Equal(new[] { 1, 3, 4, 2 }, sirali.Select(k => k.Id).ToArray());
     }
+
+    // ── Pasif kategoriye talep ───────────────────────────────────────────
+
+    [Fact]
+    public void Bos_kategori_talepte_reddedilir()
+    {
+        Assert.Equal("Geçerli bir kategori seçin.", CatalogRules.TicketCategoryError(null));
+    }
+
+    [Fact]
+    public void Pasif_kategoriye_yeni_talep_acilamaz()
+    {
+        var hata = CatalogRules.TicketCategoryError(new Category { Id = 1, Name = "Eski", IsActive = false });
+        Assert.Contains("pasif", hata!);
+    }
+
+    [Fact]
+    public void Ust_kategori_pasifse_altina_talep_acilamaz()
+    {
+        var hata = CatalogRules.TicketCategoryError(new Category
+        {
+            Id = 2, Name = "Laptop", IsActive = true,
+            Parent = new Category { Id = 1, Name = "Donanım", IsActive = false }
+        });
+        Assert.Contains("Üst kategori pasif", hata!);
+    }
+
+    [Fact]
+    public void Aktif_kategori_talepte_kabul_edilir()
+    {
+        Assert.Null(CatalogRules.TicketCategoryError(new Category
+        {
+            Id = 1, Name = "Yazılım", IsActive = true,
+            Parent = new Category { Id = 9, Name = "BT", IsActive = true }
+        }));
+    }
 }

@@ -108,8 +108,13 @@ public class PortalController : Controller
         ticket.RequesterName = me.FullName;
         ModelState.Remove(nameof(Ticket.RequesterName));
 
-        var category = await _db.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == ticket.CategoryId && c.IsActive);
-        if (category == null) ModelState.AddModelError(nameof(Ticket.CategoryId), "Geçerli bir kategori seçin.");
+        // Pasif (veya üstü pasif) kategoriye yeni talep açılamaz; liste zaten
+        // yalnızca aktifleri gösterir, burada form kurcalamasına karşı sunucu kontrolü.
+        var category = await _db.Categories.AsNoTracking()
+            .Include(c => c.Parent)
+            .FirstOrDefaultAsync(c => c.Id == ticket.CategoryId);
+        if (CatalogRules.TicketCategoryError(category) is { } katHata)
+            ModelState.AddModelError(nameof(Ticket.CategoryId), katHata);
 
         // Talep eki sınırı + kullanıcı kotası (yeni talep: ticketId henüz yok)
         var fileError = _files.Validate(files, UploadKind.Ticket)
