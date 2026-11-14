@@ -1,5 +1,19 @@
 @model DashboardVm
+@inject CurrentUser Me
 @{ ViewData["Title"] = "Genel Bakış"; }
+
+@if (Me.Role == UserRole.Admin && Model.MissingPhoneUsers > 0)
+{
+    <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2 mb-3" role="status">
+        <i class="bi bi-phone-vibrate"></i>
+        <span class="me-auto">
+            <strong>@Model.MissingPhoneUsers aktif hesapta telefon yok.</strong>
+            Bu kullanıcılar OTP ile giriş yapamaz.
+        </span>
+        <a class="btn btn-sm btn-outline-warning" asp-controller="Users" asp-action="Index"
+           asp-route-missingPhone="true" asp-route-active="true">Kullanıcıları aç</a>
+    </div>
+}
 
 <!-- KPI -->
 <div class="row g-3 mb-3">

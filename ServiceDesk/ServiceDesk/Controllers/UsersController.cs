@@ -4,6 +4,7 @@ using ServiceDesk.Data;
 using ServiceDesk.Filters;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
+using ServiceDesk.Services.Notifications;
 
 namespace ServiceDesk.Controllers;
 
@@ -24,20 +25,23 @@ public class UsersController : Controller
     private readonly SessionRegistry _sessions;
     private readonly PasswordHistoryService _passwordHistory;
     private readonly AuditService _audit;
+    private readonly NotificationService _notify;
 
     public UsersController(AppDbContext db, CurrentUser current,
                            SessionRegistry sessions, PasswordHistoryService passwordHistory,
-                           AuditService audit)
+                           AuditService audit, NotificationService notify)
     {
         _db = db;
         _current = current;
         _sessions = sessions;
         _passwordHistory = passwordHistory;
         _audit = audit;
+        _notify = notify;
     }
 
     [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(RateLimitPolicies.Search)]
-    public async Task<IActionResult> Index(string? q, UserRole? role, bool? active, int page = 1)
+    public async Task<IActionResult> Index(string? q, UserRole? role, bool? active,
+                                           bool missingPhone = false, int page = 1)
     {
         var query = _db.Users.AsNoTracking()
             .Include(u => u.Department)
@@ -52,11 +56,16 @@ public class UsersController : Controller
         }
         if (role != null) query = query.Where(u => u.Role == role);
         if (active != null) query = query.Where(u => u.IsActive == active);
+        if (missingPhone)
+            query = query.Where(u => u.IsActive && (u.PhoneNumber == null || u.PhoneNumber == ""));
 
         ViewBag.Q = q;
         ViewBag.Role = role;
         ViewBag.Active = active;
+        ViewBag.MissingPhone = missingPhone;
         ViewBag.PassiveCount = await _db.Users.CountAsync(u => !u.IsActive);
+        ViewBag.MissingPhoneCount = await _db.Users.CountAsync(u =>
+            u.IsActive && (u.PhoneNumber == null || u.PhoneNumber == ""));
 
         // Son giriş denemeleri: güvenlik denetim izi. Kimin hangi IP'den, hangi
         // e-postayla ve ne sonuçla giriş denediği hassas bir kayıttır (var olmayan
@@ -246,6 +255,8 @@ public class UsersController : Controller
         var yeniKayit = user == null;
         var pasiflestirildi = user is { IsActive: true } && !vm.IsActive;
         var rolDegisti = user != null && user.Role != vm.Role;
+        var oncekiTelefonYok = user != null && string.IsNullOrWhiteSpace(user.PhoneNumber);
+        var oncekiAktif = user?.IsActive ?? false;
         if (user == null)
         {
             user = new AppUser { CreatedAt = AppTime.UtcNow };
@@ -269,6 +280,20 @@ public class UsersController : Controller
 
         if (pasiflestirildi)
             await _sessions.CloseAllAsync(user.Id);
+
+        // Aktif + telefonsuz: OTP giriş yapılamaz → yöneticilere uyarı
+        // (yalnızca yeni / telefon silindi / aktifleştirildi durumlarında; spam olmasın)
+        var simdiTelefonYok = string.IsNullOrWhiteSpace(user.PhoneNumber);
+        if (user.IsActive && simdiTelefonYok &&
+            (yeniKayit || !oncekiTelefonYok || (!oncekiAktif && user.IsActive)))
+        {
+            await _notify.QueueToRoleAsync(UserRole.Admin, NotificationType.MissingPhone,
+                "Telefonu tanımlı olmayan hesap",
+                $"{user.FullName} ({user.Email}) aktif ama telefon numarası yok; OTP ile giriş yapamaz.",
+                templateKey: EmailTemplates.MissingPhone);
+            _notify.SignalDelivery();
+            await _db.SaveChangesAsync();
+        }
 
         var sifreBelirlendi = !string.IsNullOrEmpty(vm.Password);
         TempData["Ok"] = yeniKayit

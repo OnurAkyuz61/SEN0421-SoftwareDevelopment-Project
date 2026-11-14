@@ -533,7 +533,9 @@ public enum NotificationType
     [Display(Name = "Uygunsuzluk açıldı")] NonconformityOpened = 12,
     // Düzeltici faaliyetin termini yaklaşan / geçen kayıtlar
     // (NonconformityReminderService)
-    [Display(Name = "Uygunsuzluk termin hatırlatma")] NonconformityDueReminder = 13
+    [Display(Name = "Uygunsuzluk termin hatırlatma")] NonconformityDueReminder = 13,
+    // Aktif hesapta telefon yok → OTP ile giriş yapılamaz; yöneticiye uyarı
+    [Display(Name = "Telefon tanımsız hesap")] MissingPhone = 14
 }
 
 public enum NotificationChannel { InApp = 0, Email = 1, Sms = 2 }

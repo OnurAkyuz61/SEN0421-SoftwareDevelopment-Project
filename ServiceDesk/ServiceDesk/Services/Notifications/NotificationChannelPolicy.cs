@@ -36,6 +36,9 @@ public static class NotificationChannelPolicy
         // yine kapatılamaz. Geciken düzeltici faaliyet denetimde açık bulgu
         // olduğu için SMS'e de izin verilir (varsayılan kapalı; kullanıcı açar).
         [NotificationType.NonconformityDueReminder] = new(new(true, true, false), InAppLocked: true, SmsAllowed: true),
+        // Telefonsuz aktif hesap: OTP giriş yapılamaz. Yöneticiye uygulama içi
+        // uyarı kilitli; e-posta varsayılan açık, SMS yok (hedefin telefonu yok).
+        [NotificationType.MissingPhone] = new(new(true, true, false), InAppLocked: true, SmsAllowed: false),
         // Günlük özet yalnızca e-postadır; tercihi AppUser.DailyDigestEnabled ile yönetilir
         [NotificationType.DailyDigest]      = new(new(false, true, false), InAppLocked: false, SmsAllowed: false),
         // Anket hatırlatma da yalnızca e-postadır (SurveyReminderService

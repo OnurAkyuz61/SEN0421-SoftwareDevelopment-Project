@@ -5,9 +5,25 @@
     var secilenRol = (UserRole?)ViewBag.Role;
     var secilenDurum = (bool?)ViewBag.Active;
     var pasifSayi = (int)ViewBag.PassiveCount;
+    var telefonsuzSayi = (int)ViewBag.MissingPhoneCount;
+    var telefonsuzFiltre = ViewBag.MissingPhone as bool? == true;
     var yonetici = Me.Role == UserRole.Admin;
     var buSayfa = Context.Request.Path + Context.Request.QueryString;
     var pager = (PagerInfo)ViewBag.Pager;
+}
+
+@if (yonetici && telefonsuzSayi > 0 && !telefonsuzFiltre)
+{
+    <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2" role="status">
+        <i class="bi bi-phone-vibrate"></i>
+        <span class="me-auto">
+            <strong>@telefonsuzSayi aktif hesapta telefon yok.</strong>
+            Bu kullanıcılar OTP ile giriş yapamaz.
+        </span>
+        <a class="btn btn-sm btn-outline-warning" asp-action="Index" asp-route-missingPhone="true" asp-route-active="true">
+            Listele
+        </a>
+    </div>
 }
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
@@ -15,7 +31,9 @@
         <h4 class="fw-bold mb-0">Kullanıcı yönetimi</h4>
         <div class="text-muted small">
             @pager.TotalCount kayıt · pasif hesap: @pasifSayi ·
+            @if (telefonsuzSayi > 0) { <text>telefonsuz aktif: @telefonsuzSayi ·</text> }
             kayıtlar silinmez, pasifleştirilir
+            @if (telefonsuzFiltre) { <text>· <span class="text-warning">telefon tanımsız filtresi açık</span></text> }
         </div>
     </div>
     @if (yonetici)
@@ -50,6 +68,11 @@
                 <option value="true" selected="@(secilenDurum == true)">Aktif</option>
                 <option value="false" selected="@(secilenDurum == false)">Pasif</option>
             </select>
+        </div>
+        <div class="form-check mb-1">
+            <input class="form-check-input" type="checkbox" name="missingPhone" value="true"
+                   id="missingPhone" @(telefonsuzFiltre ? "checked" : null) />
+            <label class="form-check-label small" for="missingPhone">Yalnızca telefonsuz aktif</label>
         </div>
         <button class="btn btn-sm btn-secondary"><i class="bi bi-funnel"></i> Filtrele</button>
         <a asp-action="Index" class="btn btn-sm btn-light border">Temizle</a>

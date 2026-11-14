@@ -282,13 +282,14 @@ public class NotificationService
         NotificationType.NewTicket => "bi-plus-circle",
         NotificationType.SurveyReminder => "bi-star",
         NotificationType.NonconformityOpened => "bi-clipboard2-x",
+        NotificationType.MissingPhone => "bi-phone-vibrate",
         _ => "bi-chat-left-text"
     };
 
     public static string Color(NotificationType type) => type switch
     {
         NotificationType.SlaBreach or NotificationType.Escalation => "danger",
-        NotificationType.NonconformityOpened => "warning",
+        NotificationType.NonconformityOpened or NotificationType.MissingPhone => "warning",
         NotificationType.SlaWarning or NotificationType.ApprovalPending or NotificationType.ApprovalReminder => "warning",
         NotificationType.NewTicket => "success",
         _ => "primary"
@@ -309,6 +310,7 @@ public class NotificationService
         NotificationType.ChangeImplementation => "Değişiklik uygulaması",
         NotificationType.SurveyReminder => "Anket hatırlatma",
         NotificationType.NonconformityOpened => "Uygunsuzluk açıldı",
+        NotificationType.MissingPhone => "Telefon tanımsız hesap",
         _ => type.ToString()
     };
 }

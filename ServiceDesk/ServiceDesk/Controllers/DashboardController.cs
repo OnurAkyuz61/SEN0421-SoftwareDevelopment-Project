@@ -138,7 +138,9 @@ public class DashboardController : Controller
             OpenNonconformities = await _db.Nonconformities
                 .CountAsync(n => n.Status != NonconformityStatus.Closed),
             OverdueNonconformities = await _db.Nonconformities
-                .CountAsync(n => n.Status != NonconformityStatus.Closed && n.DueAt != null && n.DueAt < simdi)
+                .CountAsync(n => n.Status != NonconformityStatus.Closed && n.DueAt != null && n.DueAt < simdi),
+            MissingPhoneUsers = await _db.Users.CountAsync(u =>
+                u.IsActive && (u.PhoneNumber == null || u.PhoneNumber == ""))
         };
 
         return View(vm);

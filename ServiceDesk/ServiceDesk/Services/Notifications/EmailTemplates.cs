@@ -34,6 +34,7 @@ public static class EmailTemplates
     public const string NonconformityOpened = "nonconformity.opened";
     public const string NonconformityReminder = "nonconformity.reminder";
     public const string NonconformityOverdue = "nonconformity.overdue";
+    public const string MissingPhone = "user.missingphone";
 
     // Eskalasyon seviyesine göre şablon anahtarı: 1, 2 ve 3 ve üzeri ayrı
     public static string Escalation(int level) => $"escalation.l{Math.Clamp(level, 1, 3)}";
@@ -56,6 +57,7 @@ public static class EmailTemplates
         // Termin hatırlatmasının iki tonu var (yaklaşıyor / geçti); çağıran
         // hangisini kullanacağını TemplateKey ile söyler, varsayılan yumuşak olanı
         NotificationType.NonconformityDueReminder => NonconformityReminder,
+        NotificationType.MissingPhone => MissingPhone,
         _ => Comment
     };
 
@@ -109,6 +111,9 @@ public static class EmailTemplates
         SurveyReminder => new("Talebinizi değerlendirmeyi unuttunuz mu?",
             "Çözülen talebiniz için kısa bir memnuniyet anketi bekliyor. Birkaç soruluk bu değerlendirme, hizmetin nerede iyileştirilmesi gerektiğini görmemizi sağlıyor.",
             "#0f766e", "⭐", "Anket hatırlatma", "Anketi doldur"),
+        MissingPhone => new("Telefonu tanımlı olmayan hesap",
+            "Aktif bir kullanıcı hesabında OTP için telefon numarası yok. Bu kişi giriş yapamaz; kullanıcı yönetiminden numara ekleyin.",
+            "#d97706", "📱", "Telefon tanımsız", "Kullanıcıları aç"),
         Digest => new("Günlük özetiniz",
             "Son 24 saatte size ait talepler ve bildirimler:",
             "#334155", "📋", "Günlük özet", "Panele git"),

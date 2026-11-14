@@ -38,4 +38,7 @@ public class DashboardVm
     public double LowCsatThreshold { get; set; }
     public int OpenNonconformities { get; set; }
     public int OverdueNonconformities { get; set; }
+
+    // Aktif + telefonsuz hesaplar (OTP giriş yapılamaz) — yönetici uyarısı
+    public int MissingPhoneUsers { get; set; }
 }
