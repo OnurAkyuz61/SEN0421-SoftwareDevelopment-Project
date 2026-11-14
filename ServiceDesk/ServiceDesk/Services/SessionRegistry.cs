@@ -81,12 +81,17 @@ public class SessionRegistry
         await _db.SaveChangesAsync();
     }
 
-    // Pasifleştirme / zorla çıkış: hesaptaki tüm açık oturumlar
-    public async Task CloseAllAsync(int userId)
+    public Task<int> CountOpenAsync(int userId) =>
+        _db.UserActiveSessions.CountAsync(s => s.UserId == userId);
+
+    // Pasifleştirme / zorla çıkış: hesaptaki tüm açık oturumlar.
+    // Kapatılan oturum sayısı döner (0 = zaten açık oturum yok).
+    public async Task<int> CloseAllAsync(int userId)
     {
         var rows = await _db.UserActiveSessions.Where(s => s.UserId == userId).ToListAsync();
-        if (rows.Count == 0) return;
+        if (rows.Count == 0) return 0;
         _db.UserActiveSessions.RemoveRange(rows);
         await _db.SaveChangesAsync();
+        return rows.Count;
     }
 }

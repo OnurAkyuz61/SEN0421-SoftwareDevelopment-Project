@@ -122,6 +122,18 @@
                                    buradaki düğme sık yapılan işi tek tıkla halleder *@
                                 @if (u.Id != Me.Id)
                                 {
+                                    @if (u.IsActive)
+                                    {
+                                        <form asp-action="ForceLogout" method="post" class="d-inline"
+                                              onsubmit="return confirm('Bu kullanıcının tüm açık oturumları sonlandırılsın mı?');">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <input type="hidden" name="returnUrl" value="@buSayfa" />
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                                    title="Açık oturumları sonlandır">
+                                                <i class="bi bi-box-arrow-right"></i> Zorla çıkış
+                                            </button>
+                                        </form>
+                                    }
                                     <form asp-action="SetActive" method="post" class="d-inline">
                                         <input type="hidden" name="id" value="@u.Id" />
                                         <input type="hidden" name="isActive" value="@(!u.IsActive)" />

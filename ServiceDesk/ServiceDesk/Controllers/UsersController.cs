@@ -23,14 +23,17 @@ public class UsersController : Controller
     private readonly CurrentUser _current;
     private readonly SessionRegistry _sessions;
     private readonly PasswordHistoryService _passwordHistory;
+    private readonly AuditService _audit;
 
     public UsersController(AppDbContext db, CurrentUser current,
-                           SessionRegistry sessions, PasswordHistoryService passwordHistory)
+                           SessionRegistry sessions, PasswordHistoryService passwordHistory,
+                           AuditService audit)
     {
         _db = db;
         _current = current;
         _sessions = sessions;
         _passwordHistory = passwordHistory;
+        _audit = audit;
     }
 
     [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(RateLimitPolicies.Search)]
@@ -278,6 +281,35 @@ public class UsersController : Controller
                         ? $"{user.FullName} hesabı güncellendi. Yeni şifre geçici; bir sonraki girişte değiştirmesi istenecek."
                         : $"{user.FullName} hesabı güncellendi.";
         return RedirectToAction(nameof(Index));
+    }
+
+    // Yönetici, hesabı pasifleştirmeden tüm açık oturumları düşürür.
+    // Hedef kullanıcı bir sonraki isteğinde giriş ekranına yönlendirilir.
+    [HttpPost, ValidateAntiForgeryToken]
+    [AuthorizeRole(UserRole.Admin)]
+    public async Task<IActionResult> ForceLogout(int id, string? returnUrl)
+    {
+        var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+        if (user == null) return NotFound();
+
+        if (user.Id == _current.User!.Id)
+        {
+            TempData["Err"] = "Kendi oturumunuzu bu düğmeyle kapatamazsınız; çıkış yapın.";
+        }
+        else
+        {
+            var kapatilan = await _sessions.CloseAllAsync(user.Id);
+            await _audit.WriteAsync(AuditAction.ForceLogout, _current.User.Id, _current.User.Email,
+                $"Yönetici zorla çıkış: {user.FullName} (#{user.Id}), {kapatilan} oturum kapatıldı.");
+
+            TempData["Ok"] = kapatilan == 0
+                ? $"{user.FullName} için açık oturum bulunamadı."
+                : $"{user.FullName} hesabının {kapatilan} açık oturumu sonlandırıldı.";
+        }
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            return Redirect(returnUrl!);
+        return RedirectToAction(nameof(Edit), new { id });
     }
 
     // Listeden hızlı aktif / pasif değişimi

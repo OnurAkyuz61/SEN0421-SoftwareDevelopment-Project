@@ -118,7 +118,7 @@ public sealed class ApiAuthorizeRoleAttribute : AuthorizeRoleAttribute
             current.DeactivatedThisRequest
                 ? "Hesabınız pasifleştirilmiş. Oturumunuz kapatıldı."
                 : current.ConcurrentReplacedThisRequest
-                    ? "Hesabınıza başka bir oturum açıldığı için bu oturum kapatıldı."
+                    ? "Oturumunuz sonlandırıldı (başka bir giriş veya yönetici işlemi)."
                     : current.ExpiredThisRequest
                         ? "Oturumunuzun süresi doldu. Yeniden giriş yapın."
                         : "Bu uç için giriş yapmanız gerekiyor.");

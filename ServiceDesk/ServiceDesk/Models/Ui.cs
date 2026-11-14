@@ -206,6 +206,7 @@ public static class Ui
         AuditAction.RateLimited => "İstek sınırı aşıldı",
         AuditAction.AttachmentPurged => "Ek dosya kalıcı silindi",
         AuditAction.AttachmentOrphanDeleted => "Sahipsiz dosya silindi",
+        AuditAction.ForceLogout => "Zorla çıkış",
         _ => a.ToString()
     };
 }
