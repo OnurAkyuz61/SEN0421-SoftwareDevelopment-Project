@@ -854,6 +854,26 @@ public class LoginAttempt
     public bool IsSuccess => Result == LoginResult.Success;
 }
 
+// Aynı hesapta açık oturum kaydı. Her başarılı girişe bir jeton düşülür;
+// üst sınır aşılınca en eski oturum(lar) düşürülür (Auth:MaxConcurrentSessions).
+public class UserActiveSession
+{
+    public int Id { get; set; }
+
+    public int UserId { get; set; }
+    public AppUser? User { get; set; }
+
+    // Cookie/Session'da tutulan jeton; tahmin edilemez Guid
+    [Required, StringLength(36)]
+    public string Token { get; set; } = "";
+
+    public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+    public DateTime LastSeenAt { get; set; } = AppTime.UtcNow;
+
+    [StringLength(45)]
+    public string? IpAddress { get; set; }
+}
+
 // Şifre sıfırlama bağlantısı. Ham token e-postada gider; veritabanında
 // yalnızca SHA-256 özeti tutulur. Tek kullanımlık ve sürelidir.
 public class PasswordResetToken

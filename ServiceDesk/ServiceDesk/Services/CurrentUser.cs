@@ -6,14 +6,15 @@ using ServiceDesk.Models;
 namespace ServiceDesk.Services;
 
 // Oturumdaki kullanıcıyı tek bir yerden okur.
-// AccountController giriş sonrası Session'a yalnızca Id ve giriş zamanını
-// yazar; kullanıcının kendisi ilk erişimde veritabanından okunup istek
-// boyunca saklanır.
+// AccountController giriş sonrası Session'a Id, rol damgası, jeton ve giriş
+// zamanını yazar; kullanıcının kendisi ilk erişimde veritabanından okunup
+// istek boyunca saklanır.
 //
-// Oturum üç şekilde sona erer:
+// Oturum dört şekilde sona erer:
 //   1) Boşta kalma: AddSession → IdleTimeout (her istekte yenilenir)
 //   2) Mutlak süre: girişten AbsoluteTimeoutHours sonra, işlem yapılsa bile
 //   3) Hesap pasifleştirme: bir sonraki istekte Session temizlenir
+//   4) Eşzamanlı oturum sınırı: yeni giriş eski jetonu DB'den düşürür
 public class CurrentUser
 {
     public const string SessionKey = SessionKeys.UserId;
@@ -21,14 +22,17 @@ public class CurrentUser
     private readonly IHttpContextAccessor _http;
     private readonly AppDbContext _db;
     private readonly AuthSettings _settings;
+    private readonly SessionRegistry _sessions;
     private AppUser? _cached;
     private bool _loaded;
 
-    public CurrentUser(IHttpContextAccessor http, AppDbContext db, IOptions<AuthSettings> settings)
+    public CurrentUser(IHttpContextAccessor http, AppDbContext db, IOptions<AuthSettings> settings,
+                       SessionRegistry sessions)
     {
         _http = http;
         _db = db;
         _settings = settings.Value;
+        _sessions = sessions;
     }
 
     private ISession? Session => _http.HttpContext?.Session;
@@ -40,6 +44,9 @@ public class CurrentUser
 
     // Bu istekte hesap pasif bulunduğu için oturum kapatıldıysa true
     public bool DeactivatedThisRequest { get; private set; }
+
+    // Bu istekte oturum jetonu geçersiz (başka yerden giriş / limit) ise true
+    public bool ConcurrentReplacedThisRequest { get; private set; }
 
     // Bu istekte DB'deki rol, oturumda tutulan rolden farklıysa true;
     // yetkiler DB'den okunur, Session'daki rol damgası güncellenir.
@@ -53,7 +60,7 @@ public class CurrentUser
         DateTime.TryParse(Session?.GetString(SessionKeys.IssuedAt), null,
                           System.Globalization.DateTimeStyles.RoundtripKind, out var t) ? t : null;
 
-    // Pasifleştirilmiş kullanıcıda Session temizlenir; null döner
+    // Pasifleştirilmiş / düşürülmüş oturumda Session temizlenir; null döner
     public AppUser? User
     {
         get
@@ -80,6 +87,17 @@ public class CurrentUser
                 Session!.Clear();
                 if (user is { IsActive: false })
                     DeactivatedThisRequest = true;
+                return null;
+            }
+
+            // Eşzamanlı oturum jetonu: yoksa veya DB'de yoksa bu oturum düşmüş demektir
+            var session = Session;
+            if (session is null) return null;
+            var token = session.GetString(SessionKeys.SessionToken);
+            if (!_sessions.IsOpen(user.Id, token ?? ""))
+            {
+                session.Clear();
+                ConcurrentReplacedThisRequest = true;
                 return null;
             }
 

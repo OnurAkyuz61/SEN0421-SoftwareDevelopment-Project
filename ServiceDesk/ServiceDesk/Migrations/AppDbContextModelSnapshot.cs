@@ -2040,6 +2040,42 @@ namespace ServiceDesk.Migrations
                     b.ToTable("TicketHistories");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.UserActiveSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("UserActiveSessions");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.AppUser", b =>
                 {
                     b.HasOne("ServiceDesk.Models.Department", "Department")
@@ -2641,6 +2677,17 @@ namespace ServiceDesk.Migrations
                     b.Navigation("ChangedBy");
 
                     b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.UserActiveSession", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.BusinessCalendar", b =>

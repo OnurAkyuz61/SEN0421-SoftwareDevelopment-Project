@@ -28,6 +28,13 @@ else if (reason == "deactivated")
         <span>Hesabınız pasifleştirilmiş; açık oturumunuz kapatıldı. Yöneticinize başvurun.</span>
     </div>
 }
+else if (reason == "concurrent")
+{
+    <div class="auth-alert warn" role="status">
+        <i class="bi bi-laptop"></i>
+        <span>Hesabınıza başka bir yerden giriş yapıldığı için bu oturum kapatıldı. Tekrar giriş yapabilirsiniz.</span>
+    </div>
+}
 else if (reason == "logout")
 {
     <div class="auth-alert success" role="status">

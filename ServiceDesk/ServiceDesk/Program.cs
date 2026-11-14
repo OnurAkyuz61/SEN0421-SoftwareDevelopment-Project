@@ -22,6 +22,7 @@ builder.Services.AddSingleton<FileStorage>(); // talep ekleri (Uploads/ klasör�
 builder.Services.AddScoped<AttachmentQuota>();        // kullanıcı / talep başına depolama kotası
 builder.Services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<SessionRegistry>();       // eşzamanlı oturum kaydı / limiti
 builder.Services.AddScoped<CurrentUser>();           // oturumdaki kullanıcı
 builder.Services.AddScoped<NotificationService>();   // bildirim okuma / yazma
 builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef tarihler

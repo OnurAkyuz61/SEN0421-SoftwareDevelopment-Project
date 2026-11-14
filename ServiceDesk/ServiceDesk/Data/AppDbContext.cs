@@ -45,6 +45,7 @@ public class AppDbContext : DbContext
     public DbSet<KnowledgeArticleRevision> KnowledgeArticleRevisions => Set<KnowledgeArticleRevision>();
     public DbSet<KnowledgeArticleFeedback> KnowledgeArticleFeedbacks => Set<KnowledgeArticleFeedback>();
     public DbSet<LoginAttempt> LoginAttempts => Set<LoginAttempt>();
+    public DbSet<UserActiveSession> UserActiveSessions => Set<UserActiveSession>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
@@ -509,6 +510,14 @@ public class AppDbContext : DbContext
           .OnDelete(DeleteBehavior.SetNull);
         mb.Entity<LoginAttempt>().HasIndex(l => new { l.Email, l.AttemptedAt });
         mb.Entity<LoginAttempt>().Ignore(l => l.IsSuccess);
+
+        // Eşzamanlı oturumlar: kullanıcı silinirse kayıtlar da gider
+        mb.Entity<UserActiveSession>()
+          .HasOne(s => s.User).WithMany()
+          .HasForeignKey(s => s.UserId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<UserActiveSession>().HasIndex(s => s.Token).IsUnique();
+        mb.Entity<UserActiveSession>().HasIndex(s => new { s.UserId, s.CreatedAt });
 
         // Şifre sıfırlama: kullanıcı silinirse token'lar da gider; özet benzersiz
         mb.Entity<PasswordResetToken>()

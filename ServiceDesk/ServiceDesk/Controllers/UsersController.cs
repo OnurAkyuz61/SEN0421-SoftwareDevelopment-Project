@@ -23,12 +23,15 @@ public class UsersController : Controller
     private readonly AppDbContext _db;
     private readonly CurrentUser _current;
     private readonly IPasswordHasher<AppUser> _hasher;
+    private readonly SessionRegistry _sessions;
 
-    public UsersController(AppDbContext db, CurrentUser current, IPasswordHasher<AppUser> hasher)
+    public UsersController(AppDbContext db, CurrentUser current, IPasswordHasher<AppUser> hasher,
+                           SessionRegistry sessions)
     {
         _db = db;
         _current = current;
         _hasher = hasher;
+        _sessions = sessions;
     }
 
     [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(RateLimitPolicies.Search)]
@@ -258,10 +261,13 @@ public class UsersController : Controller
 
         await _db.SaveChangesAsync();
 
+        if (pasiflestirildi)
+            await _sessions.CloseAllAsync(user.Id);
+
         TempData["Ok"] = yeniKayit
             ? $"{user.FullName} ({Ui.RoleText(user.Role)}) hesabı oluşturuldu."
             : pasiflestirildi
-                ? $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu, açık oturumu bir sonraki istekte kapatılır."
+                ? $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu, açık oturumları kapatıldı."
                 : rolDegisti
                     ? $"{user.FullName} rolü {Ui.RoleText(user.Role)} olarak güncellendi. Açık oturumundaki yetkiler bir sonraki istekte yenilenir."
                     : $"{user.FullName} hesabı güncellendi.";
@@ -299,9 +305,12 @@ public class UsersController : Controller
             user.IsActive = isActive;
             await _db.SaveChangesAsync();
 
+            if (!isActive)
+                await _sessions.CloseAllAsync(user.Id);
+
             TempData["Ok"] = isActive
                 ? $"{user.FullName} hesabı yeniden aktifleştirildi."
-                : $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu; açık oturumu bir sonraki istekte kapatılır.";
+                : $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu; açık oturumları kapatıldı.";
         }
 
         return Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl!) : RedirectToAction(nameof(Index));

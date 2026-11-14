@@ -34,6 +34,10 @@ public class AuthSettings
 
     // Şifre sıfırlama bağlantısının geçerlilik süresi (saat)
     public int PasswordResetHours { get; set; } = 1;
+
+    // Aynı hesapta aynı anda açık kalabilecek oturum sayısı.
+    // Yeni giriş üst sınırı aşarsa en eski oturum(lar) düşürülür.
+    public int MaxConcurrentSessions { get; set; } = 1;
 }
 
 // Session anahtarları — yazım hatası olmasın diye sabit
@@ -44,6 +48,8 @@ public static class SessionKeys
     public const string IssuedAt = "Auth.IssuedAt";
     // Oturumda bilinen rol; DB'deki rol değişince CurrentUser yeniler
     public const string Role = "Auth.Role";
+    // UserActiveSessions.Token — eşzamanlı oturum sınırı için
+    public const string SessionToken = "Auth.SessionToken";
 
     // Şifre doğrulandı, OTP bekleniyor
     public const string PendingUserId = "Otp.UserId";

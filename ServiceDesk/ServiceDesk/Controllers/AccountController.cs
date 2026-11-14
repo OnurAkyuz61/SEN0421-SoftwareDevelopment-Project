@@ -35,12 +35,13 @@ public class AccountController : Controller
     private readonly AuthSettings _cfg;
     private readonly OtpDeliveryService _otp;
     private readonly AuditService _auditLog;
+    private readonly SessionRegistry _sessions;
 
     public AccountController(AppDbContext db, IPasswordHasher<AppUser> hasher,
                              CurrentUser current, IWebHostEnvironment env,
                              LoginAuditService audit, IEmailSender email,
                              IOptions<AuthSettings> cfg, OtpDeliveryService otp,
-                             AuditService auditLog)
+                             AuditService auditLog, SessionRegistry sessions)
     {
         _db = db;
         _hasher = hasher;
@@ -51,6 +52,7 @@ public class AccountController : Controller
         _cfg = cfg.Value;
         _otp = otp;
         _auditLog = auditLog;
+        _sessions = sessions;
     }
 
     private ISession Session => HttpContext.Session;
@@ -64,8 +66,10 @@ public class AccountController : Controller
         // Pasif hesap User null döner ve Session temizlenir.
         if (_current.User is { } signedIn) return RedirectAfterLogin(signedIn.Role, returnUrl);
 
-        // timeout | expired | logout | deactivated
-        ViewData["Reason"] = _current.DeactivatedThisRequest ? "deactivated" : reason;
+        // timeout | expired | logout | deactivated | concurrent
+        ViewData["Reason"] = _current.DeactivatedThisRequest ? "deactivated"
+            : _current.ConcurrentReplacedThisRequest ? "concurrent"
+            : reason;
         return View(new LoginVm { ReturnUrl = SafeReturnUrl(returnUrl) });
     }
 
@@ -168,7 +172,7 @@ public class AccountController : Controller
         if (user == null) return NotFound();
 
         await _audit.RecordAsync(user.Email, LoginResult.DevLogin, user.Id);
-        StartSession(user);
+        await StartSessionAsync(user);
 
         TempData["Ok"] = $"Geliştirme girişi: {user.FullName} ({Ui.RoleText(user.Role)})";
         return RedirectAfterLogin(user.Role, returnUrl);
@@ -176,8 +180,13 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
+        var userId = Session.GetInt32(SessionKeys.UserId);
+        var token = Session.GetString(SessionKeys.SessionToken);
+        if (userId is int uid)
+            await _sessions.CloseAsync(uid, token);
+
         Session.Clear();
         Response.Cookies.Delete(AuthSettings.CookieName);
         return RedirectToAction(nameof(Login), new { reason = "logout" });
@@ -413,7 +422,7 @@ public class AccountController : Controller
         await _audit.RecordAsync(user.Email, LoginResult.Success, user.Id);
 
         var returnUrl = Session.GetString(SessionKeys.ReturnUrl);
-        StartSession(user);
+        await StartSessionAsync(user);
 
         return RedirectAfterLogin(user.Role, returnUrl);
     }
@@ -586,12 +595,15 @@ public class AccountController : Controller
         vm.AttemptsLeft = Math.Max(0, _cfg.OtpMaxAttempts - (Session.GetInt32(SessionKeys.Attempts) ?? 0));
     }
 
-    // Oturumu sıfırdan açar: bekleyen girişe ait tüm anahtarlar silinir
-    private void StartSession(AppUser user)
+    // Oturumu sıfırdan açar: bekleyen girişe ait tüm anahtarlar silinir.
+    // SessionRegistry limit aşımında eski oturumları düşürür.
+    private async Task StartSessionAsync(AppUser user)
     {
+        var token = await _sessions.OpenAsync(user.Id);
         Session.Clear();
         Session.SetInt32(SessionKeys.UserId, user.Id);
         Session.SetInt32(SessionKeys.Role, (int)user.Role);
+        Session.SetString(SessionKeys.SessionToken, token);
         SetTime(SessionKeys.IssuedAt, DateTime.UtcNow);
     }
 

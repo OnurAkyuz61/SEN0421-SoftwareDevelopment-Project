@@ -53,6 +53,7 @@ public class AuthorizeRoleAttribute : Attribute, IAuthorizationFilter
         {
             returnUrl,
             reason = current.DeactivatedThisRequest ? "deactivated"
+                   : current.ConcurrentReplacedThisRequest ? "concurrent"
                    : current.ExpiredThisRequest ? "expired"
                    : null
         });
@@ -116,9 +117,11 @@ public sealed class ApiAuthorizeRoleAttribute : AuthorizeRoleAttribute
         Error(StatusCodes.Status401Unauthorized,
             current.DeactivatedThisRequest
                 ? "Hesabınız pasifleştirilmiş. Oturumunuz kapatıldı."
-                : current.ExpiredThisRequest
-                    ? "Oturumunuzun süresi doldu. Yeniden giriş yapın."
-                    : "Bu uç için giriş yapmanız gerekiyor.");
+                : current.ConcurrentReplacedThisRequest
+                    ? "Hesabınıza başka bir oturum açıldığı için bu oturum kapatıldı."
+                    : current.ExpiredThisRequest
+                        ? "Oturumunuzun süresi doldu. Yeniden giriş yapın."
+                        : "Bu uç için giriş yapmanız gerekiyor.");
 
     protected override IActionResult Forbidden(AuthorizationFilterContext context, CurrentUser current, AppUser user) =>
         Error(StatusCodes.Status403Forbidden, current.RoleChangedThisRequest
