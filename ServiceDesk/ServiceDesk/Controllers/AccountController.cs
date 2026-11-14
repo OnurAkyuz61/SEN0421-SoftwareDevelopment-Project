@@ -719,12 +719,18 @@ public class AccountController : Controller
     // SessionRegistry limit aşımında eski oturumları düşürür.
     private async Task StartSessionAsync(AppUser user)
     {
+        var now = AppTime.UtcNow;
+        user.LastLoginAt = now;
+        // Takip durumundan bağımsız yaz (OTP / DevLogin aynı yol)
+        await _db.Users.Where(u => u.Id == user.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.LastLoginAt, now));
+
         var token = await _sessions.OpenAsync(user.Id);
         Session.Clear();
         Session.SetInt32(SessionKeys.UserId, user.Id);
         Session.SetInt32(SessionKeys.Role, (int)user.Role);
         Session.SetString(SessionKeys.SessionToken, token);
-        SetTime(SessionKeys.IssuedAt, DateTime.UtcNow);
+        SetTime(SessionKeys.IssuedAt, now);
     }
 
     private void ClearPendingLogin()

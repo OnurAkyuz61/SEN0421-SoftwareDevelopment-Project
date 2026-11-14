@@ -65,6 +65,7 @@ public class UserFormVm
 
     // Salt okunur gösterim (düzenleme ekranındaki bilgi kartı)
     public DateTime? CreatedAt { get; set; }
+    public DateTime? LastLoginAt { get; set; }
     public int OpenTicketCount { get; set; }
 
     public static UserFormVm From(AppUser u) => new()
@@ -78,7 +79,8 @@ public class UserFormVm
         DepartmentId = u.DepartmentId,
         TeamId = u.TeamId,
         IsActive = u.IsActive,
-        CreatedAt = u.CreatedAt
+        CreatedAt = u.CreatedAt,
+        LastLoginAt = u.LastLoginAt
     };
 }
 

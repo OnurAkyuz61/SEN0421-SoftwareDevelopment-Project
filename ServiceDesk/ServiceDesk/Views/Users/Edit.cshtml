@@ -199,10 +199,19 @@
                         </div>
                     </div>
 
-                    @if (!Model.IsNew && Model.CreatedAt != null)
+                    @if (!Model.IsNew)
                     {
                         <div class="small text-muted border-top mt-3 pt-3">
-                            Kayıt tarihi: @AppTime.ToLocal(Model.CreatedAt)?.ToString("dd.MM.yyyy HH:mm")
+                            @if (Model.CreatedAt != null)
+                            {
+                                <div>Kayıt: @AppTime.ToLocal(Model.CreatedAt)?.ToString("dd.MM.yyyy HH:mm")</div>
+                            }
+                            <div>
+                                Son giriş:
+                                @(Model.LastLoginAt == null
+                                    ? "henüz yok"
+                                    : AppTime.ToLocal(Model.LastLoginAt)?.ToString("dd.MM.yyyy HH:mm"))
+                            </div>
                         </div>
                     }
                 </div>

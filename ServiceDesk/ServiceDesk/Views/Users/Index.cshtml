@@ -97,7 +97,7 @@
             <thead>
                 <tr>
                     <th>Ad Soyad</th><th>E-posta</th><th>Telefon</th>
-                    <th>Birim / Ekip</th><th>Rol</th><th>Durum</th>
+                    <th>Birim / Ekip</th><th>Rol</th><th>Durum</th><th>Son giriş</th>
                     @if (yonetici) { <th class="text-end">İşlem</th> }
                 </tr>
             </thead>
@@ -105,7 +105,7 @@
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="@(yonetici ? 7 : 6)" class="text-center text-muted py-4">
+                        <td colspan="@(yonetici ? 8 : 7)" class="text-center text-muted py-4">
                             Bu filtrede kullanıcı bulunamadı
                         </td>
                     </tr>
@@ -140,6 +140,9 @@
                         <td>
                             @if (u.IsActive) { <span class="tag tag-green">Aktif</span> }
                             else { <span class="tag tag-gray">Pasif</span> }
+                        </td>
+                        <td class="small text-muted text-nowrap">
+                            @(u.LastLoginAt == null ? "—" : AppTime.ToLocal(u.LastLoginAt)?.ToString("dd.MM.yy HH:mm"))
                         </td>
                         @if (yonetici)
                         {

@@ -57,6 +57,9 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime?>("LastDigestSentAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)

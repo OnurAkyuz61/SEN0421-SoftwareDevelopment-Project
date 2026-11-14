@@ -864,6 +864,10 @@ public class AppUser
 
     public DateTime CreatedAt { get; set; }
 
+    // Son başarılı oturum açılışı (UTC). OTP / DevLogin tamamlanınca yazılır.
+    [Display(Name = "Son giriş")]
+    public DateTime? LastLoginAt { get; set; }
+
     // Günlük özet e-postası (DailyDigestService)
     [Display(Name = "Günlük özet e-postası")]
     public bool DailyDigestEnabled { get; set; } = true;
