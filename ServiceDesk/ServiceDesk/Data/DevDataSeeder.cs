@@ -262,6 +262,9 @@ public static class DevDataSeeder
         if (await db.Users.AnyAsync()) return;
 
         var tarih = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        // Demo hesaplar seed anında "yeni şifrelenmiş" sayılsın; aksi halde
+        // PasswordMaxAgeDays dolmuş gibi profil kilidine düşerlerdi.
+        var sifreTarihi = AppTime.UtcNow;
 
         db.Users.AddRange(
             new AppUser
@@ -270,7 +273,8 @@ public static class DevDataSeeder
                 Email = "admin@servicedesk.local",
                 PasswordHash = "AQAAAAIAAYagAAAAEFi3JF03e5L+rT0TFVRNIDpLX9U4gHjj97qMn+Eb/motK5gw/4voqGzIWdLDQnLoRg==", // admin123
                 PhoneNumber = "05321234567",
-                Role = UserRole.Admin, DepartmentId = 1, IsActive = true, CreatedAt = tarih
+                Role = UserRole.Admin, DepartmentId = 1, IsActive = true, CreatedAt = tarih,
+                PasswordChangedAt = sifreTarihi
             },
             new AppUser
             {
@@ -278,7 +282,8 @@ public static class DevDataSeeder
                 Email = "agent@servicedesk.local",
                 PasswordHash = "AQAAAAIAAYagAAAAEGkvNowp+RHWmgqpxlh3o9uxa4AB+oXFA7R1IxRkUxU8Phrot1adAxfk+tsgti4wag==", // agent123
                 PhoneNumber = "05329876543",
-                Role = UserRole.Agent, DepartmentId = 1, TeamId = 1, IsActive = true, CreatedAt = tarih
+                Role = UserRole.Agent, DepartmentId = 1, TeamId = 1, IsActive = true, CreatedAt = tarih,
+                PasswordChangedAt = sifreTarihi
             },
             new AppUser
             {
@@ -286,7 +291,8 @@ public static class DevDataSeeder
                 Email = "user@servicedesk.local",
                 PasswordHash = "AQAAAAIAAYagAAAAEGCuZpCsLC2ztoJiLtcHCbzkXXyQBZZ6US8lq80NpQ9uHcFc6ORCHZpysx1O4810DA==", // user123
                 PhoneNumber = "05321112233",
-                Role = UserRole.User, DepartmentId = 2, IsActive = true, CreatedAt = tarih
+                Role = UserRole.User, DepartmentId = 2, IsActive = true, CreatedAt = tarih,
+                PasswordChangedAt = sifreTarihi
             });
 
         await db.SaveChangesAsync();

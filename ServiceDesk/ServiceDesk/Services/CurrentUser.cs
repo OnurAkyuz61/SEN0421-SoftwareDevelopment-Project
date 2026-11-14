@@ -135,6 +135,10 @@ public class CurrentUser
     public bool IsStaff => Role is UserRole.Agent or UserRole.Admin;
     public string DisplayName => User?.FullName ?? "";
 
+    // Periyodik şifre yenileme: süresi dolmuşsa true (PasswordMaxAgeDays ≤ 0 ise false)
+    public bool IsPasswordExpired =>
+        User is { } u && PasswordPolicy.IsExpired(u, _settings);
+
     // Avatar için baş harfler: "Rana Kurt" → "RK"
     public string Initials
     {

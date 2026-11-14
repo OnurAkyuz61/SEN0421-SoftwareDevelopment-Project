@@ -41,6 +41,9 @@ public class AuthSettings
 
     // Tekrar kullanılamayan son şifre sayısı (mevcut + geçmiş özetler).
     public int PasswordHistoryCount { get; set; } = 5;
+
+    // Şifrenin zorunlu yenilenme süresi (gün). 0 = periyodik yenileme kapalı.
+    public int PasswordMaxAgeDays { get; set; } = 90;
 }
 
 // Session anahtarları — yazım hatası olmasın diye sabit

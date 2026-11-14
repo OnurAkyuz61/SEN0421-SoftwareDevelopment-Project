@@ -11,7 +11,12 @@ using ServiceDesk.Services.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(opt =>
+{
+    // Şifre süresi dolunca profil dışına çıkışı engeller (Auth:PasswordMaxAgeDays)
+    opt.Filters.AddService<ServiceDesk.Filters.PasswordExpiryFilter>();
+});
+builder.Services.AddScoped<ServiceDesk.Filters.PasswordExpiryFilter>();
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // ───── EK DOSYALAR (Uploads/) ────────────────────────────────────────────

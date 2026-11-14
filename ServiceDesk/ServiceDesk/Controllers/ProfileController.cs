@@ -132,10 +132,19 @@ public class ProfileController : Controller
             return View("Index", await PageAsync(ToVm(me), vm));
         }
 
+        var zorunluYenileme = _current.IsPasswordExpired;
         await _passwordHistory.SetPasswordAsync(me, vm.NewPassword);
         await _db.SaveChangesAsync();
 
         TempData["Ok"] = "Şifreniz değiştirildi.";
+        // Periyodik yenileme kilidinden geliyorsa ana sayfaya dön
+        if (zorunluYenileme)
+        {
+            return me.Role == UserRole.User
+                ? RedirectToAction("Index", "Portal")
+                : RedirectToAction("Index", "Dashboard");
+        }
+
         return RedirectToAction(nameof(Index));
     }
 

@@ -48,3 +48,42 @@ public class PasswordRulesTests
         Assert.Contains("tekrar kullanılamaz", PasswordRules.HistoryHint(5));
     }
 }
+
+public class PasswordPolicyTests
+{
+    private static AuthSettings Cfg(int days) => new() { PasswordMaxAgeDays = days };
+
+    [Fact]
+    public void Max_yas_sifirsa_suresi_dolmaz()
+    {
+        var u = new ServiceDesk.Models.AppUser
+        {
+            CreatedAt = AppTime.UtcNow.AddYears(-2),
+            PasswordChangedAt = AppTime.UtcNow.AddYears(-1)
+        };
+        Assert.False(PasswordPolicy.IsExpired(u, Cfg(0)));
+    }
+
+    [Fact]
+    public void Degisim_tarihi_eskiyse_suresi_dolmus_sayilir()
+    {
+        var u = new ServiceDesk.Models.AppUser
+        {
+            CreatedAt = AppTime.UtcNow.AddDays(-200),
+            PasswordChangedAt = AppTime.UtcNow.AddDays(-100)
+        };
+        Assert.True(PasswordPolicy.IsExpired(u, Cfg(90)));
+    }
+
+    [Fact]
+    public void Degisim_tarihi_yoksa_CreatedAt_kullanilir()
+    {
+        var u = new ServiceDesk.Models.AppUser
+        {
+            CreatedAt = AppTime.UtcNow.AddDays(-100),
+            PasswordChangedAt = null
+        };
+        Assert.True(PasswordPolicy.IsExpired(u, Cfg(90)));
+        Assert.False(PasswordPolicy.IsExpired(u, Cfg(120)));
+    }
+}

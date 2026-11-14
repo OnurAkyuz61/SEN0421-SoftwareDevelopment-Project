@@ -790,6 +790,9 @@ public class AppUser
     [Required, StringLength(256)]
     public string PasswordHash { get; set; } = "";
 
+    // Son başarılı şifre değişimi (UTC). Periyodik yenileme buna göre hesaplanır.
+    public DateTime? PasswordChangedAt { get; set; }
+
     [Display(Name = "Rol")]
     public UserRole Role { get; set; } = UserRole.User;
 

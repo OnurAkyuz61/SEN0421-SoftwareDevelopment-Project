@@ -71,6 +71,7 @@ public class PasswordHistoryService
         }
 
         user.PasswordHash = _hasher.HashPassword(user, newPassword);
+        user.PasswordChangedAt = AppTime.UtcNow;
     }
 
     private async Task EnsureMaxAsync(int userId, int max)

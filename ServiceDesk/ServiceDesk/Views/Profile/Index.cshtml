@@ -4,11 +4,24 @@
 @{
     ViewData["Title"] = "Profilim";
     Layout = Me.IsStaff ? "_Layout" : "_PortalLayout";
+    var sifreSuresiDoldu = Me.IsPasswordExpired;
+}
+
+@if (sifreSuresiDoldu)
+{
+    <div class="alert alert-warning d-flex align-items-start gap-2" role="alert">
+        <i class="bi bi-key-fill mt-1"></i>
+        <div>
+            <strong>Şifre yenileme zorunlu.</strong>
+            @PasswordPolicy.ExpiredMessage(Auth.Value)
+            Aşağıdaki formdan yeni şifrenizi belirleyin; diğer işlemlere ancak bundan sonra devam edebilirsiniz.
+        </div>
+    </div>
 }
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="panel">
+        <div class="panel @(sifreSuresiDoldu ? "opacity-50" : "")">
             <div class="panel-head">Kişisel bilgiler</div>
             <div class="panel-body">
                 <form asp-action="Update" method="post" novalidate>
@@ -40,7 +53,7 @@
                         </div>
                     </div>
                     <div class="mt-4">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" @(sifreSuresiDoldu ? "disabled" : null)>
                             <i class="bi bi-check-lg"></i> Kaydet
                         </button>
                     </div>
@@ -50,7 +63,7 @@
     </div>
 
     <div class="col-lg-5">
-        <div class="panel">
+        <div class="panel @(sifreSuresiDoldu ? "border border-warning" : "")">
             <div class="panel-head">Şifre değiştir</div>
             <div class="panel-body">
                 <form asp-action="ChangePassword" method="post" novalidate>
