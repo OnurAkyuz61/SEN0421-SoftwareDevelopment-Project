@@ -40,6 +40,7 @@ public class AppDbContext : DbContext
     public DbSet<SurveyAnswer> SurveyAnswers => Set<SurveyAnswer>();
     public DbSet<KpiSnapshot> KpiSnapshots => Set<KpiSnapshot>();
     public DbSet<Nonconformity> Nonconformities => Set<Nonconformity>();
+    public DbSet<NonconformityAttachment> NonconformityAttachments => Set<NonconformityAttachment>();
     public DbSet<KnowledgeArticle> KnowledgeArticles => Set<KnowledgeArticle>();
     public DbSet<KnowledgeArticleRevision> KnowledgeArticleRevisions => Set<KnowledgeArticleRevision>();
     public DbSet<KnowledgeArticleFeedback> KnowledgeArticleFeedbacks => Set<KnowledgeArticleFeedback>();
@@ -411,8 +412,36 @@ public class AppDbContext : DbContext
           .HasOne(n => n.Responsible).WithMany()
           .HasForeignKey(n => n.ResponsibleId)
           .OnDelete(DeleteBehavior.Restrict);
+        // Etkinliği doğrulayan kişi: denetim izi olduğu için kullanıcı silinemez
+        mb.Entity<Nonconformity>()
+          .HasOne(n => n.VerifiedBy).WithMany()
+          .HasForeignKey(n => n.VerifiedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        // Uygunsuzluktan üretilen bilgi bankası makalesi (md. 10.3)
+        mb.Entity<Nonconformity>()
+          .HasOne(n => n.Article).WithMany()
+          .HasForeignKey(n => n.ArticleId)
+          .OnDelete(DeleteBehavior.Restrict);
         mb.Entity<Nonconformity>().HasIndex(n => new { n.Status, n.DueAt });
         mb.Entity<Nonconformity>().Ignore(n => n.IsOverdue);
+
+        // Kanıt dosyaları: uygunsuzluk silinirse kanıtı da gider (uygunsuzluksuz
+        // kanıt kaydının anlamı yok); yükleyen / kaldıran kullanıcı korunur.
+        mb.Entity<NonconformityAttachment>()
+          .HasOne(a => a.Nonconformity).WithMany(n => n.Attachments)
+          .HasForeignKey(a => a.NonconformityId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<NonconformityAttachment>()
+          .HasOne(a => a.UploadedBy).WithMany()
+          .HasForeignKey(a => a.UploadedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<NonconformityAttachment>()
+          .HasOne(a => a.DeletedBy).WithMany()
+          .HasForeignKey(a => a.DeletedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<NonconformityAttachment>().HasIndex(a => a.NonconformityId);
+        mb.Entity<NonconformityAttachment>().Ignore(a => a.IsImage);
+        mb.Entity<NonconformityAttachment>().Ignore(a => a.IsServable);
 
         mb.Entity<KnowledgeArticle>()
           .HasOne(a => a.Category).WithMany()
@@ -496,6 +525,9 @@ public class AppDbContext : DbContext
         // listeye, sayıma ve indirmeye düşmez (AttachmentsController.Get
         // IgnoreQueryFilters kullandığı için koşulu orada elle yazıyor).
         mb.Entity<Attachment>().HasQueryFilter(a => !a.IsDeleted && !a.Ticket!.IsDeleted);
+        // Kaldırılan kanıt dosyası da listelere ve indirmeye düşmez; kotayı
+        // hesaplayan AttachmentQuota filtreyi yok sayıp koşulu elle yazıyor.
+        mb.Entity<NonconformityAttachment>().HasQueryFilter(a => !a.IsDeleted);
         mb.Entity<SurveyResponse>().HasQueryFilter(r => !r.Ticket!.IsDeleted);
         mb.Entity<SurveyAnswer>().HasQueryFilter(a => !a.Response!.Ticket!.IsDeleted);
         mb.Entity<TicketComment>().HasQueryFilter(c => !c.Ticket!.IsDeleted);

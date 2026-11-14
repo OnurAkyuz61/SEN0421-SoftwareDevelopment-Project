@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Net.Http.Headers;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
 using ServiceDesk.Models;
@@ -72,27 +71,19 @@ public class AttachmentsController : Controller
         if (Path.GetFileName(a.StoredFileName) != a.StoredFileName || !System.IO.File.Exists(path))
             return NotFound();
 
+        // Güvenli servis kuralları FileServing'de: uygunsuzluk kanıtı da
+        // (NonconformitiesController.Evidence) aynı başlıklardan geçiyor
         var contentType = UploadPolicy.ContentTypeFor(a.StoredFileName);
-        var inline = !download && UploadPolicy.IsInlineImage(a.StoredFileName) && ImageSignatureMatches(path, a.StoredFileName);
+        FileServing.ApplySafeHeaders(Response);
 
-        var h = Response.Headers;
-        h[HeaderNames.XContentTypeOptions] = "nosniff";
-        h[HeaderNames.ContentSecurityPolicy] = "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox";
-        h["Cross-Origin-Resource-Policy"] = "same-origin";
-        h[HeaderNames.CacheControl] = "private, no-store";
-        h["Referrer-Policy"] = "no-referrer";
-
-        if (inline)
+        if (!download && FileServing.CanShowInline(path, a.StoredFileName))
         {
-            // inline + güvenli ad: "Farklı kaydet" de doğru adı önerir
-            var cd = new ContentDispositionHeaderValue("inline");
-            cd.SetHttpFileName(a.FileName);
-            h[HeaderNames.ContentDisposition] = cd.ToString();
+            FileServing.SetInlineFileName(Response, a.FileName);
             return PhysicalFile(path, contentType);
         }
 
         // İndirme: imzası tutmayan "görsel" de dahil, tarayıcı içeriği yorumlamaz
-        return PhysicalFile(path, DownloadType(contentType), UploadPolicy.SafeFileName(a.FileName));
+        return PhysicalFile(path, FileServing.DownloadType(contentType), UploadPolicy.SafeFileName(a.FileName));
     }
 
     // Ek dosyayı kaldırır. Kayıt SİLİNMEZ, işaretlenir (ISO 9001 md. 7.5:
@@ -158,20 +149,4 @@ public class AttachmentsController : Controller
             : RedirectToAction("Details", "Tickets", new { id = ticketId });
     }
 
-    // Görsel olmayan türler olduğu gibi; imzası tutmayan görsel genel ikili tür olarak iner
-    private static string DownloadType(string contentType) =>
-        contentType.StartsWith("image/", StringComparison.Ordinal) ? "application/octet-stream" : contentType;
-
-    private static bool ImageSignatureMatches(string path, string storedName)
-    {
-        try
-        {
-            using var fs = System.IO.File.OpenRead(path);
-            return UploadPolicy.Check(storedName, null, fs) == null;
-        }
-        catch (IOException)
-        {
-            return false;
-        }
-    }
 }

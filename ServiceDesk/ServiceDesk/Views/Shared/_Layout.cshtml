@@ -1,4 +1,4 @@
-@* YÖNETİM PANELİ LAYOUT'U
+﻿@* YÖNETİM PANELİ LAYOUT'U
    ┌──────────┬───────────────────────────────┐
    │ sidebar  │ üst bar (başlık, bildirim, kullanıcı menüsü)
    │ (koyu)   ├───────────────────────────────┤
@@ -75,6 +75,8 @@
                     }
                     <a class="nav-link @Act("Reports")" aria-current="@Cur("Reports")" asp-controller="Reports" asp-action="Escalations"><i class="bi bi-graph-up-arrow"></i><span>Eskalasyon raporu</span></a>
                     <a class="nav-link" asp-controller="Reports" asp-action="KnowledgeUsage"><i class="bi bi-journal-check"></i><span>Makale kullanımı</span></a>
+                    <a class="nav-link" asp-controller="Reports" asp-action="Nonconformities"><i class="bi bi-clipboard-data"></i><span>Uygunsuzluk raporu</span></a>
+                    <a class="nav-link" asp-controller="Reports" asp-action="ManagementReview"><i class="bi bi-clipboard2-check"></i><span>Yönetim gözden geçirme</span></a>
                     <a class="nav-link" asp-controller="Portal" asp-action="Index"><i class="bi bi-box-arrow-up-right"></i><span>Kullanıcı Portalı</span></a>
                 </nav>
             </div>

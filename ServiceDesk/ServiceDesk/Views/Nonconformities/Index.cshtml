@@ -1,8 +1,15 @@
 ﻿@model List<Nonconformity>
+@inject FileStorage Files
 @{
     ViewData["Title"] = "Uygunsuzluklar";
     var staff = (List<AppUser>)ViewBag.Staff;
     var secili = (NonconformityStatus?)ViewBag.Status;
+
+    // Kanıt yüklemenin sınırları sunucudan gelir (appsettings.json → Uploads);
+    // istemci kontrolü yalnızca kolaylık, asıl denetim FileStorage.Validate +
+    // AttachmentQuota'da
+    var kanitMax = Files.Settings.MaxBytesFor(UploadKind.Nonconformity);
+    var kabulEdilen = string.Join(",", FileStorage.AllowedExt);
 }
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
@@ -28,6 +35,16 @@
                    placeholder="Denetimde veya gözlemle tespit edilen uygunsuzluğu yazın" required />
             <input name="ticketNo" class="form-control form-control-sm" style="width:170px" maxlength="20"
                    placeholder="Talep no (ör. INC-2026-00042)" />
+            @* Sorumlu boş bırakılırsa kaydı açan kişi sorumlu olur; başka
+               biri seçilirse ona bildirim gider *@
+            <select name="responsibleId" class="form-select form-select-sm" style="width:200px"
+                    title="Düzeltici faaliyet sorumlusu">
+                <option value="">Sorumlu: ben</option>
+                @foreach (var u in staff)
+                {
+                    <option value="@u.Id">@u.FullName</option>
+                }
+            </select>
             <button class="btn btn-sm btn-primary">Kayıt aç</button>
         </form>
     </div>
@@ -42,6 +59,8 @@
 
 @foreach (var n in Model)
 {
+    var kanitSayisi = n.Attachments.Count;
+
     <div class="panel mb-3 @(n.IsOverdue ? "border-danger" : "")">
         <div class="panel-head">
             <span>#@n.Id · @Ui.NonconformitySourceText(n.Source)</span>
@@ -72,11 +91,37 @@
             <div class="small text-muted mb-3">
                 Tespit: @AppTime.ToLocal(n.DetectedAt).ToString("dd.MM.yyyy HH:mm")
                 @if (n.ClosedAt != null) { <text> · Kapanış: @AppTime.ToLocal(n.ClosedAt)?.ToString("dd.MM.yyyy HH:mm")</text> }
+                @if (n.ReminderSentAt != null)
+                {
+                    @* Termin hatırlatması gitti mi: sorumlu "haberim yoktu"
+                       diyemesin, denetimde de takip izi görünsün *@
+                    <text> · Hatırlatma: @AppTime.ToLocal(n.ReminderSentAt)?.ToString("dd.MM.yyyy HH:mm")</text>
+                }
+                @if (n.VerifiedAt != null)
+                {
+                    <text>
+                        · Etkinlik doğrulayan: @(n.VerifiedBy?.FullName ?? "—"),
+                        @AppTime.ToLocal(n.VerifiedAt)?.ToString("dd.MM.yyyy HH:mm")
+                    </text>
+                }
             </div>
 
-            @* Kapatma için zorunlu iki alan: işaretleri ve sunucu kontrolü
-               (NonconformitiesController.Update) aynı kuralı uygular *@
-            <form asp-action="Update" asp-route-id="@n.Id" method="post" data-nc-form>
+            @* Kanıt dosyaları kayıt formunun DIŞINDA: kaldırma kendi formunu
+               açıyor, iç içe form olamaz *@
+            <div class="mb-3">
+                <div class="small text-muted mb-1">
+                    Kanıt dosyaları <span class="text-danger" title="Kapatmak için zorunlu">*</span>
+                    <span class="text-muted">(@kanitSayisi dosya)</span>
+                </div>
+                <partial name="_EvidenceList" model="n" />
+            </div>
+
+            @* Kapatma için zorunlu dört şey: kök neden, düzeltici faaliyet,
+               etkinlik doğrulaması ve kanıt dosyası. İşaretleri ve sunucu
+               kontrolü (NonconformitiesController.Update → NonconformityClosure)
+               aynı kuralı uygular *@
+            <form asp-action="Update" asp-route-id="@n.Id" method="post"
+                  enctype="multipart/form-data" data-nc-form>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label small text-muted mb-1" for="rc@(n.Id)">
@@ -92,7 +137,8 @@
                         <textarea name="correctiveAction" id="ca@(n.Id)" rows="2" class="form-control form-control-sm"
                                   data-nc-required>@n.CorrectiveAction</textarea>
                     </div>
-                    <div class="col-md-3">
+
+                    <div class="col-md-4">
                         <label class="form-label small text-muted mb-1">Sorumlu</label>
                         <select name="responsibleId" class="form-select form-select-sm">
                             <option value="">-</option>
@@ -102,12 +148,12 @@
                             }
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label small text-muted mb-1">Termin</label>
                         <input type="datetime-local" name="dueAt" class="form-control form-control-sm"
                                value="@(AppTime.ToLocal(n.DueAt)?.ToString("yyyy-MM-ddTHH:mm"))" />
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label small text-muted mb-1">Durum</label>
                         <select name="status" class="form-select form-select-sm" data-nc-status>
                             @foreach (var s in Enum.GetValues<NonconformityStatus>())
@@ -117,34 +163,88 @@
                         </select>
                         <div class="form-text small">Kapalı: <span class="text-danger">*</span> alanları zorunlu</div>
                     </div>
-                    <div class="col-md-3 d-flex align-items-end gap-2">
+
+                    @* Etkinlik doğrulaması (md. 10.2.1 d): doğrulayan kişi
+                       sorumludan farklı olmalı, notu zorunlu *@
+                    <div class="col-md-6">
                         <div class="form-check mb-1">
                             <input class="form-check-input" type="checkbox" name="effectivenessVerified" value="true"
-                                   id="ev@(n.Id)" checked="@(n.EffectivenessVerified == true)" />
-                            <label class="form-check-label small" for="ev@(n.Id)">Etkinlik doğrulandı</label>
+                                   id="ev@(n.Id)" checked="@(n.EffectivenessVerified == true)" data-nc-verify />
+                            <label class="form-check-label small fw-semibold" for="ev@(n.Id)">
+                                Etkinlik doğrulandı <span class="text-danger" title="Kapatmak için zorunlu">*</span>
+                            </label>
                         </div>
+                        <textarea name="verificationNote" id="vn@(n.Id)" rows="2" class="form-control form-control-sm"
+                                  placeholder="Etkinlik neye bakılarak doğrulandı? (ölçüm, kayıt, gözlem)"
+                                  data-nc-note>@n.VerificationNote</textarea>
+                        <div class="form-text small">Doğrulamayı sorumludan farklı bir personel kaydetmeli.</div>
+                    </div>
+
+                    @* Kanıt yükleme: talep ekleriyle aynı katmandan geçer
+                       (UploadPolicy + antivirüs taraması + kota) *@
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted mb-1" for="ff@(n.Id)">
+                            Kanıt dosyası ekle <span class="text-danger" title="Kapatmak için zorunlu">*</span>
+                        </label>
+                        <input type="file" name="files" id="ff@(n.Id)" multiple accept="@kabulEdilen"
+                               class="form-control form-control-sm" />
+                        <div class="form-text small">
+                            En fazla @Files.Settings.MaxFiles dosya · dosya başına @Ui.FileSize(kanitMax)
+                        </div>
+                    </div>
+
+                    <div class="col-12 d-flex align-items-center gap-2">
+                        @if (n.ArticleId != null)
+                        {
+                            <a class="btn btn-sm btn-outline-secondary"
+                               asp-controller="Knowledge" asp-action="Details" asp-route-id="@n.ArticleId">
+                                <i class="bi bi-journal-text"></i> Oluşturulan makaleyi aç
+                            </a>
+                        }
+                        else
+                        {
+                            @* Makale oluşturma kendi formunda (aşağıda); düğme
+                               form="..." ile ona bağlanıyor *@
+                            <button type="submit" form="art@(n.Id)" class="btn btn-sm btn-outline-secondary"
+                                    title="Kök neden ve düzeltici faaliyet makale gövdesine ön-doldurulur">
+                                <i class="bi bi-journal-plus"></i> Bu uygunsuzluktan makale oluştur
+                            </button>
+                        }
                         <button class="btn btn-sm btn-primary ms-auto">Kaydet</button>
                     </div>
                 </div>
             </form>
+
+            @if (n.ArticleId == null)
+            {
+                <form asp-action="CreateArticle" asp-route-id="@n.Id" method="post" id="art@(n.Id)" class="d-none"></form>
+            }
         </div>
     </div>
 }
 
 @section Scripts {
     <script>
-        // "Kapalı" seçildiğinde kök neden ve düzeltici faaliyet tarayıcıda da
-        // zorunlu olur; asıl kontrol sunucuda (Update action) yapılır.
+        // "Kapalı" seçildiğinde kök neden, düzeltici faaliyet ve etkinlik
+        // doğrulaması tarayıcıda da zorunlu olur; asıl kontrol sunucuda
+        // (Update action → NonconformityClosure). Kanıt dosyası şartı yalnızca
+        // sunucuda kontrol edilebilir: dosya daha önce yüklenmiş olabilir.
         document.querySelectorAll('[data-nc-form]').forEach(function (form) {
             var durum = form.querySelector('[data-nc-status]');
             var alanlar = form.querySelectorAll('[data-nc-required]');
+            var dogrula = form.querySelector('[data-nc-verify]');
+            var not = form.querySelector('[data-nc-note]');
             if (!durum) return;
 
             function uygula() {
                 var kapali = durum.value === 'Closed';
                 alanlar.forEach(function (a) { a.required = kapali; });
+                if (dogrula) dogrula.required = kapali;
+                // Doğrulama işaretliyse not zorunlu (işaretsizse değil)
+                if (not && dogrula) not.required = dogrula.checked;
             }
             durum.addEventListener('change', uygula);
+            if (dogrula) dogrula.addEventListener('change', uygula);
             uygula();
         });
     </script>

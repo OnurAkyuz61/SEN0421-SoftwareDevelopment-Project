@@ -530,7 +530,10 @@ public enum NotificationType
     [Display(Name = "Onay hatırlatma")] ApprovalReminder = 9,
     [Display(Name = "Değişiklik uygulaması")] ChangeImplementation = 10,
     [Display(Name = "Anket hatırlatma")] SurveyReminder = 11,
-    [Display(Name = "Uygunsuzluk açıldı")] NonconformityOpened = 12
+    [Display(Name = "Uygunsuzluk açıldı")] NonconformityOpened = 12,
+    // Düzeltici faaliyetin termini yaklaşan / geçen kayıtlar
+    // (NonconformityReminderService)
+    [Display(Name = "Uygunsuzluk termin hatırlatma")] NonconformityDueReminder = 13
 }
 
 public enum NotificationChannel { InApp = 0, Email = 1, Sms = 2 }
@@ -978,11 +981,103 @@ public class Nonconformity
 
     public DateTime? ClosedAt { get; set; }
 
+    // ── Termin hatırlatması (NonconformityReminderService) ──────────────
+    //
+    // Son gönderilen hatırlatmanın anı. Aynı kayıt için aynı aşamada ikinci
+    // hatırlatma gitmez; "termin yaklaşıyor" ve "termin geçti" ayrı aşamadır
+    // ve ayrım bu alanın termine göre konumundan okunur (DueAt'ten ÖNCE
+    // yazılmışsa gönderilen hatırlatma "yaklaşıyor" olanıdır). Ayrı bir alan
+    // tutmaya gerek kalmadan iki aşamanın her biri bir kez hatırlatılır;
+    // termin ileri alınırsa gecikme aşaması yeni termin için yeniden işler.
+    public DateTime? ReminderSentAt { get; set; }
+
+    // ── Etkinlik doğrulaması (md. 10.2 d: alınan önlemin etkinliği
+    // gözden geçirilmelidir) ─────────────────────────────────────────────
+    //
+    // Eskiden bu bilgi tek bir bool? idi: "doğrulandı" yazıyordu ama KİMİN,
+    // NE ZAMAN ve NEYE DAYANARAK doğruladığı hiçbir yerde durmuyordu — yani
+    // denetimde gösterilecek bir iz bırakmıyordu. Bayrak kaldı (durum
+    // göstergesi), yanına doğrulamanın kaydı eklendi.
     [Display(Name = "Etkinlik doğrulandı")]
     public bool? EffectivenessVerified { get; set; }
 
+    public DateTime? VerifiedAt { get; set; }
+
+    // Doğrulayan kişi SORUMLUDAN farklı olmak zorunda (NonconformityClosure):
+    // faaliyeti yürüten kişinin kendi beyanı gözden geçirme sayılmaz.
+    public int? VerifiedById { get; set; }
+    public AppUser? VerifiedBy { get; set; }
+
+    // Etkinliğin nasıl doğrulandığı: hangi kayda, ölçüme ya da gözleme
+    // bakıldı. Doğrulama işaretlenirken zorunlu — notsuz doğrulama yine iz
+    // bırakmayan bir bayraktan ibaret olurdu.
+    [StringLength(1000), Display(Name = "Doğrulama notu")]
+    public string? VerificationNote { get; set; }
+
+    // ── Kanıt dosyaları ─────────────────────────────────────────────────
+    // Kapanış için en az bir kanıt şart (md. 10.2.2: sonuçların kaydı).
+    // Talep ekleri (Attachment) zorunlu TicketId taşıdığı için kullanılamaz:
+    // uygunsuzluk talebe bağlı olmadan da açılabiliyor.
+    public List<NonconformityAttachment> Attachments { get; set; } = new();
+
+    // ── Bilgi bankası makalesi ──────────────────────────────────────────
+    // Bu uygunsuzluktan üretilen makale (md. 7.5 / 10.3): kök neden ve
+    // düzeltici faaliyet kurum bilgisine dönüşsün. Makale TASLAK doğar ve
+    // bilgi bankasının kendi onay akışından geçer (KnowledgePublishing).
+    public int? ArticleId { get; set; }
+    public KnowledgeArticle? Article { get; set; }
+
     public bool IsOverdue => Status != NonconformityStatus.Closed
                              && DueAt != null && AppTime.UtcNow > DueAt;
+}
+
+// Uygunsuzluğa yüklenen KANIT dosyası (dosyanın kendisi Uploads klasöründe).
+//
+// Neden Attachment kullanılmıyor: Attachment.TicketId zorunlu, uygunsuzluk ise
+// talebe bağlı olmadan da açılabiliyor (iç denetim, gözlem). Talep numarası
+// uydurmak ya da TicketId'yi opsiyonel yapıp tüm talep eki kurallarını
+// (görünürlük, kota, arşiv) belirsizleştirmek yerine ayrı tablo tutuluyor.
+//
+// Yükleme kuralları talep ekleriyle AYNI katmandan geçer: UploadPolicy
+// (uzantı + bildirilen tür + imza), IAttachmentScanner (antivirüs) ve
+// AttachmentQuota (kullanıcı başına toplam, uygunsuzluk başına toplam).
+public class NonconformityAttachment
+{
+    public int Id { get; set; }
+
+    public int NonconformityId { get; set; }
+    public Nonconformity? Nonconformity { get; set; }
+
+    public int? UploadedById { get; set; }
+    public AppUser? UploadedBy { get; set; }
+
+    [Required, StringLength(255)]
+    public string FileName { get; set; } = "";        // kullanıcının yüklediği orijinal ad
+
+    [Required, StringLength(100)]
+    public string StoredFileName { get; set; } = "";  // diskteki ad (guid + uzantı)
+
+    [StringLength(100)]
+    public string ContentType { get; set; } = "";
+    public long Size { get; set; }
+    public DateTime UploadedAt { get; set; } = AppTime.UtcNow;
+
+    // Antivirüs taraması: yalnızca temiz (ya da tarama kapsamı dışı) dosya
+    // servis edilir ve yalnızca o dosya KANIT sayılır — şüpheli bir dosyayla
+    // uygunsuzluk kapatılamaz.
+    public AttachmentScanStatus ScanStatus { get; set; } = AttachmentScanStatus.Pending;
+    public DateTime? ScannedAt { get; set; }
+
+    // Yumuşak silme (md. 7.5): kayıt silinmez, işaretlenir. Kapanmış
+    // uygunsuzluğun kanıtı hiç kaldırılamaz (NonconformityClosure).
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedById { get; set; }
+    public AppUser? DeletedBy { get; set; }
+
+    public bool IsServable => ScanStatus is AttachmentScanStatus.Clean or AttachmentScanStatus.Skipped;
+
+    public bool IsImage => UploadPolicy.IsInlineImage(StoredFileName);
 }
 
 // Makalenin yayın durumu (md. 7.5.2: dokümante edilmiş bilgi yayımlanmadan

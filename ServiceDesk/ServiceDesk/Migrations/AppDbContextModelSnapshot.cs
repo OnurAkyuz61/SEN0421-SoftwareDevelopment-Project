@@ -1085,6 +1085,9 @@ namespace ServiceDesk.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("ArticleId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("datetime2");
 
@@ -1106,6 +1109,9 @@ namespace ServiceDesk.Migrations
                     b.Property<bool?>("EffectivenessVerified")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("ReminderSentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("ResponsibleId")
                         .HasColumnType("int");
 
@@ -1122,15 +1128,90 @@ namespace ServiceDesk.Migrations
                     b.Property<int?>("TicketId")
                         .HasColumnType("int");
 
+                    b.Property<string>("VerificationNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("VerifiedById")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
 
                     b.HasIndex("ResponsibleId");
 
                     b.HasIndex("TicketId");
 
+                    b.HasIndex("VerifiedById");
+
                     b.HasIndex("Status", "DueAt");
 
                     b.ToTable("Nonconformities");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.NonconformityAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("NonconformityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScanStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ScannedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UploadedById")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("NonconformityId");
+
+                    b.HasIndex("UploadedById");
+
+                    b.ToTable("NonconformityAttachments");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Notification", b =>
@@ -2263,6 +2344,11 @@ namespace ServiceDesk.Migrations
 
             modelBuilder.Entity("ServiceDesk.Models.Nonconformity", b =>
                 {
+                    b.HasOne("ServiceDesk.Models.KnowledgeArticle", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.AppUser", "Responsible")
                         .WithMany()
                         .HasForeignKey("ResponsibleId")
@@ -2273,9 +2359,43 @@ namespace ServiceDesk.Migrations
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("ServiceDesk.Models.AppUser", "VerifiedBy")
+                        .WithMany()
+                        .HasForeignKey("VerifiedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Article");
+
                     b.Navigation("Responsible");
 
                     b.Navigation("Ticket");
+
+                    b.Navigation("VerifiedBy");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.NonconformityAttachment", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ServiceDesk.Models.Nonconformity", "Nonconformity")
+                        .WithMany("Attachments")
+                        .HasForeignKey("NonconformityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.AppUser", "UploadedBy")
+                        .WithMany()
+                        .HasForeignKey("UploadedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("Nonconformity");
+
+                    b.Navigation("UploadedBy");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Notification", b =>
@@ -2543,6 +2663,11 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Feedbacks");
 
                     b.Navigation("Revisions");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Nonconformity", b =>
+                {
+                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.SurveyResponse", b =>

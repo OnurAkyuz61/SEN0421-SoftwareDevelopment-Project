@@ -451,3 +451,37 @@
     background: var(--sd-surface-2);
     line-height: 1.7;
 }
+
+/* ---------- Yazdırma düzeni (raporlar) ----------
+   Yönetim gözden geçirme raporu (md. 9.3) toplantıya kâğıt olarak giriyor.
+   Ekranın gezinme ve süzgeç parçaları kâğıda basılmaz, bölümler sayfa
+   ortasından bölünmez. Kural rapor sayfasına özel değil: .no-print ve
+   .print-block işaretleri bütün raporlarda kullanılabilir. */
+@media print {
+    /* Gezinme, üst bar ve etkileşimli parçalar kâğıda çıkmaz */
+    .sidebar, .sidebar-backdrop, .topbar, .no-print, .pager, form.panel { display: none !important; }
+
+    /* Sayfa kenar boşluğu yazıcıya bırakılır; ekran dolgusu kaldırılır */
+    body { background: #fff; }
+    .app-shell, .main { display: block; }
+    .page-wrap { padding: 0 !important; max-width: none !important; }
+
+    /* Panel çerçevesi mürekkep yemesin; bölüm sayfa ortasından bölünmesin */
+    .panel {
+        border: 1px solid #d0d5d8 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    .print-block { break-inside: avoid; page-break-inside: avoid; }
+    .panel-head { background: #f3f5f6 !important; }
+
+    /* Kaydırmalı tablo kâğıtta tamamı görünsün */
+    .table-responsive { overflow: visible !important; }
+
+    /* Etiket renkleri gri tonlu yazıcıda da ayırt edilsin */
+    .tag { border: 1px solid #adb5bd !important; }
+
+    /* Bağlantının altı çizili kalması kâğıtta gürültü */
+    a { text-decoration: none !important; color: inherit !important; }
+}

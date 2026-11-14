@@ -32,6 +32,8 @@ public static class EmailTemplates
     public const string Digest = "digest";
     public const string SurveyReminder = "survey.reminder";
     public const string NonconformityOpened = "nonconformity.opened";
+    public const string NonconformityReminder = "nonconformity.reminder";
+    public const string NonconformityOverdue = "nonconformity.overdue";
 
     // Eskalasyon seviyesine göre şablon anahtarı: 1, 2 ve 3 ve üzeri ayrı
     public static string Escalation(int level) => $"escalation.l{Math.Clamp(level, 1, 3)}";
@@ -51,6 +53,9 @@ public static class EmailTemplates
         NotificationType.DailyDigest => Digest,
         NotificationType.SurveyReminder => SurveyReminder,
         NotificationType.NonconformityOpened => NonconformityOpened,
+        // Termin hatırlatmasının iki tonu var (yaklaşıyor / geçti); çağıran
+        // hangisini kullanacağını TemplateKey ile söyler, varsayılan yumuşak olanı
+        NotificationType.NonconformityDueReminder => NonconformityReminder,
         _ => Comment
     };
 
@@ -95,6 +100,12 @@ public static class EmailTemplates
         NonconformityOpened => new("Adınıza bir uygunsuzluk kaydı açıldı",
             "Aşağıdaki talepte kalite kaydı doğuran bir durum tespit edildi. Kök neden ve düzeltici faaliyetin termin tarihine kadar girilmesi gerekiyor (ISO 9001 md. 10.2).",
             "#b45309", "📌", "Uygunsuzluk", "Kaydı incele"),
+        NonconformityReminder => new("Düzeltici faaliyetin termini yaklaşıyor",
+            "Adınıza açılmış uygunsuzluk kaydının termin tarihi yakın. Kök neden, düzeltici faaliyet, etkinlik doğrulaması ve kanıt dosyası tamamlanmadan kayıt kapatılamaz (ISO 9001 md. 10.2).",
+            "#d97706", "⏳", "Uygunsuzluk termini", "Kaydı tamamla"),
+        NonconformityOverdue => new("Düzeltici faaliyetin termini GEÇTİ",
+            "Adınıza açılmış uygunsuzluk kaydı termin tarihini aştı. Geciken düzeltici faaliyet denetimde açık bulgu olarak çıkar; kaydı en kısa sürede tamamlayın (ISO 9001 md. 10.2).",
+            "#dc2626", "⛔", "Uygunsuzluk gecikmesi", "Hemen tamamla"),
         SurveyReminder => new("Talebinizi değerlendirmeyi unuttunuz mu?",
             "Çözülen talebiniz için kısa bir memnuniyet anketi bekliyor. Birkaç soruluk bu değerlendirme, hizmetin nerede iyileştirilmesi gerektiğini görmemizi sağlıyor.",
             "#0f766e", "⭐", "Anket hatırlatma", "Anketi doldur"),

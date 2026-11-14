@@ -24,6 +24,23 @@ public class QualitySettings
 
     // Düzeltici faaliyet için varsayılan termin (gün)
     public int CorrectiveActionDueDays { get; set; } = 7;
+
+    // ── Termin hatırlatması (NonconformityReminderService) ──────────────
+    //
+    // md. 10.2 düzeltici faaliyetin TAKİP edilmesini ister; termini sessizce
+    // geçen kayıt denetimde "açıldı ama kimse izlemedi" olarak çıkar.
+
+    // false ise hatırlatma job'ı hiç çalışmaz
+    public bool ReminderEnabled { get; set; } = true;
+
+    // Termine kaç saat kalınca "yaklaşıyor" hatırlatması gider
+    public int ReminderBeforeHours { get; set; } = 48;
+
+    // Taramanın tekrar aralığı (dakika)
+    public int ReminderCheckMinutes { get; set; } = 60;
+
+    // Bir turda en fazla kaç kayıt hatırlatılsın
+    public int ReminderBatchSize { get; set; } = 200;
 }
 
 // Düşük memnuniyet uygunsuzluğunun kuralları ve açıklama metni.

@@ -55,9 +55,51 @@ public class FileStorage
         return null;
     }
 
+    // Diske yazılmış ve taranmış dosya. Hangi TABLOYA yazılacağından bağımsız:
+    // talep eki (Attachment) ve uygunsuzluk kanıtı (NonconformityAttachment)
+    // aynı doğrulama + tarama yolundan geçer, yalnızca kaydı farklı yerde durur.
+    public sealed record StoredFile(
+        string FileName, string StoredFileName, string ContentType, long Size,
+        AttachmentScanStatus ScanStatus, DateTime ScannedAt);
+
     public async Task<List<Attachment>> SaveAsync(IList<IFormFile>? files, CancellationToken token = default)
     {
         var list = new List<Attachment>();
+        foreach (var f in await StoreAsync(files, token))
+            list.Add(new Attachment
+            {
+                FileName = f.FileName,
+                StoredFileName = f.StoredFileName,
+                ContentType = f.ContentType,
+                Size = f.Size,
+                ScanStatus = f.ScanStatus,
+                ScannedAt = f.ScannedAt
+            });
+        return list;
+    }
+
+    // Uygunsuzluk kanıtı için (NonconformityAttachment); kayıt alanları
+    // çağıranda doldurulur.
+    public async Task<List<NonconformityAttachment>> SaveEvidenceAsync(
+        IList<IFormFile>? files, CancellationToken token = default)
+    {
+        var list = new List<NonconformityAttachment>();
+        foreach (var f in await StoreAsync(files, token))
+            list.Add(new NonconformityAttachment
+            {
+                FileName = f.FileName,
+                StoredFileName = f.StoredFileName,
+                ContentType = f.ContentType,
+                Size = f.Size,
+                ScanStatus = f.ScanStatus,
+                ScannedAt = f.ScannedAt
+            });
+        return list;
+    }
+
+    public async Task<List<StoredFile>> StoreAsync(IList<IFormFile>? files, CancellationToken token = default)
+    {
+        var list = new List<StoredFile>();
         if (files == null) return list;
 
         foreach (var f in files.Where(f => f.Length > 0))
@@ -73,21 +115,17 @@ public class FileStorage
             await using (var stream = File.Create(path))
                 await f.CopyToAsync(stream, token);
 
-            var attachment = new Attachment
-            {
-                FileName = name,
-                StoredFileName = stored,
-                // İçerik türü istemcinin beyanından değil, doğrulanmış uzantıdan gelir
-                ContentType = UploadPolicy.ContentTypeFor(stored),
-                Size = f.Length
-            };
-
             // Tarama dosya kapandıktan sonra: sağlayıcı dosyayı yoldan okur
             var scan = await _scanner.ScanAsync(path, name, token);
-            attachment.ScanStatus = scan.Status;
-            attachment.ScannedAt = AppTime.UtcNow;
 
-            list.Add(attachment);
+            list.Add(new StoredFile(
+                FileName: name,
+                StoredFileName: stored,
+                // İçerik türü istemcinin beyanından değil, doğrulanmış uzantıdan gelir
+                ContentType: UploadPolicy.ContentTypeFor(stored),
+                Size: f.Length,
+                ScanStatus: scan.Status,
+                ScannedAt: AppTime.UtcNow));
         }
         return list;
     }

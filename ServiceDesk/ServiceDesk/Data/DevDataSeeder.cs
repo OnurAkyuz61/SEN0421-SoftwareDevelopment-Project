@@ -178,19 +178,31 @@ public static class DevDataSeeder
                         Note = "Örnek veri: süresi aşılan talep"
                     });
 
+                    // Kapalı örnek kayıtta etkinlik doğrulaması İZLİ olsun
+                    // (md. 10.2.2): doğrulayan sorumludan farklı bir personel,
+                    // doğrulama zamanı ve notu birlikte durur. Tek personelli
+                    // kurulumda doğrulama hiç yazılmaz — kural böyle.
+                    var kapaliOrnek = i % 2 == 0;
+                    var dogrulayan = staff.FirstOrDefault(u => u.Id != agent.Id);
+
                     db.Nonconformities.Add(new Nonconformity
                     {
                         TicketId = t.Id,
                         Source = NonconformitySource.SlaBreach,
-                        Status = i % 2 == 0 ? NonconformityStatus.Closed : NonconformityStatus.Open,
+                        Status = kapaliOrnek ? NonconformityStatus.Closed : NonconformityStatus.Open,
                         Description = $"{t.Number} talebinde hizmet seviyesi aşıldı.",
-                        RootCause = i % 2 == 0 ? "Yedek parça stokta yoktu." : null,
-                        CorrectiveAction = i % 2 == 0 ? "Kritik parçalar için asgari stok seviyesi tanımlandı." : null,
+                        RootCause = kapaliOrnek ? "Yedek parça stokta yoktu." : null,
+                        CorrectiveAction = kapaliOrnek ? "Kritik parçalar için asgari stok seviyesi tanımlandı." : null,
                         ResponsibleId = agent.Id,
                         DetectedAt = t.SlaDueAt,
                         DueAt = t.SlaDueAt.AddDays(7),
-                        ClosedAt = i % 2 == 0 ? t.SlaDueAt.AddDays(3) : null,
-                        EffectivenessVerified = i % 2 == 0 ? true : null
+                        ClosedAt = kapaliOrnek ? t.SlaDueAt.AddDays(3) : null,
+                        EffectivenessVerified = kapaliOrnek && dogrulayan != null ? true : null,
+                        VerifiedById = kapaliOrnek ? dogrulayan?.Id : null,
+                        VerifiedAt = kapaliOrnek && dogrulayan != null ? t.SlaDueAt.AddDays(3) : null,
+                        VerificationNote = kapaliOrnek && dogrulayan != null
+                            ? "Önlemden sonraki 30 günde aynı kaynaklı ihlal tekrarlamadı; stok sayımı kaydıyla doğrulandı."
+                            : null
                     });
                 }
 

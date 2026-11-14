@@ -27,11 +27,13 @@ builder.Services.AddScoped<NotificationService>();   // bildirim okuma / yazma
 builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef tarihler
 builder.Services.AddScoped<TeamRoundRobin>();        // ekip bazlı otomatik (sıralı) atama
 builder.Services.AddScoped<KpiService>();            // dönemsel gösterge hesabı
+builder.Services.AddScoped<ManagementReviewService>();// yönetim gözden geçirme paketi (md. 9.3, salt okuma)
 builder.Services.AddScoped<SearchService>();         // bilgi bankası / talep / global arama
 // Uygunsuzluk eşikleri (ortalama + kritik soru puanı) ve termin:
 // appsettings.json → "Quality"
 builder.Services.Configure<QualitySettings>(builder.Configuration.GetSection(QualitySettings.Section));
 builder.Services.AddScoped<NonconformityService>();  // otomatik uygunsuzluk kaydı
+builder.Services.AddHostedService<NonconformityReminderService>(); // termin hatırlatma job'ı
 builder.Services.AddScoped<LoginAuditService>();     // giriş denetim izi ve deneme sınırı
 builder.Services.AddScoped<AuditService>();          // güvenlik / süreç denetim kaydı
 builder.Services.AddMemoryCache();

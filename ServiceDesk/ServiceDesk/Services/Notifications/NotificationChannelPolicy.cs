@@ -32,6 +32,10 @@ public static class NotificationChannelPolicy
         // (InAppLocked). Kalite kaydının sahibi "görmedim" diyemez — md. 10.2
         // düzeltici faaliyetin takip edilmesini ister.
         [NotificationType.NonconformityOpened] = new(new(true, true, false), InAppLocked: true, SmsAllowed: false),
+        // Termin hatırlatması aynı sorumluluğun devamı: uygulama içi kanal
+        // yine kapatılamaz. Geciken düzeltici faaliyet denetimde açık bulgu
+        // olduğu için SMS'e de izin verilir (varsayılan kapalı; kullanıcı açar).
+        [NotificationType.NonconformityDueReminder] = new(new(true, true, false), InAppLocked: true, SmsAllowed: true),
         // Günlük özet yalnızca e-postadır; tercihi AppUser.DailyDigestEnabled ile yönetilir
         [NotificationType.DailyDigest]      = new(new(false, true, false), InAppLocked: false, SmsAllowed: false),
         // Anket hatırlatma da yalnızca e-postadır (SurveyReminderService

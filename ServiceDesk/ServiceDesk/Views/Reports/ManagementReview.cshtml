@@ -1,0 +1,550 @@
+@model ManagementReviewReport
+@using ServiceDesk.Controllers
+@{
+    ViewData["Title"] = "Yönetim gözden geçirme";
+    var f = (ManagementReviewFilter)ViewBag.Filter;
+    var esik = (double)ViewBag.LowThreshold;
+
+    var k = Model.Kpi;
+    var o = Model.PreviousKpi;
+    var nc = Model.NonconformityTotal;
+    var sv = Model.Survey;
+    var kb = Model.Knowledge;
+    var st = Model.Storage;
+    var op = Model.Operations;
+
+    var zayif = ManagementReviewPolicy.WeakDimensions(sv.Dimensions, esik);
+    var enCokKullanim = kb.TopUsed.Count == 0 ? 1 : Math.Max(1, kb.TopUsed.Max(a => a.UsedCount));
+
+    // Göstergenin iki dönem arasındaki değişimi: ok yönü ve rengi
+    // "yükselmesi iyi mi" bilgisine göre belirlenir (ManagementReviewDelta)
+    Func<decimal, decimal, bool, string, string> Fark = (cur, prev, higherIsBetter, fmt) =>
+    {
+        var d = new ManagementReviewDelta(cur, prev, higherIsBetter);
+        if (d.Change == 0) return "—";
+        var ok = d.Change > 0 ? "▲" : "▼";
+        var yuzde = d.ChangePercent == null ? "" : $" (%{Math.Abs(d.ChangePercent.Value).ToString(fmt)})";
+        return $"{ok} {Math.Abs(d.Change).ToString(fmt)}{yuzde}";
+    };
+
+    Func<decimal, decimal, bool, string> FarkSinif = (cur, prev, higherIsBetter) =>
+    {
+        var d = new ManagementReviewDelta(cur, prev, higherIsBetter);
+        return d.Improved ? "text-success" : d.Worsened ? "text-danger" : "text-muted";
+    };
+
+    string Oran(double? v) => v == null ? "—" : $"%{v.Value.ToString("0.0")}";
+    string Gun(double? v) => v == null ? "—" : $"{v.Value.ToString("0.0")} gün";
+}
+
+@* Yazdırma düzeni: menü, üst bar ve süzgeç formu kâğıda çıkmaz; bölümler
+   sayfa ortasından bölünmez (site.css → @@media print). *@
+<div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+    <h4 class="fw-bold mb-0 me-auto">Yönetim gözden geçirme</h4>
+    <a class="btn btn-sm btn-outline-secondary no-print"
+       href="@Url.Action("ManagementReviewCsv", new { f.From, f.To })">
+        <i class="bi bi-filetype-csv"></i> CSV indir
+    </a>
+    <button type="button" class="btn btn-sm btn-outline-secondary no-print" onclick="window.print()">
+        <i class="bi bi-printer"></i> Yazdır
+    </button>
+</div>
+<div class="text-muted mb-3">
+    ISO 9001 md. 9.3 girdileri tek dönemsel özette: süreç performansı ve göstergeler,
+    müşteri memnuniyeti, uygunsuzluklar ve düzeltici faaliyetler, kaynakların yeterliliği.
+</div>
+
+<div class="panel mb-3 print-block">
+    <div class="panel-body d-flex flex-wrap gap-3 align-items-center">
+        <div>
+            <div class="small text-muted">Gözden geçirme dönemi</div>
+            <div class="fs-5 fw-bold">@Model.Period.Label</div>
+            <div class="small text-muted">@Model.Period.Days gün</div>
+        </div>
+        <div>
+            <div class="small text-muted">Karşılaştırma dönemi</div>
+            <div class="fw-semibold">@Model.PreviousPeriod.Label</div>
+            <div class="small text-muted">@Model.PreviousPeriod.Days gün</div>
+        </div>
+        <div class="ms-auto small text-muted text-end">
+            Rapor: @AppTime.ToLocal(Model.GeneratedAt).ToString("dd.MM.yyyy HH:mm")<br />
+            Yalnızca okuma · kayıt üretilmez
+        </div>
+    </div>
+</div>
+
+<form method="get" class="panel mb-3 no-print">
+    <div class="panel-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1" for="from">Başlangıç</label>
+                <input type="date" name="from" id="from" value="@f.From?.ToString("yyyy-MM-dd")"
+                       class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1" for="to">Bitiş</label>
+                <input type="date" name="to" id="to" value="@f.To?.ToString("yyyy-MM-dd")"
+                       class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2"><button class="btn btn-sm btn-primary w-100"><i class="bi bi-funnel"></i> Uygula</button></div>
+        </div>
+    </div>
+</form>
+
+@* ───── 1. Göstergeler (md. 9.1.1 / 9.3.2 c) ───────────────────────── *@
+<div class="panel mb-3 print-block">
+    <div class="panel-head">
+        1 · Göstergeler ve dönem karşılaştırması
+        <span class="text-muted small fw-normal">KPI snapshot · @k.SnapshotDays / @Model.Period.Days gün</span>
+    </div>
+    @if (!k.HasData)
+    {
+        <div class="panel-body text-muted">
+            Bu dönemde dondurulmuş KPI kaydı yok. Göstergeler günlük snapshot'lardan
+            toplanıyor ve snapshot yalnızca uygulamanın çalıştığı günler için üretiliyor.
+        </div>
+    }
+    else
+    {
+        @if (k.SnapshotDays < Model.Period.Days)
+        {
+            <div class="panel-body pb-0">
+                <div class="small text-danger">
+                    Dönemdeki @Model.Period.Days günün @k.SnapshotDays günü için ölçüm kaydı var;
+                    aşağıdaki sayılar dönemin tamamını temsil etmiyor.
+                </div>
+            </div>
+        }
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Gösterge</th>
+                        <th class="text-end">Dönem</th>
+                        <th class="text-end">Önceki dönem</th>
+                        <th class="text-end">Değişim</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var (ad, cur, prev, iyiArtis, fmt, birim) in new[]
+                    {
+                        ("Toplam talep", (decimal)k.TotalTickets, (decimal)o.TotalTickets, true, "0", ""),
+                        ("Çözülen talep", (decimal)k.ResolvedTickets, (decimal)o.ResolvedTickets, true, "0", ""),
+                        ("SLA uyumu", k.SlaComplianceRate, o.SlaComplianceRate, true, "0.0", "%"),
+                        ("SLA ihlali", (decimal)k.BreachedTickets, (decimal)o.BreachedTickets, false, "0", ""),
+                        ("İlk yanıt SLA uyumu", k.FirstResponseComplianceRate, o.FirstResponseComplianceRate, true, "0.0", "%"),
+                        ("Ortalama çözüm süresi", k.AvgResolutionHours, o.AvgResolutionHours, false, "0.0", " saat"),
+                        ("Ortalama ilk yanıt", k.AvgFirstResponseHours, o.AvgFirstResponseHours, false, "0.0", " saat"),
+                        ("Yeniden açılma", (decimal)k.ReopenCount, (decimal)o.ReopenCount, false, "0", ""),
+                        ("Memnuniyet (CSAT)", k.CsatAverage, o.CsatAverage, true, "0.00", " / 5"),
+                        ("Anket yanıtı", (decimal)k.SurveyResponseCount, (decimal)o.SurveyResponseCount, true, "0", ""),
+                        ("Anket yanıt oranı", k.CsatResponseRate, o.CsatResponseRate, true, "0.0", "%"),
+                        ("Düşük puanlı yanıt", (decimal)k.LowCsatCount, (decimal)o.LowCsatCount, false, "0", "")
+                    })
+                    {
+                        <tr>
+                            <td>@ad</td>
+                            <td class="text-end fw-semibold">
+                                @(birim == "%" ? "%" : "")@cur.ToString(fmt)@(birim == "%" ? "" : birim)
+                            </td>
+                            <td class="text-end text-muted">
+                                @(birim == "%" ? "%" : "")@prev.ToString(fmt)@(birim == "%" ? "" : birim)
+                            </td>
+                            <td class="text-end @FarkSinif(cur, prev, iyiArtis)">@Fark(cur, prev, iyiArtis, fmt)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="panel-body small text-muted pt-2">
+            SLA uyumu ve yanıt oranı dönem toplamlarından yeniden hesaplanır. Ortalama ilk yanıt
+            ve CSAT, snapshot'ta ölçümün paydası tutulmadığı için talep / yanıt sayısına göre
+            ağırlıklı yaklaşıktır; ortalama çözüm süresi çözülen talep sayısıyla ağırlıklandığı
+            için tamdır.
+        </div>
+    }
+</div>
+
+@* ───── 2. Uygunsuzluklar (md. 10.2) ──────────────────────────────── *@
+<div class="panel mb-3 print-block">
+    <div class="panel-head">
+        2 · Uygunsuzluk ve düzeltici faaliyetler
+        <a class="small text-decoration-none ms-auto no-print"
+           href="@Url.Action("Nonconformities", new { f.From, f.To })">ayrıntılı rapor</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Kaynak</th>
+                    <th class="text-end">Toplam</th>
+                    <th class="text-end">Açık / işlemde</th>
+                    <th class="text-end">Kapalı</th>
+                    <th class="text-end">Ort. kapanış</th>
+                    <th class="text-end">Termin uyumu</th>
+                    <th class="text-end">Termini geçen</th>
+                    <th class="text-end">Etkinlik doğrulama</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.NonconformityBySource)
+                {
+                    <tr class="@(s.Total == 0 ? "text-muted" : "")">
+                        <td class="fw-semibold">@Ui.NonconformitySourceText(s.Source!.Value)</td>
+                        <td class="text-end">@s.Total</td>
+                        <td class="text-end">@s.Open / @s.InProgress</td>
+                        <td class="text-end">@s.Closed</td>
+                        <td class="text-end">@Gun(s.AvgClosureDays)</td>
+                        <td class="text-end">@Oran(s.OnTimeRate)</td>
+                        <td class="text-end">
+                            @if (s.OverdueOpen > 0) { <span class="tag tag-red">@s.OverdueOpen</span> } else { <text>0</text> }
+                        </td>
+                        <td class="text-end">@Oran(s.VerificationRate)</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot class="table-light fw-semibold">
+                <tr>
+                    <td>TOPLAM</td>
+                    <td class="text-end">@nc.Total</td>
+                    <td class="text-end">@nc.Open / @nc.InProgress</td>
+                    <td class="text-end">@nc.Closed</td>
+                    <td class="text-end">@Gun(nc.AvgClosureDays)</td>
+                    <td class="text-end">@Oran(nc.OnTimeRate)</td>
+                    <td class="text-end">@nc.OverdueOpen</td>
+                    <td class="text-end">@Oran(nc.VerificationRate)</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    @if (nc.OverdueOpen > 0)
+    {
+        <div class="panel-body small text-danger pt-2">
+            Termini geçmiş @nc.OverdueOpen açık kayıt var: md. 10.2 düzeltici faaliyetin
+            takip edilmesini ister, gecikme gözden geçirmede karara bağlanmalı.
+        </div>
+    }
+</div>
+
+@* ───── 3. Memnuniyet (md. 9.1.2) ─────────────────────────────────── *@
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="panel h-100 print-block">
+            <div class="panel-head">3 · Anket sonuçları ve CSAT eğilimi</div>
+            <div class="panel-body">
+                <div class="row g-3 mb-2">
+                    @foreach (var (label, value) in new[]
+                    {
+                        ("Yanıt", sv.ResponseCount.ToString()),
+                        ("Ortalama", sv.Average == 0 ? "—" : $"{sv.Average:0.00} / 5"),
+                        ("Yanıt oranı", $"%{sv.ResponseRate:0.0}"),
+                        ("Eşik altı yanıt", sv.LowCount.ToString())
+                    })
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="small text-muted">@label</div>
+                            <div class="fs-5 fw-bold">@value</div>
+                        </div>
+                    }
+                </div>
+                <div class="small text-muted mb-2">
+                    Dönemde çözülen @sv.ResolvedTickets talep · @sv.CommentCount yorum ·
+                    eşik @esik.ToString("0.0")
+                </div>
+
+                @if (!sv.Trend.Any())
+                {
+                    <div class="text-muted small">Dönemde anket yanıtı yok.</div>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Ay</th><th class="text-end">Yanıt</th><th class="text-end">Ortalama</th><th class="text-end">Eşik altı</th></tr></thead>
+                        <tbody>
+                            @foreach (var t in sv.Trend)
+                            {
+                                <tr>
+                                    <td>@t.Label</td>
+                                    <td class="text-end">@t.ResponseCount</td>
+                                    <td class="text-end fw-semibold">
+                                        <span class="tag @(t.Average < esik ? "tag-red" : t.Average < 4 ? "tag-amber" : "tag-green")">
+                                            @t.Average.ToString("0.00")
+                                        </span>
+                                    </td>
+                                    <td class="text-end">@t.LowCount</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel h-100 print-block">
+            <div class="panel-head">
+                Soru bazında boyutlar
+                <span class="text-muted small fw-normal">en düşük puan başta</span>
+            </div>
+            <div class="panel-body">
+                @if (!sv.Dimensions.Any())
+                {
+                    <div class="text-muted small">Dönemde cevaplanmış soru yok.</div>
+                }
+                else
+                {
+                    @foreach (var d in sv.Dimensions)
+                    {
+                        var zayifMi = d.IsWeak(esik);
+                        <div class="d-flex align-items-center gap-2 mb-2 small">
+                            <span class="text-truncate" style="width:45%" title="@d.Question">@d.Question</span>
+                            <div class="flex-fill bg-light rounded" style="height:10px">
+                                <div class="@(zayifMi ? "bg-danger" : "bg-success") rounded"
+                                     style="height:10px;width:@((int)(100.0 * d.Average / 5))%"></div>
+                            </div>
+                            <span class="fw-semibold" style="width:58px;text-align:right">@d.Average.ToString("0.00")</span>
+                            <span class="text-muted" style="width:42px;text-align:right">@d.AnswerCount</span>
+                        </div>
+                    }
+
+                    @if (zayif.Any())
+                    {
+                        <div class="small text-danger mt-3">
+                            Eşiğin (@esik.ToString("0.0")) altında kalan boyut:
+                            <strong>@string.Join(", ", zayif.Select(d => d.Question))</strong> —
+                            iyileştirme fırsatı olarak karara bağlanmalı (md. 9.3.3).
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="small text-muted mt-3">Eşiğin altında kalan boyut yok.</div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ───── 4. Bilgi bankası (md. 7.5 / 10.3) ─────────────────────────── *@
+<div class="panel mb-3 print-block">
+    <div class="panel-head">
+        4 · Bilgi bankası ve cevaplanamayan sorular
+        <a class="small text-decoration-none ms-auto no-print" href="@Url.Action("KnowledgeUsage")">ayrıntılı rapor</a>
+    </div>
+    <div class="panel-body">
+        <div class="row g-3 mb-3">
+            @foreach (var (label, value) in new[]
+            {
+                ("Yayında", kb.PublishedTotal.ToString()),
+                ("Taslak / onayda", $"{kb.DraftTotal} / {kb.PendingApprovalTotal}"),
+                ("Dönemde yazılan", kb.CreatedInPeriod.ToString()),
+                ("Makaleyle çözülen talep", kb.TicketsSolvedByArticle.ToString()),
+                ("Gözden geçirilecek", $"{kb.NeverUsed + kb.Stale + kb.Negative}"),
+                ("Cevapsız soru", $"{kb.UnansweredQuestionCount} ({kb.UnansweredAskTotal} kez)")
+            })
+            {
+                <div class="col-6 col-md-2">
+                    <div class="small text-muted">@label</div>
+                    <div class="fs-5 fw-bold">@value</div>
+                </div>
+            }
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="fw-semibold small mb-2">En çok kullanılan makaleler</div>
+                @if (!kb.TopUsed.Any()) { <div class="text-muted small">Hiç kullanılmış makale yok.</div> }
+                @foreach (var a in kb.TopUsed)
+                {
+                    <div class="d-flex align-items-center gap-2 mb-2 small">
+                        <a class="text-truncate text-decoration-none" style="width:50%" title="@a.Title"
+                           asp-controller="Knowledge" asp-action="Details" asp-route-id="@a.Id">@a.Title</a>
+                        <div class="flex-fill bg-light rounded" style="height:8px">
+                            <div class="bg-primary rounded" style="height:8px;width:@((int)(100.0 * a.UsedCount / enCokKullanim))%"></div>
+                        </div>
+                        <span class="fw-semibold" style="width:30px;text-align:right">@a.UsedCount</span>
+                    </div>
+                }
+            </div>
+            <div class="col-md-4">
+                <div class="fw-semibold small mb-2">Gözden geçirilmesi gerekenler</div>
+                @if (!kb.NeedsReview.Any()) { <div class="text-muted small">İşaretli makale yok.</div> }
+                <ul class="list-unstyled mb-0 small">
+                    @foreach (var a in kb.NeedsReview)
+                    {
+                        <li class="mb-2">
+                            <a class="text-decoration-none" asp-controller="Knowledge" asp-action="Details" asp-route-id="@a.Id">@a.Title</a>
+                            <div class="text-muted">
+                                @string.Join(" · ", a.Reasons)
+                                @if (a.NotHelpfulCount > 0) { <text> · @a.NotHelpfulCount olumsuz oy</text> }
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <div class="fw-semibold small mb-2">Cevaplanamayan sorular</div>
+                @if (!kb.TopQuestions.Any()) { <div class="text-muted small">Cevaplanamayan soru yok.</div> }
+                <ul class="list-unstyled mb-0 small">
+                    @foreach (var q in kb.TopQuestions)
+                    {
+                        <li class="mb-2 d-flex gap-2">
+                            <span class="tag tag-gray">@q.AskCount</span>
+                            <span class="text-truncate" title="@q.Text">@q.Text</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ───── 5. Depolama ve saklama (md. 7.5.3) ────────────────────────── *@
+<div class="panel mb-3 print-block">
+    <div class="panel-head">5 · Depolama ve saklama (kaynakların yeterliliği)</div>
+    <div class="panel-body">
+        <div class="row g-3 mb-3">
+            @foreach (var (label, value) in new[]
+            {
+                ("Toplam dosya", $"{st.TotalFileCount} · {Ui.FileSize(st.TotalBytes)}"),
+                ("Talep eki", $"{st.TicketFileCount} · {Ui.FileSize(st.TicketFileBytes)}"),
+                ("Uygunsuzluk kanıtı", $"{st.EvidenceFileCount} · {Ui.FileSize(st.EvidenceFileBytes)}"),
+                ("Dönemde yüklenen", $"{st.UploadedInPeriod} · {Ui.FileSize(st.UploadedInPeriodBytes)}"),
+                ("Kaldırılmış (diskte)", $"{st.RemovedPendingPurge} · {Ui.FileSize(st.RemovedPendingPurgeBytes)}"),
+                ("Temizliği gelmiş", st.PurgeDueCount.ToString())
+            })
+            {
+                <div class="col-6 col-md-2">
+                    <div class="small text-muted">@label</div>
+                    <div class="fs-5 fw-bold">@value</div>
+                </div>
+            }
+        </div>
+
+        <div class="row g-3 small">
+            <div class="col-md-6">
+                <div class="fw-semibold mb-1">Saklama politikası</div>
+                <ul class="list-unstyled mb-0">
+                    <li>
+                        Kaldırılan ek temizliği:
+                        <span class="tag @(st.RetentionEnabled ? "tag-green" : "tag-red")">
+                            @(st.RetentionEnabled ? "açık" : "kapalı")
+                        </span>
+                        · saklama süresi @st.RetentionDays gün
+                    </li>
+                    <li>
+                        Sahipsiz dosya taraması:
+                        <span class="tag @(st.OrphanScanEnabled ? "tag-green" : "tag-red")">
+                            @(st.OrphanScanEnabled ? "açık" : "kapalı")
+                        </span>
+                        @if (st.OrphanScanEnabled)
+                        {
+                            <text>· @(st.OrphanDeletesFiles ? "dosyaları siliyor" : "yalnızca rapor ediyor")</text>
+                        }
+                    </li>
+                    <li>Kota: talep başına @Ui.FileSize(st.TicketQuotaBytes), kullanıcı başına @Ui.FileSize(st.UserQuotaBytes)</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <div class="fw-semibold mb-1">Güvenlik taraması</div>
+                @if (st.NotCleanCount == 0)
+                {
+                    <div class="text-muted">Taramadan temiz geçmeyen dosya yok.</div>
+                }
+                else
+                {
+                    <ul class="list-unstyled mb-0">
+                        @if (st.SuspiciousCount > 0) { <li><span class="tag tag-red">şüpheli</span> @st.SuspiciousCount dosya (karantinada, indirilemez)</li> }
+                        @if (st.FailedScanCount > 0) { <li><span class="tag tag-amber">taranamadı</span> @st.FailedScanCount dosya</li> }
+                        @if (st.PendingScanCount > 0) { <li><span class="tag tag-gray">taranmadı</span> @st.PendingScanCount dosya</li> }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ───── 6. Eskalasyon ve onay (md. 9.3.2 c) ───────────────────────── *@
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="panel h-100 print-block">
+            <div class="panel-head">
+                6 · Eskalasyon
+                <a class="small text-decoration-none ms-auto no-print"
+                   href="@Url.Action("Escalations", new { f.From, f.To })">ayrıntılı rapor</a>
+            </div>
+            <div class="panel-body">
+                <div class="row g-3 mb-2">
+                    @foreach (var (label, value) in new[]
+                    {
+                        ("Toplam", op.EscalationTotal.ToString()),
+                        ("Manuel / otomatik", $"{op.EscalationManual} / {op.EscalationAutomatic}"),
+                        ("Etkilenen talep", op.EscalatedTickets.ToString()),
+                        ("Ort. gecikme", $"{op.AvgMinutesOverdue:0} dk")
+                    })
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="small text-muted">@label</div>
+                            <div class="fs-5 fw-bold">@value</div>
+                        </div>
+                    }
+                </div>
+                @if (!op.EscalationByLevel.Any())
+                {
+                    <div class="text-muted small">Dönemde eskalasyon yok.</div>
+                }
+                else
+                {
+                    <div class="small">
+                        @foreach (var (level, count) in op.EscalationByLevel)
+                        {
+                            <span class="tag tag-red me-2">S@(level): @count</span>
+                        }
+                        @if (op.EscalationFallback > 0)
+                        {
+                            <span class="tag tag-amber">yedek kurala düşen: @op.EscalationFallback</span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel h-100 print-block">
+            <div class="panel-head">Değişiklik onayları</div>
+            <div class="panel-body">
+                <div class="row g-3 mb-2">
+                    @foreach (var (label, value) in new[]
+                    {
+                        ("Değişiklik talebi", op.ChangeTotal.ToString()),
+                        ("Onay / red", $"{op.ApprovalApproved} / {op.ApprovalRejected}"),
+                        ("Bekleyen", op.ApprovalPending.ToString()),
+                        ("Ort. karar süresi", op.AvgApprovalHours == null ? "—" : $"{op.AvgApprovalHours:0.0} saat")
+                    })
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="small text-muted">@label</div>
+                            <div class="fs-5 fw-bold">@value</div>
+                        </div>
+                    }
+                </div>
+                <div class="small text-muted">
+                    Onay oranı @Oran(op.ApprovalRate) · verilen karar @op.ApprovalDecisions ·
+                    vekaleten @op.DelegatedDecisions · yeniden gönderilen @op.ResubmittedChanges
+                </div>
+                @if (op.ApprovalPending > 0)
+                {
+                    <div class="small text-danger mt-2">
+                        @op.ApprovalPending değişiklik hâlâ onay bekliyor.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-muted small mb-4">
+    Bu sayfa yalnızca okuma yapar: var olan ölçüm ve kayıtları birleştirir, yeni veri üretmez.
+    Gözden geçirmenin ÇIKTILARI (kararlar, iyileştirme fırsatları, kaynak ihtiyaçları — md. 9.3.3)
+    toplantı kaydına yazılır; bu rapor o toplantının GİRDİSİDİR.
+</div>

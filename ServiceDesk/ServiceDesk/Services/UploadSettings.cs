@@ -20,12 +20,16 @@ public class UploadSettings
     //   • Talep eki : ekran görüntüsü, kayıt dosyası, kurulum paketi — geniş
     //   • Yorum eki : yazışma içinde hızlı paylaşım — daha dar tutulur ki
     //                 uzun bir yazışma tek başına diski doldurmasın
+    //   • Uygunsuzluk kanıtı: denetim kaydı (ölçüm çıktısı, imzalı form,
+    //                 ekran görüntüsü) — talep ekiyle aynı genişlikte
     public long TicketMaxBytes { get; set; } = 10 * 1024 * 1024;   // 10 MB
     public long CommentMaxBytes { get; set; } = 5 * 1024 * 1024;   // 5 MB
+    public long NonconformityMaxBytes { get; set; } = 10 * 1024 * 1024;   // 10 MB
 
     // Toplam depolama kotası (AttachmentQuota). 0 = sınırsız.
     public long TicketQuotaBytes { get; set; } = 50 * 1024 * 1024;    // talep başına
     public long UserQuotaBytes { get; set; } = 500 * 1024 * 1024;     // kullanıcı başına
+    public long NonconformityQuotaBytes { get; set; } = 50 * 1024 * 1024;  // uygunsuzluk başına
 
     public ScannerSettings Scanner { get; set; } = new();
 
@@ -35,15 +39,20 @@ public class UploadSettings
     // Uploads/ içindeki sahipsiz dosya taraması (OrphanAttachmentScanService)
     public OrphanScanSettings OrphanScan { get; set; } = new();
 
-    public long MaxBytesFor(UploadKind kind) =>
-        kind == UploadKind.Comment ? CommentMaxBytes : TicketMaxBytes;
+    public long MaxBytesFor(UploadKind kind) => kind switch
+    {
+        UploadKind.Comment => CommentMaxBytes,
+        UploadKind.Nonconformity => NonconformityMaxBytes,
+        _ => TicketMaxBytes
+    };
 }
 
 // Ekin nereye yüklendiği: dosya başına boyut sınırı buna göre seçilir
 public enum UploadKind
 {
-    Ticket,   // talebin kendi ekleri (talep açma + sonradan dosya ekleme)
-    Comment   // yazışma mesajına eklenen dosyalar
+    Ticket,         // talebin kendi ekleri (talep açma + sonradan dosya ekleme)
+    Comment,        // yazışma mesajına eklenen dosyalar
+    Nonconformity   // uygunsuzluğun kapanış kanıtı (md. 10.2.2)
 }
 
 // Antivirüs tarama ayarları. Messaging:Sms bölümüyle aynı desende:
