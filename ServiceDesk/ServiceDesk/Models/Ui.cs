@@ -43,7 +43,18 @@ public static class Ui
     public static string TypeText(TicketType t) => t == TicketType.Incident ? "Arıza" : "Değişiklik";
 
     // Kategori artık enum değil tablo; ad doğrudan kayıttan gelir
-    public static string CategoryText(Category? c) => c?.Name ?? "-";
+    public static string CategoryText(Category? c) =>
+        c is null ? "-"
+        : c.Parent != null ? $"{c.Parent.Name} › {c.Name}"
+        : c.Name;
+
+    // Açılır listelerde girintili / yollu gösterim (Parent yüklenmiş olmalı)
+    public static string CategoryOptionLabel(Category c, int depth = 0)
+    {
+        if (depth <= 0 && c.ParentId == null) return c.Name;
+        if (c.Parent != null) return $"{c.Parent.Name} › {c.Name}";
+        return depth > 0 ? new string('\u00A0', depth * 2) + "↳ " + c.Name : c.Name;
+    }
 
     public static string NonconformityStatusText(NonconformityStatus s) => s switch
     {

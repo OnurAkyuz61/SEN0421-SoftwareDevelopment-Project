@@ -31,7 +31,7 @@
             <label class="form-label small text-muted mb-1">Kategori</label>
             <select name="categoryId" class="form-select">
                 <option value="">Tümü</option>
-                @foreach (var c in (List<Category>)ViewBag.Categories) { <option value="@c.Id" selected="@(ViewBag.CategoryId as int? == c.Id)">@c.Name</option> }
+                @foreach (var c in (List<Category>)ViewBag.Categories) { <option value="@c.Id" selected="@(ViewBag.CategoryId as int? == c.Id)">@Ui.CategoryOptionLabel(c)</option> }
             </select>
         </div>
         <div class="col-lg-1 col-md-4 col-6">

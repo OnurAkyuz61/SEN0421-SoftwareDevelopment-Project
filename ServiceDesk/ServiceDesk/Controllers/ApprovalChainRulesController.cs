@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
 using ServiceDesk.Models;
+using ServiceDesk.Services;
 
 namespace ServiceDesk.Controllers;
 
@@ -81,7 +82,11 @@ public class ApprovalChainRulesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task LoadCategoriesAsync() =>
-        ViewBag.Categories = await _db.Categories.AsNoTracking().Where(c => c.IsActive)
-            .OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToListAsync();
+    private async Task LoadCategoriesAsync()
+    {
+        var list = await _db.Categories.AsNoTracking()
+            .Include(c => c.Parent).Where(c => c.IsActive).ToListAsync();
+        ViewBag.Categories = CatalogRules.OrderByHierarchy(list, c => c.Id, c => c.ParentId,
+            c => c.SortOrder, c => c.Name);
+    }
 }

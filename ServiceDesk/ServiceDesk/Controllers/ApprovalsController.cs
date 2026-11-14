@@ -51,7 +51,7 @@ public class ApprovalsController : Controller
     {
         var now = AppTime.UtcNow;
         var q = _db.Tickets.AsNoTracking()
-            .Include(t => t.Category)
+            .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
             .Include(t => t.ChangeDetail)
             .Include(t => t.Approvals).ThenInclude(a => a.Approver)
             .Include(t => t.Approvals).ThenInclude(a => a.OnBehalfOf)
@@ -83,10 +83,12 @@ public class ApprovalsController : Controller
         ViewBag.Filter = f;
         ViewBag.Pager = pager;
         ViewBag.Context = await _authority.ContextForAsync(_current.User!);
-        ViewBag.Categories = await _db.Categories.AsNoTracking().Where(c => c.IsActive)
-            .OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToListAsync();
+        var kategoriler = await _db.Categories.AsNoTracking()
+            .Include(c => c.Parent).Where(c => c.IsActive).ToListAsync();
+        ViewBag.Categories = CatalogRules.OrderByHierarchy(kategoriler, c => c.Id, c => c.ParentId,
+            c => c.SortOrder, c => c.Name);
         ViewBag.History = await _db.Tickets.AsNoTracking()
-            .Include(t => t.Category)
+            .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
             .Where(t => t.ApprovalStatus == ApprovalStatus.Approved || t.ApprovalStatus == ApprovalStatus.Rejected)
             .OrderByDescending(t => t.ApprovalDecidedAt).Take(10).ToListAsync();
 

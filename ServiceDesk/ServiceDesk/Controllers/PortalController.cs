@@ -70,7 +70,7 @@ public class PortalController : Controller
 
         var list = await _db.Tickets
             .AsNoTracking()
-            .Include(t => t.Category)
+            .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
             .Include(t => t.Survey)
             .Where(t => t.RequesterId == me.Id)
             .OrderByDescending(t => t.CreatedAt)
@@ -85,11 +85,15 @@ public class PortalController : Controller
         return View(new Ticket { Type = TicketType.Incident });
     }
 
-    private async Task LoadCategoriesAsync() =>
-        ViewBag.Categories = await _db.Categories.AsNoTracking()
+    private async Task LoadCategoriesAsync()
+    {
+        var list = await _db.Categories.AsNoTracking()
+            .Include(c => c.Parent)
             .Where(c => c.IsActive)
-            .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
             .ToListAsync();
+        ViewBag.Categories = CatalogRules.OrderByHierarchy(list, c => c.Id, c => c.ParentId,
+            c => c.SortOrder, c => c.Name);
+    }
 
     [HttpPost, ValidateAntiForgeryToken]
     [RequestSizeLimit(60 * 1024 * 1024)]
@@ -205,7 +209,7 @@ public class PortalController : Controller
             .Include(t => t.Assignee)
             .Include(t => t.Comments).ThenInclude(c => c.Author)
             .Include(t => t.Comments).ThenInclude(c => c.Attachments)
-            .Include(t => t.Category)
+            .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
             .Include(t => t.ChangeDetail)
             .Include(t => t.Approvals)
             .AsNoTracking()

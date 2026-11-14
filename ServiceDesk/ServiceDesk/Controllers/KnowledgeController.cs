@@ -47,8 +47,7 @@ public class KnowledgeController : Controller
         ViewBag.Q = q;
         ViewBag.CategoryId = categoryId;
         ViewBag.Status = status;
-        ViewBag.Categories = await _db.Categories.AsNoTracking()
-            .Where(c => c.IsActive).OrderBy(c => c.SortOrder).ToListAsync();
+        ViewBag.Categories = await LoadCategoryListAsync();
 
         // Onay kuyruğunun büyüklüğü: yönetici listeye girdiğinde bekleyen iş
         // olduğunu görsün
@@ -557,6 +556,13 @@ public class KnowledgeController : Controller
             .MaxAsync(r => (int?)r.VersionNo);
 
     private async Task LoadCategoriesAsync() =>
-        ViewBag.Categories = await _db.Categories.AsNoTracking()
-            .Where(c => c.IsActive).OrderBy(c => c.SortOrder).ToListAsync();
+        ViewBag.Categories = await LoadCategoryListAsync();
+
+    private async Task<List<Category>> LoadCategoryListAsync()
+    {
+        var list = await _db.Categories.AsNoTracking()
+            .Include(c => c.Parent).Where(c => c.IsActive).ToListAsync();
+        return CatalogRules.OrderByHierarchy(list, c => c.Id, c => c.ParentId,
+            c => c.SortOrder, c => c.Name);
+    }
 }

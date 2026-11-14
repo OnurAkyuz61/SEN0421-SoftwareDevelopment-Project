@@ -117,7 +117,7 @@ public class DashboardController : Controller
                 .OrderBy(t => t.CreatedAt).Take(ListSize).ToListAsync(),
             UnassignedList = await acik
                 .Where(t => t.AssigneeId == null)
-                .Include(t => t.Category)
+                .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
                 .OrderBy(t => t.SlaDueAt).Take(ListSize).ToListAsync(),
             BreachedList = await acik
                 .Where(t => t.IsSlaBreached)

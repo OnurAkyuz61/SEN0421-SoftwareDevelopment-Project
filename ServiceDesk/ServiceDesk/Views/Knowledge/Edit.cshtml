@@ -59,7 +59,7 @@
                         <option value="">Kategorisiz</option>
                         @foreach (var c in kategoriler)
                         {
-                            <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@c.Name</option>
+                            <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@Ui.CategoryOptionLabel(c)</option>
                         }
                     </select>
 

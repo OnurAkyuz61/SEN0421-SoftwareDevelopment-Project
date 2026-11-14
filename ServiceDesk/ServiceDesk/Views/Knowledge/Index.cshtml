@@ -36,7 +36,7 @@
         <option value="">Tüm kategoriler</option>
         @foreach (var c in kategoriler)
         {
-            <option value="@c.Id" selected="@(seciliKategori == c.Id)">@c.Name</option>
+            <option value="@c.Id" selected="@(seciliKategori == c.Id)">@Ui.CategoryOptionLabel(c)</option>
         }
     </select>
     @if (Me.IsStaff)

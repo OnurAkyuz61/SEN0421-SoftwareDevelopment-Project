@@ -38,7 +38,7 @@
                     <option value="">Seçin...</option>
                     @foreach (var c in (List<Category>)ViewBag.Categories)
                     {
-                        <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@c.Name</option>
+                        <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@Ui.CategoryOptionLabel(c)</option>
                     }
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger small"></span>

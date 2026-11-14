@@ -22,7 +22,7 @@
                     <label asp-for="CategoryId" class="form-label"></label>
                     <select asp-for="CategoryId" class="form-select">
                         <option value="">Her kategori</option>
-                        @foreach (var c in categories) { <option value="@c.Id">@c.Name</option> }
+                        @foreach (var c in categories) { <option value="@c.Id">@Ui.CategoryOptionLabel(c)</option> }
                     </select>
                     <span asp-validation-for="CategoryId" class="text-danger small"></span>
                 </div>

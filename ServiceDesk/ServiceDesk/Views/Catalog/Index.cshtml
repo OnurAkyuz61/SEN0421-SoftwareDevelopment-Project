@@ -17,22 +17,54 @@
 </div>
 
 @* ── Kategoriler ──────────────────────────────────────────────────────── *@
+@{
+    // Üst kategori adayları: kendisi ve kendi altları hariç (döngü engeli UI'da da)
+    var parentMap = Model.ToDictionary(x => x.Id, x => x.ParentId);
+    List<Category> ParentOptions(int selfId) =>
+        Model.Where(x => CatalogRules.ParentError(selfId, x.Id, parentMap) == null).ToList();
+}
 <div class="panel mb-4">
-    <div class="panel-head">Kategoriler <span class="text-muted small fw-normal">@Model.Count kayıt</span></div>
+    <div class="panel-head">
+        Kategoriler
+        <span class="text-muted small fw-normal">@Model.Count kayıt · alt kategori için üst seçin</span>
+    </div>
     <div class="table-responsive">
         <table class="table table-sm mb-0 align-middle">
             <thead>
-                <tr><th style="width:28%">Ad</th><th style="width:24%">Varsayılan ekip</th>
-                    <th style="width:12%">Sıra</th><th style="width:12%">Durum</th>
-                    <th style="width:12%">Talep</th><th></th></tr>
+                <tr>
+                    <th style="width:22%">Ad</th>
+                    <th style="width:20%">Üst kategori</th>
+                    <th style="width:18%">Varsayılan ekip</th>
+                    <th style="width:10%">Sıra</th>
+                    <th style="width:10%">Durum</th>
+                    <th style="width:10%">Talep</th>
+                    <th></th>
+                </tr>
             </thead>
             <tbody>
                 @foreach (var c in Model)
                 {
-                    <tr>
+                    var girinti = c.ParentId != null;
+                    <tr class="@(c.IsActive ? "" : "text-muted")">
                         <form asp-action="SaveCategory" method="post">
                             <input type="hidden" name="id" value="@c.Id" />
-                            <td><input name="name" value="@c.Name" class="form-control form-control-sm" required maxlength="@CatalogRules.MaxNameLength" /></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-1">
+                                    @if (girinti) { <span class="text-muted small">↳</span> }
+                                    <input name="name" value="@c.Name" class="form-control form-control-sm" required maxlength="@CatalogRules.MaxNameLength" />
+                                </div>
+                            </td>
+                            <td>
+                                <select name="parentId" class="form-select form-select-sm">
+                                    <option value="">(kök)</option>
+                                    @foreach (var p in ParentOptions(c.Id))
+                                    {
+                                        <option value="@p.Id" selected="@(p.Id == c.ParentId)">
+                                            @(p.ParentId != null ? "↳ " : "")@p.Name
+                                        </option>
+                                    }
+                                </select>
+                            </td>
                             <td>
                                 <select name="defaultTeamId" class="form-select form-select-sm">
                                     <option value="">-</option>
@@ -46,7 +78,7 @@
                             <td>
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="checkbox" name="isActive" value="true"
-                                           id="cat@(c.Id)" checked="@c.IsActive" />
+                                           id="cat@(c.Id)" @(c.IsActive ? "checked" : null) />
                                     <label class="form-check-label small" for="cat@(c.Id)">Aktif</label>
                                 </div>
                             </td>
@@ -59,6 +91,15 @@
                     <form asp-action="SaveCategory" method="post">
                         <input type="hidden" name="id" value="0" />
                         <td><input name="name" class="form-control form-control-sm" placeholder="Yeni kategori" required maxlength="@CatalogRules.MaxNameLength" /></td>
+                        <td>
+                            <select name="parentId" class="form-select form-select-sm">
+                                <option value="">(kök)</option>
+                                @foreach (var p in Model)
+                                {
+                                    <option value="@p.Id">@(p.ParentId != null ? "↳ " : "")@p.Name</option>
+                                }
+                            </select>
+                        </td>
                         <td>
                             <select name="defaultTeamId" class="form-select form-select-sm">
                                 <option value="">-</option>

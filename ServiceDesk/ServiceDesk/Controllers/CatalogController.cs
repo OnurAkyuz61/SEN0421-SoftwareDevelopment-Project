@@ -42,21 +42,31 @@ public class CatalogController : Controller
             .Select(g => new { Id = g.Key, Adet = g.Count() })
             .ToDictionaryAsync(x => x.Id, x => x.Adet);
 
-        return View(await _db.Categories.AsNoTracking()
+        var kategoriler = await _db.Categories.AsNoTracking()
             .Include(c => c.DefaultTeam)
-            .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
-            .ToListAsync());
+            .Include(c => c.Parent)
+            .ToListAsync();
+
+        return View(CatalogRules.OrderByHierarchy(kategoriler, c => c.Id, c => c.ParentId,
+            c => c.SortOrder, c => c.Name));
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> SaveCategory(int id, string? name, int? defaultTeamId, int sortOrder, bool isActive)
+    public async Task<IActionResult> SaveCategory(int id, string? name, int? parentId,
+                                                  int? defaultTeamId, int sortOrder, bool isActive)
     {
         name = CatalogRules.NormalizeName(name);
         if (NameError("Kategori", name) is { } hata) return Fail(hata);
 
-        var mevcut = await _db.Categories.AsNoTracking().Select(c => new { c.Id, c.Name, c.IsActive }).ToListAsync();
+        var mevcut = await _db.Categories.AsNoTracking()
+            .Select(c => new { c.Id, c.Name, c.IsActive, c.ParentId }).ToListAsync();
         if (CatalogRules.FindDuplicate(mevcut, c => c.Id, c => c.Name, name, id) is { } ayni)
             return Fail(DuplicateMessage("kategori", ayni.Name, ayni.IsActive));
+
+        if (parentId is 0) parentId = null;
+        var parentMap = mevcut.ToDictionary(c => c.Id, c => c.ParentId);
+        if (CatalogRules.ParentError(id, parentId, parentMap) is { } parentHata)
+            return Fail(parentHata);
 
         if (defaultTeamId != null && !await _db.Teams.AnyAsync(t => t.Id == defaultTeamId))
             return Fail("Geçerli bir varsayılan ekip seçin.");
@@ -71,6 +81,7 @@ public class CatalogController : Controller
         }
 
         kategori.Name = name;
+        kategori.ParentId = parentId;
         kategori.DefaultTeamId = defaultTeamId;
         kategori.SortOrder = sortOrder;
         kategori.IsActive = isActive;

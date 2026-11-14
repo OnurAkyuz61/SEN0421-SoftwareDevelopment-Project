@@ -162,7 +162,9 @@ public class TicketsController : Controller
     public async Task<IActionResult> Index(string? q, TicketStatus? status, Priority? priority,
         TicketType? type, int? categoryId, DateTime? from, DateTime? to, string? tag, int page = 1)
     {
-        var query = _db.Tickets.Include(t => t.Assignee).Include(t => t.Category).VisibleTo(Me);
+        var query = _db.Tickets.Include(t => t.Assignee)
+            .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
+            .VisibleTo(Me);
         if (!string.IsNullOrWhiteSpace(tag))
         {
             var etiket = TicketTags.Normalize(tag);
@@ -193,8 +195,10 @@ public class TicketsController : Controller
         ViewBag.Tag = tag;
         ViewBag.From = from?.ToString("yyyy-MM-dd");
         ViewBag.To = to?.ToString("yyyy-MM-dd");
-        ViewBag.Categories = await _db.Categories.AsNoTracking()
-            .Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name).ToListAsync();
+        var kategoriler = await _db.Categories.AsNoTracking()
+            .Include(c => c.Parent).Where(c => c.IsActive).ToListAsync();
+        ViewBag.Categories = CatalogRules.OrderByHierarchy(kategoriler, c => c.Id, c => c.ParentId,
+            c => c.SortOrder, c => c.Name);
 
         // İhlal işaretleme ve eskalasyon artık SlaMonitorService'in işi;
         // bu sayfa yalnızca okur. Liste sayfalanır (Paging.DefaultPageSize).
@@ -213,7 +217,7 @@ public class TicketsController : Controller
     {
         var query = _db.Tickets.IgnoreQueryFilters().AsNoTracking()
             .Include(t => t.DeletedBy)
-            .Include(t => t.Category)
+            .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
             .Where(t => t.IsDeleted)
             .VisibleTo(Me);
 
@@ -251,7 +255,7 @@ public class TicketsController : Controller
             .Include(t => t.Escalations).ThenInclude(e => e.EscalatedTo)
             .Include(t => t.Escalations).ThenInclude(e => e.TriggeredBy)
             .Include(t => t.SlaPolicy)
-            .Include(t => t.Category)
+            .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
             .Include(t => t.AssignedTeam)
             .Include(t => t.ChangeDetail)
             .Include(t => t.Approvals).ThenInclude(a => a.Approver)
@@ -346,7 +350,8 @@ public class TicketsController : Controller
     public async Task<IActionResult> Assign(int id)
     {
         var ticket = await _db.Tickets.AsNoTracking()
-            .Include(t => t.Assignee).Include(t => t.AssignedTeam).Include(t => t.Category)
+            .Include(t => t.Assignee).Include(t => t.AssignedTeam)
+            .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
             .FirstOrDefaultAsync(t => t.Id == id);
         if (ticket == null || !TicketScope.CanSee(Me, ticket)) return NotFound();
 
