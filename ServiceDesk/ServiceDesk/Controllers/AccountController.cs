@@ -85,7 +85,9 @@ public class AccountController : Controller
             return View(vm);
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == vm.Email && u.IsActive);
+        // Pasif hesaplar da bulunur: şifre doğruysa ayrı sonuç + anlaşılır mesaj
+        // yazılır; yanlışsa "hesap yok / şifre hatalı" ile karışmaz.
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == vm.Email);
 
         // Kullanıcı bulunamasa da şifre doğrulaması yapılır ki yanıt süresinden
         // hesabın var olup olmadığı anlaşılmasın
@@ -102,6 +104,15 @@ public class AccountController : Controller
             ModelState.AddModelError(string.Empty, kalan <= 2
                 ? $"E-posta veya şifre hatalı. Kalan deneme hakkı: {kalan}."
                 : "E-posta veya şifre hatalı.");
+            return View(vm);
+        }
+
+        // Şifre doğru ama hesap pasif: OTP'ye geçilmez, denetim izine ayrı yazılır
+        if (!user.IsActive)
+        {
+            await _audit.RecordAsync(vm.Email, LoginResult.Inactive, user.Id);
+            ModelState.AddModelError(string.Empty,
+                "Hesabınız pasifleştirilmiş. Giriş yapamazsınız; yöneticinize başvurun.");
             return View(vm);
         }
 
@@ -381,11 +392,19 @@ public class AccountController : Controller
             return View(vm);
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == pendingId && u.IsActive);
+        // OTP doğru olsa bile hesap bu sırada pasifleştirilmiş olabilir
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == pendingId);
         if (user is null)
         {
             ClearPendingLogin();
-            TempData["Err"] = "Hesap bulunamadı veya pasif durumda.";
+            TempData["Err"] = "Hesap bulunamadı.";
+            return RedirectToAction(nameof(Login));
+        }
+        if (!user.IsActive)
+        {
+            await _audit.RecordAsync(user.Email, LoginResult.Inactive, user.Id);
+            ClearPendingLogin();
+            TempData["Err"] = "Hesabınız pasifleştirilmiş. Giriş yapamazsınız; yöneticinize başvurun.";
             return RedirectToAction(nameof(Login));
         }
 

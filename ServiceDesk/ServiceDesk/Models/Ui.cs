@@ -95,6 +95,7 @@ public static class Ui
         LoginResult.OtpFailed => "OTP hatalı",
         LoginResult.OtpExpired => "OTP süresi doldu",
         LoginResult.DevLogin => "Geliştirme girişi",
+        LoginResult.Inactive => "Hesap pasif",
         _ => "Çok fazla deneme"
     };
 
@@ -102,7 +103,7 @@ public static class Ui
     {
         LoginResult.Success => "tag-green",
         LoginResult.DevLogin => "tag-blue",
-        LoginResult.NoPhone or LoginResult.OtpExpired => "tag-amber",
+        LoginResult.NoPhone or LoginResult.OtpExpired or LoginResult.Inactive => "tag-amber",
         _ => "tag-red"
     };
 

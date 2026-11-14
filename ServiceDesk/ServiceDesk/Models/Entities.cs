@@ -828,7 +828,9 @@ public enum LoginResult
     [Display(Name = "OTP süresi doldu")] OtpExpired = 5,
     [Display(Name = "Çok fazla deneme")] LockedOut = 6,
     // Yalnızca Development'ta, şifre ve OTP atlanarak yapılan giriş
-    [Display(Name = "Geliştirme girişi")] DevLogin = 7
+    [Display(Name = "Geliştirme girişi")] DevLogin = 7,
+    // Şifre doğru ama hesap pasif: giriş reddedilir, denetim izine ayrı yazılır
+    [Display(Name = "Hesap pasif")] Inactive = 8
 }
 
 // Giriş denemesi denetim izi. Hem güvenlik kaydı hem de deneme
