@@ -18,15 +18,18 @@ public class ProfileController : Controller
     private readonly IPasswordHasher<AppUser> _hasher;
     private readonly NotificationService _notify;
     private readonly PasswordHistoryService _passwordHistory;
+    private readonly AuditService _audit;
 
     public ProfileController(AppDbContext db, CurrentUser current, IPasswordHasher<AppUser> hasher,
-                             NotificationService notify, PasswordHistoryService passwordHistory)
+                             NotificationService notify, PasswordHistoryService passwordHistory,
+                             AuditService audit)
     {
         _db = db;
         _current = current;
         _hasher = hasher;
         _notify = notify;
         _passwordHistory = passwordHistory;
+        _audit = audit;
     }
 
     // Bildirim tercihleri: tür bazında uygulama içi / e-posta / SMS ve günlük özet.
@@ -100,9 +103,13 @@ public class ProfileController : Controller
             return View("Index", await PageAsync(FillReadOnly(vm, me), new ChangePasswordVm()));
         }
 
+        var onceki = UserFieldChangeAudit.Capture(me);
         me.FirstName = vm.FirstName.Trim();
         me.LastName = vm.LastName.Trim();
         me.PhoneNumber = phone;
+        var degisen = UserFieldChangeAudit.Diff(onceki, UserFieldChangeAudit.Capture(me));
+        if (UserFieldChangeAudit.FormatDetail(me.Id, me.FullName, degisen) is { } detay)
+            _audit.Queue(AuditAction.UserFieldsChanged, me.Id, me.Email, detail: detay);
         await _db.SaveChangesAsync();
 
         TempData["Ok"] = "Profil bilgileriniz güncellendi.";
@@ -134,6 +141,9 @@ public class ProfileController : Controller
 
         var zorunluYenileme = _current.RequiresPasswordChange;
         await _passwordHistory.SetPasswordAsync(me, vm.NewPassword); // MustChangePassword kalkar
+        _audit.Queue(AuditAction.UserFieldsChanged, me.Id, me.Email,
+            detail: UserFieldChangeAudit.FormatDetail(me.Id, me.FullName,
+                new[] { new UserFieldChangeAudit.Change("Şifre", "•", "değiştirildi") }));
         await _db.SaveChangesAsync();
 
         TempData["Ok"] = "Şifreniz değiştirildi.";

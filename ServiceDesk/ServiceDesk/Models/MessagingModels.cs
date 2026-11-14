@@ -77,7 +77,8 @@ public enum AuditAction
     [Display(Name = "Kullanıcı CSV içe aktarma")] UsersCsvImported = 72,
     [Display(Name = "Departman transferi yeniden atama")] DepartmentTransferReassigned = 73,
     [Display(Name = "Pasif kullanıcı talep bırakma")] InactiveUserTicketsReleased = 74,
-    [Display(Name = "Kullanıcı anonimleştirme")] UserAnonymized = 75
+    [Display(Name = "Kullanıcı anonimleştirme")] UserAnonymized = 75,
+    [Display(Name = "Kullanıcı alan değişikliği")] UserFieldsChanged = 76
 }
 
 // Genel denetim kaydı (ISO 9001 md. 7.5.3 / ISO 27001 A.8.15). Giriş

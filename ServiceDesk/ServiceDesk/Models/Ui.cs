@@ -225,6 +225,7 @@ public static class Ui
         AuditAction.DepartmentTransferReassigned => "Departman transferi yeniden atama",
         AuditAction.InactiveUserTicketsReleased => "Pasif kullanıcı talep bırakma",
         AuditAction.UserAnonymized => "Kullanıcı anonimleştirme",
+        AuditAction.UserFieldsChanged => "Kullanıcı alan değişikliği",
         _ => a.ToString()
     };
 }

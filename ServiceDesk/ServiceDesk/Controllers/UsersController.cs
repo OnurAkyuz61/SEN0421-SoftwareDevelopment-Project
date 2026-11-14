@@ -558,6 +558,7 @@ public class UsersController : Controller
         var oncekiTelefonYok = user != null && string.IsNullOrWhiteSpace(user.PhoneNumber);
         var oncekiAktif = user?.IsActive ?? false;
         var oncekiEkipId = user?.TeamId;
+        var oncekiAlanlar = user == null ? null : UserFieldChangeAudit.Capture(user);
         if (user == null)
         {
             user = new AppUser { CreatedAt = AppTime.UtcNow };
@@ -574,8 +575,16 @@ public class UsersController : Controller
         user.IsActive = vm.IsActive;
 
         // Yönetici belirlediği şifre geçicidir: kullanıcı ilk girişte değiştirir
-        if (!string.IsNullOrEmpty(vm.Password))
-            await _passwordHistory.SetPasswordAsync(user, vm.Password, requireChangeOnNextLogin: true);
+        var sifreBelirlendi = !string.IsNullOrEmpty(vm.Password);
+        if (sifreBelirlendi)
+            await _passwordHistory.SetPasswordAsync(user, vm.Password!, requireChangeOnNextLogin: true);
+
+        if (!yeniKayit && oncekiAlanlar != null)
+        {
+            var degisen = UserFieldChangeAudit.Diff(oncekiAlanlar, UserFieldChangeAudit.Capture(user), sifreBelirlendi);
+            if (UserFieldChangeAudit.FormatDetail(user.Id, user.FullName, degisen) is { } detay)
+                _audit.Queue(AuditAction.UserFieldsChanged, me.Id, me.Email, detail: detay);
+        }
 
         // Pasifleştirme: açık talepler atamasız bırakılır (ekip kuyruğu kalır).
         // Ekip değişimi: pasif değilse eski kuyrukta yeniden atanır.
@@ -592,6 +601,14 @@ public class UsersController : Controller
         }
 
         await _db.SaveChangesAsync();
+
+        // Yeni hesap Id'si SaveChanges sonrası belli olur
+        if (yeniKayit)
+        {
+            _audit.Queue(AuditAction.UserFieldsChanged, me.Id, me.Email,
+                detail: $"Yeni hesap #{user.Id}: {user.FullName} ({user.Email}), rol {Ui.RoleText(user.Role)}");
+            await _db.SaveChangesAsync();
+        }
 
         if (transfer is { TicketIds.Count: > 0 })
             _notify.SignalDelivery();
@@ -613,7 +630,6 @@ public class UsersController : Controller
             await _db.SaveChangesAsync();
         }
 
-        var sifreBelirlendi = !string.IsNullOrEmpty(vm.Password);
         TempData["Ok"] = yeniKayit
             ? $"{user.FullName} ({Ui.RoleText(user.Role)}) hesabı oluşturuldu. İlk girişte şifre değiştirmesi istenecek."
             : pasiflestirildi
@@ -738,11 +754,16 @@ public class UsersController : Controller
         else
         {
             var oncekiAktif = user.IsActive;
+            var oncekiAlanlar = UserFieldChangeAudit.Capture(user);
             user.IsActive = isActive;
 
             InactiveUserTicketRelease.Result? release = null;
             if (InactiveUserTicketReleasePolicy.ShouldRelease(oncekiAktif, isActive))
                 release = await _ticketRelease.ApplyAsync(user.Id, _current.User!.Id, user.FullName);
+
+            var degisen = UserFieldChangeAudit.Diff(oncekiAlanlar, UserFieldChangeAudit.Capture(user));
+            if (UserFieldChangeAudit.FormatDetail(user.Id, user.FullName, degisen) is { } detay)
+                _audit.Queue(AuditAction.UserFieldsChanged, _current.User!.Id, _current.User.Email, detail: detay);
 
             await _db.SaveChangesAsync();
 
