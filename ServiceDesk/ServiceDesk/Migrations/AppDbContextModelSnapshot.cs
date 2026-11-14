@@ -62,6 +62,9 @@ namespace ServiceDesk.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("PasswordChangedAt")
                         .HasColumnType("datetime2");
 

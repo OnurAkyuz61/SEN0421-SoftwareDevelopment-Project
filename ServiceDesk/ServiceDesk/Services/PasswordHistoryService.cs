@@ -56,7 +56,12 @@ public class PasswordHistoryService
 
     // Mevcut özeti geçmişe alır, yeni özeti yazar, fazla kayıtları budar.
     // SaveChanges çağıranın sorumluluğundadır (aynı transaction'da kalsın).
-    public async Task SetPasswordAsync(AppUser user, string newPassword)
+    //
+    // requireChangeOnNextLogin: yönetici geçici şifre verdiğinde true —
+    // kullanıcı bir sonraki girişte kendi şifresini seçmek zorunda kalır.
+    // Kullanıcı kendi değiştirdiyse / sıfırladıysa false (bayrak kalkar).
+    public async Task SetPasswordAsync(AppUser user, string newPassword,
+                                       bool requireChangeOnNextLogin = false)
     {
         if (user.Id > 0 && !string.IsNullOrEmpty(user.PasswordHash) && HistoryCount > 1)
         {
@@ -72,6 +77,7 @@ public class PasswordHistoryService
 
         user.PasswordHash = _hasher.HashPassword(user, newPassword);
         user.PasswordChangedAt = AppTime.UtcNow;
+        user.MustChangePassword = requireChangeOnNextLogin;
     }
 
     private async Task EnsureMaxAsync(int userId, int max)

@@ -132,12 +132,12 @@ public class ProfileController : Controller
             return View("Index", await PageAsync(ToVm(me), vm));
         }
 
-        var zorunluYenileme = _current.IsPasswordExpired;
-        await _passwordHistory.SetPasswordAsync(me, vm.NewPassword);
+        var zorunluYenileme = _current.RequiresPasswordChange;
+        await _passwordHistory.SetPasswordAsync(me, vm.NewPassword); // MustChangePassword kalkar
         await _db.SaveChangesAsync();
 
         TempData["Ok"] = "Şifreniz değiştirildi.";
-        // Periyodik yenileme kilidinden geliyorsa ana sayfaya dön
+        // Zorunlu yenileme / ilk giriş kilidinden geliyorsa ana sayfaya dön
         if (zorunluYenileme)
         {
             return me.Role == UserRole.User

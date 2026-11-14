@@ -7,13 +7,12 @@ using ServiceDesk.Services;
 
 namespace ServiceDesk.Filters;
 
-// Şifre max yaşını aşmış oturumları profil/şifre değiştirme dışındaki
-// sayfalardan uzak tutar. Auth:PasswordMaxAgeDays ≤ 0 ise kapalıdır.
+// İlk giriş veya süresi dolmuş şifrede kullanıcıyı profil/şifre
+// değiştirme dışındaki sayfalardan uzak tutar.
 public class PasswordExpiryFilter : IAuthorizationFilter
 {
     public void OnAuthorization(AuthorizationFilterContext context)
     {
-        // AuthorizeRole reddettiyse tekrar yazma
         if (context.Result != null) return;
 
         var services = context.HttpContext.RequestServices;
@@ -22,17 +21,17 @@ public class PasswordExpiryFilter : IAuthorizationFilter
         if (user is null) return;
 
         var cfg = services.GetRequiredService<IOptions<AuthSettings>>().Value;
-        if (!PasswordPolicy.IsExpired(user, cfg)) return;
+        if (!PasswordPolicy.RequiresChange(user, cfg)) return;
 
         if (IsExempt(context)) return;
 
+        var message = PasswordPolicy.RequiredMessage(user, cfg);
         var endpoint = context.HttpContext.GetEndpoint();
         var isApi = endpoint?.Metadata.GetMetadata<ApiAuthorizeRoleAttribute>() != null;
 
         if (isApi)
         {
-            context.Result = new JsonResult(new ApiError(
-                "Şifrenizin süresi doldu. Profil sayfasından yeni şifre belirleyin."))
+            context.Result = new JsonResult(new ApiError(message))
             {
                 StatusCode = StatusCodes.Status403Forbidden
             };
@@ -41,12 +40,12 @@ public class PasswordExpiryFilter : IAuthorizationFilter
 
         var tempData = services.GetRequiredService<ITempDataDictionaryFactory>()
             .GetTempData(context.HttpContext);
-        tempData["Err"] = PasswordPolicy.ExpiredMessage(cfg);
+        tempData["Err"] = message;
 
         context.Result = new RedirectToActionResult("Index", "Profile", null);
     }
 
-    // Süresi dolmuşken yalnızca şifre yenileme ve çıkış serbest
+    // Zorunlu yenilemede yalnızca şifre değiştirme ve çıkış serbest
     private static bool IsExempt(AuthorizationFilterContext context)
     {
         var rd = context.RouteData.Values;
@@ -67,7 +66,6 @@ public class PasswordExpiryFilter : IAuthorizationFilter
              action.Equals("KeepAlive", StringComparison.OrdinalIgnoreCase)))
             return true;
 
-        // Bildirim rozeti poll'u sayfa yenilemeden kırılmasın
         if (controller.Equals("Notifications", StringComparison.OrdinalIgnoreCase) &&
             action.Equals("UnreadCount", StringComparison.OrdinalIgnoreCase))
             return true;

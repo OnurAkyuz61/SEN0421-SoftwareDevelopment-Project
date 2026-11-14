@@ -86,4 +86,17 @@ public class PasswordPolicyTests
         Assert.True(PasswordPolicy.IsExpired(u, Cfg(90)));
         Assert.False(PasswordPolicy.IsExpired(u, Cfg(120)));
     }
+
+    [Fact]
+    public void MustChangePassword_zorunlu_yenileme_sayilir()
+    {
+        var u = new ServiceDesk.Models.AppUser
+        {
+            CreatedAt = AppTime.UtcNow,
+            PasswordChangedAt = AppTime.UtcNow,
+            MustChangePassword = true
+        };
+        Assert.True(PasswordPolicy.RequiresChange(u, Cfg(90)));
+        Assert.Contains("İlk giriş", PasswordPolicy.RequiredMessage(u, Cfg(90)));
+    }
 }

@@ -793,6 +793,10 @@ public class AppUser
     // Son başarılı şifre değişimi (UTC). Periyodik yenileme buna göre hesaplanır.
     public DateTime? PasswordChangedAt { get; set; }
 
+    // Yönetici oluşturduğunda / geçici şifre verdiğinde true;
+    // kullanıcı kendi şifresini belirleyince false olur (ilk giriş zorunluluğu).
+    public bool MustChangePassword { get; set; }
+
     [Display(Name = "Rol")]
     public UserRole Role { get; set; } = UserRole.User;
 

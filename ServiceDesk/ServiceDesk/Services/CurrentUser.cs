@@ -139,6 +139,13 @@ public class CurrentUser
     public bool IsPasswordExpired =>
         User is { } u && PasswordPolicy.IsExpired(u, _settings);
 
+    // Yönetici geçici şifresi / ilk giriş zorunluluğu
+    public bool MustChangePassword => User?.MustChangePassword == true;
+
+    // İlk giriş veya süresi dolmuş — profil kilidi
+    public bool RequiresPasswordChange =>
+        User is { } u && PasswordPolicy.RequiresChange(u, _settings);
+
     // Avatar için baş harfler: "Rana Kurt" → "RK"
     public string Initials
     {

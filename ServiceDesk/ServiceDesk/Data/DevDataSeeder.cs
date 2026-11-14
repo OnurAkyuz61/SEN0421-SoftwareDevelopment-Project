@@ -274,7 +274,7 @@ public static class DevDataSeeder
                 PasswordHash = "AQAAAAIAAYagAAAAEFi3JF03e5L+rT0TFVRNIDpLX9U4gHjj97qMn+Eb/motK5gw/4voqGzIWdLDQnLoRg==", // admin123
                 PhoneNumber = "05321234567",
                 Role = UserRole.Admin, DepartmentId = 1, IsActive = true, CreatedAt = tarih,
-                PasswordChangedAt = sifreTarihi
+                PasswordChangedAt = sifreTarihi, MustChangePassword = false
             },
             new AppUser
             {
@@ -283,7 +283,7 @@ public static class DevDataSeeder
                 PasswordHash = "AQAAAAIAAYagAAAAEGkvNowp+RHWmgqpxlh3o9uxa4AB+oXFA7R1IxRkUxU8Phrot1adAxfk+tsgti4wag==", // agent123
                 PhoneNumber = "05329876543",
                 Role = UserRole.Agent, DepartmentId = 1, TeamId = 1, IsActive = true, CreatedAt = tarih,
-                PasswordChangedAt = sifreTarihi
+                PasswordChangedAt = sifreTarihi, MustChangePassword = false
             },
             new AppUser
             {
@@ -292,7 +292,7 @@ public static class DevDataSeeder
                 PasswordHash = "AQAAAAIAAYagAAAAEGCuZpCsLC2ztoJiLtcHCbzkXXyQBZZ6US8lq80NpQ9uHcFc6ORCHZpysx1O4810DA==", // user123
                 PhoneNumber = "05321112233",
                 Role = UserRole.User, DepartmentId = 2, IsActive = true, CreatedAt = tarih,
-                PasswordChangedAt = sifreTarihi
+                PasswordChangedAt = sifreTarihi, MustChangePassword = false
             });
 
         await db.SaveChangesAsync();

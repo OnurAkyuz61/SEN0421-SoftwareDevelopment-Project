@@ -64,7 +64,9 @@
                 <div class="panel-head">
                     Şifre
                     <span class="text-muted small fw-normal">
-                        @(Model.IsNew ? "yeni hesap için zorunlu" : "boş bırakılırsa mevcut şifre değişmez")
+                        @(Model.IsNew
+                            ? "yeni hesap için zorunlu — kullanıcı ilk girişte değiştirmek zorunda"
+                            : "boş bırakılırsa mevcut şifre değişmez; doldurulursa kullanıcı bir sonraki girişte yeniden belirler")
                     </span>
                 </div>
                 <div class="panel-body">

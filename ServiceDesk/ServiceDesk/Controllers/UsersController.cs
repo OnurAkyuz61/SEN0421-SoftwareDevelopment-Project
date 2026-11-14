@@ -258,21 +258,25 @@ public class UsersController : Controller
         user.TeamId = vm.TeamId;
         user.IsActive = vm.IsActive;
 
+        // Yönetici belirlediği şifre geçicidir: kullanıcı ilk girişte değiştirir
         if (!string.IsNullOrEmpty(vm.Password))
-            await _passwordHistory.SetPasswordAsync(user, vm.Password);
+            await _passwordHistory.SetPasswordAsync(user, vm.Password, requireChangeOnNextLogin: true);
 
         await _db.SaveChangesAsync();
 
         if (pasiflestirildi)
             await _sessions.CloseAllAsync(user.Id);
 
+        var sifreBelirlendi = !string.IsNullOrEmpty(vm.Password);
         TempData["Ok"] = yeniKayit
-            ? $"{user.FullName} ({Ui.RoleText(user.Role)}) hesabı oluşturuldu."
+            ? $"{user.FullName} ({Ui.RoleText(user.Role)}) hesabı oluşturuldu. İlk girişte şifre değiştirmesi istenecek."
             : pasiflestirildi
                 ? $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu, açık oturumları kapatıldı."
                 : rolDegisti
                     ? $"{user.FullName} rolü {Ui.RoleText(user.Role)} olarak güncellendi. Açık oturumundaki yetkiler bir sonraki istekte yenilenir."
-                    : $"{user.FullName} hesabı güncellendi.";
+                    : sifreBelirlendi
+                        ? $"{user.FullName} hesabı güncellendi. Yeni şifre geçici; bir sonraki girişte değiştirmesi istenecek."
+                        : $"{user.FullName} hesabı güncellendi.";
         return RedirectToAction(nameof(Index));
     }
 
