@@ -199,17 +199,23 @@ public class UsersController : Controller
             phone = user.PhoneNumber;
         }
 
-        // Ekip seçildiyse gerçekten var olmalı ve seçilen birime bağlı olmalı
+        // Birim ↔ ekip tutarlılığı: birim değişince eski ekip başka birime
+        // ait kalamaz (OrganizationRules). Ekip seçili / birim boşsa birim
+        // ekipten doldurulur.
+        int? teamDepartmentId = null;
+        var teamFound = false;
         if (vm.TeamId != null)
         {
             var team = await _db.Teams.AsNoTracking().FirstOrDefaultAsync(t => t.Id == vm.TeamId);
-            if (team == null)
-                ModelState.AddModelError(nameof(vm.TeamId), "Geçerli bir ekip seçin");
-            else if (vm.DepartmentId != null && team.DepartmentId != vm.DepartmentId)
-                ModelState.AddModelError(nameof(vm.TeamId), "Seçilen ekip bu birime bağlı değil");
-            else if (vm.DepartmentId == null)
-                vm.DepartmentId = team.DepartmentId;   // ekip birimi belirler
+            teamFound = team != null;
+            teamDepartmentId = team?.DepartmentId;
         }
+
+        var org = OrganizationRules.Resolve(vm.DepartmentId, vm.TeamId, teamFound, teamDepartmentId);
+        vm.DepartmentId = org.DepartmentId;
+        vm.TeamId = org.TeamId;
+        if (org.Error != null)
+            ModelState.AddModelError(nameof(vm.TeamId), org.Error);
 
         if (vm.DepartmentId != null && !await _db.Departments.AnyAsync(d => d.Id == vm.DepartmentId))
             ModelState.AddModelError(nameof(vm.DepartmentId), "Geçerli bir birim seçin");

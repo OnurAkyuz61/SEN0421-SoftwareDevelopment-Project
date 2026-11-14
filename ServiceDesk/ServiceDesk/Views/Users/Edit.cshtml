@@ -171,7 +171,7 @@
                 <div class="panel-body">
                     <div class="mb-3">
                         <label asp-for="DepartmentId" class="form-label"></label>
-                        <select asp-for="DepartmentId" class="form-select">
+                        <select asp-for="DepartmentId" class="form-select" id="userDepartment">
                             <option value="">-</option>
                             @foreach (var d in birimler)
                             {
@@ -183,16 +183,19 @@
 
                     <div class="mb-0">
                         <label asp-for="TeamId" class="form-label"></label>
-                        <select asp-for="TeamId" class="form-select">
+                        <select asp-for="TeamId" class="form-select" id="userTeam">
                             <option value="">-</option>
                             @foreach (var t in ekipler)
                             {
-                                <option value="@t.Id">@t.Name (@(t.Department?.Name ?? "-"))</option>
+                                <option value="@t.Id" data-department-id="@t.DepartmentId">
+                                    @t.Name (@(t.Department?.Name ?? "-"))
+                                </option>
                             }
                         </select>
                         <span asp-validation-for="TeamId" class="text-danger small"></span>
                         <div class="form-text">
                             Destek personeli için: talepler kişiye atanmadan önce ekibe düşer.
+                            Birim değişince yalnızca o birime bağlı ekipler listelenir; uyumsuz ekip temizlenir.
                         </div>
                     </div>
 
@@ -217,4 +220,32 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var dep = document.getElementById('userDepartment');
+            var team = document.getElementById('userTeam');
+            if (!dep || !team) return;
+
+            function filterTeams(clearIfMismatch) {
+                var deptId = dep.value;
+                var selected = team.value;
+                var keep = false;
+
+                Array.prototype.forEach.call(team.options, function (opt) {
+                    if (!opt.value) {
+                        opt.hidden = false;
+                        return;
+                    }
+                    var match = !deptId || opt.getAttribute('data-department-id') === deptId;
+                    opt.hidden = !match;
+                    if (match && opt.value === selected) keep = true;
+                });
+
+                if (clearIfMismatch && selected && !keep) team.value = '';
+            }
+
+            dep.addEventListener('change', function () { filterTeams(true); });
+            filterTeams(false);
+        })();
+    </script>
 }
