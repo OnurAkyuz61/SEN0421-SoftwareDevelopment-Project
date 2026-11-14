@@ -17,14 +17,16 @@ public class ProfileController : Controller
     private readonly CurrentUser _current;
     private readonly IPasswordHasher<AppUser> _hasher;
     private readonly NotificationService _notify;
+    private readonly PasswordHistoryService _passwordHistory;
 
     public ProfileController(AppDbContext db, CurrentUser current, IPasswordHasher<AppUser> hasher,
-                             NotificationService notify)
+                             NotificationService notify, PasswordHistoryService passwordHistory)
     {
         _db = db;
         _current = current;
         _hasher = hasher;
         _notify = notify;
+        _passwordHistory = passwordHistory;
     }
 
     // Bildirim tercihleri: tür bazında uygulama içi / e-posta / SMS ve günlük özet.
@@ -124,7 +126,13 @@ public class ProfileController : Controller
             return View("Index", await PageAsync(ToVm(me), vm));
         }
 
-        me.PasswordHash = _hasher.HashPassword(me, vm.NewPassword);
+        if (await _passwordHistory.ReuseErrorAsync(me, vm.NewPassword) is { } reuseErr)
+        {
+            ModelState.AddModelError($"{nameof(ProfilePageVm.Password)}.{nameof(vm.NewPassword)}", reuseErr);
+            return View("Index", await PageAsync(ToVm(me), vm));
+        }
+
+        await _passwordHistory.SetPasswordAsync(me, vm.NewPassword);
         await _db.SaveChangesAsync();
 
         TempData["Ok"] = "Şifreniz değiştirildi.";

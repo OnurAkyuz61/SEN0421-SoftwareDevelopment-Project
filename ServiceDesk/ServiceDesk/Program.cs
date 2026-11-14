@@ -36,6 +36,7 @@ builder.Services.Configure<QualitySettings>(builder.Configuration.GetSection(Qua
 builder.Services.AddScoped<NonconformityService>();  // otomatik uygunsuzluk kaydı
 builder.Services.AddHostedService<NonconformityReminderService>(); // termin hatırlatma job'ı
 builder.Services.AddScoped<LoginAuditService>();     // giriş denetim izi ve deneme sınırı
+builder.Services.AddScoped<PasswordHistoryService>(); // şifre geçmişi / tekrar kullanım engeli
 builder.Services.AddScoped<AuditService>();          // güvenlik / süreç denetim kaydı
 builder.Services.AddMemoryCache();
 

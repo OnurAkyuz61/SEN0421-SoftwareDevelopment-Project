@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
@@ -22,16 +21,16 @@ public class UsersController : Controller
 {
     private readonly AppDbContext _db;
     private readonly CurrentUser _current;
-    private readonly IPasswordHasher<AppUser> _hasher;
     private readonly SessionRegistry _sessions;
+    private readonly PasswordHistoryService _passwordHistory;
 
-    public UsersController(AppDbContext db, CurrentUser current, IPasswordHasher<AppUser> hasher,
-                           SessionRegistry sessions)
+    public UsersController(AppDbContext db, CurrentUser current,
+                           SessionRegistry sessions, PasswordHistoryService passwordHistory)
     {
         _db = db;
         _current = current;
-        _hasher = hasher;
         _sessions = sessions;
+        _passwordHistory = passwordHistory;
     }
 
     [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(RateLimitPolicies.Search)]
@@ -167,6 +166,9 @@ public class UsersController : Controller
             ModelState.AddModelError(nameof(vm.Password), "Yeni hesap için şifre belirleyin");
         else if (!string.IsNullOrEmpty(vm.Password) && PasswordRules.Validate(vm.Password) is { } pwdErr)
             ModelState.AddModelError(nameof(vm.Password), pwdErr);
+        else if (!string.IsNullOrEmpty(vm.Password) && user != null &&
+                 await _passwordHistory.ReuseErrorAsync(user, vm.Password) is { } reuseErr)
+            ModelState.AddModelError(nameof(vm.Password), reuseErr);
 
         if (await _db.Users.AnyAsync(u => u.Email == vm.Email && u.Id != vm.Id))
             ModelState.AddModelError(nameof(vm.Email), "Bu e-posta adresi başka bir hesapta kayıtlı");
@@ -257,7 +259,7 @@ public class UsersController : Controller
         user.IsActive = vm.IsActive;
 
         if (!string.IsNullOrEmpty(vm.Password))
-            user.PasswordHash = _hasher.HashPassword(user, vm.Password);
+            await _passwordHistory.SetPasswordAsync(user, vm.Password);
 
         await _db.SaveChangesAsync();
 

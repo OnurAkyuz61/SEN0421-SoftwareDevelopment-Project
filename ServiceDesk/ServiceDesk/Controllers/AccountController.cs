@@ -36,12 +36,14 @@ public class AccountController : Controller
     private readonly OtpDeliveryService _otp;
     private readonly AuditService _auditLog;
     private readonly SessionRegistry _sessions;
+    private readonly PasswordHistoryService _passwordHistory;
 
     public AccountController(AppDbContext db, IPasswordHasher<AppUser> hasher,
                              CurrentUser current, IWebHostEnvironment env,
                              LoginAuditService audit, IEmailSender email,
                              IOptions<AuthSettings> cfg, OtpDeliveryService otp,
-                             AuditService auditLog, SessionRegistry sessions)
+                             AuditService auditLog, SessionRegistry sessions,
+                             PasswordHistoryService passwordHistory)
     {
         _db = db;
         _hasher = hasher;
@@ -53,6 +55,7 @@ public class AccountController : Controller
         _otp = otp;
         _auditLog = auditLog;
         _sessions = sessions;
+        _passwordHistory = passwordHistory;
     }
 
     private ISession Session => HttpContext.Session;
@@ -528,7 +531,13 @@ public class AccountController : Controller
             return RedirectToAction(nameof(Login));
         }
 
-        user.PasswordHash = _hasher.HashPassword(user, vm.Password);
+        if (await _passwordHistory.ReuseErrorAsync(user, vm.Password) is { } reuseErr)
+        {
+            ModelState.AddModelError(nameof(vm.Password), reuseErr);
+            return View(vm);
+        }
+
+        await _passwordHistory.SetPasswordAsync(user, vm.Password);
         entry.UsedAt = DateTime.UtcNow;
 
         // Diğer açık sıfırlama token'larını da kapat

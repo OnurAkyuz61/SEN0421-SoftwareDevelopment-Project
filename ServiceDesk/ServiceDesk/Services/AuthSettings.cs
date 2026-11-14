@@ -38,6 +38,9 @@ public class AuthSettings
     // Aynı hesapta aynı anda açık kalabilecek oturum sayısı.
     // Yeni giriş üst sınırı aşarsa en eski oturum(lar) düşürülür.
     public int MaxConcurrentSessions { get; set; } = 1;
+
+    // Tekrar kullanılamayan son şifre sayısı (mevcut + geçmiş özetler).
+    public int PasswordHistoryCount { get; set; } = 5;
 }
 
 // Session anahtarları — yazım hatası olmasın diye sabit

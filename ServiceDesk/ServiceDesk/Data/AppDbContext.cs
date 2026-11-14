@@ -45,6 +45,7 @@ public class AppDbContext : DbContext
     public DbSet<KnowledgeArticleRevision> KnowledgeArticleRevisions => Set<KnowledgeArticleRevision>();
     public DbSet<KnowledgeArticleFeedback> KnowledgeArticleFeedbacks => Set<KnowledgeArticleFeedback>();
     public DbSet<LoginAttempt> LoginAttempts => Set<LoginAttempt>();
+    public DbSet<PasswordHistory> PasswordHistories => Set<PasswordHistory>();
     public DbSet<UserActiveSession> UserActiveSessions => Set<UserActiveSession>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<AppUser> Users => Set<AppUser>();
@@ -518,6 +519,13 @@ public class AppDbContext : DbContext
           .OnDelete(DeleteBehavior.Cascade);
         mb.Entity<UserActiveSession>().HasIndex(s => s.Token).IsUnique();
         mb.Entity<UserActiveSession>().HasIndex(s => new { s.UserId, s.CreatedAt });
+
+        // Şifre geçmişi: yalnızca özet; kullanıcı silinince gider
+        mb.Entity<PasswordHistory>()
+          .HasOne(h => h.User).WithMany()
+          .HasForeignKey(h => h.UserId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<PasswordHistory>().HasIndex(h => new { h.UserId, h.CreatedAt });
 
         // Şifre sıfırlama: kullanıcı silinirse token'lar da gider; özet benzersiz
         mb.Entity<PasswordResetToken>()

@@ -1377,6 +1377,32 @@ namespace ServiceDesk.Migrations
                     b.ToTable("OtpDeliveryLogs");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.PasswordHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("PasswordHistories");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.PasswordResetToken", b =>
                 {
                     b.Property<int>("Id")
@@ -2469,6 +2495,17 @@ namespace ServiceDesk.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.PasswordHistory", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

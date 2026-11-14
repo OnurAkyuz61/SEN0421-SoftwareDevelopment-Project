@@ -40,4 +40,11 @@ public class PasswordRulesTests
         var uzun = new string('a', PasswordRules.MaxLength) + "A1!";
         Assert.NotNull(PasswordRules.Validate(uzun));
     }
+
+    [Fact]
+    public void Gecmis_ipuucu_son_n_sifreyi_belirtir()
+    {
+        Assert.Contains("5", PasswordRules.HistoryHint(5));
+        Assert.Contains("tekrar kullanılamaz", PasswordRules.HistoryHint(5));
+    }
 }

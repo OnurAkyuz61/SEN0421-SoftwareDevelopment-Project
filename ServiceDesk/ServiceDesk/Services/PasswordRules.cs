@@ -23,6 +23,9 @@ public static class PasswordRules
     public const string Hint =
         "En az 8 karakter; en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter (!@#$%...).";
 
+    public static string HistoryHint(int count) =>
+        $"Son {Math.Max(1, count)} şifreniz tekrar kullanılamaz.";
+
     // Boş / null → geçerli (opsiyonel alan). Doluysa kurallar; hata mesajı veya null.
     public static string? Validate(string? password)
     {

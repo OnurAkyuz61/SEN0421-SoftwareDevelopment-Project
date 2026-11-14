@@ -854,6 +854,21 @@ public class LoginAttempt
     public bool IsSuccess => Result == LoginResult.Success;
 }
 
+// Eski şifre özetleri. Düz metin saklanmaz; yeni şifre son N özetle
+// karşılaştırılarak tekrar kullanım engellenir (Auth:PasswordHistoryCount).
+public class PasswordHistory
+{
+    public int Id { get; set; }
+
+    public int UserId { get; set; }
+    public AppUser? User { get; set; }
+
+    [Required, StringLength(256)]
+    public string PasswordHash { get; set; } = "";
+
+    public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+}
+
 // Aynı hesapta açık oturum kaydı. Her başarılı girişe bir jeton düşülür;
 // üst sınır aşılınca en eski oturum(lar) düşürülür (Auth:MaxConcurrentSessions).
 public class UserActiveSession
