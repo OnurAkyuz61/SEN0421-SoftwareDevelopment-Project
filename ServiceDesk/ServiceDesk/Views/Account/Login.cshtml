@@ -21,6 +21,13 @@
         <span>Güvenliğiniz için oturumunuz zaman aşımına uğradı. Lütfen tekrar giriş yapın.</span>
     </div>
 }
+else if (reason == "deactivated")
+{
+    <div class="auth-alert error" role="status">
+        <i class="bi bi-person-x-fill"></i>
+        <span>Hesabınız pasifleştirilmiş; açık oturumunuz kapatıldı. Yöneticinize başvurun.</span>
+    </div>
+}
 else if (reason == "logout")
 {
     <div class="auth-alert success" role="status">

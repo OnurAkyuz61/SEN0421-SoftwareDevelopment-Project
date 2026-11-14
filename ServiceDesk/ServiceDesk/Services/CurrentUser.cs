@@ -10,9 +10,10 @@ namespace ServiceDesk.Services;
 // yazar; kullanıcının kendisi ilk erişimde veritabanından okunup istek
 // boyunca saklanır.
 //
-// Oturum iki şekilde sona erer:
+// Oturum üç şekilde sona erer:
 //   1) Boşta kalma: AddSession → IdleTimeout (her istekte yenilenir)
 //   2) Mutlak süre: girişten AbsoluteTimeoutHours sonra, işlem yapılsa bile
+//   3) Hesap pasifleştirme: bir sonraki istekte Session temizlenir
 public class CurrentUser
 {
     public const string SessionKey = SessionKeys.UserId;
@@ -37,12 +38,15 @@ public class CurrentUser
     // Bu istekte mutlak süre dolduğu için oturum kapatıldıysa true
     public bool ExpiredThisRequest { get; private set; }
 
+    // Bu istekte hesap pasif bulunduğu için oturum kapatıldıysa true
+    public bool DeactivatedThisRequest { get; private set; }
+
     // Girişin yapıldığı an (UTC)
     public DateTime? SignedInAtUtc =>
         DateTime.TryParse(Session?.GetString(SessionKeys.IssuedAt), null,
                           System.Globalization.DateTimeStyles.RoundtripKind, out var t) ? t : null;
 
-    // Pasifleştirilmiş kullanıcı oturumu açık kalsa bile null döner
+    // Pasifleştirilmiş kullanıcıda Session temizlenir; null döner
     public AppUser? User
     {
         get
@@ -61,7 +65,18 @@ public class CurrentUser
                 return null;
             }
 
-            _cached = _db.Users.AsNoTracking().FirstOrDefault(u => u.Id == id && u.IsActive);
+            var user = _db.Users.AsNoTracking().FirstOrDefault(u => u.Id == id);
+            if (user is null || !user.IsActive)
+            {
+                // Cookie / Session anahtarları da silinir; yalnızca User=null
+                // bırakmak Id'nin dolu kalmasına ve yarım oturuma yol açardı
+                Session!.Clear();
+                if (user is { IsActive: false })
+                    DeactivatedThisRequest = true;
+                return null;
+            }
+
+            _cached = user;
             return _cached;
         }
     }

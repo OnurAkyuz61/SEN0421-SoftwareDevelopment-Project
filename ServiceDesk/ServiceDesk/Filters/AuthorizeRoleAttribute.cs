@@ -48,7 +48,9 @@ public class AuthorizeRoleAttribute : Attribute, IAuthorizationFilter
         return new RedirectToActionResult("Login", "Account", new
         {
             returnUrl,
-            reason = current.ExpiredThisRequest ? "expired" : null
+            reason = current.DeactivatedThisRequest ? "deactivated"
+                   : current.ExpiredThisRequest ? "expired"
+                   : null
         });
     }
 
@@ -84,9 +86,12 @@ public sealed class ApiAuthorizeRoleAttribute : AuthorizeRoleAttribute
     public ApiAuthorizeRoleAttribute(params UserRole[] allowed) : base(allowed) { }
 
     protected override IActionResult Unauthenticated(AuthorizationFilterContext context, CurrentUser current) =>
-        Error(StatusCodes.Status401Unauthorized, current.ExpiredThisRequest
-            ? "Oturumunuzun süresi doldu. Yeniden giriş yapın."
-            : "Bu uç için giriş yapmanız gerekiyor.");
+        Error(StatusCodes.Status401Unauthorized,
+            current.DeactivatedThisRequest
+                ? "Hesabınız pasifleştirilmiş. Oturumunuz kapatıldı."
+                : current.ExpiredThisRequest
+                    ? "Oturumunuzun süresi doldu. Yeniden giriş yapın."
+                    : "Bu uç için giriş yapmanız gerekiyor.");
 
     protected override IActionResult Forbidden(AuthorizationFilterContext context) =>
         Error(StatusCodes.Status403Forbidden, "Bu işlem için yetkiniz yok.");

@@ -236,6 +236,7 @@ public class UsersController : Controller
         }
 
         var yeniKayit = user == null;
+        var pasiflestirildi = user is { IsActive: true } && !vm.IsActive;
         if (user == null)
         {
             user = new AppUser { CreatedAt = AppTime.UtcNow };
@@ -258,7 +259,9 @@ public class UsersController : Controller
 
         TempData["Ok"] = yeniKayit
             ? $"{user.FullName} ({Ui.RoleText(user.Role)}) hesabı oluşturuldu."
-            : $"{user.FullName} hesabı güncellendi.";
+            : pasiflestirildi
+                ? $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu, açık oturumu bir sonraki istekte kapatılır."
+                : $"{user.FullName} hesabı güncellendi.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -295,7 +298,7 @@ public class UsersController : Controller
 
             TempData["Ok"] = isActive
                 ? $"{user.FullName} hesabı yeniden aktifleştirildi."
-                : $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu, oturumu kapatıldı.";
+                : $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu; açık oturumu bir sonraki istekte kapatılır.";
         }
 
         return Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl!) : RedirectToAction(nameof(Index));

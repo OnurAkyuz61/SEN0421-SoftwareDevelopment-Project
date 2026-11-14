@@ -60,10 +60,12 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl, string? reason)
     {
-        // Zaten giriş yapılmışsa rolüne göre kendi sayfasına gönder
+        // Zaten giriş yapılmışsa rolüne göre kendi sayfasına gönder.
+        // Pasif hesap User null döner ve Session temizlenir.
         if (_current.User is { } signedIn) return RedirectAfterLogin(signedIn.Role, returnUrl);
 
-        ViewData["Reason"] = reason; // timeout | expired | logout
+        // timeout | expired | logout | deactivated
+        ViewData["Reason"] = _current.DeactivatedThisRequest ? "deactivated" : reason;
         return View(new LoginVm { ReturnUrl = SafeReturnUrl(returnUrl) });
     }
 
