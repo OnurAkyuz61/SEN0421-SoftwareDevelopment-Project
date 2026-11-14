@@ -42,6 +42,7 @@ builder.Services.AddScoped<NonconformityService>();  // otomatik uygunsuzluk kay
 builder.Services.AddHostedService<NonconformityReminderService>(); // termin hatırlatma job'ı
 builder.Services.AddScoped<LoginAuditService>();     // giriş denetim izi ve deneme sınırı
 builder.Services.AddScoped<PasswordHistoryService>(); // şifre geçmişi / tekrar kullanım engeli
+builder.Services.AddHostedService<PasswordResetCleanupService>(); // süresi dolmuş sıfırlama token temizliği
 builder.Services.AddScoped<AuditService>();          // güvenlik / süreç denetim kaydı
 builder.Services.AddMemoryCache();
 

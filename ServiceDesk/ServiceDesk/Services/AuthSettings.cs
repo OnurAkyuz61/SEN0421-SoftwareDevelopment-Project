@@ -35,6 +35,11 @@ public class AuthSettings
     // Şifre sıfırlama bağlantısının geçerlilik süresi (saat)
     public int PasswordResetHours { get; set; } = 1;
 
+    // Süresi dolmuş / kullanılmış sıfırlama token temizliği
+    public bool PasswordResetCleanupEnabled { get; set; } = true;
+    public int PasswordResetCleanupMinutes { get; set; } = 60;
+    public int PasswordResetCleanupBatchSize { get; set; } = 200;
+
     // Aynı hesapta aynı anda açık kalabilecek oturum sayısı.
     // Yeni giriş üst sınırı aşarsa en eski oturum(lar) düşürülür.
     public int MaxConcurrentSessions { get; set; } = 1;

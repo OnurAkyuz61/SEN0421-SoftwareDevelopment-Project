@@ -100,3 +100,42 @@ public class PasswordPolicyTests
         Assert.Contains("İlk giriş", PasswordPolicy.RequiredMessage(u, Cfg(90)));
     }
 }
+
+public class PasswordResetCleanupTests
+{
+    [Fact]
+    public void Suresi_dolmamis_ve_kullanilmamis_token_saklanir()
+    {
+        var now = AppTime.UtcNow;
+        var t = new ServiceDesk.Models.PasswordResetToken
+        {
+            ExpiresAt = now.AddHours(1),
+            UsedAt = null
+        };
+        Assert.False(PasswordResetCleanupService.IsStale(t, now));
+    }
+
+    [Fact]
+    public void Suresi_dolmus_token_temizlenir()
+    {
+        var now = AppTime.UtcNow;
+        var t = new ServiceDesk.Models.PasswordResetToken
+        {
+            ExpiresAt = now.AddMinutes(-1),
+            UsedAt = null
+        };
+        Assert.True(PasswordResetCleanupService.IsStale(t, now));
+    }
+
+    [Fact]
+    public void Kullanilmis_token_temizlenir()
+    {
+        var now = AppTime.UtcNow;
+        var t = new ServiceDesk.Models.PasswordResetToken
+        {
+            ExpiresAt = now.AddHours(1),
+            UsedAt = now.AddMinutes(-5)
+        };
+        Assert.True(PasswordResetCleanupService.IsStale(t, now));
+    }
+}
