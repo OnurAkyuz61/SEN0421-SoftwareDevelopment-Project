@@ -37,6 +37,7 @@ builder.Services.AddScoped<DepartmentTransferReassignment>(); // ekip değişinc
 builder.Services.AddScoped<InactiveUserTicketRelease>(); // pasifleştirmede açık talepleri bırak
 builder.Services.AddScoped<UserAnonymization>();         // KVKK kullanıcı anonimleştirme
 builder.Services.AddScoped<AgentWorkloadRanking>();      // destek personeli iş yükü sıralaması
+builder.Services.AddScoped<DepartmentSlaCompliance>();   // birim bazlı SLA uyum raporu
 builder.Services.AddScoped<KpiService>();            // dönemsel gösterge hesabı
 builder.Services.AddScoped<ManagementReviewService>();// yönetim gözden geçirme paketi (md. 9.3, salt okuma)
 builder.Services.AddScoped<SearchService>();         // bilgi bankası / talep / global arama
