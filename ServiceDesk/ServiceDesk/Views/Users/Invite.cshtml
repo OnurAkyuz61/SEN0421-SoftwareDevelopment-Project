@@ -1,0 +1,127 @@
+@model UserInviteVm
+@inject Microsoft.Extensions.Options.IOptions<AuthSettings> Auth
+@{
+    ViewData["Title"] = "Kullanıcı davet et";
+    var birimler = (List<Department>)ViewBag.Departments;
+    var ekipler = (List<Team>)ViewBag.Teams;
+}
+
+<a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Kullanıcılar</a>
+
+<div class="mt-2 mb-3">
+    <h4 class="fw-bold mb-1">E-posta ile davet et</h4>
+    <div class="text-muted">
+        Hesap hemen oluşmaz. Davetli bağlantıdan şifre ve telefonunu belirleyince kayıt tamamlanır.
+        Bağlantı @Auth.Value.InviteHours saat geçerlidir.
+    </div>
+</div>
+
+<form asp-action="Invite" method="post" novalidate>
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="panel">
+                <div class="panel-head">Davetli bilgileri</div>
+                <div class="panel-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label"></label>
+                            <input asp-for="FirstName" class="form-control" autocomplete="off" />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label"></label>
+                            <input asp-for="LastName" class="form-control" autocomplete="off" />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" autocomplete="off" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                            <div class="form-text">Davet bu adrese gider; sistemde henüz kayıtlı olmamalı.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="panel mb-3">
+                <div class="panel-head">Yetki</div>
+                <div class="panel-body">
+                    <label asp-for="Role" class="form-label"></label>
+                    <select asp-for="Role" class="form-select">
+                        @foreach (var r in Enum.GetValues<UserRole>())
+                        {
+                            <option value="@r">@Ui.RoleText(r)</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head">Organizasyon</div>
+                <div class="panel-body">
+                    <div class="mb-3">
+                        <label asp-for="DepartmentId" class="form-label"></label>
+                        <select asp-for="DepartmentId" class="form-select" id="userDepartment">
+                            <option value="">-</option>
+                            @foreach (var d in birimler)
+                            {
+                                <option value="@d.Id">@d.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="DepartmentId" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-0">
+                        <label asp-for="TeamId" class="form-label"></label>
+                        <select asp-for="TeamId" class="form-select" id="userTeam">
+                            <option value="">-</option>
+                            @foreach (var t in ekipler)
+                            {
+                                <option value="@t.Id" data-department-id="@t.DepartmentId">
+                                    @t.Name (@(t.Department?.Name ?? "-"))
+                                </option>
+                            }
+                        </select>
+                        <span asp-validation-for="TeamId" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-envelope"></i> Daveti gönder
+        </button>
+        <a asp-action="Index" class="btn btn-light border">Vazgeç</a>
+        <a asp-action="Edit" class="btn btn-link">Şifreyle doğrudan oluştur</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var dep = document.getElementById('userDepartment');
+            var team = document.getElementById('userTeam');
+            if (!dep || !team) return;
+            function filterTeams(clearIfMismatch) {
+                var deptId = dep.value;
+                var selected = team.value;
+                var keep = false;
+                Array.prototype.forEach.call(team.options, function (opt) {
+                    if (!opt.value) { opt.hidden = false; return; }
+                    var match = !deptId || opt.getAttribute('data-department-id') === deptId;
+                    opt.hidden = !match;
+                    if (match && opt.value === selected) keep = true;
+                });
+                if (clearIfMismatch && selected && !keep) team.value = '';
+            }
+            dep.addEventListener('change', function () { filterTeams(true); });
+            filterTeams(false);
+        })();
+    </script>
+}

@@ -35,6 +35,9 @@ public class AuthSettings
     // Şifre sıfırlama bağlantısının geçerlilik süresi (saat)
     public int PasswordResetHours { get; set; } = 1;
 
+    // Kullanıcı davet bağlantısının geçerlilik süresi (saat)
+    public int InviteHours { get; set; } = 72;
+
     // Süresi dolmuş / kullanılmış sıfırlama token temizliği
     public bool PasswordResetCleanupEnabled { get; set; } = true;
     public int PasswordResetCleanupMinutes { get; set; } = 60;

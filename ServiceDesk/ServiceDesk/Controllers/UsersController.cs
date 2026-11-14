@@ -1,9 +1,13 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
+using ServiceDesk.Services.Messaging;
 using ServiceDesk.Services.Notifications;
 
 namespace ServiceDesk.Controllers;
@@ -26,10 +30,14 @@ public class UsersController : Controller
     private readonly PasswordHistoryService _passwordHistory;
     private readonly AuditService _audit;
     private readonly NotificationService _notify;
+    private readonly IEmailSender _email;
+    private readonly AuthSettings _auth;
+    private readonly IWebHostEnvironment _env;
 
     public UsersController(AppDbContext db, CurrentUser current,
                            SessionRegistry sessions, PasswordHistoryService passwordHistory,
-                           AuditService audit, NotificationService notify)
+                           AuditService audit, NotificationService notify,
+                           IEmailSender email, IOptions<AuthSettings> auth, IWebHostEnvironment env)
     {
         _db = db;
         _current = current;
@@ -37,6 +45,9 @@ public class UsersController : Controller
         _passwordHistory = passwordHistory;
         _audit = audit;
         _notify = notify;
+        _email = email;
+        _auth = auth.Value;
+        _env = env;
     }
 
     [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(RateLimitPolicies.Search)]
@@ -135,6 +146,102 @@ public class UsersController : Controller
     }
 
     public record LoginTargetRow(string Email, int Count);
+
+    // E-posta daveti: hesap henüz oluşmaz; davetli bağlantıdan şifre + telefon belirler.
+    [HttpGet]
+    [AuthorizeRole(UserRole.Admin)]
+    public async Task<IActionResult> Invite()
+    {
+        await LoadFormListsAsync();
+        return View(new UserInviteVm());
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    [AuthorizeRole(UserRole.Admin)]
+    public async Task<IActionResult> Invite(UserInviteVm vm)
+    {
+        var me = _current.User!;
+        vm.Email = vm.Email.Trim().ToLowerInvariant();
+        vm.FirstName = vm.FirstName.Trim();
+        vm.LastName = vm.LastName.Trim();
+
+        if (await _db.Users.AnyAsync(u => u.Email == vm.Email))
+            ModelState.AddModelError(nameof(vm.Email), "Bu e-posta zaten kayıtlı; davet yerine hesabı düzenleyin.");
+
+        int? teamDepartmentId = null;
+        var teamFound = false;
+        if (vm.TeamId != null)
+        {
+            var team = await _db.Teams.AsNoTracking().FirstOrDefaultAsync(t => t.Id == vm.TeamId);
+            teamFound = team != null;
+            teamDepartmentId = team?.DepartmentId;
+        }
+        var org = OrganizationRules.Resolve(vm.DepartmentId, vm.TeamId, teamFound, teamDepartmentId);
+        vm.DepartmentId = org.DepartmentId;
+        vm.TeamId = org.TeamId;
+        if (org.Error != null)
+            ModelState.AddModelError(nameof(vm.TeamId), org.Error);
+
+        if (vm.DepartmentId != null && !await _db.Departments.AnyAsync(d => d.Id == vm.DepartmentId))
+            ModelState.AddModelError(nameof(vm.DepartmentId), "Geçerli bir birim seçin");
+
+        if (!ModelState.IsValid)
+        {
+            await LoadFormListsAsync();
+            return View(vm);
+        }
+
+        // Aynı e-postadaki açık davetleri geçersiz kıl
+        var eski = await _db.UserInvites
+            .Where(i => i.Email == vm.Email && i.UsedAt == null)
+            .ToListAsync();
+        foreach (var i in eski) i.UsedAt = AppTime.UtcNow;
+
+        var raw = CreateInviteToken();
+        var invite = new UserInvite
+        {
+            Email = vm.Email,
+            FirstName = vm.FirstName,
+            LastName = vm.LastName,
+            Role = vm.Role,
+            DepartmentId = vm.DepartmentId,
+            TeamId = vm.TeamId,
+            TokenHash = HashInviteToken(raw),
+            ExpiresAt = AppTime.UtcNow.AddHours(Math.Max(1, _auth.InviteHours)),
+            CreatedAt = AppTime.UtcNow,
+            InvitedById = me.Id
+        };
+        _db.UserInvites.Add(invite);
+
+        _audit.Queue(AuditAction.UserInvited, me.Id, me.Email,
+            detail: $"Davet: {vm.FirstName} {vm.LastName} <{vm.Email}> · {Ui.RoleText(vm.Role)}");
+
+        await _db.SaveChangesAsync();
+
+        var link = Url.Action("AcceptInvite", "Account", new { token = raw }, Request.Scheme)!;
+        await _email.SendAsync(
+            vm.Email,
+            "ServiceDesk · Hesap daveti",
+            $"<p>Merhaba {vm.FirstName},</p>" +
+            $"<p>{me.FullName} sizi ServiceDesk'e <strong>{Ui.RoleText(vm.Role)}</strong> olarak davet etti.</p>" +
+            $"<p>Hesabınızı tamamlamak için <a href=\"{link}\">bu bağlantıya</a> tıklayın.</p>" +
+            $"<p>Bağlantı {_auth.InviteHours} saat geçerlidir.</p>",
+            $"Merhaba {vm.FirstName},\n\n{me.FullName} sizi ServiceDesk'e {Ui.RoleText(vm.Role)} olarak davet etti.\n\n" +
+            $"Hesabınızı tamamlamak için:\n{link}\n\nBağlantı {_auth.InviteHours} saat geçerlidir.");
+
+        TempData["Ok"] = $"{vm.Email} adresine davet gönderildi.";
+        if (_env.IsDevelopment())
+            TempData["Ok"] += $" Demo bağlantı: {link}";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    private static string CreateInviteToken() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+    private static string HashInviteToken(string raw) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw)));
 
     // Oluşturma ve düzenleme aynı ekran: id boşsa yeni kayıt
     [HttpGet]

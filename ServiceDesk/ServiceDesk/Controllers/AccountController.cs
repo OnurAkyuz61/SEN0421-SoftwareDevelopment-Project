@@ -430,6 +430,117 @@ public class AccountController : Controller
         return RedirectAfterLogin(user.Role, returnUrl);
     }
 
+    // ───── DAVET KABUL ───────────────────────────────────────────────────
+    // Yönetici e-posta daveti gönderir; davetli buradan şifre + telefon belirler,
+    // AppUser oluşur. Token tek kullanımlık ve sürelidir (Auth:InviteHours).
+
+    [HttpGet]
+    public async Task<IActionResult> AcceptInvite(string? token)
+    {
+        if (_current.User is { } signedIn) return RedirectAfterLogin(signedIn.Role, null);
+
+        var invite = await FindUsableInviteAsync(token);
+        if (invite is null)
+        {
+            TempData["Err"] = "Davet bağlantısı geçersiz veya süresi dolmuş. Yöneticinizden yeni davet isteyin.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        if (await _db.Users.AnyAsync(u => u.Email == invite.Email))
+        {
+            TempData["Err"] = "Bu e-posta ile zaten bir hesap var. Giriş yapın veya şifre sıfırlayın.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        return View(new AcceptInviteVm
+        {
+            Token = token!,
+            Email = invite.Email,
+            FirstName = invite.FirstName,
+            LastName = invite.LastName,
+            RoleText = Ui.RoleText(invite.Role)
+        });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> AcceptInvite(AcceptInviteVm vm)
+    {
+        if (_current.User is { } signedIn) return RedirectAfterLogin(signedIn.Role, null);
+
+        var invite = await FindUsableInviteAsync(vm.Token);
+        if (invite is null)
+        {
+            TempData["Err"] = "Davet bağlantısı geçersiz veya süresi dolmuş. Yöneticinizden yeni davet isteyin.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        vm.Email = invite.Email;
+        vm.FirstName = invite.FirstName;
+        vm.LastName = invite.LastName;
+        vm.RoleText = Ui.RoleText(invite.Role);
+
+        var phone = PhoneRules.Normalize(vm.PhoneNumber);
+        if (phone == null)
+            ModelState.AddModelError(nameof(vm.PhoneNumber), "Telefon girin");
+        else if (PhoneRules.Validate(phone) is { } phoneError)
+            ModelState.AddModelError(nameof(vm.PhoneNumber), phoneError);
+        else if (await _db.Users.AnyAsync(u => u.PhoneNumber == phone))
+            ModelState.AddModelError(nameof(vm.PhoneNumber), "Bu telefon numarası başka bir hesapta kayıtlı");
+
+        if (await _db.Users.AnyAsync(u => u.Email == invite.Email))
+        {
+            TempData["Err"] = "Bu e-posta ile zaten bir hesap var. Giriş yapın veya şifre sıfırlayın.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        if (!ModelState.IsValid)
+        {
+            vm.PhoneNumber = phone ?? vm.PhoneNumber;
+            return View(vm);
+        }
+
+        var user = new AppUser
+        {
+            FirstName = invite.FirstName,
+            LastName = invite.LastName,
+            Email = invite.Email,
+            PhoneNumber = phone,
+            Role = invite.Role,
+            DepartmentId = invite.DepartmentId,
+            TeamId = invite.TeamId,
+            IsActive = true,
+            CreatedAt = AppTime.UtcNow
+        };
+        _db.Users.Add(user);
+        // Id henüz 0: SetPassword geçmişe yazmaz, yalnızca özeti yazar
+        await _passwordHistory.SetPasswordAsync(user, vm.Password);
+        invite.UsedAt = AppTime.UtcNow;
+
+        var diger = await _db.UserInvites
+            .Where(i => i.Email == invite.Email && i.UsedAt == null && i.Id != invite.Id)
+            .ToListAsync();
+        foreach (var i in diger) i.UsedAt = AppTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        _auditLog.Queue(AuditAction.UserInviteAccepted, user.Id, user.Email,
+            detail: $"Davet kabul: {user.FullName} <{user.Email}> · {Ui.RoleText(user.Role)}");
+        await _db.SaveChangesAsync();
+
+        TempData["Ok"] = "Hesabınız oluşturuldu. E-posta ve şifrenizle giriş yapabilirsiniz.";
+        return RedirectToAction(nameof(Login));
+    }
+
+    private async Task<UserInvite?> FindUsableInviteAsync(string? rawToken)
+    {
+        if (string.IsNullOrWhiteSpace(rawToken)) return null;
+        var hash = HashToken(rawToken);
+        var entry = await _db.UserInvites
+            .FirstOrDefaultAsync(i => i.TokenHash == hash && i.UsedAt == null);
+        if (entry is null) return null;
+        return AppTime.UtcNow <= entry.ExpiresAt ? entry : null;
+    }
+
     // ───── ŞİFRE SIFIRLAMA ────────────────────────────────────────────────
     // Akış: e-posta iste → tek kullanımlık bağlantı → yeni şifre.
     // Hesabın var olup olmadığı yanıtta açıklanmaz (e-posta enumeration engeli).

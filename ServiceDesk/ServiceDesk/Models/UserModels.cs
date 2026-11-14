@@ -81,3 +81,61 @@ public class UserFormVm
         CreatedAt = u.CreatedAt
     };
 }
+
+// Yönetici: e-posta ile davet formu (hesap henüz oluşmaz)
+public class UserInviteVm
+{
+    [Required(ErrorMessage = "Ad girin")]
+    [StringLength(50)]
+    [Display(Name = "Ad")]
+    public string FirstName { get; set; } = "";
+
+    [Required(ErrorMessage = "Soyad girin")]
+    [StringLength(50)]
+    [Display(Name = "Soyad")]
+    public string LastName { get; set; } = "";
+
+    [Required(ErrorMessage = "E-posta girin")]
+    [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi girin")]
+    [StringLength(150)]
+    [Display(Name = "E-posta")]
+    public string Email { get; set; } = "";
+
+    [Display(Name = "Rol")]
+    public UserRole Role { get; set; } = UserRole.User;
+
+    [Display(Name = "Birim")]
+    public int? DepartmentId { get; set; }
+
+    [Display(Name = "Ekip")]
+    public int? TeamId { get; set; }
+}
+
+// Davetli: bağlantıdan şifre + telefon belirleyerek hesabı tamamlar
+public class AcceptInviteVm
+{
+    [Required]
+    public string Token { get; set; } = "";
+
+    // Salt gösterim (formdan gelmez; GET'te doldurulur)
+    public string Email { get; set; } = "";
+    public string FirstName { get; set; } = "";
+    public string LastName { get; set; } = "";
+    public string RoleText { get; set; } = "";
+
+    [Required(ErrorMessage = "Telefon girin")]
+    [StringLength(20)]
+    [Display(Name = "Telefon")]
+    public string PhoneNumber { get; set; } = "";
+
+    [Required(ErrorMessage = "Şifrenizi girin"), DataType(DataType.Password)]
+    [StringLength(PasswordRules.MaxLength)]
+    [StrongPassword]
+    [Display(Name = "Şifre")]
+    public string Password { get; set; } = "";
+
+    [Required(ErrorMessage = "Şifreyi tekrar girin"), DataType(DataType.Password)]
+    [Compare(nameof(Password), ErrorMessage = "Şifreler eşleşmiyor")]
+    [Display(Name = "Şifre tekrar")]
+    public string ConfirmPassword { get; set; } = "";
+}

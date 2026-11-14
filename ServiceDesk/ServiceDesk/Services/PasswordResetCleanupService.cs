@@ -5,9 +5,9 @@ using ServiceDesk.Models;
 
 namespace ServiceDesk.Services;
 
-// Süresi dolmuş veya kullanılmış şifre sıfırlama token'larını siler.
-// Ham token zaten saklanmaz (yalnızca hash); yine de ölü satırlar birikmesin
-// ve çalınmış hash'lerin yeniden deneme yüzeyi daralsın.
+// Süresi dolmuş veya kullanılmış şifre sıfırlama token'larını ve kullanıcı
+// davetlerini siler. Ham token zaten saklanmaz (yalnızca hash); yine de ölü
+// satırlar birikmesin ve çalınmış hash'lerin yeniden deneme yüzeyi daralsın.
 //
 // Desen: AttachmentRetentionService / SlaMonitorService —
 // BackgroundService + PeriodicTimer + IServiceScopeFactory.
@@ -42,7 +42,7 @@ public class PasswordResetCleanupService : BackgroundService
             {
                 var silinen = await RunOnceAsync(stoppingToken);
                 if (silinen > 0)
-                    _log.LogInformation("Şifre sıfırlama token temizliği: {Count} kayıt silindi", silinen);
+                    _log.LogInformation("Token / davet temizliği: {Count} kayıt silindi", silinen);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -66,13 +66,18 @@ public class PasswordResetCleanupService : BackgroundService
     public static bool IsStale(PasswordResetToken token, DateTime nowUtc) =>
         token.UsedAt != null || token.ExpiresAt < nowUtc;
 
+    public static bool IsStaleInvite(UserInvite invite, DateTime nowUtc) =>
+        invite.UsedAt != null || invite.ExpiresAt < nowUtc;
+
     // Bir tur: en fazla BatchSize satır siler, silinen sayıyı döner.
     public async Task<int> RunOnceAsync(CancellationToken token = default)
     {
         using var scope = _scopes.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        return await PurgeAsync(db, AppTime.UtcNow,
-            Math.Max(1, _cfg.PasswordResetCleanupBatchSize), token);
+        var batch = Math.Max(1, _cfg.PasswordResetCleanupBatchSize);
+        var now = AppTime.UtcNow;
+        return await PurgeAsync(db, now, batch, token)
+             + await PurgeInvitesAsync(db, now, batch, token);
     }
 
     // EF sorgusu — testlerde InMemory / gerçek context ile çağrılabilir
@@ -88,6 +93,22 @@ public class PasswordResetCleanupService : BackgroundService
         if (stale.Count == 0) return 0;
 
         db.PasswordResetTokens.RemoveRange(stale);
+        await db.SaveChangesAsync(token);
+        return stale.Count;
+    }
+
+    public static async Task<int> PurgeInvitesAsync(AppDbContext db, DateTime nowUtc, int batchSize,
+                                                   CancellationToken token = default)
+    {
+        var stale = await db.UserInvites
+            .Where(i => i.UsedAt != null || i.ExpiresAt < nowUtc)
+            .OrderBy(i => i.ExpiresAt)
+            .Take(Math.Max(1, batchSize))
+            .ToListAsync(token);
+
+        if (stale.Count == 0) return 0;
+
+        db.UserInvites.RemoveRange(stale);
         await db.SaveChangesAsync(token);
         return stale.Count;
     }

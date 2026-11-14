@@ -48,6 +48,7 @@ public class AppDbContext : DbContext
     public DbSet<PasswordHistory> PasswordHistories => Set<PasswordHistory>();
     public DbSet<UserActiveSession> UserActiveSessions => Set<UserActiveSession>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<UserInvite> UserInvites => Set<UserInvite>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
     public DbSet<TicketComment> TicketComments => Set<TicketComment>();
@@ -555,6 +556,23 @@ public class AppDbContext : DbContext
           .OnDelete(DeleteBehavior.Cascade);
         mb.Entity<PasswordResetToken>().HasIndex(t => t.TokenHash).IsUnique();
         mb.Entity<PasswordResetToken>().Ignore(t => t.IsUsable);
+
+        // Kullanıcı daveti: davet eden silinemez (Restrict); birim/ekip Restrict
+        mb.Entity<UserInvite>()
+          .HasOne(i => i.InvitedBy).WithMany()
+          .HasForeignKey(i => i.InvitedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<UserInvite>()
+          .HasOne(i => i.Department).WithMany()
+          .HasForeignKey(i => i.DepartmentId)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<UserInvite>()
+          .HasOne(i => i.Team).WithMany()
+          .HasForeignKey(i => i.TeamId)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<UserInvite>().HasIndex(i => i.TokenHash).IsUnique();
+        mb.Entity<UserInvite>().HasIndex(i => new { i.Email, i.CreatedAt });
+        mb.Entity<UserInvite>().Ignore(i => i.IsUsable);
 
         mb.Entity<Ticket>().HasQueryFilter(t => !t.IsDeleted);
         mb.Entity<ChangeDetail>().HasQueryFilter(d => !d.Ticket!.IsDeleted);

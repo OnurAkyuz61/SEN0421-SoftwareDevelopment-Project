@@ -1,0 +1,61 @@
+@model AcceptInviteVm
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Daveti kabul et";
+    ViewData["AuthStep"] = 1;
+    bool HasError(string key) => ViewData.ModelState[key]?.Errors.Count > 0;
+}
+
+<div class="auth-head">
+    <div class="icon"><i class="bi bi-person-check"></i></div>
+    <h1>Hesabınızı tamamlayın</h1>
+    <p>
+        <strong>@Model.FirstName @Model.LastName</strong> · @Model.Email · @Model.RoleText
+    </p>
+</div>
+
+<form asp-action="AcceptInvite" method="post" novalidate data-auth-form>
+    <input type="hidden" asp-for="Token" />
+
+    <div class="auth-field">
+        <label asp-for="PhoneNumber">Telefon</label>
+        <div class="auth-input @(HasError(nameof(Model.PhoneNumber)) ? "invalid" : "")">
+            <i class="bi bi-phone"></i>
+            <input asp-for="PhoneNumber" autocomplete="tel" placeholder="+90 5xx xxx xx xx" autofocus />
+        </div>
+        <span asp-validation-for="PhoneNumber" class="field-error"></span>
+        <div class="form-text small text-muted mt-1">Giriş doğrulama kodu (OTP) bu numaraya gider.</div>
+    </div>
+
+    <div class="auth-field">
+        <label asp-for="Password">Şifre</label>
+        <div class="auth-input @(HasError(nameof(Model.Password)) ? "invalid" : "")">
+            <i class="bi bi-lock"></i>
+            <input asp-for="Password" autocomplete="new-password" placeholder="Örn: Guclu#Sifre1" data-caps-target="#capsHint" />
+            <button type="button" class="reveal" data-reveal="#Password" aria-label="Şifreyi göster" title="Şifreyi göster">
+                <i class="bi bi-eye"></i>
+            </button>
+        </div>
+        <span asp-validation-for="Password" class="field-error"></span>
+        <div class="caps-hint" id="capsHint" role="status"><i class="bi bi-capslock-fill"></i> Caps Lock açık</div>
+        <div class="form-text small text-muted mt-1">@PasswordRules.Hint</div>
+    </div>
+
+    <div class="auth-field">
+        <label asp-for="ConfirmPassword">Şifre tekrar</label>
+        <div class="auth-input @(HasError(nameof(Model.ConfirmPassword)) ? "invalid" : "")">
+            <i class="bi bi-lock-fill"></i>
+            <input asp-for="ConfirmPassword" autocomplete="new-password" placeholder="Aynı şifreyi tekrar yazın" />
+            <button type="button" class="reveal" data-reveal="#ConfirmPassword" aria-label="Şifreyi göster" title="Şifreyi göster">
+                <i class="bi bi-eye"></i>
+            </button>
+        </div>
+        <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+    </div>
+
+    <button type="submit" class="auth-btn">Hesabı oluştur</button>
+</form>
+
+<div class="auth-row">
+    <a asp-action="Login" class="auth-link"><i class="bi bi-arrow-left"></i> Girişe dön</a>
+</div>

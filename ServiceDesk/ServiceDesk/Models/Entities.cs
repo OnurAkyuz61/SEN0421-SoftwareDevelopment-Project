@@ -965,6 +965,43 @@ public class PasswordResetToken
     public bool IsUsable => UsedAt == null && AppTime.UtcNow <= ExpiresAt;
 }
 
+// Yönetici daveti: hesap henüz yokken e-posta ile gönderilen tek kullanımlık
+// bağlantı. Kabul edilince AppUser oluşur; ham token yalnızca e-postada,
+// veritabanında SHA-256 özeti tutulur.
+public class UserInvite
+{
+    public int Id { get; set; }
+
+    [Required, StringLength(150), EmailAddress]
+    public string Email { get; set; } = "";
+
+    [Required, StringLength(50)]
+    public string FirstName { get; set; } = "";
+
+    [Required, StringLength(50)]
+    public string LastName { get; set; } = "";
+
+    public UserRole Role { get; set; } = UserRole.User;
+
+    public int? DepartmentId { get; set; }
+    public Department? Department { get; set; }
+
+    public int? TeamId { get; set; }
+    public Team? Team { get; set; }
+
+    [Required, StringLength(64)]
+    public string TokenHash { get; set; } = "";
+
+    public DateTime ExpiresAt { get; set; }
+    public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+    public DateTime? UsedAt { get; set; }
+
+    public int InvitedById { get; set; }
+    public AppUser? InvitedBy { get; set; }
+
+    public bool IsUsable => UsedAt == null && AppTime.UtcNow <= ExpiresAt;
+}
+
 // ── ISO 9001 kalite katmanı ──────────────────────────────────────────────
 
 public enum KpiPeriod
