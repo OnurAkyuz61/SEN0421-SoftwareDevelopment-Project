@@ -423,6 +423,97 @@ public class ReportsController : Controller
             $"yonetim-gozden-gecirme-{period.FromLocal:yyyyMMdd}-{period.ToLocal:yyyyMMdd}.csv");
     }
 
+    // ───── Personel efor (work minutes) ──────────────────────────────────
+    //
+    // TicketComment.WorkMinutes notlara girilen sürelerin yazar bazında özeti.
+    // Dönem notun CreatedAt'ine göre (harcanan eforun kaydedildiği an).
+    public class WorkMinutesReportFilter
+    {
+        public DateTime? From { get; set; }
+        public DateTime? To { get; set; }
+        public int? TeamId { get; set; }
+        public int? UserId { get; set; }
+    }
+
+    public sealed record WorkMinutesStaffOption(int Id, string Name);
+
+    public async Task<IActionResult> WorkMinutes([FromQuery] WorkMinutesReportFilter f)
+    {
+        var (rows, summary) = await BuildWorkMinutesAsync(f);
+        ViewBag.Filter = f;
+        ViewBag.Summary = summary;
+        ViewBag.Teams = await _db.Teams.AsNoTracking().Where(t => t.IsActive).OrderBy(t => t.Name).ToListAsync();
+        ViewBag.Staff = await _db.Users.AsNoTracking()
+            .Where(u => u.Role != UserRole.User)
+            .OrderBy(u => u.FirstName).ThenBy(u => u.LastName)
+            .Select(u => new WorkMinutesStaffOption(u.Id, u.FirstName + " " + u.LastName))
+            .ToListAsync();
+        return View(rows);
+    }
+
+    public async Task<IActionResult> WorkMinutesCsv([FromQuery] WorkMinutesReportFilter f)
+    {
+        var (rows, _) = await BuildWorkMinutesAsync(f);
+        var sb = new StringBuilder();
+        sb.AppendLine("Personel;Ekip;Kayıt sayısı;Talep sayısı;Toplam (dk);Toplam (saat)");
+        foreach (var r in rows)
+        {
+            sb.AppendLine(string.Join(';', new[]
+            {
+                r.FullName,
+                r.TeamName ?? "",
+                r.EntryCount.ToString(CultureInfo.InvariantCulture),
+                r.TicketCount.ToString(CultureInfo.InvariantCulture),
+                r.TotalMinutes.ToString(CultureInfo.InvariantCulture),
+                WorkMinutesReportPolicy.FormatHours(r.TotalMinutes)
+            }.Select(Csv)));
+        }
+
+        var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
+        return File(bytes, "text/csv; charset=utf-8",
+            $"efor-{f.From:yyyyMMdd}-{f.To:yyyyMMdd}.csv");
+    }
+
+    private async Task<(List<WorkMinutesReportPolicy.Row> Rows, WorkMinutesReportPolicy.Summary Summary)>
+        BuildWorkMinutesAsync(WorkMinutesReportFilter f)
+    {
+        var fromLocal = (f.From ?? AppTime.LocalToday.AddDays(-30)).Date;
+        var toLocal = (f.To ?? AppTime.LocalToday).Date;
+        if (fromLocal > toLocal) (fromLocal, toLocal) = (toLocal, fromLocal);
+        f.From = fromLocal;
+        f.To = toLocal;
+        var fromUtc = AppTime.ToUtc(fromLocal);
+        var toUtc = AppTime.ToUtc(toLocal.AddDays(1));
+
+        var q = _db.TicketComments.AsNoTracking()
+            .Where(c => c.WorkMinutes != null && c.WorkMinutes > 0
+                        && c.CreatedAt >= fromUtc && c.CreatedAt < toUtc);
+
+        if (f.UserId != null)
+            q = q.Where(c => c.AuthorId == f.UserId);
+        if (f.TeamId != null)
+            q = q.Where(c => c.Author!.TeamId == f.TeamId);
+
+        var entries = await q
+            .Select(c => new WorkMinutesReportPolicy.Entry(c.AuthorId, c.TicketId, c.WorkMinutes!.Value))
+            .ToListAsync();
+
+        var authorIds = entries.Select(e => e.AuthorId).Distinct().ToList();
+        var users = await _db.Users.AsNoTracking()
+            .Where(u => authorIds.Contains(u.Id))
+            .Select(u => new
+            {
+                u.Id,
+                FullName = u.FirstName + " " + u.LastName,
+                TeamName = u.Team != null ? u.Team.Name : null
+            })
+            .ToDictionaryAsync(u => u.Id, u => (u.FullName, u.TeamName));
+
+        var rows = WorkMinutesReportPolicy.Summarize(entries, users);
+        var distinctTickets = entries.Select(e => e.TicketId).Distinct().Count();
+        return (rows, WorkMinutesReportPolicy.Totals(rows, distinctTickets));
+    }
+
     // CSV hücresi: ayırıcı / tırnak / satır sonu kaçışı ve formül enjeksiyonu engeli.
     //
     // Tırnak işareti yalnızca GERÇEKTEN formüle dönüşebilecek değere eklenir:

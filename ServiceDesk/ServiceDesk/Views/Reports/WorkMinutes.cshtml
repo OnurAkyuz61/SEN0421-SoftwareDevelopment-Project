@@ -1,0 +1,113 @@
+@model List<WorkMinutesReportPolicy.Row>
+@using ServiceDesk.Controllers
+@{
+    ViewData["Title"] = "Personel efor raporu";
+    var f = (ReportsController.WorkMinutesReportFilter)ViewBag.Filter;
+    var summary = (WorkMinutesReportPolicy.Summary)ViewBag.Summary;
+    var teams = (List<Team>)ViewBag.Teams;
+    var staff = (List<ReportsController.WorkMinutesStaffOption>)ViewBag.Staff;
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="me-auto">
+        <h4 class="fw-bold mb-0">Personel efor raporu</h4>
+        <div class="text-muted small">
+            ISO 9001 md. 9.1.3 · notlara girilen harcanan süre (dk) · dönem kayıt tarihine göre
+        </div>
+    </div>
+    <a class="btn btn-sm btn-outline-secondary"
+       href="@Url.Action("WorkMinutesCsv", new { f.From, f.To, f.TeamId, f.UserId })">
+        <i class="bi bi-filetype-csv"></i> CSV indir
+    </a>
+</div>
+
+<form method="get" class="panel mb-3">
+    <div class="panel-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Başlangıç</label>
+                <input type="date" name="from" value="@f.From?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Bitiş</label>
+                <input type="date" name="to" value="@f.To?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Ekip</label>
+                <select name="teamId" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                    @foreach (var t in teams)
+                    {
+                        <option value="@t.Id" selected="@(f.TeamId == t.Id)">@t.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Personel</label>
+                <select name="userId" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                    @foreach (var u in staff)
+                    {
+                        <option value="@u.Id" selected="@(f.UserId == u.Id)">@u.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2"><button class="btn btn-sm btn-primary w-100"><i class="bi bi-funnel"></i> Filtrele</button></div>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3 mb-3">
+    @foreach (var (label, value) in new[]
+    {
+        ("Personel", summary.People.ToString()),
+        ("Efor kaydı", summary.Entries.ToString()),
+        ("Talep", summary.Tickets.ToString()),
+        ("Toplam süre", $"{summary.TotalMinutes} dk · {summary.TotalHours:0.0} saat"),
+    })
+    {
+        <div class="col-sm-6 col-lg-3">
+            <div class="panel h-100"><div class="panel-body">
+                <div class="text-muted small">@label</div>
+                <div class="fs-5 fw-bold">@value</div>
+            </div></div>
+        </div>
+    }
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <span>@Model.Count personel · @f.From?.ToString("dd.MM.yyyy") – @f.To?.ToString("dd.MM.yyyy")</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Personel</th>
+                    <th>Ekip</th>
+                    <th class="text-end">Kayıt</th>
+                    <th class="text-end">Talep</th>
+                    <th class="text-end">Toplam (dk)</th>
+                    <th class="text-end">Toplam (saat)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="text-muted text-center py-4">Seçilen dönemde efor kaydı yok</td></tr>
+                }
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@r.FullName</td>
+                        <td class="small text-muted">@(r.TeamName ?? "—")</td>
+                        <td class="text-end">@r.EntryCount</td>
+                        <td class="text-end">@r.TicketCount</td>
+                        <td class="text-end">@r.TotalMinutes</td>
+                        <td class="text-end">@r.TotalHours.ToString("0.0")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
