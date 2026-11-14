@@ -3,6 +3,19 @@
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <div class="me-auto text-muted small">Aktif talepler · arşivlenenler listede görünmez</div>
+    <a class="btn btn-sm btn-outline-secondary"
+       asp-action="ExportCsv"
+       asp-route-q="@ViewBag.Q"
+       asp-route-status="@ViewBag.Status"
+       asp-route-priority="@ViewBag.Priority"
+       asp-route-type="@ViewBag.Type"
+       asp-route-categoryId="@ViewBag.CategoryId"
+       asp-route-from="@ViewBag.From"
+       asp-route-to="@ViewBag.To"
+       asp-route-tag="@ViewBag.Tag"
+       title="Filtrelenmiş listeyi CSV olarak indir (Excel ile açılır)">
+        <i class="bi bi-download"></i> CSV / Excel
+    </a>
     <a asp-action="Archived" class="btn btn-sm btn-light border"><i class="bi bi-archive"></i> Arşiv</a>
 </div>
 

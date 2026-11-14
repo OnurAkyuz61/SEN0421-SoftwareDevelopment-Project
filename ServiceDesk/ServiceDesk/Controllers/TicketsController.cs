@@ -162,6 +162,51 @@ public class TicketsController : Controller
     public async Task<IActionResult> Index(string? q, TicketStatus? status, Priority? priority,
         TicketType? type, int? categoryId, DateTime? from, DateTime? to, string? tag, int page = 1)
     {
+        var query = FilteredTickets(q, status, priority, type, categoryId, from, to, tag);
+
+        ViewBag.Q = q; ViewBag.Status = status; ViewBag.Priority = priority; ViewBag.Type = type;
+        ViewBag.CategoryId = categoryId;
+        ViewBag.Tag = tag;
+        ViewBag.From = from?.ToString("yyyy-MM-dd");
+        ViewBag.To = to?.ToString("yyyy-MM-dd");
+        var kategoriler = await _db.Categories.AsNoTracking()
+            .Include(c => c.Parent).Where(c => c.IsActive).ToListAsync();
+        ViewBag.Categories = CatalogRules.OrderByHierarchy(kategoriler, c => c.Id, c => c.ParentId,
+            c => c.SortOrder, c => c.Name);
+
+        // İhlal işaretleme ve eskalasyon artık SlaMonitorService'in işi;
+        // bu sayfa yalnızca okur. Liste sayfalanır (Paging.DefaultPageSize).
+        var (list, pager) = await query.AsNoTracking()
+            .OrderByDescending(t => t.CreatedAt)
+            .ToPageAsync(page);
+
+        ViewBag.Pager = pager;
+        return View(list);
+    }
+
+    // Aynı filtrelerle CSV (Excel uyumlu: ; + UTF-8 BOM). En fazla MaxRows satır.
+    [HttpGet]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
+    public async Task<IActionResult> ExportCsv(string? q, TicketStatus? status, Priority? priority,
+        TicketType? type, int? categoryId, DateTime? from, DateTime? to, string? tag)
+    {
+        var tickets = await FilteredTickets(q, status, priority, type, categoryId, from, to, tag)
+            .AsNoTracking()
+            .Include(t => t.AssignedTeam)
+            .OrderByDescending(t => t.CreatedAt)
+            .Take(TicketListCsv.MaxRows)
+            .ToListAsync();
+
+        var csv = TicketListCsv.Build(tickets.Select(TicketListCsv.FromTicket));
+        var stamp = AppTime.ToLocal(AppTime.UtcNow).ToString("yyyyMMdd-HHmm");
+        return File(TicketListCsv.ToUtf8BomBytes(csv), "text/csv; charset=utf-8",
+            $"talepler-{stamp}.csv");
+    }
+
+    // Liste + CSV ortak filtre (TicketScope dahil).
+    private IQueryable<Ticket> FilteredTickets(string? q, TicketStatus? status, Priority? priority,
+        TicketType? type, int? categoryId, DateTime? from, DateTime? to, string? tag)
+    {
         var query = _db.Tickets.Include(t => t.Assignee)
             .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
             .VisibleTo(Me);
@@ -190,24 +235,7 @@ public class TicketsController : Controller
             query = query.Where(t => t.CreatedAt < toUtc);
         }
 
-        ViewBag.Q = q; ViewBag.Status = status; ViewBag.Priority = priority; ViewBag.Type = type;
-        ViewBag.CategoryId = categoryId;
-        ViewBag.Tag = tag;
-        ViewBag.From = from?.ToString("yyyy-MM-dd");
-        ViewBag.To = to?.ToString("yyyy-MM-dd");
-        var kategoriler = await _db.Categories.AsNoTracking()
-            .Include(c => c.Parent).Where(c => c.IsActive).ToListAsync();
-        ViewBag.Categories = CatalogRules.OrderByHierarchy(kategoriler, c => c.Id, c => c.ParentId,
-            c => c.SortOrder, c => c.Name);
-
-        // İhlal işaretleme ve eskalasyon artık SlaMonitorService'in işi;
-        // bu sayfa yalnızca okur. Liste sayfalanır (Paging.DefaultPageSize).
-        var (list, pager) = await query.AsNoTracking()
-            .OrderByDescending(t => t.CreatedAt)
-            .ToPageAsync(page);
-
-        ViewBag.Pager = pager;
-        return View(list);
+        return query;
     }
 
     // Soft-delete edilmiş talepler (ISO 9001 md. 7.5: kayıt korunur, listeden
