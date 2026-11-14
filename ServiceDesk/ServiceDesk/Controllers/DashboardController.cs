@@ -145,4 +145,28 @@ public class DashboardController : Controller
 
         return View(vm);
     }
+
+    // Aylık KPI özeti CSV (Excel uyumlu). Varsayılan: kurum geneli, son 24 ay.
+    [HttpGet]
+    public async Task<IActionResult> ExportMonthlyKpiCsv(int? departmentId = null, int months = MonthlyKpiCsv.DefaultMonths)
+    {
+        months = Math.Clamp(months, 1, 120);
+
+        var query = _db.KpiSnapshots.AsNoTracking()
+            .Include(k => k.Department)
+            .Where(k => k.Period == KpiPeriod.Monthly && k.DepartmentId == departmentId);
+
+        var snaps = await query
+            .OrderByDescending(k => k.PeriodStart)
+            .Take(months)
+            .ToListAsync();
+
+        snaps = snaps.OrderBy(k => k.PeriodStart).ToList();
+
+        var csv = MonthlyKpiCsv.Build(snaps.Select(MonthlyKpiCsv.From));
+        var stamp = AppTime.ToLocal(AppTime.UtcNow).ToString("yyyyMMdd");
+        var scope = departmentId == null ? "kurum" : $"birim-{departmentId}";
+        return File(TicketListCsv.ToUtf8BomBytes(csv), "text/csv; charset=utf-8",
+            $"kpi-aylik-{scope}-{stamp}.csv");
+    }
 }

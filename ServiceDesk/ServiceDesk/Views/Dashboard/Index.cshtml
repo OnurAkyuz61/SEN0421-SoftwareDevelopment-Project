@@ -60,7 +60,13 @@
                     Dönemsel memnuniyet
                     <span class="small text-muted fw-normal">aylık anket sonucu · son @Model.MonthlyKpi.Count dönem</span>
                 </span>
-                <a asp-controller="Surveys" asp-action="Index" class="small fw-normal">Anketler</a>
+                <span class="d-flex gap-3 align-items-center">
+                    <a asp-action="ExportMonthlyKpiCsv" class="small fw-normal"
+                       title="Son 24 ayın KPI özetini CSV olarak indir (Excel ile açılır)">
+                        <i class="bi bi-download"></i> CSV
+                    </a>
+                    <a asp-controller="Surveys" asp-action="Index" class="small fw-normal">Anketler</a>
+                </span>
             </div>
             @if (!Model.MonthlyKpi.Any())
             {
