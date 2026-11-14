@@ -1733,6 +1733,9 @@ namespace ServiceDesk.Migrations
                     b.Property<int?>("LeadUserId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("MaxOpenTickets")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)

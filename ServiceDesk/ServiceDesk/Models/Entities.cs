@@ -59,6 +59,10 @@ public class Team
     // Round-robin: ekibe düşen yeni talep sıradaki aktif personele otomatik atanır
     public bool RoundRobinEnabled { get; set; }
     public int? LastAssignedUserId { get; set; }
+
+    // Açık talep kotası: AssignedTeamId = bu ekip olan New/InProgress/Waiting
+    // talepler. null = sınırsız. Doluysa yeni talep bu ekibe düşemez.
+    public int? MaxOpenTickets { get; set; }
 }
 
 // Talep kategorisi. Enum yerine tablo: yeni kategori eklemek artık

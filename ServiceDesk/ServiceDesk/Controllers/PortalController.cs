@@ -24,6 +24,7 @@ public class PortalController : Controller
     private readonly ApprovalChainResolver _chain;
     private readonly ChangeResubmissionService _resubmit;
     private readonly TeamRoundRobin _roundRobin;
+    private readonly TeamCapacity _capacity;
     private readonly AttachmentQuota _quota;
     private readonly SurveySettings _survey;
 
@@ -31,7 +32,7 @@ public class PortalController : Controller
                             TicketSlaService sla, NotificationService notify,
                             NonconformityService nonconformity, ApprovalChainResolver chain,
                             ChangeResubmissionService resubmit, TeamRoundRobin roundRobin,
-                            AttachmentQuota quota, IOptions<SurveySettings> survey)
+                            TeamCapacity capacity, AttachmentQuota quota, IOptions<SurveySettings> survey)
     {
         _db = db;
         _files = files;
@@ -42,6 +43,7 @@ public class PortalController : Controller
         _chain = chain;
         _resubmit = resubmit;
         _roundRobin = roundRobin;
+        _capacity = capacity;
         _quota = quota;
         _survey = survey.Value;
     }
@@ -115,6 +117,9 @@ public class PortalController : Controller
             .FirstOrDefaultAsync(c => c.Id == ticket.CategoryId);
         if (CatalogRules.TicketCategoryError(category) is { } katHata)
             ModelState.AddModelError(nameof(Ticket.CategoryId), katHata);
+        else if (category?.DefaultTeamId is int ekipId
+                 && await _capacity.CheckAsync(ekipId) is { } kotaHata)
+            ModelState.AddModelError(nameof(Ticket.CategoryId), kotaHata);
 
         // Talep eki sınırı + kullanıcı kotası (yeni talep: ticketId henüz yok)
         var fileError = _files.Validate(files, UploadKind.Ticket)

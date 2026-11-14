@@ -140,6 +140,42 @@ public class WorkflowSlaTests
     }
 
     [Fact]
+    public void Ekip_kotasi_sinirsizsa_hata_yok()
+    {
+        Assert.Null(TeamCapacityPolicy.Error("Ağ", null, 100));
+        Assert.Null(TeamCapacityPolicy.Error("Ağ", 0, 100)); // 0 kayıtta null'a çevrilir; politika da sınır saymaz
+    }
+
+    [Fact]
+    public void Ekip_kotasi_dolunca_reddedilir()
+    {
+        var hata = TeamCapacityPolicy.Error("Son Kullanıcı Desteği", 5, 5);
+        Assert.Contains("kotası dolu", hata!);
+        Assert.Contains("5/5", hata);
+    }
+
+    [Fact]
+    public void Ekip_kotasi_yer_varken_kabul_edilir()
+    {
+        Assert.Null(TeamCapacityPolicy.Error("Ağ", 10, 9));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    public void Ekip_kota_limiti_gecersiz_deger_reddedilir(int deger)
+    {
+        Assert.NotNull(TeamCapacityPolicy.ValidateLimit(deger));
+    }
+
+    [Fact]
+    public void Ekip_kota_limiti_bos_veya_pozitif_kabul()
+    {
+        Assert.Null(TeamCapacityPolicy.ValidateLimit(null));
+        Assert.Null(TeamCapacityPolicy.ValidateLimit(25));
+    }
+
+    [Fact]
     public void Etiketler_kucuk_harf_ve_tekrarsiz_saklanir()
     {
         var (deger, hata) = TicketTags.Parse(" VPN, laptop ,vpn,, ");

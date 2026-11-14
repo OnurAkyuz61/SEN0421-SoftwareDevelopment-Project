@@ -4,6 +4,7 @@
     var birimler = (List<Department>)ViewBag.Departments;
     var ekipler = (List<Team>)ViewBag.Teams;
     var sayilar = (Dictionary<int, int>)ViewBag.TicketCounts;
+    var ekipAcik = (Dictionary<int, int>)ViewBag.TeamOpenCounts;
     var liderAdaylari = (List<AppUser>)ViewBag.LeadCandidates;
 }
 
@@ -181,17 +182,22 @@
     @* ── Ekipler ─────────────────────────────────────────────────────── *@
     <div class="col-lg-7">
         <div class="panel h-100">
-            <div class="panel-head">Ekipler <span class="text-muted small fw-normal">lider yalnızca Destek / Yönetici olabilir</span></div>
+            <div class="panel-head">
+                Ekipler
+                <span class="text-muted small fw-normal">lider Destek/Yönetici · kota boş = sınırsız</span>
+            </div>
             <div class="table-responsive">
                 <table class="table table-sm mb-0 align-middle">
                     <tbody>
                         @foreach (var t in ekipler)
                         {
-                            <tr>
+                            var acik = ekipAcik.TryGetValue(t.Id, out var a) ? a : 0;
+                            var dolu = t.MaxOpenTickets is int max && acik >= max;
+                            <tr class="@(dolu ? "table-warning" : "")">
                                 <form asp-action="SaveTeam" method="post">
                                     <input type="hidden" name="id" value="@t.Id" />
                                     <td><input name="name" value="@t.Name" class="form-control form-control-sm" required maxlength="@CatalogRules.MaxNameLength" /></td>
-                                    <td style="width:170px">
+                                    <td style="width:140px">
                                         <select name="departmentId" class="form-select form-select-sm">
                                             @foreach (var d in birimler)
                                             {
@@ -199,7 +205,7 @@
                                             }
                                         </select>
                                     </td>
-                                    <td style="width:180px">
+                                    <td style="width:150px">
                                         @* Lider yalnızca aktif Destek / Yönetici olabilir. Mevcut lider bu
                                            şartı artık sağlamıyorsa (pasifleşti, rolü düşürüldü) seçili
                                            ama uyarılı görünür; kaydetmeden önce değiştirilmesi gerekir. *@
@@ -221,15 +227,23 @@
                                             <div class="invalid-feedback">Lider artık aktif Destek/Yönetici değil.</div>
                                         }
                                     </td>
-                                    <td style="width:130px">
+                                    <td style="width:110px" title="Açık talep kotası">
+                                        <input name="maxOpenTickets" type="number" min="1" class="form-control form-control-sm"
+                                               value="@t.MaxOpenTickets" placeholder="∞" />
+                                        <div class="small text-muted mt-1">
+                                            açık @acik@(t.MaxOpenTickets != null ? $" / {t.MaxOpenTickets}" : "")
+                                            @if (dolu) { <span class="text-danger">dolu</span> }
+                                        </div>
+                                    </td>
+                                    <td style="width:120px">
                                         <div class="form-check mb-0">
                                             <input class="form-check-input" type="checkbox" name="isActive" value="true"
-                                                   id="team@(t.Id)" checked="@t.IsActive" />
+                                                   id="team@(t.Id)" @(t.IsActive ? "checked" : null) />
                                             <label class="form-check-label small" for="team@(t.Id)">Aktif</label>
                                         </div>
                                         <div class="form-check mb-0" title="Ekibe düşen yeni talepler aktif personele sırayla otomatik atanır">
                                             <input class="form-check-input" type="checkbox" name="roundRobin" value="true"
-                                                   id="rr@(t.Id)" checked="@t.RoundRobinEnabled" />
+                                                   id="rr@(t.Id)" @(t.RoundRobinEnabled ? "checked" : null) />
                                             <label class="form-check-label small" for="rr@(t.Id)">Sıralı atama</label>
                                         </div>
                                     </td>
@@ -254,6 +268,9 @@
                                         <option value="">Lider yok</option>
                                         @foreach (var u in liderAdaylari) { <option value="@u.Id">@u.FullName · @Ui.RoleText(u.Role)</option> }
                                     </select>
+                                </td>
+                                <td>
+                                    <input name="maxOpenTickets" type="number" min="1" class="form-control form-control-sm" placeholder="∞" />
                                 </td>
                                 <td></td>
                                 <td class="text-end"><button class="btn btn-sm btn-primary">Ekle</button></td>

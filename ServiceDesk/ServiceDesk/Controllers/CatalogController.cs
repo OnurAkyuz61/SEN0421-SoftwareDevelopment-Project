@@ -42,6 +42,16 @@ public class CatalogController : Controller
             .Select(g => new { Id = g.Key, Adet = g.Count() })
             .ToDictionaryAsync(x => x.Id, x => x.Adet);
 
+        // Ekip başına açık talep: kota sütununda "3/10" gösterimi için
+        ViewBag.TeamOpenCounts = await _db.Tickets.AsNoTracking()
+            .Where(t => t.AssignedTeamId != null
+                && (t.Status == TicketStatus.New
+                    || t.Status == TicketStatus.InProgress
+                    || t.Status == TicketStatus.WaitingForCustomer))
+            .GroupBy(t => t.AssignedTeamId!.Value)
+            .Select(g => new { Id = g.Key, Adet = g.Count() })
+            .ToDictionaryAsync(x => x.Id, x => x.Adet);
+
         var kategoriler = await _db.Categories.AsNoTracking()
             .Include(c => c.DefaultTeam)
             .Include(c => c.Parent)
@@ -121,7 +131,7 @@ public class CatalogController : Controller
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveTeam(int id, string? name, int departmentId, int? leadUserId, bool isActive,
-                                              bool roundRobin = false)
+                                              bool roundRobin = false, int? maxOpenTickets = null)
     {
         name = CatalogRules.NormalizeName(name);
         if (NameError("Ekip", name) is { } hata) return Fail(hata);
@@ -132,6 +142,9 @@ public class CatalogController : Controller
 
         if (!await _db.Departments.AnyAsync(d => d.Id == departmentId))
             return Fail("Geçerli bir birim seçin.");
+
+        if (TeamCapacityPolicy.ValidateLimit(maxOpenTickets) is { } kotaHata)
+            return Fail(kotaHata);
 
         var ekip = id > 0 ? await _db.Teams.FirstOrDefaultAsync(t => t.Id == id) : null;
         if (id > 0 && ekip == null) return NotFound();
@@ -161,6 +174,7 @@ public class CatalogController : Controller
         ekip.LeadUserId = leadUserId;
         ekip.IsActive = isActive;
         ekip.RoundRobinEnabled = roundRobin;   // yeni talepler ekipte sırayla otomatik atanır
+        ekip.MaxOpenTickets = maxOpenTickets;  // null = sınırsız açık talep
 
         return await SaveAsync(ekip.Name, "ekip");
     }

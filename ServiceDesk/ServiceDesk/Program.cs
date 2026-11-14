@@ -32,6 +32,7 @@ builder.Services.AddScoped<CurrentUser>();           // oturumdaki kullanıcı
 builder.Services.AddScoped<NotificationService>();   // bildirim okuma / yazma
 builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef tarihler
 builder.Services.AddScoped<TeamRoundRobin>();        // ekip bazlı otomatik (sıralı) atama
+builder.Services.AddScoped<TeamCapacity>();          // ekip açık talep kotası
 builder.Services.AddScoped<KpiService>();            // dönemsel gösterge hesabı
 builder.Services.AddScoped<ManagementReviewService>();// yönetim gözden geçirme paketi (md. 9.3, salt okuma)
 builder.Services.AddScoped<SearchService>();         // bilgi bankası / talep / global arama
