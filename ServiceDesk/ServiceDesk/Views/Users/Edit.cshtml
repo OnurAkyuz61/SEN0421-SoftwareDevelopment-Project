@@ -196,6 +196,13 @@
                         <div class="form-text">
                             Destek personeli için: talepler kişiye atanmadan önce ekibe düşer.
                             Birim değişince yalnızca o birime bağlı ekipler listelenir; uyumsuz ekip temizlenir.
+                            @if (!Model.IsNew && Model.OpenTicketCount > 0)
+                            {
+                                <span class="d-block text-warning-emphasis mt-1">
+                                    Ekip değişince bu kişiye atanmış @Model.OpenTicketCount açık talep
+                                    eski ekip kuyruğunda başka birine yeniden atanır (uygun kişi yoksa atamasız kalır).
+                                </span>
+                            }
                         </div>
                     </div>
 

@@ -30,6 +30,7 @@ public class UsersController : Controller
     private readonly PasswordHistoryService _passwordHistory;
     private readonly AuditService _audit;
     private readonly NotificationService _notify;
+    private readonly DepartmentTransferReassignment _deptTransfer;
     private readonly IEmailSender _email;
     private readonly AuthSettings _auth;
     private readonly IWebHostEnvironment _env;
@@ -37,6 +38,7 @@ public class UsersController : Controller
     public UsersController(AppDbContext db, CurrentUser current,
                            SessionRegistry sessions, PasswordHistoryService passwordHistory,
                            AuditService audit, NotificationService notify,
+                           DepartmentTransferReassignment deptTransfer,
                            IEmailSender email, IOptions<AuthSettings> auth, IWebHostEnvironment env)
     {
         _db = db;
@@ -45,6 +47,7 @@ public class UsersController : Controller
         _passwordHistory = passwordHistory;
         _audit = audit;
         _notify = notify;
+        _deptTransfer = deptTransfer;
         _email = email;
         _auth = auth.Value;
         _env = env;
@@ -401,7 +404,9 @@ public class UsersController : Controller
         var vm = UserFormVm.From(user);
         vm.OpenTicketCount = await _db.Tickets.CountAsync(t =>
             t.AssigneeId == user.Id &&
-            (t.Status == TicketStatus.New || t.Status == TicketStatus.InProgress));
+            (t.Status == TicketStatus.New
+             || t.Status == TicketStatus.InProgress
+             || t.Status == TicketStatus.WaitingForCustomer));
 
         return View(vm);
     }
@@ -513,6 +518,7 @@ public class UsersController : Controller
         var rolDegisti = user != null && user.Role != vm.Role;
         var oncekiTelefonYok = user != null && string.IsNullOrWhiteSpace(user.PhoneNumber);
         var oncekiAktif = user?.IsActive ?? false;
+        var oncekiEkipId = user?.TeamId;
         if (user == null)
         {
             user = new AppUser { CreatedAt = AppTime.UtcNow };
@@ -532,7 +538,19 @@ public class UsersController : Controller
         if (!string.IsNullOrEmpty(vm.Password))
             await _passwordHistory.SetPasswordAsync(user, vm.Password, requireChangeOnNextLogin: true);
 
+        // Ekip değişince açık talepler eski kuyrukta yeniden atanır (TeamId
+        // güncellendikten sonra; kişi artık eski ekip üyesi sayılmaz).
+        DepartmentTransferReassignment.Result? transfer = null;
+        if (!yeniKayit && DepartmentTransferRules.RequiresReassignment(oncekiEkipId, user.TeamId))
+        {
+            transfer = await _deptTransfer.ApplyAsync(
+                user.Id, oncekiEkipId, user.TeamId, me.Id, user.FullName);
+        }
+
         await _db.SaveChangesAsync();
+
+        if (transfer is { TicketIds.Count: > 0 })
+            _notify.SignalDelivery();
 
         if (pasiflestirildi)
             await _sessions.CloseAllAsync(user.Id);
@@ -556,11 +574,14 @@ public class UsersController : Controller
             ? $"{user.FullName} ({Ui.RoleText(user.Role)}) hesabı oluşturuldu. İlk girişte şifre değiştirmesi istenecek."
             : pasiflestirildi
                 ? $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu, açık oturumları kapatıldı."
-                : rolDegisti
-                    ? $"{user.FullName} rolü {Ui.RoleText(user.Role)} olarak güncellendi. Açık oturumundaki yetkiler bir sonraki istekte yenilenir."
-                    : sifreBelirlendi
-                        ? $"{user.FullName} hesabı güncellendi. Yeni şifre geçici; bir sonraki girişte değiştirmesi istenecek."
-                        : $"{user.FullName} hesabı güncellendi.";
+                : transfer is { TicketIds.Count: > 0 }
+                    ? $"{user.FullName} hesabı güncellendi. Açık talepler: {transfer.Reassigned} yeniden atandı" +
+                      (transfer.Unassigned > 0 ? $", {transfer.Unassigned} atamasız bırakıldı." : ".")
+                    : rolDegisti
+                        ? $"{user.FullName} rolü {Ui.RoleText(user.Role)} olarak güncellendi. Açık oturumundaki yetkiler bir sonraki istekte yenilenir."
+                        : sifreBelirlendi
+                            ? $"{user.FullName} hesabı güncellendi. Yeni şifre geçici; bir sonraki girişte değiştirmesi istenecek."
+                            : $"{user.FullName} hesabı güncellendi.";
         return RedirectToAction(nameof(Index));
     }
 
