@@ -95,12 +95,16 @@ public class PortalController : Controller
             .ToListAsync();
         ViewBag.Categories = CatalogRules.OrderByHierarchy(list, c => c.Id, c => c.ParentId,
             c => c.SortOrder, c => c.Name);
+        ViewBag.ServiceItems = await _db.ServiceItems.AsNoTracking()
+            .Where(s => s.IsActive)
+            .OrderBy(s => s.SortOrder).ThenBy(s => s.Name)
+            .ToListAsync();
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     [RequestSizeLimit(60 * 1024 * 1024)]
     public async Task<IActionResult> Create(
-        [Bind("Title,Description,Type,Priority,CategoryId")] Ticket ticket,
+        [Bind("Title,Description,Type,Priority,CategoryId,ServiceItemId")] Ticket ticket,
         List<IFormFile>? files)
     {
         var me = _current.User!;
@@ -110,6 +114,22 @@ public class PortalController : Controller
         ticket.RequesterName = me.FullName;
         ModelState.Remove(nameof(Ticket.RequesterName));
 
+        // Hizmet öğesi seçildiyse kategori (ve varsa tür) öğeden gelir
+        ServiceItem? hizmet = null;
+        if (ticket.ServiceItemId is int hizmetId)
+        {
+            hizmet = await _db.ServiceItems.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == hizmetId && s.IsActive);
+            if (hizmet == null)
+                ModelState.AddModelError(nameof(Ticket.ServiceItemId), "Geçerli bir hizmet seçin.");
+            else
+            {
+                ticket.CategoryId = hizmet.CategoryId;
+                if (hizmet.DefaultType != null) ticket.Type = hizmet.DefaultType.Value;
+                ModelState.Remove(nameof(Ticket.CategoryId));
+            }
+        }
+
         // Pasif (veya üstü pasif) kategoriye yeni talep açılamaz; liste zaten
         // yalnızca aktifleri gösterir, burada form kurcalamasına karşı sunucu kontrolü.
         var category = await _db.Categories.AsNoTracking()
@@ -117,8 +137,10 @@ public class PortalController : Controller
             .FirstOrDefaultAsync(c => c.Id == ticket.CategoryId);
         if (CatalogRules.TicketCategoryError(category) is { } katHata)
             ModelState.AddModelError(nameof(Ticket.CategoryId), katHata);
-        else if (category?.DefaultTeamId is int ekipId
-                 && await _capacity.CheckAsync(ekipId) is { } kotaHata)
+
+        // Ekip: hizmet öğesi > kategori varsayılanı
+        var hedefEkipId = hizmet?.DefaultTeamId ?? category?.DefaultTeamId;
+        if (hedefEkipId is int ekipId && await _capacity.CheckAsync(ekipId) is { } kotaHata)
             ModelState.AddModelError(nameof(Ticket.CategoryId), kotaHata);
 
         // Talep eki sınırı + kullanıcı kotası (yeni talep: ticketId henüz yok)
@@ -134,8 +156,7 @@ public class PortalController : Controller
 
         ticket.CreatedAt = AppTime.UtcNow;
         ticket.Status = TicketStatus.New;
-        // Kategorinin varsayılan ekibi varsa talep doğrudan o ekibe düşer
-        ticket.AssignedTeamId = category!.DefaultTeamId;
+        ticket.AssignedTeamId = hedefEkipId;
         await _sla.ApplyPolicyAsync(ticket);
 
         // Ekipte round-robin açıksa talep sıradaki personele otomatik atanır
@@ -220,6 +241,7 @@ public class PortalController : Controller
             .Include(t => t.Comments).ThenInclude(c => c.Author)
             .Include(t => t.Comments).ThenInclude(c => c.Attachments)
             .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
+            .Include(t => t.ServiceItem)
             .Include(t => t.ChangeDetail)
             .Include(t => t.Approvals)
             .AsNoTracking()

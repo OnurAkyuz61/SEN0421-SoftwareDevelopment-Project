@@ -88,6 +88,41 @@ public class Category
 
     public bool IsActive { get; set; } = true;
     public int SortOrder { get; set; }
+
+    public List<ServiceItem> ServiceItems { get; set; } = new();
+}
+
+// Hizmet kataloğu öğesi: kullanıcının talep açarken seçebileceği somut hizmet
+// (örn. "Yeni laptop", "VPN erişimi"). Kategoriye bağlıdır; varsayılan ekip /
+// öncelik / tür boşsa kategorininkiler (veya form) kullanılır. Silinmez,
+// pasifleştirilir — geçmiş talepler ServiceItemId ile bağlı kalır.
+public class ServiceItem
+{
+    public int Id { get; set; }
+
+    [Required, StringLength(100), Display(Name = "Hizmet")]
+    public string Name { get; set; } = "";
+
+    // Kısa kod (HW-LAPTOP); boş olabilir, doluysa benzersiz
+    [StringLength(40), Display(Name = "Kod")]
+    public string? Code { get; set; }
+
+    [StringLength(500), Display(Name = "Açıklama")]
+    public string? Description { get; set; }
+
+    [Display(Name = "Kategori")]
+    public int CategoryId { get; set; }
+    public Category? Category { get; set; }
+
+    // Boşsa kategorinin DefaultTeamId'si kullanılır
+    public int? DefaultTeamId { get; set; }
+    public Team? DefaultTeam { get; set; }
+
+    public Priority? DefaultPriority { get; set; }
+    public TicketType? DefaultType { get; set; }
+
+    public bool IsActive { get; set; } = true;
+    public int SortOrder { get; set; }
 }
 
 // Değişiklik (Change) talepleri yönetici onayından geçer
@@ -206,6 +241,11 @@ public class Ticket
     [Display(Name = "Kategori")]
     public int CategoryId { get; set; }
     public Category? Category { get; set; }
+
+    // Seçilen hizmet kataloğu öğesi (isteğe bağlı)
+    [Display(Name = "Hizmet")]
+    public int? ServiceItemId { get; set; }
+    public ServiceItem? ServiceItem { get; set; }
 
     // Kişiye atanmadan önce talebin düştüğü ekip
     [Display(Name = "Ekip")]

@@ -16,6 +16,15 @@ namespace ServiceDesk.Services;
 public static class CatalogRules
 {
     public const int MaxNameLength = 100;
+    public const int MaxCodeLength = 40;
+    public const int MaxDescriptionLength = 500;
+
+    // Hizmet kodu: kırpılmış, büyük harf; boşsa null
+    public static string? NormalizeCode(string? code)
+    {
+        var c = (code ?? "").Trim().ToUpperInvariant();
+        return c.Length == 0 ? null : c;
+    }
 
     private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
     private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);

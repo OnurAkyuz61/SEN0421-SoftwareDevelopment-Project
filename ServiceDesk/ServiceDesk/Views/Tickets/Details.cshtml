@@ -389,7 +389,7 @@ else
             <div class="panel-head">Bilgiler</div>
             <table class="table table-sm mb-0">
                 <tr><td class="text-muted" style="width:35%">Talep eden</td><td>@Model.RequesterName</td></tr>
-                <tr><td class="text-muted">Tür / Kategori</td><td>@Ui.TypeText(Model.Type) · @Ui.CategoryText(Model.Category)</td></tr>
+                <tr><td class="text-muted">Tür / Kategori</td><td>@Ui.TypeText(Model.Type) · @Ui.CategoryText(Model.Category)@(Model.ServiceItem != null ? $" · {Model.ServiceItem.Name}" : "")</td></tr>
                 <tr><td class="text-muted">Ekip</td><td>@(Model.AssignedTeam?.Name ?? "-")</td></tr>
                 <tr><td class="text-muted">Açılış</td><td>@AppTime.ToLocal(Model.CreatedAt).ToString("dd.MM.yyyy HH:mm")</td></tr>
                 <tr>

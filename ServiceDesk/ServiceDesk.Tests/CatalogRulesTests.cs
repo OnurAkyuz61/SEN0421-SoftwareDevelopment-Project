@@ -60,6 +60,14 @@ public class CatalogRulesTests
         Assert.Equal("", CatalogRules.NormalizeName(null));
     }
 
+    [Fact]
+    public void Hizmet_kodu_normalize_edilir()
+    {
+        Assert.Equal("HW-LAPTOP", CatalogRules.NormalizeCode("  hw-laptop "));
+        Assert.Null(CatalogRules.NormalizeCode("  "));
+        Assert.Null(CatalogRules.NormalizeCode(null));
+    }
+
     private static AppUser Kisi(UserRole rol, bool aktif = true) =>
         new() { Id = 7, FirstName = "Test", LastName = "Kisi", Role = rol, IsActive = aktif };
 

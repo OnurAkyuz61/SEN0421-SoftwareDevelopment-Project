@@ -1447,6 +1447,120 @@ namespace ServiceDesk.Migrations
                     b.ToTable("PasswordResetTokens");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.ServiceItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int?>("DefaultPriority")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DefaultTeamId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DefaultType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL");
+
+                    b.HasIndex("DefaultTeamId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("IsActive", "SortOrder");
+
+                    b.ToTable("ServiceItems");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CategoryId = 2,
+                            Code = "HW-LAPTOP",
+                            DefaultPriority = 1,
+                            DefaultType = 1,
+                            IsActive = true,
+                            Name = "Yeni laptop talebi",
+                            SortOrder = 10
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CategoryId = 2,
+                            Code = "HW-PRINT",
+                            DefaultPriority = 2,
+                            DefaultType = 0,
+                            IsActive = true,
+                            Name = "Yazıcı arızası",
+                            SortOrder = 20
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CategoryId = 5,
+                            Code = "ACC-VPN",
+                            DefaultPriority = 1,
+                            DefaultType = 1,
+                            IsActive = true,
+                            Name = "VPN erişimi",
+                            SortOrder = 10
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CategoryId = 3,
+                            Code = "SW-INST",
+                            DefaultType = 1,
+                            IsActive = true,
+                            Name = "Yazılım kurulumu",
+                            SortOrder = 10
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CategoryId = 4,
+                            Code = "NET-DOWN",
+                            DefaultPriority = 3,
+                            DefaultTeamId = 2,
+                            DefaultType = 0,
+                            IsActive = true,
+                            Name = "İnternet kesintisi",
+                            SortOrder = 10
+                        });
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.SlaPolicy", b =>
                 {
                     b.Property<int>("Id")
@@ -1902,6 +2016,9 @@ namespace ServiceDesk.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<int?>("ServiceItemId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("SlaBreachedAt")
                         .HasColumnType("datetime2");
 
@@ -1965,6 +2082,8 @@ namespace ServiceDesk.Migrations
                     b.HasIndex("RequesterId");
 
                     b.HasIndex("ResolvedByArticleId");
+
+                    b.HasIndex("ServiceItemId");
 
                     b.HasIndex("SlaPolicyId");
 
@@ -2533,6 +2652,24 @@ namespace ServiceDesk.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ServiceDesk.Models.ServiceItem", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.Category", "Category")
+                        .WithMany("ServiceItems")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.Team", "DefaultTeam")
+                        .WithMany()
+                        .HasForeignKey("DefaultTeamId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Category");
+
+                    b.Navigation("DefaultTeam");
+                });
+
             modelBuilder.Entity("ServiceDesk.Models.SlaPolicy", b =>
                 {
                     b.HasOne("ServiceDesk.Models.BusinessCalendar", "BusinessCalendar")
@@ -2652,6 +2789,11 @@ namespace ServiceDesk.Migrations
                         .HasForeignKey("ResolvedByArticleId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("ServiceDesk.Models.ServiceItem", "ServiceItem")
+                        .WithMany()
+                        .HasForeignKey("ServiceItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.SlaPolicy", "SlaPolicy")
                         .WithMany()
                         .HasForeignKey("SlaPolicyId")
@@ -2668,6 +2810,8 @@ namespace ServiceDesk.Migrations
                     b.Navigation("Requester");
 
                     b.Navigation("ResolvedByArticle");
+
+                    b.Navigation("ServiceItem");
 
                     b.Navigation("SlaPolicy");
                 });
@@ -2747,6 +2891,8 @@ namespace ServiceDesk.Migrations
             modelBuilder.Entity("ServiceDesk.Models.Category", b =>
                 {
                     b.Navigation("Children");
+
+                    b.Navigation("ServiceItems");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Department", b =>

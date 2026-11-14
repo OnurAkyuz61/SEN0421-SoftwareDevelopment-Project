@@ -52,6 +52,11 @@ public class CatalogController : Controller
             .Select(g => new { Id = g.Key, Adet = g.Count() })
             .ToDictionaryAsync(x => x.Id, x => x.Adet);
 
+        ViewBag.ServiceItems = await _db.ServiceItems.AsNoTracking()
+            .Include(s => s.Category).Include(s => s.DefaultTeam)
+            .OrderBy(s => s.SortOrder).ThenBy(s => s.Name)
+            .ToListAsync();
+
         var kategoriler = await _db.Categories.AsNoTracking()
             .Include(c => c.DefaultTeam)
             .Include(c => c.Parent)
@@ -177,6 +182,65 @@ public class CatalogController : Controller
         ekip.MaxOpenTickets = maxOpenTickets;  // null = sınırsız açık talep
 
         return await SaveAsync(ekip.Name, "ekip");
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveServiceItem(int id, string? name, string? code, string? description,
+                                                     int categoryId, int? defaultTeamId, Priority? defaultPriority,
+                                                     TicketType? defaultType, int sortOrder, bool isActive)
+    {
+        name = CatalogRules.NormalizeName(name);
+        if (NameError("Hizmet", name) is { } hata) return Fail(hata);
+
+        code = CatalogRules.NormalizeCode(code);
+        if (code != null && code.Length > CatalogRules.MaxCodeLength)
+            return Fail($"Hizmet kodu en fazla {CatalogRules.MaxCodeLength} karakter olabilir.");
+
+        description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+        if (description != null && description.Length > CatalogRules.MaxDescriptionLength)
+            return Fail($"Hizmet açıklaması en fazla {CatalogRules.MaxDescriptionLength} karakter olabilir.");
+
+        var mevcut = await _db.ServiceItems.AsNoTracking()
+            .Select(s => new { s.Id, s.Name, s.Code, s.IsActive }).ToListAsync();
+        if (CatalogRules.FindDuplicate(mevcut, s => s.Id, s => s.Name, name, id) is { } ayni)
+            return Fail(DuplicateMessage("hizmet", ayni.Name, ayni.IsActive));
+
+        if (code != null && mevcut.Any(s => s.Id != id && s.Code != null
+                && string.Equals(s.Code, code, StringComparison.OrdinalIgnoreCase)))
+            return Fail($"\"{code}\" kodu başka bir hizmette kullanılıyor.");
+
+        if (!await _db.Categories.AnyAsync(c => c.Id == categoryId))
+            return Fail("Geçerli bir kategori seçin.");
+
+        if (defaultTeamId != null && !await _db.Teams.AnyAsync(t => t.Id == defaultTeamId))
+            return Fail("Geçerli bir varsayılan ekip seçin.");
+
+        if (defaultPriority != null && !Enum.IsDefined(typeof(Priority), defaultPriority.Value))
+            return Fail("Geçerli bir varsayılan öncelik seçin.");
+
+        if (defaultType != null && !Enum.IsDefined(typeof(TicketType), defaultType.Value))
+            return Fail("Geçerli bir varsayılan talep türü seçin.");
+
+        var oge = id > 0 ? await _db.ServiceItems.FirstOrDefaultAsync(s => s.Id == id) : null;
+        if (id > 0 && oge == null) return NotFound();
+
+        if (oge == null)
+        {
+            oge = new ServiceItem();
+            _db.ServiceItems.Add(oge);
+        }
+
+        oge.Name = name;
+        oge.Code = code;
+        oge.Description = description;
+        oge.CategoryId = categoryId;
+        oge.DefaultTeamId = defaultTeamId;
+        oge.DefaultPriority = defaultPriority;
+        oge.DefaultType = defaultType;
+        oge.SortOrder = sortOrder;
+        oge.IsActive = isActive;
+
+        return await SaveAsync(oge.Name, "hizmet");
     }
 
     // ───── Yardımcılar ───────────────────────────────────────────────────

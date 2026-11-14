@@ -195,7 +195,7 @@
                 <div class="panel-head">Bilgiler</div>
                 <table class="table table-sm mb-0">
                     <tr><td class="text-muted">Tür</td><td>@Ui.TypeText(Model.Type)</td></tr>
-                    <tr><td class="text-muted">Kategori</td><td>@Ui.CategoryText(Model.Category)</td></tr>
+                    <tr><td class="text-muted">Kategori</td><td>@Ui.CategoryText(Model.Category)@(Model.ServiceItem != null ? $" · {Model.ServiceItem.Name}" : "")</td></tr>
                     <tr><td class="text-muted">Öncelik</td><td><span class="tag @Ui.PriorityTag(Model.Priority)">@Ui.PriorityText(Model.Priority)</span></td></tr>
                     <tr><td class="text-muted">Açılış</td><td>@AppTime.ToLocal(Model.CreatedAt).ToString("dd.MM.yyyy HH:mm")</td></tr>
                     <tr><td class="text-muted">Hedef çözüm</td><td>@AppTime.ToLocal(Model.SlaDueAt).ToString("dd.MM.yyyy HH:mm")</td></tr>

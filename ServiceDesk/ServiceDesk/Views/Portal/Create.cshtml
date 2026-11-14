@@ -25,14 +25,40 @@
                 <div id="suggestBox" class="mt-2" hidden></div>
             </div>
 
-            <div class="col-md-4">
+            @{
+                var hizmetler = (List<ServiceItem>)(ViewBag.ServiceItems ?? new List<ServiceItem>());
+            }
+            <div class="col-md-6">
+                <label asp-for="ServiceItemId" class="form-label fw-semibold">Hizmet (isteğe bağlı)</label>
+                <select asp-for="ServiceItemId" class="form-select" id="ticketServiceItem">
+                    <option value="">Serbest / kategori seçin...</option>
+                    @foreach (var s in hizmetler)
+                    {
+                        <option value="@s.Id"
+                                selected="@(s.Id == Model.ServiceItemId)"
+                                data-category-id="@s.CategoryId"
+                                data-default-priority="@(s.DefaultPriority?.ToString("D") ?? "")"
+                                data-default-type="@(s.DefaultType?.ToString("D") ?? "")">
+                            @(s.Code != null ? s.Code + " · " : "")@s.Name
+                        </option>
+                    }
+                </select>
+                <span asp-validation-for="ServiceItemId" class="text-danger small"></span>
+                <div class="form-text small">Hizmet seçilirse kategori ve tür buna göre dolar.</div>
+            </div>
+            <div class="col-md-3">
                 <label asp-for="Type" class="form-label fw-semibold">Talep türü</label>
-                <select asp-for="Type" class="form-select">
+                <select asp-for="Type" class="form-select" id="ticketType">
                     <option value="@TicketType.Incident">Sorun / Arıza bildirimi</option>
                     <option value="@TicketType.Change">Değişiklik / İstek (onay gerekir)</option>
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <label asp-for="Priority" class="form-label fw-semibold">Öncelik</label>
+                <select asp-for="Priority" asp-items="Html.GetEnumSelectList<Priority>()" class="form-select" id="ticketPriority"></select>
+                <div class="form-text small" id="priorityHint" hidden>Varsayılan öncelik uygulandı; değiştirebilirsiniz.</div>
+            </div>
+            <div class="col-md-6">
                 <label asp-for="CategoryId" class="form-label fw-semibold">Kategori</label>
                 <select asp-for="CategoryId" class="form-select" id="ticketCategory">
                     <option value="">Seçin...</option>
@@ -46,11 +72,6 @@
                     }
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger small"></span>
-            </div>
-            <div class="col-md-4">
-                <label asp-for="Priority" class="form-label fw-semibold">Öncelik</label>
-                <select asp-for="Priority" asp-items="Html.GetEnumSelectList<Priority>()" class="form-select" id="ticketPriority"></select>
-                <div class="form-text small" id="priorityHint" hidden>Kategorinin varsayılan önceliği uygulandı; değiştirebilirsiniz.</div>
             </div>
 
             <div class="col-12">
@@ -78,14 +99,14 @@
     <script src="~/js/article-suggest.js" asp-append-version="true"></script>
     <script>
         (function () {
+            var svc = document.getElementById('ticketServiceItem');
             var cat = document.getElementById('ticketCategory');
+            var typ = document.getElementById('ticketType');
             var pri = document.getElementById('ticketPriority');
             var hint = document.getElementById('priorityHint');
             if (!cat || !pri) return;
 
-            function applyDefault() {
-                var opt = cat.options[cat.selectedIndex];
-                var def = opt && opt.getAttribute('data-default-priority');
+            function setPriority(def) {
                 if (def === null || def === '') {
                     if (hint) hint.hidden = true;
                     return;
@@ -94,10 +115,28 @@
                 if (hint) hint.hidden = false;
             }
 
-            cat.addEventListener('change', applyDefault);
-            // İlk yüklemede kategori seçiliyse (doğrulama hatası sonrası) öneriyi gösterme;
-            // kullanıcının gönderdiği öncelik korunur. Yalnızca boş/ilk seçimde uygula.
-            if (!pri.value && cat.value) applyDefault();
+            function applyCategoryDefault() {
+                var opt = cat.options[cat.selectedIndex];
+                setPriority(opt && opt.getAttribute('data-default-priority'));
+            }
+
+            function applyServiceItem() {
+                if (!svc || !svc.value) return;
+                var opt = svc.options[svc.selectedIndex];
+                var catId = opt.getAttribute('data-category-id');
+                var defPri = opt.getAttribute('data-default-priority');
+                var defType = opt.getAttribute('data-default-type');
+                if (catId) cat.value = catId;
+                if (defType !== null && defType !== '' && typ) typ.value = defType;
+                if (defPri) setPriority(defPri);
+                else applyCategoryDefault();
+            }
+
+            if (svc) svc.addEventListener('change', applyServiceItem);
+            cat.addEventListener('change', function () {
+                if (svc && svc.value) return; // hizmet seçiliyken kategori elle değişmesin diye önceliği hizmetten bırak
+                applyCategoryDefault();
+            });
         })();
     </script>
 }

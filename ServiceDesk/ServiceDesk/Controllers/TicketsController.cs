@@ -256,6 +256,7 @@ public class TicketsController : Controller
             .Include(t => t.Escalations).ThenInclude(e => e.TriggeredBy)
             .Include(t => t.SlaPolicy)
             .Include(t => t.Category)!.ThenInclude(c => c!.Parent)
+            .Include(t => t.ServiceItem)
             .Include(t => t.AssignedTeam)
             .Include(t => t.ChangeDetail)
             .Include(t => t.Approvals).ThenInclude(a => a.Approver)

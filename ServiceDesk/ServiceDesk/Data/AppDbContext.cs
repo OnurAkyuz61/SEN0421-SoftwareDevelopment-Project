@@ -60,6 +60,7 @@ public class AppDbContext : DbContext
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<Team> Teams => Set<Team>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<ServiceItem> ServiceItems => Set<ServiceItem>();
     public DbSet<ChangeDetail> ChangeDetails => Set<ChangeDetail>();
     public DbSet<ChangeApproval> ChangeApprovals => Set<ChangeApproval>();
     public DbSet<TicketFollower> TicketFollowers => Set<TicketFollower>();
@@ -231,6 +232,16 @@ public class AppDbContext : DbContext
           .HasForeignKey(c => c.DefaultTeamId)
           .OnDelete(DeleteBehavior.Restrict);
 
+        mb.Entity<ServiceItem>()
+          .HasOne(s => s.Category).WithMany(c => c.ServiceItems)
+          .HasForeignKey(s => s.CategoryId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<ServiceItem>()
+          .HasOne(s => s.DefaultTeam).WithMany()
+          .HasForeignKey(s => s.DefaultTeamId)
+          .OnDelete(DeleteBehavior.Restrict);
+
         mb.Entity<AppUser>()
           .HasOne(u => u.Department).WithMany()
           .HasForeignKey(u => u.DepartmentId)
@@ -247,12 +258,19 @@ public class AppDbContext : DbContext
           .OnDelete(DeleteBehavior.Restrict);
 
         mb.Entity<Ticket>()
+          .HasOne(t => t.ServiceItem).WithMany()
+          .HasForeignKey(t => t.ServiceItemId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        mb.Entity<Ticket>()
           .HasOne(t => t.AssignedTeam).WithMany()
           .HasForeignKey(t => t.AssignedTeamId)
           .OnDelete(DeleteBehavior.Restrict);
 
         mb.Entity<Ticket>().HasIndex(t => t.CategoryId);
+        mb.Entity<Ticket>().HasIndex(t => t.ServiceItemId);
         mb.Entity<Category>().HasIndex(c => new { c.IsActive, c.SortOrder });
+        mb.Entity<ServiceItem>().HasIndex(s => new { s.IsActive, s.SortOrder });
 
         // Katalog isimleri benzersiz (pasif kayıtlar dahil). Asıl kontrol
         // CatalogController'da anlaşılır mesajla yapılır; indeks aynı anda
@@ -260,6 +278,9 @@ public class AppDbContext : DbContext
         mb.Entity<Category>().HasIndex(c => c.Name).IsUnique();
         mb.Entity<Department>().HasIndex(d => d.Name).IsUnique();
         mb.Entity<Team>().HasIndex(t => t.Name).IsUnique();
+        mb.Entity<ServiceItem>().HasIndex(s => s.Name).IsUnique();
+        mb.Entity<ServiceItem>().HasIndex(s => s.Code).IsUnique()
+          .HasFilter("[Code] IS NOT NULL");
 
         // ── Talep numarası ve yumuşak silme ──────────────────────────────
         mb.Entity<Ticket>().HasIndex(t => t.Number).IsUnique()
@@ -656,6 +677,13 @@ public class AppDbContext : DbContext
             new Category { Id = 4, Name = "Ağ / İnternet", DefaultTeamId = 2, SortOrder = 30, IsActive = true },
             new Category { Id = 5, Name = "Hesap / Erişim", DefaultTeamId = 2, SortOrder = 40, IsActive = true },
             new Category { Id = 6, Name = "E-posta", DefaultTeamId = 1, SortOrder = 50, IsActive = true });
+
+        mb.Entity<ServiceItem>().HasData(
+            new ServiceItem { Id = 1, Name = "Yeni laptop talebi", Code = "HW-LAPTOP", CategoryId = 2, DefaultType = TicketType.Change, DefaultPriority = Priority.Medium, SortOrder = 10, IsActive = true },
+            new ServiceItem { Id = 2, Name = "Yazıcı arızası", Code = "HW-PRINT", CategoryId = 2, DefaultType = TicketType.Incident, DefaultPriority = Priority.High, SortOrder = 20, IsActive = true },
+            new ServiceItem { Id = 3, Name = "VPN erişimi", Code = "ACC-VPN", CategoryId = 5, DefaultType = TicketType.Change, DefaultPriority = Priority.Medium, SortOrder = 10, IsActive = true },
+            new ServiceItem { Id = 4, Name = "Yazılım kurulumu", Code = "SW-INST", CategoryId = 3, DefaultType = TicketType.Change, SortOrder = 10, IsActive = true },
+            new ServiceItem { Id = 5, Name = "İnternet kesintisi", Code = "NET-DOWN", CategoryId = 4, DefaultType = TicketType.Incident, DefaultPriority = Priority.Critical, DefaultTeamId = 2, SortOrder = 10, IsActive = true });
 
         // Memnuniyet anketi: üç boyut ayrı ayrı ölçülür ki hangi tarafta
         // iyileştirme gerektiği görülebilsin

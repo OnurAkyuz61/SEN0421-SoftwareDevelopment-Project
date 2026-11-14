@@ -3,6 +3,7 @@
     ViewData["Title"] = "Katalog Yönetimi";
     var birimler = (List<Department>)ViewBag.Departments;
     var ekipler = (List<Team>)ViewBag.Teams;
+    var hizmetler = (List<ServiceItem>)ViewBag.ServiceItems;
     var sayilar = (Dictionary<int, int>)ViewBag.TicketCounts;
     var ekipAcik = (Dictionary<int, int>)ViewBag.TeamOpenCounts;
     var liderAdaylari = (List<AppUser>)ViewBag.LeadCandidates;
@@ -11,7 +12,7 @@
 <div class="mb-4">
     <h4 class="fw-bold mb-1">Katalog yönetimi</h4>
     <div class="text-muted">
-        Kategori, birim ve ekipler veritabanında tutulur; buradan yönetilir.
+        Kategori, hizmet öğesi, birim ve ekipler veritabanında tutulur; buradan yönetilir.
         Kayıtlar silinmez, pasifleştirilir — geçmiş talepler bağlı kalır.
         İsimler benzersizdir; pasif bir kaydın adı da yeniden kullanılamaz.
     </div>
@@ -129,6 +130,125 @@
                         <td><input name="sortOrder" type="number" value="60" class="form-control form-control-sm" /></td>
                         <td><input type="hidden" name="isActive" value="true" /><span class="small text-muted">Aktif</span></td>
                         <td></td>
+                        <td class="text-end"><button class="btn btn-sm btn-primary">Ekle</button></td>
+                    </form>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* ── Hizmet kataloğu öğeleri ──────────────────────────────────────────── *@
+<div class="panel mb-4">
+    <div class="panel-head">
+        Hizmet öğeleri
+        <span class="text-muted small fw-normal">@hizmetler.Count kayıt · portalda talep açılırken seçilir</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th style="width:16%">Ad</th>
+                    <th style="width:8%">Kod</th>
+                    <th style="width:14%">Kategori</th>
+                    <th style="width:12%">Varsayılan ekip</th>
+                    <th style="width:10%">Öncelik</th>
+                    <th style="width:10%">Tür</th>
+                    <th style="width:7%">Sıra</th>
+                    <th style="width:8%">Durum</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in hizmetler)
+                {
+                    <tr class="@(s.IsActive ? "" : "text-muted")">
+                        <form asp-action="SaveServiceItem" method="post">
+                            <input type="hidden" name="id" value="@s.Id" />
+                            <td>
+                                <input name="name" value="@s.Name" class="form-control form-control-sm" required maxlength="@CatalogRules.MaxNameLength" />
+                                <input name="description" value="@s.Description" class="form-control form-control-sm mt-1" maxlength="@CatalogRules.MaxDescriptionLength" placeholder="Açıklama (isteğe bağlı)" />
+                            </td>
+                            <td><input name="code" value="@s.Code" class="form-control form-control-sm" maxlength="@CatalogRules.MaxCodeLength" /></td>
+                            <td>
+                                <select name="categoryId" class="form-select form-select-sm">
+                                    @foreach (var c in Model)
+                                    {
+                                        <option value="@c.Id" selected="@(c.Id == s.CategoryId)">@Ui.CategoryOptionLabel(c)</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select name="defaultTeamId" class="form-select form-select-sm">
+                                    <option value="">(kategori)</option>
+                                    @foreach (var t in ekipler)
+                                    {
+                                        <option value="@t.Id" selected="@(t.Id == s.DefaultTeamId)">@t.Name</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select name="defaultPriority" class="form-select form-select-sm">
+                                    <option value="">-</option>
+                                    @foreach (var p in Enum.GetValues<Priority>())
+                                    {
+                                        <option value="@p" selected="@(s.DefaultPriority == p)">@Ui.PriorityText(p)</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select name="defaultType" class="form-select form-select-sm">
+                                    <option value="">-</option>
+                                    <option value="@TicketType.Incident" selected="@(s.DefaultType == TicketType.Incident)">Arıza</option>
+                                    <option value="@TicketType.Change" selected="@(s.DefaultType == TicketType.Change)">Değişiklik</option>
+                                </select>
+                            </td>
+                            <td><input name="sortOrder" type="number" value="@s.SortOrder" class="form-control form-control-sm" /></td>
+                            <td>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" name="isActive" value="true"
+                                           id="svc@(s.Id)" @(s.IsActive ? "checked" : null) />
+                                    <label class="form-check-label small" for="svc@(s.Id)">Aktif</label>
+                                </div>
+                            </td>
+                            <td class="text-end"><button class="btn btn-sm btn-outline-primary">Kaydet</button></td>
+                        </form>
+                    </tr>
+                }
+                <tr class="table-light">
+                    <form asp-action="SaveServiceItem" method="post">
+                        <input type="hidden" name="id" value="0" />
+                        <td>
+                            <input name="name" class="form-control form-control-sm" placeholder="Yeni hizmet" required maxlength="@CatalogRules.MaxNameLength" />
+                            <input name="description" class="form-control form-control-sm mt-1" maxlength="@CatalogRules.MaxDescriptionLength" placeholder="Açıklama" />
+                        </td>
+                        <td><input name="code" class="form-control form-control-sm" maxlength="@CatalogRules.MaxCodeLength" placeholder="KOD" /></td>
+                        <td>
+                            <select name="categoryId" class="form-select form-select-sm" required>
+                                @foreach (var c in Model) { <option value="@c.Id">@Ui.CategoryOptionLabel(c)</option> }
+                            </select>
+                        </td>
+                        <td>
+                            <select name="defaultTeamId" class="form-select form-select-sm">
+                                <option value="">(kategori)</option>
+                                @foreach (var t in ekipler) { <option value="@t.Id">@t.Name</option> }
+                            </select>
+                        </td>
+                        <td>
+                            <select name="defaultPriority" class="form-select form-select-sm">
+                                <option value="">-</option>
+                                @foreach (var p in Enum.GetValues<Priority>()) { <option value="@p">@Ui.PriorityText(p)</option> }
+                            </select>
+                        </td>
+                        <td>
+                            <select name="defaultType" class="form-select form-select-sm">
+                                <option value="">-</option>
+                                <option value="@TicketType.Incident">Arıza</option>
+                                <option value="@TicketType.Change">Değişiklik</option>
+                            </select>
+                        </td>
+                        <td><input name="sortOrder" type="number" value="50" class="form-control form-control-sm" /></td>
+                        <td><input type="hidden" name="isActive" value="true" /><span class="small text-muted">Aktif</span></td>
                         <td class="text-end"><button class="btn btn-sm btn-primary">Ekle</button></td>
                     </form>
                 </tr>
