@@ -111,26 +111,7 @@ public class UsersController : Controller
                                                    DateTime? from = null, DateTime? to = null)
     {
         const int Limit = 500;
-        var query = _db.LoginAttempts.AsNoTracking().Include(l => l.User).AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(q))
-        {
-            var ara = q.Trim().ToLowerInvariant();
-            query = query.Where(l => l.Email.Contains(ara) || (l.IpAddress != null && l.IpAddress.Contains(ara)));
-        }
-        if (result != null) query = query.Where(l => l.Result == result);
-        if (failedOnly) query = query.Where(l => l.Result != LoginResult.Success && l.Result != LoginResult.DevLogin);
-        // Form yerel tarih gönderir, kayıtlar UTC
-        if (from != null)
-        {
-            var bas = AppTime.ToUtc(from.Value.Date);
-            query = query.Where(l => l.AttemptedAt >= bas);
-        }
-        if (to != null)
-        {
-            var bit = AppTime.ToUtc(to.Value.Date.AddDays(1));
-            query = query.Where(l => l.AttemptedAt < bit);
-        }
+        var query = FilteredLoginAttempts(q, result, failedOnly, from, to);
 
         ViewBag.Q = q;
         ViewBag.Result = result;
@@ -152,6 +133,50 @@ public class UsersController : Controller
             .OrderByDescending(x => x.Count).Take(5).ToListAsync();
 
         return View(await query.OrderByDescending(l => l.AttemptedAt).Take(Limit).ToListAsync());
+    }
+
+    // Aynı filtrelerle CSV (Excel uyumlu). En fazla MaxRows satır.
+    [HttpGet]
+    [AuthorizeRole(UserRole.Admin)]
+    public async Task<IActionResult> ExportLoginAttemptsCsv(string? q, LoginResult? result, bool failedOnly = false,
+                                                            DateTime? from = null, DateTime? to = null)
+    {
+        var rows = await FilteredLoginAttempts(q, result, failedOnly, from, to)
+            .OrderByDescending(l => l.AttemptedAt)
+            .Take(LoginAttemptsCsv.MaxRows)
+            .ToListAsync();
+
+        var csv = LoginAttemptsCsv.Build(rows.Select(LoginAttemptsCsv.From));
+        var stamp = AppTime.ToLocal(AppTime.UtcNow).ToString("yyyyMMdd-HHmm");
+        return File(TicketListCsv.ToUtf8BomBytes(csv), "text/csv; charset=utf-8",
+            $"giris-denemeleri-{stamp}.csv");
+    }
+
+    private IQueryable<LoginAttempt> FilteredLoginAttempts(string? q, LoginResult? result, bool failedOnly,
+                                                           DateTime? from, DateTime? to)
+    {
+        var query = _db.LoginAttempts.AsNoTracking().Include(l => l.User).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var ara = q.Trim().ToLowerInvariant();
+            query = query.Where(l => l.Email.Contains(ara) || (l.IpAddress != null && l.IpAddress.Contains(ara)));
+        }
+        if (result != null) query = query.Where(l => l.Result == result);
+        if (failedOnly) query = query.Where(l => l.Result != LoginResult.Success && l.Result != LoginResult.DevLogin);
+        // Form yerel tarih gönderir, kayıtlar UTC
+        if (from != null)
+        {
+            var bas = AppTime.ToUtc(from.Value.Date);
+            query = query.Where(l => l.AttemptedAt >= bas);
+        }
+        if (to != null)
+        {
+            var bit = AppTime.ToUtc(to.Value.Date.AddDays(1));
+            query = query.Where(l => l.AttemptedAt < bit);
+        }
+
+        return query;
     }
 
     public record LoginTargetRow(string Email, int Count);

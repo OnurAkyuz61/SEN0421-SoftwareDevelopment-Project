@@ -21,6 +21,16 @@
             @LoginAuditService.MaxFailedAttempts başarısız denemeden sonra hesap @LoginAuditService.Window.TotalMinutes dakika kapanır
         </div>
     </div>
+    <a class="btn btn-sm btn-outline-secondary"
+       asp-action="ExportLoginAttemptsCsv"
+       asp-route-q="@ViewBag.Q"
+       asp-route-result="@ViewBag.Result"
+       asp-route-failedOnly="@yalnizBasarisiz"
+       asp-route-from="@(bas?.ToString("yyyy-MM-dd"))"
+       asp-route-to="@(bit?.ToString("yyyy-MM-dd"))"
+       title="Filtrelenmiş denetim izini CSV olarak indir (Excel ile açılır)">
+        <i class="bi bi-download"></i> CSV
+    </a>
 </div>
 
 <div class="row g-3 mb-3">
