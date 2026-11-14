@@ -70,7 +70,8 @@ public enum AuditAction
     [Display(Name = "İstek sınırı aşıldı")] RateLimited = 30,
     [Display(Name = "Ek dosya kalıcı silindi")] AttachmentPurged = 40,
     [Display(Name = "Sahipsiz dosya silindi")] AttachmentOrphanDeleted = 41,
-    [Display(Name = "Zorla çıkış")] ForceLogout = 50
+    [Display(Name = "Zorla çıkış")] ForceLogout = 50,
+    [Display(Name = "Katalog değişikliği")] CatalogChanged = 60
 }
 
 // Genel denetim kaydı (ISO 9001 md. 7.5.3 / ISO 27001 A.8.15). Giriş

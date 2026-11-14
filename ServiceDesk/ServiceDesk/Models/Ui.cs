@@ -218,6 +218,7 @@ public static class Ui
         AuditAction.AttachmentPurged => "Ek dosya kalıcı silindi",
         AuditAction.AttachmentOrphanDeleted => "Sahipsiz dosya silindi",
         AuditAction.ForceLogout => "Zorla çıkış",
+        AuditAction.CatalogChanged => "Katalog değişikliği",
         _ => a.ToString()
     };
 }

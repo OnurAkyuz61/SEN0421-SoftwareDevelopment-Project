@@ -16,11 +16,22 @@ namespace ServiceDesk.Controllers;
 // anlaşılır bir mesajla, ardından veritabanındaki benzersiz indeksle; iki
 // yönetici aynı anda aynı adı kaydederse ikincisi indekse takılır ve yine
 // aynı mesajı görür.
+//
+// Her başarılı kayıt AuditAction.CatalogChanged olarak denetime yazılır
+// (ISO 9001 md. 7.5.3 — katalog değişikliklerinin izlenebilirliği).
 [AuthorizeRole(UserRole.Admin)]
 public class CatalogController : Controller
 {
     private readonly AppDbContext _db;
-    public CatalogController(AppDbContext db) => _db = db;
+    private readonly CurrentUser _current;
+    private readonly AuditService _audit;
+
+    public CatalogController(AppDbContext db, CurrentUser current, AuditService audit)
+    {
+        _db = db;
+        _current = current;
+        _audit = audit;
+    }
 
     public async Task<IActionResult> Index()
     {
@@ -93,20 +104,21 @@ public class CatalogController : Controller
         var kategori = id > 0 ? await _db.Categories.FirstOrDefaultAsync(c => c.Id == id) : null;
         if (id > 0 && kategori == null) return NotFound();
 
-        if (kategori == null)
+        var isNew = kategori == null;
+        if (isNew)
         {
             kategori = new Category();
             _db.Categories.Add(kategori);
         }
 
-        kategori.Name = name;
+        kategori!.Name = name;
         kategori.ParentId = parentId;
         kategori.DefaultTeamId = defaultTeamId;
         kategori.DefaultPriority = defaultPriority;
         kategori.SortOrder = sortOrder;
         kategori.IsActive = isActive;
 
-        return await SaveAsync(kategori.Name, "kategori");
+        return await SaveAsync(kategori.Name, "kategori", isNew, isActive);
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -122,16 +134,17 @@ public class CatalogController : Controller
         var birim = id > 0 ? await _db.Departments.FirstOrDefaultAsync(d => d.Id == id) : null;
         if (id > 0 && birim == null) return NotFound();
 
-        if (birim == null)
+        var isNew = birim == null;
+        if (isNew)
         {
             birim = new Department();
             _db.Departments.Add(birim);
         }
 
-        birim.Name = name;
+        birim!.Name = name;
         birim.IsActive = isActive;
 
-        return await SaveAsync(birim.Name, "birim");
+        return await SaveAsync(birim.Name, "birim", isNew, isActive);
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -168,20 +181,21 @@ public class CatalogController : Controller
                     : $"{lider.FullName} ekip lideri olamaz: ekip lideri yalnızca aktif Destek veya Yönetici rolündeki bir kişi olabilir.");
         }
 
-        if (ekip == null)
+        var isNew = ekip == null;
+        if (isNew)
         {
             ekip = new Team();
             _db.Teams.Add(ekip);
         }
 
-        ekip.Name = name;
+        ekip!.Name = name;
         ekip.DepartmentId = departmentId;
         ekip.LeadUserId = leadUserId;
         ekip.IsActive = isActive;
         ekip.RoundRobinEnabled = roundRobin;   // yeni talepler ekipte sırayla otomatik atanır
         ekip.MaxOpenTickets = maxOpenTickets;  // null = sınırsız açık talep
 
-        return await SaveAsync(ekip.Name, "ekip");
+        return await SaveAsync(ekip.Name, "ekip", isNew, isActive);
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -224,13 +238,14 @@ public class CatalogController : Controller
         var oge = id > 0 ? await _db.ServiceItems.FirstOrDefaultAsync(s => s.Id == id) : null;
         if (id > 0 && oge == null) return NotFound();
 
-        if (oge == null)
+        var isNew = oge == null;
+        if (isNew)
         {
             oge = new ServiceItem();
             _db.ServiceItems.Add(oge);
         }
 
-        oge.Name = name;
+        oge!.Name = name;
         oge.Code = code;
         oge.Description = description;
         oge.CategoryId = categoryId;
@@ -240,7 +255,7 @@ public class CatalogController : Controller
         oge.SortOrder = sortOrder;
         oge.IsActive = isActive;
 
-        return await SaveAsync(oge.Name, "hizmet");
+        return await SaveAsync(oge.Name, "hizmet", isNew, isActive);
     }
 
     // ───── Yardımcılar ───────────────────────────────────────────────────
@@ -261,15 +276,22 @@ public class CatalogController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task<IActionResult> SaveAsync(string name, string tur)
+    private async Task<IActionResult> SaveAsync(string name, string tur, bool isNew, bool isActive)
     {
+        var me = _current.User!;
+        var islem = isNew ? "oluşturuldu" : "güncellendi";
+        var durum = isActive ? "aktif" : "pasif";
+        _audit.Queue(AuditAction.CatalogChanged, me.Id, me.Email,
+            detail: $"{tur} \"{name}\" {islem} ({durum})");
+
         try
         {
             await _db.SaveChangesAsync();
         }
         catch (DbUpdateException ex) when (AppDbContext.IsUniqueViolation(ex))
         {
-            // Kontrolden sonra, kayıttan önce başka bir yönetici aynı adı kaydetti
+            // Kontrolden sonra, kayıttan önce başka bir yönetici aynı adı kaydetti.
+            // Denetim kaydı da henüz yazılmadığı için (aynı SaveChanges) iz bırakılmaz.
             return Fail($"\"{name}\" adında bir {tur} zaten var. Aynı isimde ikinci bir {tur} eklenemez.");
         }
 
