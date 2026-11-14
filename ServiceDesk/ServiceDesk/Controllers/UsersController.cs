@@ -147,6 +147,149 @@ public class UsersController : Controller
 
     public record LoginTargetRow(string Email, int Count);
 
+    // ───── CSV toplu içe aktarma ─────────────────────────────────────────
+
+    [HttpGet]
+    [AuthorizeRole(UserRole.Admin)]
+    public IActionResult ImportCsv() => View();
+
+    [HttpGet]
+    [AuthorizeRole(UserRole.Admin)]
+    public IActionResult ImportCsvTemplate()
+    {
+        var bytes = Encoding.UTF8.GetPreamble()
+            .Concat(Encoding.UTF8.GetBytes(UserCsvImport.TemplateCsv())).ToArray();
+        return File(bytes, "text/csv; charset=utf-8", "kullanici-sablon.csv");
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    [AuthorizeRole(UserRole.Admin)]
+    [RequestSizeLimit(2 * 1024 * 1024)]
+    public async Task<IActionResult> ImportCsv(IFormFile? file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            ModelState.AddModelError("file", "CSV dosyası seçin.");
+            return View();
+        }
+
+        if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)
+            && file.ContentType is not ("text/csv" or "application/vnd.ms-excel" or "text/plain"))
+        {
+            ModelState.AddModelError("file", "Yalnızca .csv dosyası yükleyin.");
+            return View();
+        }
+
+        string content;
+        await using (var stream = file.OpenReadStream())
+        using (var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+            content = await reader.ReadToEndAsync();
+
+        var parsed = UserCsvImport.Parse(content);
+        var result = new UserCsvImportResultVm { Errors = parsed.Errors.ToList() };
+
+        if (parsed.Rows.Count == 0)
+        {
+            if (result.Errors.Count == 0)
+                result.Errors.Add((0, "Aktarılacak geçerli satır yok."));
+            return View("ImportCsvResult", result);
+        }
+
+        var me = _current.User!;
+        var existingEmails = (await _db.Users.AsNoTracking().Select(u => u.Email).ToListAsync())
+            .Select(e => e.Trim().ToLowerInvariant()).ToHashSet(StringComparer.Ordinal);
+        var existingPhones = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var raw in await _db.Users.AsNoTracking()
+                     .Where(u => u.PhoneNumber != null).Select(u => u.PhoneNumber!).ToListAsync())
+        {
+            var n = PhoneRules.Normalize(raw);
+            if (n != null) existingPhones.Add(n);
+        }
+
+        var departments = await _db.Departments.AsNoTracking().Where(d => d.IsActive).ToListAsync();
+        var teams = await _db.Teams.AsNoTracking().Where(t => t.IsActive).ToListAsync();
+
+        foreach (var row in parsed.Rows)
+        {
+            if (existingEmails.Contains(row.Email))
+            {
+                result.SkippedExisting++;
+                continue;
+            }
+
+            if (row.Phone != null && existingPhones.Contains(row.Phone))
+            {
+                result.Errors.Add((row.Line, $"Telefon başka bir hesapta kayıtlı: {row.Phone}"));
+                continue;
+            }
+
+            int? deptId = null;
+            if (row.DepartmentName != null)
+            {
+                var d = departments.FirstOrDefault(x => CatalogRules.SameName(x.Name, row.DepartmentName));
+                if (d == null)
+                {
+                    result.Errors.Add((row.Line, $"Birim bulunamadı: {row.DepartmentName}"));
+                    continue;
+                }
+                deptId = d.Id;
+            }
+
+            int? teamId = null;
+            int? teamDeptId = null;
+            if (row.TeamName != null)
+            {
+                var t = teams.FirstOrDefault(x => CatalogRules.SameName(x.Name, row.TeamName));
+                if (t == null)
+                {
+                    result.Errors.Add((row.Line, $"Ekip bulunamadı: {row.TeamName}"));
+                    continue;
+                }
+                teamId = t.Id;
+                teamDeptId = t.DepartmentId;
+            }
+
+            var org = OrganizationRules.Resolve(deptId, teamId, teamId != null, teamDeptId);
+            if (org.Error != null)
+            {
+                result.Errors.Add((row.Line, org.Error));
+                continue;
+            }
+
+            var tempPassword = row.Password ?? UserCsvImport.GenerateTempPassword();
+            var user = new AppUser
+            {
+                FirstName = row.FirstName,
+                LastName = row.LastName,
+                Email = row.Email,
+                PhoneNumber = row.Phone,
+                Role = row.Role,
+                DepartmentId = org.DepartmentId,
+                TeamId = org.TeamId,
+                IsActive = true,
+                CreatedAt = AppTime.UtcNow
+            };
+            _db.Users.Add(user);
+            await _passwordHistory.SetPasswordAsync(user, tempPassword, requireChangeOnNextLogin: true);
+
+            existingEmails.Add(row.Email);
+            if (row.Phone != null) existingPhones.Add(row.Phone);
+
+            result.Created++;
+            result.CreatedUsers.Add((row.Email, $"{row.FirstName} {row.LastName}",
+                row.Password == null ? tempPassword : null));
+        }
+
+        if (result.Created > 0)
+        {
+            _audit.Queue(AuditAction.UsersCsvImported, me.Id, me.Email,
+                detail: $"CSV içe aktarma: {result.Created} oluşturuldu, {result.SkippedExisting} atlandı (mevcut), {result.Errors.Count} hata");
+            await _db.SaveChangesAsync();
+        }
+
+        return View("ImportCsvResult", result);
+    }
+
     // E-posta daveti: hesap henüz oluşmaz; davetli bağlantıdan şifre + telefon belirler.
     [HttpGet]
     [AuthorizeRole(UserRole.Admin)]

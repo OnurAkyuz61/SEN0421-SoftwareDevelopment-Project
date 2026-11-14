@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "CSV ile kullanıcı aktar";
+}
+
+<a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Kullanıcılar</a>
+
+<div class="mt-2 mb-3">
+    <h4 class="fw-bold mb-1">CSV ile toplu içe aktarma</h4>
+    <div class="text-muted">
+        Noktalı virgülle ayrılmış UTF-8 CSV. En fazla @UserCsvImport.MaxRows satır.
+        Mevcut e-postalar atlanır. Şifre boşsa geçici şifre üretilir; kullanıcı ilk girişte değiştirmek zorundadır.
+    </div>
+</div>
+
+<div class="panel mb-3">
+    <div class="panel-head">Şablon</div>
+    <div class="panel-body d-flex flex-wrap align-items-center gap-3">
+        <div class="small text-muted me-auto">
+            Sütunlar: <code>Email;FirstName;LastName;Phone;Role;Department;Team;Password</code>
+            · Rol: Kullanıcı / Destek / Yönetici
+        </div>
+        <a asp-action="ImportCsvTemplate" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-download"></i> Şablon indir
+        </a>
+    </div>
+</div>
+
+<form asp-action="ImportCsv" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="All" class="alert alert-danger py-2 small"></div>
+    <div class="panel">
+        <div class="panel-body">
+            <label class="form-label fw-semibold" for="file">CSV dosyası</label>
+            <input type="file" name="file" id="file" class="form-control" accept=".csv,text/csv" required />
+            <div class="form-text">Maksimum 2 MB.</div>
+        </div>
+        <div class="panel-head border-top border-bottom-0 justify-content-end">
+            <a asp-action="Index" class="btn btn-light border">Vazgeç</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-upload"></i> İçe aktar
+            </button>
+        </div>
+    </div>
+</form>

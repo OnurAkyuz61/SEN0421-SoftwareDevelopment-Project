@@ -111,6 +111,15 @@ public class UserInviteVm
     public int? TeamId { get; set; }
 }
 
+// CSV içe aktarma sonucu (geçici şifreler yalnızca bu yanıtta gösterilir)
+public class UserCsvImportResultVm
+{
+    public int Created { get; set; }
+    public int SkippedExisting { get; set; }
+    public List<(int Line, string Error)> Errors { get; set; } = new();
+    public List<(string Email, string FullName, string? TempPassword)> CreatedUsers { get; set; } = new();
+}
+
 // Davetli: bağlantıdan şifre + telefon belirleyerek hesabı tamamlar
 public class AcceptInviteVm
 {

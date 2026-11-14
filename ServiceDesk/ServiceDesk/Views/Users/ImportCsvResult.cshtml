@@ -1,0 +1,64 @@
+@model UserCsvImportResultVm
+@{
+    ViewData["Title"] = "CSV aktarım sonucu";
+}
+
+<a asp-action="Index" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Kullanıcılar</a>
+
+<div class="mt-2 mb-3">
+    <h4 class="fw-bold mb-1">Aktarım tamamlandı</h4>
+    <div class="text-muted">
+        @Model.Created oluşturuldu · @Model.SkippedExisting mevcut e-posta atlandı · @Model.Errors.Count satır hatası
+    </div>
+</div>
+
+@if (Model.CreatedUsers.Any(u => u.TempPassword != null))
+{
+    <div class="alert alert-warning">
+        <strong>Geçici şifreler yalnızca bu sayfada gösterilir.</strong>
+        Kullanıcılara güvenli kanaldan iletin; sayfayı yenilerseniz tekrar görülemez.
+    </div>
+}
+
+@if (Model.CreatedUsers.Count > 0)
+{
+    <div class="panel mb-3">
+        <div class="panel-head">Oluşturulan hesaplar</div>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Ad</th><th>E-posta</th><th>Geçici şifre</th></tr></thead>
+                <tbody>
+                @foreach (var u in Model.CreatedUsers)
+                {
+                    <tr>
+                        <td>@u.FullName</td>
+                        <td>@u.Email</td>
+                        <td class="font-monospace small">@(u.TempPassword ?? "(CSV'deki şifre kullanıldı)")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (Model.Errors.Count > 0)
+{
+    <div class="panel mb-3">
+        <div class="panel-head text-danger">Hatalar</div>
+        <ul class="list-group list-group-flush">
+            @foreach (var e in Model.Errors)
+            {
+                <li class="list-group-item small">
+                    @if (e.Line > 0) { <span class="text-muted">Satır @e.Line · </span> }
+                    @e.Error
+                </li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="d-flex gap-2">
+    <a asp-action="ImportCsv" class="btn btn-outline-primary btn-sm">Yeniden aktar</a>
+    <a asp-action="Index" class="btn btn-primary btn-sm">Kullanıcı listesi</a>
+</div>
