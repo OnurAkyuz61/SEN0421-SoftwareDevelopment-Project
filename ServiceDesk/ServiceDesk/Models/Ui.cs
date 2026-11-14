@@ -224,6 +224,7 @@ public static class Ui
         AuditAction.UsersCsvImported => "Kullanıcı CSV içe aktarma",
         AuditAction.DepartmentTransferReassigned => "Departman transferi yeniden atama",
         AuditAction.InactiveUserTicketsReleased => "Pasif kullanıcı talep bırakma",
+        AuditAction.UserAnonymized => "Kullanıcı anonimleştirme",
         _ => a.ToString()
     };
 }

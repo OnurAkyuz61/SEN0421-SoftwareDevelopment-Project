@@ -32,6 +32,7 @@ public class UsersController : Controller
     private readonly NotificationService _notify;
     private readonly DepartmentTransferReassignment _deptTransfer;
     private readonly InactiveUserTicketRelease _ticketRelease;
+    private readonly UserAnonymization _anonymize;
     private readonly IEmailSender _email;
     private readonly AuthSettings _auth;
     private readonly IWebHostEnvironment _env;
@@ -41,6 +42,7 @@ public class UsersController : Controller
                            AuditService audit, NotificationService notify,
                            DepartmentTransferReassignment deptTransfer,
                            InactiveUserTicketRelease ticketRelease,
+                           UserAnonymization anonymize,
                            IEmailSender email, IOptions<AuthSettings> auth, IWebHostEnvironment env)
     {
         _db = db;
@@ -51,6 +53,7 @@ public class UsersController : Controller
         _notify = notify;
         _deptTransfer = deptTransfer;
         _ticketRelease = ticketRelease;
+        _anonymize = anonymize;
         _email = email;
         _auth = auth.Value;
         _env = env;
@@ -404,6 +407,9 @@ public class UsersController : Controller
         var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
         if (user == null) return NotFound();
 
+        if (UserAnonymizationPolicy.IsAnonymized(user))
+            ViewBag.Anonymized = true;
+
         var vm = UserFormVm.From(user);
         vm.OpenTicketCount = await _db.Tickets.CountAsync(t =>
             t.AssigneeId == user.Id &&
@@ -425,6 +431,11 @@ public class UsersController : Controller
         {
             user = await _db.Users.FirstOrDefaultAsync(u => u.Id == vm.Id);
             if (user == null) return NotFound();
+            if (UserAnonymizationPolicy.IsAnonymized(user))
+            {
+                TempData["Err"] = "Anonimleştirilmiş hesap düzenlenemez (KVKK).";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         vm.Email = vm.Email.Trim();
@@ -596,6 +607,50 @@ public class UsersController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // KVKK: kişisel verileri scrub eder, hesabı pasifleştirir; Id ve talep
+    // geçmişi FK ile kalır. Geri alınamaz.
+    [HttpPost, ValidateAntiForgeryToken]
+    [AuthorizeRole(UserRole.Admin)]
+    public async Task<IActionResult> Anonymize(int id, string? returnUrl)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
+        if (user == null) return NotFound();
+
+        if (user.Id == _current.User!.Id)
+        {
+            TempData["Err"] = "Kendi hesabınızı anonimleştiremezsiniz.";
+        }
+        else if (UserAnonymizationPolicy.IsAnonymized(user))
+        {
+            TempData["Err"] = "Bu hesap zaten anonimleştirilmiş.";
+        }
+        else if (user is { Role: UserRole.Admin, IsActive: true } &&
+                 !await OtherActiveAdminExistsAsync(user.Id))
+        {
+            TempData["Err"] = "Sistemdeki tek aktif yönetici anonimleştirilemez.";
+        }
+        else if (await LedTeamNamesAsync(user.Id) is { Count: > 0 } ekipler)
+        {
+            TempData["Err"] = $"{user.FullName} {string.Join(", ", ekipler)} ekibinin lideri; " +
+                              "önce Katalog ekranından liderliği devredin.";
+        }
+        else
+        {
+            var ad = user.FullName;
+            var result = await _anonymize.ApplyAsync(user, _current.User.Id);
+            await _db.SaveChangesAsync();
+
+            TempData["Ok"] = result.AlreadyAnonymized
+                ? "Hesap zaten anonimleştirilmişti."
+                : $"{ad} anonimleştirildi (KVKK). Kişisel veriler silindi; talep geçmişi korundu." +
+                  (result.ReleasedTickets > 0
+                      ? $" {result.ReleasedTickets} açık talep atamasız bırakıldı."
+                      : "");
+        }
+
+        return Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl!) : RedirectToAction(nameof(Index));
+    }
+
     // Yönetici, hesabı pasifleştirmeden tüm açık oturumları düşürür.
     // Hedef kullanıcı bir sonraki isteğinde giriş ekranına yönlendirilir.
     [HttpPost, ValidateAntiForgeryToken]
@@ -636,6 +691,10 @@ public class UsersController : Controller
         if (user.Id == _current.User!.Id && !isActive)
         {
             TempData["Err"] = "Kendi hesabınızı pasifleştiremezsiniz.";
+        }
+        else if (isActive && UserAnonymizationPolicy.IsAnonymized(user))
+        {
+            TempData["Err"] = "Anonimleştirilmiş hesap yeniden aktifleştirilemez (KVKK).";
         }
         else if (!isActive && user is { Role: UserRole.Admin, IsActive: true } &&
                  !await OtherActiveAdminExistsAsync(user.Id))

@@ -16,9 +16,14 @@
     </h4>
     @if (!Model.IsNew)
     {
+        var anonim = UserAnonymizationPolicy.IsAnonymized(Model.Email);
         <span class="tag @(Model.IsActive ? "tag-green" : "tag-gray")">@(Model.IsActive ? "Aktif" : "Pasif")</span>
         <span class="tag tag-blue">@Ui.RoleText(Model.Role)</span>
-        @if (Me.Role == UserRole.Admin && !kendim && Model.IsActive)
+        @if (anonim)
+        {
+            <span class="tag tag-gray">Anonimleştirilmiş (KVKK)</span>
+        }
+        @if (Me.Role == UserRole.Admin && !kendim && Model.IsActive && !anonim)
         {
             <form asp-action="ForceLogout" method="post" class="d-inline"
                   onsubmit="return confirm('Bu kullanıcının tüm açık oturumları sonlandırılsın mı?');">
@@ -28,8 +33,28 @@
                 </button>
             </form>
         }
+        @if (Me.Role == UserRole.Admin && !kendim && !anonim)
+        {
+            <form asp-action="Anonymize" method="post" class="d-inline"
+                  onsubmit="return confirm('KVKK anonimleştirme geri alınamaz. Ad, e-posta, telefon ve şifre silinir; hesap pasifleşir. Talep geçmişi Id ile kalır. Devam edilsin mi?');">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Kişisel verileri sil (KVKK)">
+                    <i class="bi bi-incognito"></i> Anonimleştir
+                </button>
+            </form>
+        }
     }
 </div>
+
+@{
+    var formKilitli = ViewBag.Anonymized as bool? == true;
+}
+@if (formKilitli)
+{
+    <div class="alert alert-secondary py-2 small">
+        Bu hesap KVKK kapsamında anonimleştirilmiş; kimlik alanları değiştirilemez ve yeniden aktifleştirilemez.
+    </div>
+}
 
 <form asp-action="Edit" method="post" novalidate>
     <input type="hidden" asp-for="Id" />
@@ -227,10 +252,13 @@
     </div>
 
     <div class="d-flex gap-2 mt-4">
-        <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> @(Model.IsNew ? "Kullanıcıyı oluştur" : "Değişiklikleri kaydet")
-        </button>
-        <a asp-action="Index" class="btn btn-light border">Vazgeç</a>
+        @if (!formKilitli)
+        {
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> @(Model.IsNew ? "Kullanıcıyı oluştur" : "Değişiklikleri kaydet")
+            </button>
+        }
+        <a asp-action="Index" class="btn btn-light border">@(formKilitli ? "Listeye dön" : "Vazgeç")</a>
     </div>
 </form>
 

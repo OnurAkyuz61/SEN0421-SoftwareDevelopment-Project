@@ -154,7 +154,8 @@
                                    buradaki düğme sık yapılan işi tek tıkla halleder *@
                                 @if (u.Id != Me.Id)
                                 {
-                                    @if (u.IsActive)
+                                    var anonim = UserAnonymizationPolicy.IsAnonymized(u.Email);
+                                    @if (u.IsActive && !anonim)
                                     {
                                         <form asp-action="ForceLogout" method="post" class="d-inline"
                                               onsubmit="return confirm('Bu kullanıcının tüm açık oturumları sonlandırılsın mı?');">
@@ -166,16 +167,32 @@
                                             </button>
                                         </form>
                                     }
-                                    <form asp-action="SetActive" method="post" class="d-inline">
-                                        <input type="hidden" name="id" value="@u.Id" />
-                                        <input type="hidden" name="isActive" value="@(!u.IsActive)" />
-                                        <input type="hidden" name="returnUrl" value="@buSayfa" />
-                                        <button class="btn btn-sm @(u.IsActive ? "btn-outline-danger" : "btn-outline-success")"
-                                                title="@(u.IsActive ? "Hesabı pasifleştir" : "Hesabı aktifleştir")">
-                                            <i class="bi @(u.IsActive ? "bi-person-dash" : "bi-person-check")"></i>
-                                            @(u.IsActive ? "Pasifleştir" : "Aktifleştir")
-                                        </button>
-                                    </form>
+                                    @if (!anonim)
+                                    {
+                                        <form asp-action="SetActive" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <input type="hidden" name="isActive" value="@(!u.IsActive)" />
+                                            <input type="hidden" name="returnUrl" value="@buSayfa" />
+                                            <button class="btn btn-sm @(u.IsActive ? "btn-outline-danger" : "btn-outline-success")"
+                                                    title="@(u.IsActive ? "Hesabı pasifleştir" : "Hesabı aktifleştir")">
+                                                <i class="bi @(u.IsActive ? "bi-person-dash" : "bi-person-check")"></i>
+                                                @(u.IsActive ? "Pasifleştir" : "Aktifleştir")
+                                            </button>
+                                        </form>
+                                        <form asp-action="Anonymize" method="post" class="d-inline"
+                                              onsubmit="return confirm('KVKK anonimleştirme geri alınamaz. Kişisel veriler silinir; talep geçmişi kalır. Devam?');">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <input type="hidden" name="returnUrl" value="@buSayfa" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    title="Kişisel verileri sil (KVKK)">
+                                                <i class="bi bi-incognito"></i> Anonimleştir
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="tag tag-gray">KVKK</span>
+                                    }
                                 }
                             </td>
                         }
