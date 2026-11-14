@@ -538,10 +538,12 @@ public class AuditController : Controller
     private readonly AppDbContext _db;
     public AuditController(AppDbContext db) => _db = db;
 
-    public async Task<IActionResult> Index(AuditAction? action, string? q, int page = 1)
+    public async Task<IActionResult> Index(AuditAction? action, string? q, bool criticalOnly = false, int page = 1)
     {
         var query = _db.AuditLogs.AsNoTracking().Include(a => a.User).AsQueryable();
         if (action != null) query = query.Where(a => a.Action == action);
+        else if (criticalOnly)
+            query = query.Where(a => AdminCriticalAudit.CriticalActions.Contains(a.Action));
         if (!string.IsNullOrWhiteSpace(q))
         {
             var s = q.Trim();
@@ -552,6 +554,7 @@ public class AuditController : Controller
         var (items, pager) = await query.OrderByDescending(a => a.CreatedAt).ToPageAsync(page);
         ViewBag.Action = action;
         ViewBag.Q = q;
+        ViewBag.CriticalOnly = criticalOnly;
         ViewBag.Pager = pager;
         return View(items);
     }

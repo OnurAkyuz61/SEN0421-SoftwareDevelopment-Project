@@ -78,7 +78,13 @@ public enum AuditAction
     [Display(Name = "Departman transferi yeniden atama")] DepartmentTransferReassigned = 73,
     [Display(Name = "Pasif kullanıcı talep bırakma")] InactiveUserTicketsReleased = 74,
     [Display(Name = "Kullanıcı anonimleştirme")] UserAnonymized = 75,
-    [Display(Name = "Kullanıcı alan değişikliği")] UserFieldsChanged = 76
+    [Display(Name = "Kullanıcı alan değişikliği")] UserFieldsChanged = 76,
+    // Yönetici kritik işlemleri — Audit ekranında ayrı süzülebilir
+    [Display(Name = "Hesap pasifleştirildi")] AdminUserDeactivated = 80,
+    [Display(Name = "Hesap aktifleştirildi")] AdminUserActivated = 81,
+    [Display(Name = "Rol değiştirildi")] AdminUserRoleChanged = 82,
+    [Display(Name = "Talep arşivlendi")] TicketArchived = 83,
+    [Display(Name = "Talep geri yüklendi")] TicketRestored = 84
 }
 
 // Genel denetim kaydı (ISO 9001 md. 7.5.3 / ISO 27001 A.8.15). Giriş

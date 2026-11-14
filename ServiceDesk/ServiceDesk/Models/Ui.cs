@@ -226,6 +226,11 @@ public static class Ui
         AuditAction.InactiveUserTicketsReleased => "Pasif kullanıcı talep bırakma",
         AuditAction.UserAnonymized => "Kullanıcı anonimleştirme",
         AuditAction.UserFieldsChanged => "Kullanıcı alan değişikliği",
+        AuditAction.AdminUserDeactivated => "Hesap pasifleştirildi",
+        AuditAction.AdminUserActivated => "Hesap aktifleştirildi",
+        AuditAction.AdminUserRoleChanged => "Rol değiştirildi",
+        AuditAction.TicketArchived => "Talep arşivlendi",
+        AuditAction.TicketRestored => "Talep geri yüklendi",
         _ => a.ToString()
     };
 }

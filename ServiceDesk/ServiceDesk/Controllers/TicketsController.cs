@@ -548,6 +548,8 @@ public class TicketsController : Controller
             ChangedAt = AppTime.UtcNow
         });
 
+        AdminCriticalAudit.QueueTicketArchived(_audit, _current.User!.Id, _current.User.Email, ticket, reason);
+
         if (!await TrySaveAsync()) return await ConflictAsync(id);
 
         TempData["Ok"] = $"{Ui.TicketNo(ticket)} arşivlendi. Kayıt silinmedi; Arşiv ekranından görülebilir.";
@@ -788,6 +790,8 @@ public class TicketsController : Controller
             TicketId = ticket.Id, Field = "Kayıt", OldValue = "Arşivlendi", NewValue = "Geri yüklendi",
             ChangedById = Me.Id, ChangedAt = AppTime.UtcNow
         });
+
+        AdminCriticalAudit.QueueTicketRestored(_audit, Me.Id, Me.Email, ticket);
 
         if (!await TrySaveAsync()) return await ConflictAsync(id);
 

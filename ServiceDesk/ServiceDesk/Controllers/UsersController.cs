@@ -559,6 +559,7 @@ public class UsersController : Controller
         var oncekiAktif = user?.IsActive ?? false;
         var oncekiEkipId = user?.TeamId;
         var oncekiAlanlar = user == null ? null : UserFieldChangeAudit.Capture(user);
+        var oncekiRol = user?.Role;
         if (user == null)
         {
             user = new AppUser { CreatedAt = AppTime.UtcNow };
@@ -584,6 +585,12 @@ public class UsersController : Controller
             var degisen = UserFieldChangeAudit.Diff(oncekiAlanlar, UserFieldChangeAudit.Capture(user), sifreBelirlendi);
             if (UserFieldChangeAudit.FormatDetail(user.Id, user.FullName, degisen) is { } detay)
                 _audit.Queue(AuditAction.UserFieldsChanged, me.Id, me.Email, detail: detay);
+
+            // Kritik işlemler ayrı AuditAction ile (Audit ekranında süzülebilir)
+            if (oncekiAktif != user.IsActive)
+                AdminCriticalAudit.QueueUserActive(_audit, me.Id, me.Email, user, user.IsActive);
+            if (oncekiRol is { } eskiRol && eskiRol != user.Role)
+                AdminCriticalAudit.QueueUserRole(_audit, me.Id, me.Email, user, eskiRol, user.Role);
         }
 
         // Pasifleştirme: açık talepler atamasız bırakılır (ekip kuyruğu kalır).
@@ -761,9 +768,11 @@ public class UsersController : Controller
             if (InactiveUserTicketReleasePolicy.ShouldRelease(oncekiAktif, isActive))
                 release = await _ticketRelease.ApplyAsync(user.Id, _current.User!.Id, user.FullName);
 
+            var actor = _current.User!;
             var degisen = UserFieldChangeAudit.Diff(oncekiAlanlar, UserFieldChangeAudit.Capture(user));
             if (UserFieldChangeAudit.FormatDetail(user.Id, user.FullName, degisen) is { } detay)
-                _audit.Queue(AuditAction.UserFieldsChanged, _current.User!.Id, _current.User.Email, detail: detay);
+                _audit.Queue(AuditAction.UserFieldsChanged, actor.Id, actor.Email, detail: detay);
+            AdminCriticalAudit.QueueUserActive(_audit, actor.Id, actor.Email, user, isActive);
 
             await _db.SaveChangesAsync();
 

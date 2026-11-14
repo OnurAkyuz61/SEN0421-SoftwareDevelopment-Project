@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Denetim kaydı";
     var action = ViewBag.Action as AuditAction?;
+    var criticalOnly = ViewBag.CriticalOnly as bool? == true;
     var pager = (PagerInfo)ViewBag.Pager;
 }
 
@@ -11,12 +12,16 @@
     <a asp-controller="Users" asp-action="LoginAttempts" class="btn btn-sm btn-outline-secondary"><i class="bi bi-door-open"></i> Giriş denemeleri</a>
 </div>
 
-<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+<form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <select name="action" class="form-select form-select-sm" style="max-width:240px">
         <option value="">Tüm olaylar</option>
         @foreach (var a in Enum.GetValues<AuditAction>()) { <option value="@a" selected="@(action == a)">@Ui.AuditActionText(a)</option> }
     </select>
     <input name="q" value="@ViewBag.Q" class="form-control form-control-sm" style="max-width:260px" placeholder="E-posta, IP, ayrıntı" />
+    <div class="form-check mb-0">
+        <input class="form-check-input" type="checkbox" name="criticalOnly" value="true" id="crit" checked="@criticalOnly" />
+        <label class="form-check-label small" for="crit">Yalnızca kritik</label>
+    </div>
     <button class="btn btn-sm btn-primary">Filtrele</button>
 </form>
 
@@ -29,9 +34,10 @@
                 @foreach (var a in Model)
                 {
                     var danger = a.Action is AuditAction.OtpFailed or AuditAction.OtpAttemptsExceeded or AuditAction.AccountLocked or AuditAction.OtpDeliveryFailed or AuditAction.RateLimited;
+                    var critical = AdminCriticalAudit.IsCritical(a.Action);
                     <tr>
                         <td class="small text-muted text-nowrap">@AppTime.ToLocal(a.CreatedAt).ToString("dd.MM.yyyy HH:mm:ss")</td>
-                        <td><span class="tag @(danger ? "tag-red" : "tag-gray")">@Ui.AuditActionText(a.Action)</span></td>
+                        <td><span class="tag @(danger ? "tag-red" : critical ? "tag-amber" : "tag-gray")">@Ui.AuditActionText(a.Action)</span></td>
                         <td class="small">@(a.User?.FullName ?? a.Email ?? "-")</td>
                         <td class="small">
                             @a.Detail
