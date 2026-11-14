@@ -31,6 +31,7 @@ public class UsersController : Controller
     private readonly AuditService _audit;
     private readonly NotificationService _notify;
     private readonly DepartmentTransferReassignment _deptTransfer;
+    private readonly InactiveUserTicketRelease _ticketRelease;
     private readonly IEmailSender _email;
     private readonly AuthSettings _auth;
     private readonly IWebHostEnvironment _env;
@@ -39,6 +40,7 @@ public class UsersController : Controller
                            SessionRegistry sessions, PasswordHistoryService passwordHistory,
                            AuditService audit, NotificationService notify,
                            DepartmentTransferReassignment deptTransfer,
+                           InactiveUserTicketRelease ticketRelease,
                            IEmailSender email, IOptions<AuthSettings> auth, IWebHostEnvironment env)
     {
         _db = db;
@@ -48,6 +50,7 @@ public class UsersController : Controller
         _audit = audit;
         _notify = notify;
         _deptTransfer = deptTransfer;
+        _ticketRelease = ticketRelease;
         _email = email;
         _auth = auth.Value;
         _env = env;
@@ -538,10 +541,15 @@ public class UsersController : Controller
         if (!string.IsNullOrEmpty(vm.Password))
             await _passwordHistory.SetPasswordAsync(user, vm.Password, requireChangeOnNextLogin: true);
 
-        // Ekip değişince açık talepler eski kuyrukta yeniden atanır (TeamId
-        // güncellendikten sonra; kişi artık eski ekip üyesi sayılmaz).
+        // Pasifleştirme: açık talepler atamasız bırakılır (ekip kuyruğu kalır).
+        // Ekip değişimi: pasif değilse eski kuyrukta yeniden atanır.
+        InactiveUserTicketRelease.Result? release = null;
         DepartmentTransferReassignment.Result? transfer = null;
-        if (!yeniKayit && DepartmentTransferRules.RequiresReassignment(oncekiEkipId, user.TeamId))
+        if (!yeniKayit && InactiveUserTicketReleasePolicy.ShouldRelease(oncekiAktif, user.IsActive))
+        {
+            release = await _ticketRelease.ApplyAsync(user.Id, me.Id, user.FullName);
+        }
+        else if (!yeniKayit && DepartmentTransferRules.RequiresReassignment(oncekiEkipId, user.TeamId))
         {
             transfer = await _deptTransfer.ApplyAsync(
                 user.Id, oncekiEkipId, user.TeamId, me.Id, user.FullName);
@@ -573,7 +581,10 @@ public class UsersController : Controller
         TempData["Ok"] = yeniKayit
             ? $"{user.FullName} ({Ui.RoleText(user.Role)}) hesabı oluşturuldu. İlk girişte şifre değiştirmesi istenecek."
             : pasiflestirildi
-                ? $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu, açık oturumları kapatıldı."
+                ? $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu, açık oturumları kapatıldı." +
+                  (release is { Released: > 0 }
+                      ? $" {release.Released} açık talep atamasız bırakıldı."
+                      : "")
                 : transfer is { TicketIds.Count: > 0 }
                     ? $"{user.FullName} hesabı güncellendi. Açık talepler: {transfer.Reassigned} yeniden atandı" +
                       (transfer.Unassigned > 0 ? $", {transfer.Unassigned} atamasız bırakıldı." : ".")
@@ -642,7 +653,13 @@ public class UsersController : Controller
         }
         else
         {
+            var oncekiAktif = user.IsActive;
             user.IsActive = isActive;
+
+            InactiveUserTicketRelease.Result? release = null;
+            if (InactiveUserTicketReleasePolicy.ShouldRelease(oncekiAktif, isActive))
+                release = await _ticketRelease.ApplyAsync(user.Id, _current.User!.Id, user.FullName);
+
             await _db.SaveChangesAsync();
 
             if (!isActive)
@@ -650,7 +667,10 @@ public class UsersController : Controller
 
             TempData["Ok"] = isActive
                 ? $"{user.FullName} hesabı yeniden aktifleştirildi."
-                : $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu; açık oturumları kapatıldı.";
+                : $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu; açık oturumları kapatıldı." +
+                  (release is { Released: > 0 }
+                      ? $" {release.Released} açık talep atamasız bırakıldı."
+                      : "");
         }
 
         return Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl!) : RedirectToAction(nameof(Index));

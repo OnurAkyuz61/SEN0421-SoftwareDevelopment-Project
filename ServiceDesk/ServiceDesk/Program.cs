@@ -34,6 +34,7 @@ builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef
 builder.Services.AddScoped<TeamRoundRobin>();        // ekip bazlı otomatik (sıralı) atama
 builder.Services.AddScoped<TeamCapacity>();          // ekip açık talep kotası
 builder.Services.AddScoped<DepartmentTransferReassignment>(); // ekip değişince açık talep yeniden atama
+builder.Services.AddScoped<InactiveUserTicketRelease>(); // pasifleştirmede açık talepleri bırak
 builder.Services.AddScoped<KpiService>();            // dönemsel gösterge hesabı
 builder.Services.AddScoped<ManagementReviewService>();// yönetim gözden geçirme paketi (md. 9.3, salt okuma)
 builder.Services.AddScoped<SearchService>();         // bilgi bankası / talep / global arama
