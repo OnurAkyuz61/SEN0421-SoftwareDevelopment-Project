@@ -237,6 +237,7 @@ public class UsersController : Controller
 
         var yeniKayit = user == null;
         var pasiflestirildi = user is { IsActive: true } && !vm.IsActive;
+        var rolDegisti = user != null && user.Role != vm.Role;
         if (user == null)
         {
             user = new AppUser { CreatedAt = AppTime.UtcNow };
@@ -261,7 +262,9 @@ public class UsersController : Controller
             ? $"{user.FullName} ({Ui.RoleText(user.Role)}) hesabı oluşturuldu."
             : pasiflestirildi
                 ? $"{user.FullName} hesabı pasifleştirildi. Talep geçmişi korundu, açık oturumu bir sonraki istekte kapatılır."
-                : $"{user.FullName} hesabı güncellendi.";
+                : rolDegisti
+                    ? $"{user.FullName} rolü {Ui.RoleText(user.Role)} olarak güncellendi. Açık oturumundaki yetkiler bir sonraki istekte yenilenir."
+                    : $"{user.FullName} hesabı güncellendi.";
         return RedirectToAction(nameof(Index));
     }
 

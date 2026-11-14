@@ -34,8 +34,12 @@ public class AuthorizeRoleAttribute : Attribute, IAuthorizationFilter
             return;
         }
 
+        // Rol DB'den yenilendi: menü / yetki yeni role göre; kullanıcıya haber ver
+        if (current.RoleChangedThisRequest)
+            NotifyRoleRefresh(context, user.Role);
+
         if (_allowed.Length > 0 && !_allowed.Contains(user.Role))
-            context.Result = Forbidden(context);
+            context.Result = Forbidden(context, current, user);
     }
 
     // Oturum yok ya da süresi dolmuş
@@ -55,15 +59,38 @@ public class AuthorizeRoleAttribute : Attribute, IAuthorizationFilter
     }
 
     // Oturum geçerli ama rol yetmiyor
-    protected virtual IActionResult Forbidden(AuthorizationFilterContext context)
+    protected virtual IActionResult Forbidden(AuthorizationFilterContext context, CurrentUser current, AppUser user)
     {
         var tempData = context.HttpContext.RequestServices
             .GetRequiredService<ITempDataDictionaryFactory>()
             .GetTempData(context.HttpContext);
-        tempData["Err"] = "Bu sayfaya erişim yetkiniz yok.";
 
-        return new RedirectToActionResult("Index", "Portal", null);
+        if (current.RoleChangedThisRequest)
+        {
+            tempData["Ok"] = RoleRefreshMessage(user.Role);
+            tempData.Remove("Err");
+        }
+        else
+        {
+            tempData["Err"] = "Bu sayfaya erişim yetkiniz yok.";
+        }
+
+        // Yeni role göre doğru ana sayfa (User→Portal, personel→Dashboard)
+        return user.Role == UserRole.User
+            ? new RedirectToActionResult("Index", "Portal", null)
+            : new RedirectToActionResult("Index", "Dashboard", null);
     }
+
+    protected static void NotifyRoleRefresh(AuthorizationFilterContext context, UserRole newRole)
+    {
+        var tempData = context.HttpContext.RequestServices
+            .GetRequiredService<ITempDataDictionaryFactory>()
+            .GetTempData(context.HttpContext);
+        tempData["Ok"] = RoleRefreshMessage(newRole);
+    }
+
+    protected static string RoleRefreshMessage(UserRole role) =>
+        $"Rolünüz {Ui.RoleText(role)} olarak güncellendi; oturum yetkileriniz yenilendi.";
 }
 
 // JSON uçlarının yetki süzgeci. Rol kuralı AuthorizeRole ile birebir aynıdır,
@@ -93,8 +120,10 @@ public sealed class ApiAuthorizeRoleAttribute : AuthorizeRoleAttribute
                     ? "Oturumunuzun süresi doldu. Yeniden giriş yapın."
                     : "Bu uç için giriş yapmanız gerekiyor.");
 
-    protected override IActionResult Forbidden(AuthorizationFilterContext context) =>
-        Error(StatusCodes.Status403Forbidden, "Bu işlem için yetkiniz yok.");
+    protected override IActionResult Forbidden(AuthorizationFilterContext context, CurrentUser current, AppUser user) =>
+        Error(StatusCodes.Status403Forbidden, current.RoleChangedThisRequest
+            ? RoleRefreshMessage(user.Role) + " Bu işlem için yetkiniz yok."
+            : "Bu işlem için yetkiniz yok.");
 
     // Gövde api/* uçlarının geri kalanıyla aynı şekilde: { "error": "…" }
     private static JsonResult Error(int status, string message) =>

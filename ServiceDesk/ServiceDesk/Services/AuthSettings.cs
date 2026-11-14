@@ -42,6 +42,8 @@ public static class SessionKeys
     // Giriş tamamlanınca
     public const string UserId = "Auth.UserId";
     public const string IssuedAt = "Auth.IssuedAt";
+    // Oturumda bilinen rol; DB'deki rol değişince CurrentUser yeniler
+    public const string Role = "Auth.Role";
 
     // Şifre doğrulandı, OTP bekleniyor
     public const string PendingUserId = "Otp.UserId";

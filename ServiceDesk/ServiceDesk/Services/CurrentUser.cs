@@ -41,6 +41,13 @@ public class CurrentUser
     // Bu istekte hesap pasif bulunduğu için oturum kapatıldıysa true
     public bool DeactivatedThisRequest { get; private set; }
 
+    // Bu istekte DB'deki rol, oturumda tutulan rolden farklıysa true;
+    // yetkiler DB'den okunur, Session'daki rol damgası güncellenir.
+    public bool RoleChangedThisRequest { get; private set; }
+
+    // Rol değiştiyse oturumda görülen önceki rol (bildirim / yönlendirme için)
+    public UserRole? PreviousRole { get; private set; }
+
     // Girişin yapıldığı an (UTC)
     public DateTime? SignedInAtUtc =>
         DateTime.TryParse(Session?.GetString(SessionKeys.IssuedAt), null,
@@ -76,9 +83,33 @@ public class CurrentUser
                 return null;
             }
 
+            SyncSessionRole(user.Role);
             _cached = user;
             return _cached;
         }
+    }
+
+    // Oturumdaki rol damgasını DB ile hizalar. Yetki her zaman User.Role'dan
+    // okunur; damga yalnızca değişikliği tespit etmek ve UI'ya haber vermek içindir.
+    private void SyncSessionRole(UserRole dbRole)
+    {
+        var session = Session;
+        if (session is null) return;
+
+        var stamped = session.GetInt32(SessionKeys.Role);
+        if (stamped is null)
+        {
+            // Eski oturum (damga yok): yaz, değişiklik sayma
+            session.SetInt32(SessionKeys.Role, (int)dbRole);
+            return;
+        }
+
+        var previous = (UserRole)stamped.Value;
+        if (previous == dbRole) return;
+
+        PreviousRole = previous;
+        session.SetInt32(SessionKeys.Role, (int)dbRole);
+        RoleChangedThisRequest = true;
     }
 
     public bool IsAuthenticated => User != null;

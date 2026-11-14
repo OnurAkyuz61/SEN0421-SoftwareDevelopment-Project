@@ -591,6 +591,7 @@ public class AccountController : Controller
     {
         Session.Clear();
         Session.SetInt32(SessionKeys.UserId, user.Id);
+        Session.SetInt32(SessionKeys.Role, (int)user.Role);
         SetTime(SessionKeys.IssuedAt, DateTime.UtcNow);
     }
 
