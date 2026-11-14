@@ -63,11 +63,41 @@
                         }
                     </select>
 
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" role="switch" name="isPublished" value="true"
-                               id="isPublished" checked="@Model.IsPublished" />
-                        <label class="form-check-label" for="isPublished">Yayımla</label>
-                        <div class="form-text">Kapalıysa taslak kalır, sadece destek ekibi görür.</div>
+                    @* Yayına çıkarma artık bir anahtar değil onay süreci:
+                       kaydet → onaya gönder → yönetici onayı (md. 7.5.2) *@
+                    <div class="mb-3">
+                        <div class="small text-muted mb-1">Durum</div>
+                        <span class="tag @Ui.KnowledgeStatusTag(Model.Status)">@Ui.KnowledgeStatusText(Model.Status)</span>
+                        <div class="form-text">
+                            @switch (Model.Status)
+                            {
+                                case KnowledgeArticleStatus.Published:
+                                    <text>
+                                        Makale yayında. İçeriği değiştirip kaydederseniz makale
+                                        <strong>yeniden onaya düşer</strong> ve onaylanana kadar son
+                                        kullanıcıya görünmez.
+                                    </text>
+                                    break;
+                                case KnowledgeArticleStatus.PendingApproval:
+                                    <text>
+                                        Makale onay bekliyor. İçeriği değiştirirseniz onay kuyruğundan
+                                        çıkar ve taslağa döner; düzeltmeyi bitirince yeniden gönderin.
+                                    </text>
+                                    break;
+                                case KnowledgeArticleStatus.Rejected:
+                                    <text>
+                                        Makale reddedildi. Düzeltip kaydettiğinizde taslağa döner,
+                                        sonra makale sayfasından yeniden onaya gönderebilirsiniz.
+                                    </text>
+                                    break;
+                                default:
+                                    <text>
+                                        Taslak yalnızca size ve yöneticiye görünür. Yayına çıkması için
+                                        kaydettikten sonra makale sayfasından onaya gönderin.
+                                    </text>
+                                    break;
+                            }
+                        </div>
                     </div>
 
                     <div class="d-grid gap-2">
@@ -85,6 +115,7 @@
                         <tr><td class="text-muted">Yazar</td><td>@Model.Author.FullName</td></tr>
                         <tr><td class="text-muted">Oluşturma</td><td>@AppTime.ToLocal(Model.CreatedAt).ToString("dd.MM.yyyy")</td></tr>
                         <tr><td class="text-muted">Son güncelleme</td><td>@(AppTime.ToLocal(Model.UpdatedAt)?.ToString("dd.MM.yyyy") ?? "-")</td></tr>
+                        <tr><td class="text-muted">Onaylayan</td><td>@(Model.Status == KnowledgeArticleStatus.Published ? Model.ApprovedBy?.FullName ?? "-" : "-")</td></tr>
                         <tr><td class="text-muted">Kullanım</td><td>@Model.UsedCount talep</td></tr>
                     </table>
                 </div>

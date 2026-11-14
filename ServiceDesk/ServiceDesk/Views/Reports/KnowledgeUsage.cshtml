@@ -1,0 +1,202 @@
+@model KnowledgeUsageReport
+@using ServiceDesk.Controllers
+@{
+    ViewData["Title"] = "Bilgi bankası kullanım raporu";
+    var f = (KnowledgeUsageFilter)ViewBag.Filter;
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+    <h4 class="fw-bold mb-0 me-auto">Bilgi bankası kullanım raporu</h4>
+    <a class="btn btn-sm btn-light border" asp-controller="Knowledge" asp-action="Index">
+        <i class="bi bi-journal-text"></i> Bilgi Bankası
+    </a>
+    <a class="btn btn-sm btn-light border" asp-controller="Chatbot" asp-action="Unanswered">
+        <i class="bi bi-question-circle"></i> Cevapsız soruların tamamı
+    </a>
+</div>
+<div class="text-muted mb-3">
+    Hangi makale işe yaramıyor, hangi makale eksik: gözden geçirilmesi gereken
+    makaleler ile chatbot'un cevaplayamadığı sorular yan yana.
+</div>
+
+<form method="get" class="panel mb-3">
+    <div class="panel-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1" for="staleDays">Kaç günden sonrası "eski"</label>
+                <input type="number" min="1" max="3650" name="staleDays" id="staleDays"
+                       value="@f.StaleDays" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1" for="minVotes">Oran için en az oy</label>
+                <input type="number" min="1" max="1000" name="minVotes" id="minVotes"
+                       value="@f.MinVotes" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1" for="notHelpfulPercent">"Faydalı değil" eşiği (%)</label>
+                <input type="number" min="1" max="100" name="notHelpfulPercent" id="notHelpfulPercent"
+                       value="@f.NotHelpfulPercent" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" role="switch" name="onlyIssues" value="true"
+                           id="onlyIssues" checked="@f.OnlyIssues" />
+                    <label class="form-check-label small" for="onlyIssues">Yalnızca işaretliler</label>
+                </div>
+            </div>
+            <div class="col-md-1"><button class="btn btn-sm btn-primary w-100"><i class="bi bi-funnel"></i></button></div>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3 mb-3">
+    @foreach (var (label, value) in new[]
+    {
+        ("Yayındaki makale", Model.PublishedTotal.ToString()),
+        ("Hiç kullanılmadı", Model.NeverUsed.ToString()),
+        ("Son kullanımı eski", Model.Stale.ToString()),
+        ("Olumsuz geri bildirim", Model.Negative.ToString()),
+        ("Hiç oy almadı", Model.NoVotes.ToString()),
+        ("Cevapsız soru", $"{Model.QuestionTotal} ({Model.QuestionAskTotal} kez)")
+    })
+    {
+        <div class="col-6 col-md-2">
+            <div class="panel h-100"><div class="panel-body">
+                <div class="small text-muted">@label</div>
+                <div class="fs-4 fw-bold">@value</div>
+            </div></div>
+        </div>
+    }
+</div>
+
+@* ───── Gözden geçirilecek makaleler ────────────────────────────────── *@
+<div class="panel mb-3">
+    <div class="panel-head">
+        Gözden geçirilecek makaleler (@Model.Rows.Count)
+        <span class="small text-muted fw-normal">
+            · @f.StaleDays günden eski · en az @f.MinVotes oy ve %@f.NotHelpfulPercent olumsuz
+        </span>
+    </div>
+
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="panel-body text-center text-muted py-4">
+            <i class="bi bi-check2-circle fs-4 d-block mb-2"></i>
+            Bu eşiklere göre gözden geçirilmesi gereken makale yok.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Makale</th>
+                        <th style="width:150px">Kategori</th>
+                        <th style="width:90px" class="text-end">Kullanım</th>
+                        <th style="width:120px">Son kullanım</th>
+                        <th style="width:150px">Geri bildirim</th>
+                        <th style="width:230px">Gerekçe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-controller="Knowledge" asp-action="Details" asp-route-id="@r.Id">@r.Title</a>
+                                <div class="small text-muted">
+                                    @AppTime.ToLocal(r.CreatedAt).ToString("dd.MM.yyyy") tarihinde oluşturuldu
+                                </div>
+                            </td>
+                            <td class="small">@(r.Category ?? "-")</td>
+                            <td class="text-end fw-semibold">@r.UsedCount</td>
+                            <td class="small text-muted">
+                                @(AppTime.ToLocal(r.LastUsedAt)?.ToString("dd.MM.yyyy")
+                                  ?? (r.UsedCount > 0 ? "bilinmiyor" : "-"))
+                            </td>
+                            <td class="small">
+                                @if (r.TotalVotes == 0)
+                                {
+                                    <span class="text-muted">oy yok</span>
+                                }
+                                else
+                                {
+                                    <span class="tag tag-green">@r.HelpfulCount</span>
+                                    <span class="tag tag-red">@r.NotHelpfulCount</span>
+                                    <span class="text-muted">· %@r.NotHelpfulPercent olumsuz</span>
+                                }
+                            </td>
+                            <td>
+                                @if (r.Reasons.Count == 0)
+                                {
+                                    <span class="tag tag-green">sorun yok</span>
+                                }
+                                @foreach (var gerekce in r.Reasons)
+                                {
+                                    <span class="tag @(gerekce == "olumsuz geri bildirim" ? "tag-red" : "tag-amber")">@gerekce</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@* ───── Yazılması gereken makaleler ─────────────────────────────────── *@
+<div class="panel">
+    <div class="panel-head">
+        Cevaplanamayan sorular (@Model.QuestionTotal)
+        <span class="small text-muted fw-normal">· chatbot bilgi bankasında karşılık bulamadı</span>
+    </div>
+
+    @if (Model.Questions.Count == 0)
+    {
+        <div class="panel-body text-center text-muted py-4">
+            <i class="bi bi-chat-square-text fs-4 d-block mb-2"></i>
+            Cevaplanamayan soru yok: sorulan her soru bilgi bankasında karşılık buldu.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Soru</th>
+                        <th style="width:90px" class="text-end">Kaç kez</th>
+                        <th style="width:130px">İlk soruldu</th>
+                        <th style="width:130px">Son soruldu</th>
+                        <th style="width:190px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var q in Model.Questions)
+                    {
+                        <tr>
+                            <td>@q.Text</td>
+                            <td class="text-end fw-semibold">@q.AskCount</td>
+                            <td class="small text-muted">@AppTime.ToLocal(q.FirstAskedAt).ToString("dd.MM.yyyy")</td>
+                            <td class="small text-muted">@AppTime.ToLocal(q.LastAskedAt).ToString("dd.MM.yyyy")</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" asp-controller="Knowledge" asp-action="Edit">
+                                    <i class="bi bi-plus-lg"></i> Makale yaz
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.QuestionTotal > Model.Questions.Count)
+        {
+            <div class="panel-body small text-muted">
+                En çok sorulan @Model.Questions.Count soru gösteriliyor.
+                <a asp-controller="Chatbot" asp-action="Unanswered">Tamamı (@Model.QuestionTotal)</a>
+            </div>
+        }
+    }
+</div>

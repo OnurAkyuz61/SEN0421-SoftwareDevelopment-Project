@@ -50,12 +50,35 @@ public static class Ui
         NonconformityStatus.Closed => "Kapalı", NonconformityStatus.InProgress => "İşlemde", _ => "Açık"
     };
 
+    // Renk eşlemesi Nonconformities/Index görünümünün içinde satır arasında
+    // duruyordu; etiket rengi de metin gibi tek yerden okunsun diye buraya alındı
+    public static string NonconformityStatusTag(NonconformityStatus s) => s switch
+    {
+        NonconformityStatus.Closed => "tag-green", NonconformityStatus.InProgress => "tag-amber", _ => "tag-red"
+    };
+
     public static string NonconformitySourceText(NonconformitySource s) => s switch
     {
         NonconformitySource.SlaBreach => "SLA ihlali",
         NonconformitySource.LowSatisfaction => "Düşük memnuniyet",
         NonconformitySource.Audit => "İç denetim",
         _ => "Elle açıldı"
+    };
+
+    public static string KnowledgeStatusText(KnowledgeArticleStatus s) => s switch
+    {
+        KnowledgeArticleStatus.Draft => "Taslak",
+        KnowledgeArticleStatus.PendingApproval => "Onay bekliyor",
+        KnowledgeArticleStatus.Published => "Yayında",
+        _ => "Reddedildi"
+    };
+
+    public static string KnowledgeStatusTag(KnowledgeArticleStatus s) => s switch
+    {
+        KnowledgeArticleStatus.Draft => "tag-gray",
+        KnowledgeArticleStatus.PendingApproval => "tag-amber",
+        KnowledgeArticleStatus.Published => "tag-green",
+        _ => "tag-red"
     };
 
     public static string RiskText(RiskLevel r) => r switch
@@ -105,6 +128,23 @@ public static class Ui
     {
         ApprovalStatus.Pending => "tag-amber", ApprovalStatus.Approved => "tag-green",
         ApprovalStatus.Rejected => "tag-red", _ => "tag-gray"
+    };
+
+    public static string ScanStatusText(AttachmentScanStatus s) => s switch
+    {
+        AttachmentScanStatus.Clean => "Temiz",
+        AttachmentScanStatus.Suspicious => "Şüpheli",
+        AttachmentScanStatus.Failed => "Taranamadı",
+        AttachmentScanStatus.Skipped => "Tarama kapsamı dışı",
+        _ => "Taranıyor"
+    };
+
+    public static string ScanStatusTag(AttachmentScanStatus s) => s switch
+    {
+        AttachmentScanStatus.Clean or AttachmentScanStatus.Skipped => "tag-green",
+        AttachmentScanStatus.Suspicious => "tag-red",
+        AttachmentScanStatus.Failed => "tag-amber",
+        _ => "tag-gray"
     };
 
     public static string FileSize(long bytes) =>
@@ -163,6 +203,8 @@ public static class Ui
         AuditAction.ChangeResubmitted => "Yeniden onaya gönderildi",
         AuditAction.ChangeImplementationUpdated => "Uygulama durumu",
         AuditAction.RateLimited => "İstek sınırı aşıldı",
+        AuditAction.AttachmentPurged => "Ek dosya kalıcı silindi",
+        AuditAction.AttachmentOrphanDeleted => "Sahipsiz dosya silindi",
         _ => a.ToString()
     };
 }

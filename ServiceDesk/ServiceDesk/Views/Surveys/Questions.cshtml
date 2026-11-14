@@ -1,0 +1,101 @@
+@model List<SurveyQuestion>
+@{
+    var template = (SurveyTemplate)ViewBag.Template;
+    var cevaplar = (Dictionary<int, int>)ViewBag.AnswerCounts;
+    ViewData["Title"] = $"{template.Name} · Sorular";
+    var aktifSoru = Model.Count(q => q.IsActive);
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="me-auto">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h4 class="fw-bold mb-0">@template.Name</h4>
+            @if (template.IsActive) { <span class="tag tag-green">Aktif</span> }
+            else { <span class="tag tag-gray">Pasif</span> }
+        </div>
+        <div class="text-muted small">
+            Sorular portalda bu sırayla gösterilir ve <strong>tamamı zorunludur</strong>: kullanıcı hepsini
+            puanlamadan anket kaydedilmez. Soru <strong>silinemez</strong> — verilmiş puanlar soruya bağlıdır
+            (geçmiş değerlendirmelerin hangi soruya ait olduğu kaybolur); yeni anketlerden çıkarmak için pasifleştirin.
+        </div>
+    </div>
+    <a asp-action="Templates" class="btn btn-light border btn-sm"><i class="bi bi-arrow-left"></i> Şablonlar</a>
+</div>
+
+@if (aktifSoru == 0)
+{
+    <div class="alert alert-warning small">
+        Bu şablonun aktif sorusu yok; en az bir soru eklenmeden aktifleştirilemez.
+    </div>
+}
+
+<div class="panel">
+    <div class="panel-head">
+        Sorular
+        <span class="text-muted small fw-normal">@aktifSoru aktif@(Model.Count > aktifSoru ? $" · {Model.Count - aktifSoru} pasif" : "")</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th style="width:48px">Sıra</th>
+                    <th>Soru</th>
+                    <th style="width:14%">Verilen puan</th>
+                    <th style="width:10%">Durum</th>
+                    <th style="width:140px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">Henüz soru yok</td></tr>
+                }
+                @for (var i = 0; i < Model.Count; i++)
+                {
+                    var q = Model[i];
+                    <tr class="@(!q.IsActive ? "opacity-50" : "")">
+                        <td class="text-muted small">@(i + 1)</td>
+                        <td>@q.Text</td>
+                        <td class="small text-muted">@(cevaplar.TryGetValue(q.Id, out var n) ? n : 0)</td>
+                        <td>
+                            @if (q.IsActive) { <span class="tag tag-green">Aktif</span> }
+                            else { <span class="tag tag-gray">Pasif</span> }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <form asp-action="MoveQuestion" asp-route-id="@q.Id" asp-route-delta="-1" method="post" class="d-inline">
+                                <button class="btn btn-sm btn-outline-secondary" title="Yukarı taşı" @(i == 0 ? "disabled" : null)>
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                            </form>
+                            <form asp-action="MoveQuestion" asp-route-id="@q.Id" asp-route-delta="1" method="post" class="d-inline">
+                                <button class="btn btn-sm btn-outline-secondary" title="Aşağı taşı" @(i == Model.Count - 1 ? "disabled" : null)>
+                                    <i class="bi bi-arrow-down"></i>
+                                </button>
+                            </form>
+                            <form asp-action="ToggleQuestion" asp-route-id="@q.Id" method="post" class="d-inline">
+                                <button class="btn btn-sm btn-outline-secondary" title="@(q.IsActive ? "Pasifleştir" : "Yeniden ankete al")">
+                                    <i class="bi bi-@(q.IsActive ? "pause" : "play")"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                <tr class="table-light">
+                    <form asp-action="AddQuestion" method="post">
+                        <input type="hidden" name="templateId" value="@template.Id" />
+                        <td class="text-muted small">+</td>
+                        <td colspan="3">
+                            <input name="text" class="form-control form-control-sm" placeholder="Yeni soru (ör. Çözüm hızından memnun kaldınız mı?)"
+                                   required maxlength="@SurveyTemplateRules.MaxQuestionLength" aria-label="Yeni soru" />
+                        </td>
+                        <td class="text-end"><button class="btn btn-sm btn-primary">Ekle</button></td>
+                    </form>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="text-muted small mt-2">
+    Puanlama portalda 1–5 yıldız olarak sorulur; eşik altı ortalama otomatik uygunsuzluk kaydı açar (ISO 9001 md. 10.2).
+</div>

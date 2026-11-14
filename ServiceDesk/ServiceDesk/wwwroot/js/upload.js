@@ -7,9 +7,18 @@
     if (!zones.length) return;
 
     let activeZone = zones[0];
-    const MAX = 5, MAX_SIZE = 10 * 1024 * 1024;
+
+    // Sınırlar sunucudan gelir (appsettings.json → Uploads); her alanın kendi
+    // sınırı olabilir çünkü talep eki ile yorum eki boyutu farklıdır.
+    // Buradaki kontrol yalnızca kolaylık: asıl denetim sunucuda yapılır.
+    const limit = (zone, attr, fallback) => parseInt(zone.dataset[attr], 10) || fallback;
+    const human = bytes => bytes < 1024 * 1024
+        ? Math.max(1, Math.round(bytes / 1024)) + ' KB'
+        : Math.round(bytes / 1024 / 1024 * 10) / 10 + ' MB';
 
     zones.forEach(zone => {
+        const MAX = limit(zone, 'maxFiles', 5);
+        const MAX_SIZE = limit(zone, 'maxBytes', 10 * 1024 * 1024);
         const input = zone.querySelector('input[name="files"]');
         const picker = zone.querySelector('[data-image-picker]');
         const list = zone.querySelector('.file-list');
@@ -19,7 +28,7 @@
         function add(files) {
             for (const f of files) {
                 if (dt.items.length >= MAX) { alert('En fazla ' + MAX + ' dosya ekleyebilirsiniz.'); break; }
-                if (f.size > MAX_SIZE) { alert('"' + f.name + '" 10 MB sınırını aşıyor.'); continue; }
+                if (f.size > MAX_SIZE) { alert('"' + f.name + '" dosya başına ' + human(MAX_SIZE) + ' sınırını aşıyor.'); continue; }
                 // Panodan yapıştırılan görüntüye anlamlı bir ad ver
                 const file = (f.name === 'image.png' || !f.name)
                     ? new File([f], 'ekran-goruntusu-' + Date.now() + '.png', { type: f.type })

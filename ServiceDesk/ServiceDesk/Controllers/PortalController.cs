@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
 using ServiceDesk.Models;
@@ -23,11 +24,14 @@ public class PortalController : Controller
     private readonly ApprovalChainResolver _chain;
     private readonly ChangeResubmissionService _resubmit;
     private readonly TeamRoundRobin _roundRobin;
+    private readonly AttachmentQuota _quota;
+    private readonly SurveySettings _survey;
 
     public PortalController(AppDbContext db, FileStorage files, CurrentUser current,
                             TicketSlaService sla, NotificationService notify,
                             NonconformityService nonconformity, ApprovalChainResolver chain,
-                            ChangeResubmissionService resubmit, TeamRoundRobin roundRobin)
+                            ChangeResubmissionService resubmit, TeamRoundRobin roundRobin,
+                            AttachmentQuota quota, IOptions<SurveySettings> survey)
     {
         _db = db;
         _files = files;
@@ -38,6 +42,8 @@ public class PortalController : Controller
         _chain = chain;
         _resubmit = resubmit;
         _roundRobin = roundRobin;
+        _quota = quota;
+        _survey = survey.Value;
     }
 
     // Reddedilen değişiklik talebini düzeltip yeniden onaya gönderir (talep sahibi)
@@ -101,7 +107,9 @@ public class PortalController : Controller
         var category = await _db.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == ticket.CategoryId && c.IsActive);
         if (category == null) ModelState.AddModelError(nameof(Ticket.CategoryId), "Geçerli bir kategori seçin.");
 
-        var fileError = FileStorage.Validate(files);
+        // Talep eki sınırı + kullanıcı kotası (yeni talep: ticketId henüz yok)
+        var fileError = _files.Validate(files, UploadKind.Ticket)
+                        ?? await _quota.CheckAsync(me.Id, ticketId: null, files);
         if (fileError != null) ModelState.AddModelError("files", fileError);
 
         if (!ModelState.IsValid)
@@ -214,6 +222,11 @@ public class PortalController : Controller
             .OrderBy(q => q.SortOrder)
             .ToListAsync();
 
+        // Anket penceresi: form mu gösterilecek, "süre doldu" bilgisi mi.
+        // Kural tek yerde (SurveyPolicy); görüntü yalnızca sonucu okur.
+        ViewBag.SurveyDeadline = SurveyPolicy.Deadline(ticket, _survey.ExpiresAfterDays);
+        ViewBag.SurveyExpired = SurveyPolicy.IsExpired(ticket, AppTime.UtcNow, _survey.ExpiresAfterDays);
+
         // İç notlar kullanıcıya gösterilmez. Not gizlenirken ekinin talebin
         // "Ekler" listesinde görünmesi dosya adını sızdırıyordu; ek de
         // listeden çıkarılır (indirme yolu AttachmentPolicy ile ayrıca kapalı).
@@ -261,7 +274,9 @@ public class PortalController : Controller
             return BackToTicket(id, returnTo);
         }
 
-        var fileError = FileStorage.Validate(files);
+        // Yorum eki sınırı (talep ekinden ayrı) + talep ve kullanıcı kotası
+        var fileError = _files.Validate(files, UploadKind.Comment)
+                        ?? await _quota.CheckAsync(_current.User!.Id, id, files);
         if (fileError != null)
         {
             TempData["Err"] = fileError;
@@ -410,7 +425,8 @@ public class PortalController : Controller
             return BackToTicket(id, returnTo);
         }
 
-        var err = FileStorage.Validate(files);
+        var err = _files.Validate(files, UploadKind.Ticket)
+                  ?? await _quota.CheckAsync(_current.User!.Id, id, files);
         if (err != null) TempData["Err"] = err;
         else if (files is { Count: > 0 })
         {
@@ -442,6 +458,18 @@ public class PortalController : Controller
             return BackToTicket(id, returnTo);
         }
 
+        // Doldurma süresi (TTL) doldu mu? Form ekranda artık görünmüyor ama
+        // açık duran bir sekmeden ya da doğrudan POST ile gelinebilir:
+        // asıl engel burada. Aylar sonra girilen puan dönemsel memnuniyet
+        // ortalamasını bozar (ISO 9001 md. 9.1.2).
+        if (SurveyPolicy.IsExpired(ticket, AppTime.UtcNow, _survey.ExpiresAfterDays))
+        {
+            var deadline = SurveyPolicy.Deadline(ticket, _survey.ExpiresAfterDays)!.Value;
+            TempData["Err"] = $"Bu talebin değerlendirme süresi {AppTime.ToLocal(deadline):dd.MM.yyyy} "
+                            + "tarihinde doldu. Görüşünüzü iletmek için yeni bir talep açabilirsiniz.";
+            return BackToTicket(id, returnTo);
+        }
+
         var template = await _db.SurveyTemplates
             .Include(t => t.Questions.Where(q => q.IsActive))
             .FirstOrDefaultAsync(t => t.IsActive);
@@ -455,8 +483,12 @@ public class PortalController : Controller
             Comment = comment
         };
 
+        // Soru bazlı kırılım: uygunsuzluk açıklamasında hangi boyutun düşük
+        // puan aldığı yazılır (NonconformityPolicy)
+        var puanlar = new List<NonconformityPolicy.AnswerScore>();
+
         // Tüm aktif sorular zorunlu: biri bile boş veya geçersizse anket kaydedilmez
-        foreach (var q in template.Questions)
+        foreach (var q in template.Questions.OrderBy(q => q.SortOrder))
         {
             if (!int.TryParse(Request.Form[$"q{q.Id}"], out var score) || score is < 1 or > 5)
             {
@@ -464,6 +496,7 @@ public class PortalController : Controller
                 return BackToTicket(id, returnTo, survey: true);
             }
             response.Answers.Add(new SurveyAnswer { QuestionId = q.Id, Score = score });
+            puanlar.Add(new NonconformityPolicy.AnswerScore(q.Text, score));
         }
 
         if (response.Answers.Count == 0)
@@ -474,11 +507,16 @@ public class PortalController : Controller
 
         _db.SurveyResponses.Add(response);
 
-        // Eşik altı memnuniyet kalite kaydı doğurur (ISO 9001 md. 10.2)
+        // Eşik altı memnuniyet kalite kaydı doğurur (ISO 9001 md. 10.2).
+        // Gerekçe iki tanedir: ortalamanın eşik altı olması ya da tek bir
+        // sorunun kritik düşük puanı (NonconformityPolicy).
         var ortalama = response.Answers.Average(a => a.Score);
-        var acildi = await _nonconformity.QueueForLowSatisfactionAsync(ticket, ortalama, comment);
+        var acildi = await _nonconformity.QueueForLowSatisfactionAsync(ticket, ortalama, puanlar, comment);
 
         await _db.SaveChangesAsync();
+
+        // Kayıt açıldıysa sorumluya bildirim kuyruğa girdi: worker'ı uyandır
+        if (acildi) _notify.SignalDelivery();
 
         TempData["Ok"] = acildi
             ? "Değerlendirmeniz alındı. Memnuniyetsizliğiniz kalite kaydı olarak açıldı, ekibimiz inceleyecek."

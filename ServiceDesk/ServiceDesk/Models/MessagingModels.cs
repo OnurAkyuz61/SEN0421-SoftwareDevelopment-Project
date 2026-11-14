@@ -67,7 +67,9 @@ public enum AuditAction
     [Display(Name = "Vekalet kaldırıldı")] DelegationRevoked = 21,
     [Display(Name = "Değişiklik yeniden gönderildi")] ChangeResubmitted = 22,
     [Display(Name = "Uygulama durumu")] ChangeImplementationUpdated = 23,
-    [Display(Name = "İstek sınırı aşıldı")] RateLimited = 30
+    [Display(Name = "İstek sınırı aşıldı")] RateLimited = 30,
+    [Display(Name = "Ek dosya kalıcı silindi")] AttachmentPurged = 40,
+    [Display(Name = "Sahipsiz dosya silindi")] AttachmentOrphanDeleted = 41
 }
 
 // Genel denetim kaydı (ISO 9001 md. 7.5.3 / ISO 27001 A.8.15). Giriş

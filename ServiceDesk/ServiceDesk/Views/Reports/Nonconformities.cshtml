@@ -1,0 +1,218 @@
+@model List<NonconformityReportRow>
+@using ServiceDesk.Controllers
+@{
+    ViewData["Title"] = "Uygunsuzluk kaynak raporu";
+    var f = (NonconformityReportFilter)ViewBag.Filter;
+    var stats = (List<NonconformitySourceStat>)ViewBag.Stats;
+    var now = (DateTime)ViewBag.Now;
+    var pager = (PagerInfo)ViewBag.Pager;
+
+    // TOPLAM satırı listenin sonunda (Source == null)
+    var toplam = stats.Last();
+    var kaynaklar = stats.Take(stats.Count - 1).ToList();
+    var enCok = kaynaklar.Count == 0 ? 1 : Math.Max(1, kaynaklar.Max(s => s.Total));
+
+    string Yuzde(double? v) => v == null ? "-" : $"{v:0.0}%";
+    string Gun(double? v) => v == null ? "-" : $"{v:0.0} gün";
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="me-auto">
+        <h4 class="fw-bold mb-0">Uygunsuzluk kaynak raporu</h4>
+        <div class="text-muted small">ISO 9001 md. 9.1.3 · md. 10.2 · dönem tespit tarihine göre</div>
+    </div>
+    <a class="btn btn-sm btn-outline-secondary"
+       href="@Url.Action("NonconformitiesCsv", new { f.From, f.To, f.Source, f.Status, f.OverdueOnly })">
+        <i class="bi bi-filetype-csv"></i> CSV indir
+    </a>
+</div>
+
+<form method="get" class="panel mb-3">
+    <div class="panel-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Başlangıç</label>
+                <input type="date" name="from" value="@f.From?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Bitiş</label>
+                <input type="date" name="to" value="@f.To?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Kaynak</label>
+                <select name="source" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                    @foreach (var s in Enum.GetValues<NonconformitySource>())
+                    {
+                        <option value="@s" selected="@(f.Source == s)">@Ui.NonconformitySourceText(s)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Durum</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                    @foreach (var s in Enum.GetValues<NonconformityStatus>())
+                    {
+                        <option value="@s" selected="@(f.Status == s)">@Ui.NonconformityStatusText(s)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="overdueOnly" value="true"
+                           id="ovr" checked="@f.OverdueOnly" />
+                    <label class="form-check-label small" for="ovr">Yalnızca termini geçen</label>
+                </div>
+            </div>
+            <div class="col-md-1"><button class="btn btn-sm btn-primary w-100"><i class="bi bi-funnel"></i></button></div>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3 mb-3">
+    @foreach (var (label, value) in new[]
+    {
+        ("Toplam uygunsuzluk", toplam.Total.ToString()),
+        ("Açık / işlemde", $"{toplam.Open} / {toplam.InProgress}"),
+        ("Kapalı", $"{toplam.Closed} ({toplam.ClosedRate:0.0}%)"),
+        ("Ort. kapanış süresi", Gun(toplam.AvgClosureDays)),
+        ("Termin uyumu", Yuzde(toplam.OnTimeRate)),
+        ("Termini geçen açık", toplam.OverdueOpen.ToString())
+    })
+    {
+        <div class="col-6 col-md-2">
+            <div class="panel h-100"><div class="panel-body">
+                <div class="small text-muted">@label</div>
+                <div class="fs-4 fw-bold">@value</div>
+            </div></div>
+        </div>
+    }
+</div>
+
+<div class="panel mb-3">
+    <div class="panel-head">
+        Kaynağa göre kırılım
+        <span class="text-muted small fw-normal">
+            termin uyumu: termini olan ve kapanan kayıtlar üzerinden
+        </span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Kaynak</th><th style="width:22%">Dağılım</th>
+                    <th class="text-end">Toplam</th>
+                    <th class="text-end">Açık</th><th class="text-end">İşlemde</th><th class="text-end">Kapalı</th>
+                    <th class="text-end">Ort. kapanış</th>
+                    <th class="text-end">Zamanında / geciken</th>
+                    <th class="text-end">Termin uyumu</th>
+                    <th class="text-end">Termini geçen</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in kaynaklar)
+                {
+                    <tr class="@(s.Total == 0 ? "text-muted" : "")">
+                        <td class="fw-semibold">@Ui.NonconformitySourceText(s.Source!.Value)</td>
+                        <td>
+                            @* Kaynakların birbirine göre ağırlığı: hangi olay
+                               türü kalite kaydı üretiyor *@
+                            <div class="bg-light rounded" style="height:10px">
+                                <div class="bg-primary rounded" style="height:10px;width:@((int)(100.0 * s.Total / enCok))%"></div>
+                            </div>
+                        </td>
+                        <td class="text-end fw-semibold">@s.Total</td>
+                        <td class="text-end">@s.Open</td>
+                        <td class="text-end">@s.InProgress</td>
+                        <td class="text-end">@s.Closed <span class="small text-muted">(@s.ClosedRate.ToString("0.0")%)</span></td>
+                        <td class="text-end">@Gun(s.AvgClosureDays)</td>
+                        <td class="text-end">@s.ClosedOnTime / @s.ClosedLate</td>
+                        <td class="text-end">
+                            @if (s.OnTimeRate is { } oran)
+                            {
+                                <span class="tag @(oran >= 90 ? "tag-green" : oran >= 70 ? "tag-amber" : "tag-red")">@Yuzde(oran)</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (s.OverdueOpen > 0) { <span class="tag tag-red">@s.OverdueOpen</span> } else { <text>0</text> }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot class="table-light fw-semibold">
+                <tr>
+                    <td>TOPLAM</td><td></td>
+                    <td class="text-end">@toplam.Total</td>
+                    <td class="text-end">@toplam.Open</td>
+                    <td class="text-end">@toplam.InProgress</td>
+                    <td class="text-end">@toplam.Closed</td>
+                    <td class="text-end">@Gun(toplam.AvgClosureDays)</td>
+                    <td class="text-end">@toplam.ClosedOnTime / @toplam.ClosedLate</td>
+                    <td class="text-end">@Yuzde(toplam.OnTimeRate)</td>
+                    <td class="text-end">@toplam.OverdueOpen</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">Kayıtlar <span class="text-muted small fw-normal">@pager.TotalCount kayıt</span></div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>Tespit</th><th>Kaynak</th><th>Uygunsuzluk</th><th>Sorumlu</th>
+                    <th>Termin</th><th>Durum</th><th>Kapanış</th><th>Doğrulama</th><th>Kanıt</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="9" class="text-center text-muted py-4">Seçilen dönemde uygunsuzluk kaydı yok</td></tr>
+                }
+                @foreach (var r in Model)
+                {
+                    var gecikti = NonconformityReportPolicy.IsOverdue(r, now);
+                    <tr>
+                        <td class="small text-muted text-nowrap">@AppTime.ToLocal(r.DetectedAt).ToString("dd.MM.yyyy")</td>
+                        <td class="small">@Ui.NonconformitySourceText(r.Source)</td>
+                        <td>
+                            <a asp-controller="Nonconformities" asp-action="Index" class="text-decoration-none">#@r.Id</a>
+                            @if (r.TicketNo != null)
+                            {
+                                <a asp-controller="Tickets" asp-action="Details" asp-route-id="@r.TicketId"
+                                   class="small text-decoration-none ms-1">@r.TicketNo</a>
+                            }
+                            <div class="small text-muted text-truncate" style="max-width:380px">@r.Description</div>
+                        </td>
+                        <td class="small">@(r.Responsible ?? "-")</td>
+                        <td class="small text-nowrap">
+                            @(AppTime.ToLocal(r.DueAt)?.ToString("dd.MM.yyyy") ?? "-")
+                            @if (gecikti) { <span class="tag tag-red">geçti</span> }
+                        </td>
+                        <td><span class="tag @Ui.NonconformityStatusTag(r.Status)">@Ui.NonconformityStatusText(r.Status)</span></td>
+                        <td class="small text-nowrap">
+                            @if (r.ClosedAt != null)
+                            {
+                                @AppTime.ToLocal(r.ClosedAt)?.ToString("dd.MM.yyyy")
+                                <div class="text-muted">@Gun(r.ClosureDays)</div>
+                            }
+                            else { <span class="text-muted">-</span> }
+                        </td>
+                        <td>
+                            @if (r.Verified) { <span class="tag tag-green">var</span> } else { <span class="text-muted small">-</span> }
+                        </td>
+                        <td class="small">@r.EvidenceCount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<partial name="_Pager" model="pager" />

@@ -1,0 +1,134 @@
+@model List<SurveyTemplate>
+@{
+    ViewData["Title"] = "Anket Şablonları";
+    var yanitlar = (Dictionary<int, int>)ViewBag.ResponseCounts;
+    var aktif = Model.FirstOrDefault(t => t.IsActive);
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="me-auto">
+        <div class="text-muted small">
+            Kapanan talepler için sorulan memnuniyet anketinin soruları buradan yönetilir (ISO 9001 md. 9.1.2).
+            <strong>Aynı anda yalnızca bir şablon aktif olabilir:</strong> ikinci bir şablonu aktif etmek için
+            önce yürürlükteki şablonu pasifleştirmeniz gerekir. Şablonlar ve sorular silinmez, pasifleştirilir —
+            toplanmış değerlendirmeler hangi soruya verildiğini korur.
+        </div>
+    </div>
+    <a asp-action="Index" class="btn btn-light border btn-sm"><i class="bi bi-bar-chart"></i> Sonuçlar</a>
+</div>
+
+<div class="panel mb-3">
+    <div class="panel-head">
+        Yürürlükteki anket
+    </div>
+    <div class="panel-body py-3">
+        @if (aktif == null)
+        {
+            <div class="d-flex align-items-center gap-2">
+                <span class="tag tag-amber">Aktif şablon yok</span>
+                <span class="text-muted small">
+                    Hiçbir şablon aktif değilken kapanan talepler için anket sorulmaz; portalda değerlendirme formu görünmez.
+                </span>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="tag tag-green">Aktif</span>
+                <span class="fw-semibold">@aktif.Name</span>
+                <span class="text-muted small">
+                    @aktif.Questions.Count(q => q.IsActive) aktif soru ·
+                    @(yanitlar.TryGetValue(aktif.Id, out var ad) ? ad : 0) değerlendirme
+                </span>
+                <a asp-action="Questions" asp-route-id="@aktif.Id" class="btn btn-sm btn-outline-primary ms-auto">
+                    <i class="bi bi-list-ol"></i> Soruları yönet
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">Şablonlar <span class="text-muted small fw-normal">@Model.Count kayıt</span></div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th style="width:40%">Ad</th>
+                    <th style="width:14%">Soru</th>
+                    <th style="width:14%">Değerlendirme</th>
+                    <th style="width:12%">Durum</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">Henüz şablon yok</td></tr>
+                }
+                @foreach (var t in Model)
+                {
+                    var aktifSoru = t.Questions.Count(q => q.IsActive);
+                    <tr class="@(!t.IsActive ? "opacity-75" : "")">
+                        <form asp-action="SaveTemplate" method="post">
+                            <input type="hidden" name="id" value="@t.Id" />
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input name="name" value="@t.Name" class="form-control form-control-sm"
+                                           required maxlength="@SurveyTemplateRules.MaxNameLength" aria-label="Anket adı" />
+                                    <button class="btn btn-outline-primary" title="Adı kaydet"><i class="bi bi-check-lg"></i></button>
+                                </div>
+                            </td>
+                        </form>
+                        <td class="small">
+                            @aktifSoru aktif
+                            @if (t.Questions.Count > aktifSoru)
+                            {
+                                <span class="text-muted">· @(t.Questions.Count - aktifSoru) pasif</span>
+                            }
+                        </td>
+                        <td class="small text-muted">@(yanitlar.TryGetValue(t.Id, out var n) ? n : 0)</td>
+                        <td>
+                            @if (t.IsActive) { <span class="tag tag-green">Aktif</span> }
+                            else { <span class="tag tag-gray">Pasif</span> }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a asp-action="Questions" asp-route-id="@t.Id" class="btn btn-sm btn-outline-secondary" title="Soruları yönet">
+                                <i class="bi bi-list-ol"></i>
+                            </a>
+                            @if (t.IsActive)
+                            {
+                                <form asp-action="Deactivate" asp-route-id="@t.Id" method="post" class="d-inline">
+                                    <button class="btn btn-sm btn-outline-secondary" title="Pasifleştir"><i class="bi bi-pause"></i></button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="Activate" asp-route-id="@t.Id" method="post" class="d-inline">
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            title="@(aktif != null ? $"Önce \"{aktif.Name}\" şablonunu pasifleştirin" : aktifSoru == 0 ? "Önce en az bir soru ekleyin" : "Aktifleştir")"
+                                            @(aktif != null || aktifSoru == 0 ? "disabled" : null)>
+                                        <i class="bi bi-play"></i>
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                <tr class="table-light">
+                    <form asp-action="SaveTemplate" method="post">
+                        <input type="hidden" name="id" value="0" />
+                        <td>
+                            <input name="name" class="form-control form-control-sm" placeholder="Yeni şablon adı"
+                                   required maxlength="@SurveyTemplateRules.MaxNameLength" aria-label="Yeni şablon adı" />
+                        </td>
+                        <td colspan="3" class="small text-muted">
+                            Yeni şablon pasif açılır; soruları ekledikten sonra aktifleştirilir.
+                        </td>
+                        <td class="text-end"><button class="btn btn-sm btn-primary">Ekle</button></td>
+                    </form>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

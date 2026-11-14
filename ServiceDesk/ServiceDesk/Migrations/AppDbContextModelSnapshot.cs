@@ -186,10 +186,25 @@ namespace ServiceDesk.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedById")
+                        .HasColumnType("int");
+
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ScanStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ScannedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
@@ -211,6 +226,8 @@ namespace ServiceDesk.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CommentId");
+
+                    b.HasIndex("DeletedById");
 
                     b.HasIndex("TicketId");
 
@@ -798,6 +815,12 @@ namespace ServiceDesk.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ApprovedById")
+                        .HasColumnType("int");
+
                     b.Property<int>("AuthorId")
                         .HasColumnType("int");
 
@@ -811,8 +834,27 @@ namespace ServiceDesk.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("bit");
+                    b.Property<int>("HelpfulCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NotHelpfulCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RejectionNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("SubmittedById")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -827,11 +869,98 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ApprovedById");
+
                     b.HasIndex("AuthorId");
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("Status");
+
+                    b.HasIndex("SubmittedById");
+
                     b.ToTable("KnowledgeArticles");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticleFeedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsHelpful")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ArticleId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("KnowledgeArticleFeedbacks");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticleRevision", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("VersionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("ArticleId", "VersionNo")
+                        .IsUnique();
+
+                    b.ToTable("KnowledgeArticleRevisions");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.KpiSnapshot", b =>
@@ -860,6 +989,10 @@ namespace ServiceDesk.Migrations
                         .HasPrecision(3, 2)
                         .HasColumnType("decimal(3,2)");
 
+                    b.Property<decimal>("CsatResponseRate")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("decimal(5,1)");
+
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
 
@@ -869,6 +1002,9 @@ namespace ServiceDesk.Migrations
                     b.Property<decimal>("FirstResponseComplianceRate")
                         .HasPrecision(5, 1)
                         .HasColumnType("decimal(5,1)");
+
+                    b.Property<int>("LowCsatCount")
+                        .HasColumnType("int");
 
                     b.Property<int>("Period")
                         .HasColumnType("int");
@@ -888,6 +1024,9 @@ namespace ServiceDesk.Migrations
                     b.Property<decimal>("SlaComplianceRate")
                         .HasPrecision(5, 1)
                         .HasColumnType("decimal(5,1)");
+
+                    b.Property<int>("SurveyResponseCount")
+                        .HasColumnType("int");
 
                     b.Property<int>("TotalTickets")
                         .HasColumnType("int");
@@ -946,6 +1085,9 @@ namespace ServiceDesk.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("ArticleId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("datetime2");
 
@@ -967,6 +1109,9 @@ namespace ServiceDesk.Migrations
                     b.Property<bool?>("EffectivenessVerified")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("ReminderSentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("ResponsibleId")
                         .HasColumnType("int");
 
@@ -983,15 +1128,90 @@ namespace ServiceDesk.Migrations
                     b.Property<int?>("TicketId")
                         .HasColumnType("int");
 
+                    b.Property<string>("VerificationNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("VerifiedById")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
 
                     b.HasIndex("ResponsibleId");
 
                     b.HasIndex("TicketId");
 
+                    b.HasIndex("VerifiedById");
+
                     b.HasIndex("Status", "DueAt");
 
                     b.ToTable("Nonconformities");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.NonconformityAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("NonconformityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScanStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ScannedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UploadedById")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("NonconformityId");
+
+                    b.HasIndex("UploadedById");
+
+                    b.ToTable("NonconformityAttachments");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Notification", b =>
@@ -1665,6 +1885,12 @@ namespace ServiceDesk.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("SurveyInvitedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SurveyReminderSentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Tags")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
@@ -1767,10 +1993,10 @@ namespace ServiceDesk.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId");
+
                     b.HasIndex("TicketId", "UserId")
                         .IsUnique();
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("TicketFollowers");
                 });
@@ -1867,6 +2093,11 @@ namespace ServiceDesk.Migrations
                         .HasForeignKey("CommentId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("ServiceDesk.Models.AppUser", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.Ticket", "Ticket")
                         .WithMany("Attachments")
                         .HasForeignKey("TicketId")
@@ -1879,6 +2110,8 @@ namespace ServiceDesk.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Comment");
+
+                    b.Navigation("DeletedBy");
 
                     b.Navigation("Ticket");
 
@@ -2014,6 +2247,11 @@ namespace ServiceDesk.Migrations
 
             modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticle", b =>
                 {
+                    b.HasOne("ServiceDesk.Models.AppUser", "ApprovedBy")
+                        .WithMany()
+                        .HasForeignKey("ApprovedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.AppUser", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
@@ -2025,9 +2263,63 @@ namespace ServiceDesk.Migrations
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("ServiceDesk.Models.AppUser", "SubmittedBy")
+                        .WithMany()
+                        .HasForeignKey("SubmittedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ApprovedBy");
+
                     b.Navigation("Author");
 
                     b.Navigation("Category");
+
+                    b.Navigation("SubmittedBy");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticleFeedback", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.KnowledgeArticle", "Article")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticleRevision", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.KnowledgeArticle", "Article")
+                        .WithMany("Revisions")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ServiceDesk.Models.AppUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.KpiSnapshot", b =>
@@ -2052,6 +2344,11 @@ namespace ServiceDesk.Migrations
 
             modelBuilder.Entity("ServiceDesk.Models.Nonconformity", b =>
                 {
+                    b.HasOne("ServiceDesk.Models.KnowledgeArticle", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ServiceDesk.Models.AppUser", "Responsible")
                         .WithMany()
                         .HasForeignKey("ResponsibleId")
@@ -2062,9 +2359,43 @@ namespace ServiceDesk.Migrations
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("ServiceDesk.Models.AppUser", "VerifiedBy")
+                        .WithMany()
+                        .HasForeignKey("VerifiedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Article");
+
                     b.Navigation("Responsible");
 
                     b.Navigation("Ticket");
+
+                    b.Navigation("VerifiedBy");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.NonconformityAttachment", b =>
+                {
+                    b.HasOne("ServiceDesk.Models.AppUser", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ServiceDesk.Models.Nonconformity", "Nonconformity")
+                        .WithMany("Attachments")
+                        .HasForeignKey("NonconformityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ServiceDesk.Models.AppUser", "UploadedBy")
+                        .WithMany()
+                        .HasForeignKey("UploadedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("Nonconformity");
+
+                    b.Navigation("UploadedBy");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.Notification", b =>
@@ -2325,6 +2656,18 @@ namespace ServiceDesk.Migrations
             modelBuilder.Entity("ServiceDesk.Models.Department", b =>
                 {
                     b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.KnowledgeArticle", b =>
+                {
+                    b.Navigation("Feedbacks");
+
+                    b.Navigation("Revisions");
+                });
+
+            modelBuilder.Entity("ServiceDesk.Models.Nonconformity", b =>
+                {
+                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("ServiceDesk.Models.SurveyResponse", b =>

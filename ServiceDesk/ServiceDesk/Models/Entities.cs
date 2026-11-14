@@ -320,6 +320,18 @@ public class Ticket
 
     public SurveyResponse? Survey { get; set; }
 
+    // ── Memnuniyet anketi penceresi ─────────────────────────────────────
+    // Anket daveti talep çözüldüğü anda açılır (TicketWorkflow.Apply) ve
+    // yapılandırmadaki süre (Survey:ExpiresAfterDays) sonunda kapanır:
+    // aylar sonra doldurulan anket, hizmetin o günkü halini ölçmez.
+    // Talep yeniden açılırsa pencere de sıfırlanır, yeni çözümde yeniden başlar.
+    public DateTime? SurveyInvitedAt { get; set; }
+
+    // Hatırlatma e-postasının gittiği an (SurveyReminderService). Dolu olan
+    // talebe ikinci hatırlatma gönderilmez — iş birden fazla turda çalışsa,
+    // uygulama yeniden başlasa da kullanıcı tek hatırlatma alır.
+    public DateTime? SurveyReminderSentAt { get; set; }
+
     // Talep bir bilgi bankası makalesiyle çözüldüyse
     public int? ResolvedByArticleId { get; set; }
     public KnowledgeArticle? ResolvedByArticle { get; set; }
@@ -516,7 +528,12 @@ public enum NotificationType
     [Display(Name = "Yeni talep")] NewTicket = 7,
     [Display(Name = "Günlük özet")] DailyDigest = 8,
     [Display(Name = "Onay hatırlatma")] ApprovalReminder = 9,
-    [Display(Name = "Değişiklik uygulaması")] ChangeImplementation = 10
+    [Display(Name = "Değişiklik uygulaması")] ChangeImplementation = 10,
+    [Display(Name = "Anket hatırlatma")] SurveyReminder = 11,
+    [Display(Name = "Uygunsuzluk açıldı")] NonconformityOpened = 12,
+    // Düzeltici faaliyetin termini yaklaşan / geçen kayıtlar
+    // (NonconformityReminderService)
+    [Display(Name = "Uygunsuzluk termin hatırlatma")] NonconformityDueReminder = 13
 }
 
 public enum NotificationChannel { InApp = 0, Email = 1, Sms = 2 }
@@ -711,9 +728,37 @@ public class Attachment
     public long Size { get; set; }
     public DateTime UploadedAt { get; set; } = AppTime.UtcNow;
 
+    // ── Antivirüs taraması (IAttachmentScanner) ─────────────────────────
+    // Dosya diske yazıldıktan hemen sonra taranır; sonuç burada kalıcı olur.
+    // Temiz (ya da tarama kapsamı dışı) olmayan dosya indirilemez:
+    // AttachmentPolicy.IsServable + AttachmentsController.Get.
+    public AttachmentScanStatus ScanStatus { get; set; } = AttachmentScanStatus.Pending;
+    public DateTime? ScannedAt { get; set; }
+
+    // ── Yumuşak silme ───────────────────────────────────────────────────
+    // Kayıt silinmez, işaretlenir (ISO 9001 md. 7.5: kayıtların korunması):
+    // dosya diskte kalır ama listelere ve indirmeye düşmez. Global query
+    // filter sayesinde silinmiş ek sorgulara hiç girmez.
+    // Kimin kaldırdığı AttachmentPolicy.CanDelete ile birlikte denetim izidir.
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedById { get; set; }
+    public AppUser? DeletedBy { get; set; }
+
     // Tarayıcıda gösterilebilen güvenli görsel mi? Kaydedilen içerik türüne değil
     // (eski kayıtlarda istemciden geliyordu) diskteki dosyanın uzantısına bakılır.
     public bool IsImage => UploadPolicy.IsInlineImage(StoredFileName);
+}
+
+// Ek dosyanın tarama durumu. Yalnızca Clean ve Skipped servis edilir;
+// Pending / Suspicious / Failed "henüz güvenli değil" sayılır.
+public enum AttachmentScanStatus
+{
+    [Display(Name = "Taranmadı")] Pending = 0,
+    [Display(Name = "Temiz")] Clean = 1,
+    [Display(Name = "Şüpheli")] Suspicious = 2,
+    [Display(Name = "Taranamadı")] Failed = 3,
+    [Display(Name = "Tarama kapsamı dışı")] Skipped = 4
 }
 
 public enum UserRole
@@ -872,6 +917,21 @@ public class KpiSnapshot
     [Display(Name = "Memnuniyet")]
     public decimal CsatAverage { get; set; }
 
+    // Memnuniyet ölçümünün kendi kalitesi: ortalama tek başına yeterli değil.
+    // 4,8 ortalama, iki yanıttan geliyorsa dönemi temsil etmez; ISO 9001
+    // md. 9.1.2 müşteri algısının İZLENMESİNİ ister, tek bir sayıyı değil.
+    [Display(Name = "Anket yanıtı")]
+    public int SurveyResponseCount { get; set; }
+
+    // Yanıt oranı: dönemde çözülen taleplerin kaçı değerlendirilmiş (%)
+    [Display(Name = "Anket yanıt oranı (%)")]
+    public decimal CsatResponseRate { get; set; }
+
+    // Eşik altı (uygunsuzluk doğuran) değerlendirme sayısı: ortalama
+    // yükselse de şikâyet sayısı artıyorsa bu kolonda görünür
+    [Display(Name = "Düşük puanlı yanıt")]
+    public int LowCsatCount { get; set; }
+
     public DateTime CalculatedAt { get; set; } = AppTime.UtcNow;
 }
 
@@ -921,11 +981,118 @@ public class Nonconformity
 
     public DateTime? ClosedAt { get; set; }
 
+    // ── Termin hatırlatması (NonconformityReminderService) ──────────────
+    //
+    // Son gönderilen hatırlatmanın anı. Aynı kayıt için aynı aşamada ikinci
+    // hatırlatma gitmez; "termin yaklaşıyor" ve "termin geçti" ayrı aşamadır
+    // ve ayrım bu alanın termine göre konumundan okunur (DueAt'ten ÖNCE
+    // yazılmışsa gönderilen hatırlatma "yaklaşıyor" olanıdır). Ayrı bir alan
+    // tutmaya gerek kalmadan iki aşamanın her biri bir kez hatırlatılır;
+    // termin ileri alınırsa gecikme aşaması yeni termin için yeniden işler.
+    public DateTime? ReminderSentAt { get; set; }
+
+    // ── Etkinlik doğrulaması (md. 10.2 d: alınan önlemin etkinliği
+    // gözden geçirilmelidir) ─────────────────────────────────────────────
+    //
+    // Eskiden bu bilgi tek bir bool? idi: "doğrulandı" yazıyordu ama KİMİN,
+    // NE ZAMAN ve NEYE DAYANARAK doğruladığı hiçbir yerde durmuyordu — yani
+    // denetimde gösterilecek bir iz bırakmıyordu. Bayrak kaldı (durum
+    // göstergesi), yanına doğrulamanın kaydı eklendi.
     [Display(Name = "Etkinlik doğrulandı")]
     public bool? EffectivenessVerified { get; set; }
 
+    public DateTime? VerifiedAt { get; set; }
+
+    // Doğrulayan kişi SORUMLUDAN farklı olmak zorunda (NonconformityClosure):
+    // faaliyeti yürüten kişinin kendi beyanı gözden geçirme sayılmaz.
+    public int? VerifiedById { get; set; }
+    public AppUser? VerifiedBy { get; set; }
+
+    // Etkinliğin nasıl doğrulandığı: hangi kayda, ölçüme ya da gözleme
+    // bakıldı. Doğrulama işaretlenirken zorunlu — notsuz doğrulama yine iz
+    // bırakmayan bir bayraktan ibaret olurdu.
+    [StringLength(1000), Display(Name = "Doğrulama notu")]
+    public string? VerificationNote { get; set; }
+
+    // ── Kanıt dosyaları ─────────────────────────────────────────────────
+    // Kapanış için en az bir kanıt şart (md. 10.2.2: sonuçların kaydı).
+    // Talep ekleri (Attachment) zorunlu TicketId taşıdığı için kullanılamaz:
+    // uygunsuzluk talebe bağlı olmadan da açılabiliyor.
+    public List<NonconformityAttachment> Attachments { get; set; } = new();
+
+    // ── Bilgi bankası makalesi ──────────────────────────────────────────
+    // Bu uygunsuzluktan üretilen makale (md. 7.5 / 10.3): kök neden ve
+    // düzeltici faaliyet kurum bilgisine dönüşsün. Makale TASLAK doğar ve
+    // bilgi bankasının kendi onay akışından geçer (KnowledgePublishing).
+    public int? ArticleId { get; set; }
+    public KnowledgeArticle? Article { get; set; }
+
     public bool IsOverdue => Status != NonconformityStatus.Closed
                              && DueAt != null && AppTime.UtcNow > DueAt;
+}
+
+// Uygunsuzluğa yüklenen KANIT dosyası (dosyanın kendisi Uploads klasöründe).
+//
+// Neden Attachment kullanılmıyor: Attachment.TicketId zorunlu, uygunsuzluk ise
+// talebe bağlı olmadan da açılabiliyor (iç denetim, gözlem). Talep numarası
+// uydurmak ya da TicketId'yi opsiyonel yapıp tüm talep eki kurallarını
+// (görünürlük, kota, arşiv) belirsizleştirmek yerine ayrı tablo tutuluyor.
+//
+// Yükleme kuralları talep ekleriyle AYNI katmandan geçer: UploadPolicy
+// (uzantı + bildirilen tür + imza), IAttachmentScanner (antivirüs) ve
+// AttachmentQuota (kullanıcı başına toplam, uygunsuzluk başına toplam).
+public class NonconformityAttachment
+{
+    public int Id { get; set; }
+
+    public int NonconformityId { get; set; }
+    public Nonconformity? Nonconformity { get; set; }
+
+    public int? UploadedById { get; set; }
+    public AppUser? UploadedBy { get; set; }
+
+    [Required, StringLength(255)]
+    public string FileName { get; set; } = "";        // kullanıcının yüklediği orijinal ad
+
+    [Required, StringLength(100)]
+    public string StoredFileName { get; set; } = "";  // diskteki ad (guid + uzantı)
+
+    [StringLength(100)]
+    public string ContentType { get; set; } = "";
+    public long Size { get; set; }
+    public DateTime UploadedAt { get; set; } = AppTime.UtcNow;
+
+    // Antivirüs taraması: yalnızca temiz (ya da tarama kapsamı dışı) dosya
+    // servis edilir ve yalnızca o dosya KANIT sayılır — şüpheli bir dosyayla
+    // uygunsuzluk kapatılamaz.
+    public AttachmentScanStatus ScanStatus { get; set; } = AttachmentScanStatus.Pending;
+    public DateTime? ScannedAt { get; set; }
+
+    // Yumuşak silme (md. 7.5): kayıt silinmez, işaretlenir. Kapanmış
+    // uygunsuzluğun kanıtı hiç kaldırılamaz (NonconformityClosure).
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedById { get; set; }
+    public AppUser? DeletedBy { get; set; }
+
+    public bool IsServable => ScanStatus is AttachmentScanStatus.Clean or AttachmentScanStatus.Skipped;
+
+    public bool IsImage => UploadPolicy.IsInlineImage(StoredFileName);
+}
+
+// Makalenin yayın durumu (md. 7.5.2: dokümante edilmiş bilgi yayımlanmadan
+// önce uygunluğu gözden geçirilip ONAYLANMALIDIR).
+//
+// Eskiden bu bilgi tek bir IsPublished bayrağıydı: makaleyi yazan kişi aynı
+// anda yayımlayabiliyordu, yani gözden geçirme kaydı hiç tutulmuyordu.
+// Durum alanı bayrağın yerini alır ve "kim gönderdi / kim onayladı / neden
+// reddedildi" sorularını cevaplanabilir kılar.
+public enum KnowledgeArticleStatus
+{
+    [Display(Name = "Taslak")] Draft = 0,
+    [Display(Name = "Onay bekliyor")] PendingApproval = 1,
+    [Display(Name = "Yayında")] Published = 2,
+    [Display(Name = "Reddedildi")] Rejected = 3
 }
 
 // Bilgi bankası ve dokümante edilmiş prosedür (md. 7.5)
@@ -945,12 +1112,121 @@ public class KnowledgeArticle
     public int AuthorId { get; set; }
     public AppUser? Author { get; set; }
 
-    public bool IsPublished { get; set; } = true;
+    // Yeni makale taslak doğar: yayına ancak onaydan geçerek çıkar.
+    [Display(Name = "Durum")]
+    public KnowledgeArticleStatus Status { get; set; } = KnowledgeArticleStatus.Draft;
+
+    // Onaya gönderim: kim, ne zaman. Reddedilip yeniden gönderilen makalede
+    // son gönderimi gösterir.
+    public DateTime? SubmittedAt { get; set; }
+    public int? SubmittedById { get; set; }
+    public AppUser? SubmittedBy { get; set; }
+
+    // Onay kaydı. Makale yayından onaya geri döndüğünde temizlenir ki
+    // "yayındaki hali kim onayladı" bilgisi yanıltıcı olmasın.
+    public DateTime? ApprovedAt { get; set; }
+    public int? ApprovedById { get; set; }
+    public AppUser? ApprovedBy { get; set; }
+
+    // Red gerekçesi: yazarın neyi düzeltmesi gerektiğini bilmesi için zorunlu
+    [StringLength(500), Display(Name = "Red gerekçesi")]
+    public string? RejectionNote { get; set; }
+
     public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
-    // Bu makaleyle kaç talep çözüldü: makalenin gerçek faydası
+    // Bu makaleyle kaç talep çözüldü: makalenin gerçek faydası.
+    // Sayaç tek SQL UPDATE ile değişir (KnowledgeController.LinkToTicket);
+    // oku-değiştir-yaz yapılmaz, yoksa iki destek personeli aynı anda
+    // makale bağlarsa artışlardan biri kaybolur.
     public int UsedCount { get; set; }
+
+    // Makalenin bir talebi çözmek için EN SON kullanıldığı an. UsedCount
+    // "kaç kez" sorusunu, bu alan "ne zamandan beri" sorusunu cevaplar:
+    // sayacı yüksek ama iki yıldır kullanılmayan makale de gözden
+    // geçirilmeli (kullanılmayan makale raporu).
+    public DateTime? LastUsedAt { get; set; }
+
+    // ── Okuyucu geri bildirimi (md. 9.1.2: geri besleme) ───────────────
+    // Oyların kendisi KnowledgeArticleFeedback'te tutulur; buradaki iki
+    // sayaç özet (denormalize) değerdir: liste ve rapor ekranları her
+    // makale için ayrı COUNT sorgusu çalıştırmasın. Oylarla birlikte tek
+    // SQL UPDATE ile güncellenir.
+    [Display(Name = "Faydalı")]
+    public int HelpfulCount { get; set; }
+
+    [Display(Name = "Faydalı değil")]
+    public int NotHelpfulCount { get; set; }
+
+    // Sürüm geçmişi: her kaydetme yeni bir anlık görüntü bırakır
+    public List<KnowledgeArticleRevision> Revisions { get; set; } = new();
+
+    public List<KnowledgeArticleFeedback> Feedbacks { get; set; } = new();
+}
+
+// Makalenin okuyucu oyu: "faydalı" / "faydalı değil".
+//
+// Bir kullanıcının bir makaleye tek oyu olur (ArticleId + UserId benzersiz);
+// oyunu değiştirebilir ama ikinci kez oy veremez. Oy kimliğe bağlı
+// tutuluyor ki hem kullanıcı kendi oyunu ekranda görebilsin hem de aynı
+// kişi makaleyi tekrar açtığında sayaç şişmesin.
+public class KnowledgeArticleFeedback
+{
+    public int Id { get; set; }
+
+    public int ArticleId { get; set; }
+    public KnowledgeArticle? Article { get; set; }
+
+    public int UserId { get; set; }
+    public AppUser? User { get; set; }
+
+    [Display(Name = "Faydalı")]
+    public bool IsHelpful { get; set; }
+
+    public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+
+    // Oy değiştirildiyse son değişiklik anı
+    public DateTime? UpdatedAt { get; set; }
+}
+
+// Makalenin bir sürümü. Kaydedilen her değişiklikten SONRAKİ hali buraya
+// anlık görüntü olarak yazılır; yayımlanmış bir prosedürün ne zaman nasıl
+// değiştiğinin kaydı ISO 9001 md. 7.5.3.2'nin (değişikliklerin kontrolü)
+// istediği izdir.
+//
+// Metin makalenin kendisinde de duruyor, burada tekrar ediyor: amaç tam da
+// bu — makale değişse bile eski sürüm olduğu gibi okunabilsin. Kategori de
+// kopyalanır, çünkü makalenin o günkü sınıflandırması da sürümün parçası.
+public class KnowledgeArticleRevision
+{
+    public int Id { get; set; }
+
+    public int ArticleId { get; set; }
+    public KnowledgeArticle? Article { get; set; }
+
+    // Makale içinde 1'den başlayan sıra numarası (Id değil: kullanıcıya
+    // "3. sürüm" diye gösterilebilen, makaleye özel sayaç)
+    [Display(Name = "Sürüm")]
+    public int VersionNo { get; set; }
+
+    [Required, StringLength(200), Display(Name = "Başlık")]
+    public string Title { get; set; } = "";
+
+    [Required, Display(Name = "İçerik")]
+    public string Body { get; set; } = "";
+
+    public int? CategoryId { get; set; }
+    public Category? Category { get; set; }
+
+    // Sürümü yazan kişi: makalenin yazarı olmak zorunda değil
+    public int CreatedById { get; set; }
+    public AppUser? CreatedBy { get; set; }
+
+    public DateTime CreatedAt { get; set; } = AppTime.UtcNow;
+
+    // "2. sürüme geri dönüldü" gibi kısa açıklama
+    [StringLength(200), Display(Name = "Not")]
+    public string? Note { get; set; }
 }
 
 // Talebi takip eden (CC) kullanıcı: talebe yazılan yanıtlardan haberdar olur

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
@@ -40,7 +40,10 @@ public class AppDbContext : DbContext
     public DbSet<SurveyAnswer> SurveyAnswers => Set<SurveyAnswer>();
     public DbSet<KpiSnapshot> KpiSnapshots => Set<KpiSnapshot>();
     public DbSet<Nonconformity> Nonconformities => Set<Nonconformity>();
+    public DbSet<NonconformityAttachment> NonconformityAttachments => Set<NonconformityAttachment>();
     public DbSet<KnowledgeArticle> KnowledgeArticles => Set<KnowledgeArticle>();
+    public DbSet<KnowledgeArticleRevision> KnowledgeArticleRevisions => Set<KnowledgeArticleRevision>();
+    public DbSet<KnowledgeArticleFeedback> KnowledgeArticleFeedbacks => Set<KnowledgeArticleFeedback>();
     public DbSet<LoginAttempt> LoginAttempts => Set<LoginAttempt>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<AppUser> Users => Set<AppUser>();
@@ -103,6 +106,14 @@ public class AppDbContext : DbContext
           .HasOne(a => a.UploadedBy)
           .WithMany()
           .HasForeignKey(a => a.UploadedById)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        // Attachment N - 0..1 AppUser (eki kaldıran). Denetim izi olduğu için
+        // kullanıcı silinemez; ayrılan personel IsActive = false ile pasifleşir.
+        mb.Entity<Attachment>()
+          .HasOne(a => a.DeletedBy)
+          .WithMany()
+          .HasForeignKey(a => a.DeletedById)
           .OnDelete(DeleteBehavior.Restrict);
 
         // Ticket 1 - N TicketComment (talep silinirse yazışma da silinir)
@@ -391,6 +402,7 @@ public class AppDbContext : DbContext
         mb.Entity<KpiSnapshot>().Property(k => k.AvgResolutionHours).HasPrecision(9, 1);
         mb.Entity<KpiSnapshot>().Property(k => k.AvgFirstResponseHours).HasPrecision(9, 1);
         mb.Entity<KpiSnapshot>().Property(k => k.CsatAverage).HasPrecision(3, 2);
+        mb.Entity<KpiSnapshot>().Property(k => k.CsatResponseRate).HasPrecision(5, 1);
 
         mb.Entity<Nonconformity>()
           .HasOne(n => n.Ticket).WithMany()
@@ -400,8 +412,36 @@ public class AppDbContext : DbContext
           .HasOne(n => n.Responsible).WithMany()
           .HasForeignKey(n => n.ResponsibleId)
           .OnDelete(DeleteBehavior.Restrict);
+        // Etkinliği doğrulayan kişi: denetim izi olduğu için kullanıcı silinemez
+        mb.Entity<Nonconformity>()
+          .HasOne(n => n.VerifiedBy).WithMany()
+          .HasForeignKey(n => n.VerifiedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        // Uygunsuzluktan üretilen bilgi bankası makalesi (md. 10.3)
+        mb.Entity<Nonconformity>()
+          .HasOne(n => n.Article).WithMany()
+          .HasForeignKey(n => n.ArticleId)
+          .OnDelete(DeleteBehavior.Restrict);
         mb.Entity<Nonconformity>().HasIndex(n => new { n.Status, n.DueAt });
         mb.Entity<Nonconformity>().Ignore(n => n.IsOverdue);
+
+        // Kanıt dosyaları: uygunsuzluk silinirse kanıtı da gider (uygunsuzluksuz
+        // kanıt kaydının anlamı yok); yükleyen / kaldıran kullanıcı korunur.
+        mb.Entity<NonconformityAttachment>()
+          .HasOne(a => a.Nonconformity).WithMany(n => n.Attachments)
+          .HasForeignKey(a => a.NonconformityId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<NonconformityAttachment>()
+          .HasOne(a => a.UploadedBy).WithMany()
+          .HasForeignKey(a => a.UploadedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<NonconformityAttachment>()
+          .HasOne(a => a.DeletedBy).WithMany()
+          .HasForeignKey(a => a.DeletedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<NonconformityAttachment>().HasIndex(a => a.NonconformityId);
+        mb.Entity<NonconformityAttachment>().Ignore(a => a.IsImage);
+        mb.Entity<NonconformityAttachment>().Ignore(a => a.IsServable);
 
         mb.Entity<KnowledgeArticle>()
           .HasOne(a => a.Category).WithMany()
@@ -411,6 +451,51 @@ public class AppDbContext : DbContext
           .HasOne(a => a.Author).WithMany()
           .HasForeignKey(a => a.AuthorId)
           .OnDelete(DeleteBehavior.Restrict);
+        // Onaya gönderen / onaylayan: kullanıcı pasifleşse de kayıt durur
+        mb.Entity<KnowledgeArticle>()
+          .HasOne(a => a.SubmittedBy).WithMany()
+          .HasForeignKey(a => a.SubmittedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<KnowledgeArticle>()
+          .HasOne(a => a.ApprovedBy).WithMany()
+          .HasForeignKey(a => a.ApprovedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        // Yayın kuyruğu ve listeleme bu kolonun üzerinden geçer
+        mb.Entity<KnowledgeArticle>().HasIndex(a => a.Status);
+
+        // Sürüm geçmişi: makale silinirse geçmişi de gider (makalesiz sürüm
+        // kaydının anlamı yok), yazan kullanıcı ise korunur.
+        mb.Entity<KnowledgeArticleRevision>()
+          .HasOne(r => r.Article).WithMany(a => a.Revisions)
+          .HasForeignKey(r => r.ArticleId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<KnowledgeArticleRevision>()
+          .HasOne(r => r.CreatedBy).WithMany()
+          .HasForeignKey(r => r.CreatedById)
+          .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<KnowledgeArticleRevision>()
+          .HasOne(r => r.Category).WithMany()
+          .HasForeignKey(r => r.CategoryId)
+          .OnDelete(DeleteBehavior.Restrict);
+        // Sürüm numarası makale içinde tekrar etmez: eşzamanlı iki kaydetme
+        // aynı numarayı üretmeye çalışırsa veritabanı reddeder.
+        mb.Entity<KnowledgeArticleRevision>()
+          .HasIndex(r => new { r.ArticleId, r.VersionNo }).IsUnique();
+
+        // Okuyucu oyu: makale silinirse oyları da gider, kullanıcı korunur
+        mb.Entity<KnowledgeArticleFeedback>()
+          .HasOne(f => f.Article).WithMany(a => a.Feedbacks)
+          .HasForeignKey(f => f.ArticleId)
+          .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<KnowledgeArticleFeedback>()
+          .HasOne(f => f.User).WithMany()
+          .HasForeignKey(f => f.UserId)
+          .OnDelete(DeleteBehavior.Restrict);
+        // Kullanıcı başına tek oy: kural uygulama katmanında DEĞİL burada,
+        // veritabanında. İki istek aynı anda gelse bile ikincisi reddedilir
+        // (controller bu ihlali "zaten oy verilmiş" olarak ele alır).
+        mb.Entity<KnowledgeArticleFeedback>()
+          .HasIndex(f => new { f.ArticleId, f.UserId }).IsUnique();
 
         mb.Entity<Ticket>()
           .HasOne(t => t.ResolvedByArticle).WithMany()
@@ -436,7 +521,13 @@ public class AppDbContext : DbContext
         mb.Entity<Ticket>().HasQueryFilter(t => !t.IsDeleted);
         mb.Entity<ChangeDetail>().HasQueryFilter(d => !d.Ticket!.IsDeleted);
         mb.Entity<ChangeApproval>().HasQueryFilter(a => !a.Ticket!.IsDeleted);
-        mb.Entity<Attachment>().HasQueryFilter(a => !a.Ticket!.IsDeleted);
+        // Ekin kendi yumuşak silmesi de burada: kaldırılan dosya hiçbir
+        // listeye, sayıma ve indirmeye düşmez (AttachmentsController.Get
+        // IgnoreQueryFilters kullandığı için koşulu orada elle yazıyor).
+        mb.Entity<Attachment>().HasQueryFilter(a => !a.IsDeleted && !a.Ticket!.IsDeleted);
+        // Kaldırılan kanıt dosyası da listelere ve indirmeye düşmez; kotayı
+        // hesaplayan AttachmentQuota filtreyi yok sayıp koşulu elle yazıyor.
+        mb.Entity<NonconformityAttachment>().HasQueryFilter(a => !a.IsDeleted);
         mb.Entity<SurveyResponse>().HasQueryFilter(r => !r.Ticket!.IsDeleted);
         mb.Entity<SurveyAnswer>().HasQueryFilter(a => !a.Response!.Ticket!.IsDeleted);
         mb.Entity<TicketComment>().HasQueryFilter(c => !c.Ticket!.IsDeleted);

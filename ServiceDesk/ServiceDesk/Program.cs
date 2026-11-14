@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Data;
 using ServiceDesk.Models;
 using ServiceDesk.Services;
+using ServiceDesk.Services.Search;
 using ServiceDesk.Services.Approvals;
 using ServiceDesk.Services.Escalations;
 using ServiceDesk.Services.Messaging;
@@ -13,7 +14,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// ───── EK DOSYALAR (Uploads/) ────────────────────────────────────────────
+// Boyut sınırları ve kota appsettings.json → "Uploads" bölümünden gelir.
+builder.Services.Configure<UploadSettings>(builder.Configuration.GetSection(UploadSettings.Section));
+builder.Services.AddSingleton<IAttachmentScanner, LoggingAttachmentScanner>(); // antivirüs stub (loglar)
 builder.Services.AddSingleton<FileStorage>(); // talep ekleri (Uploads/ klasörü)
+builder.Services.AddScoped<AttachmentQuota>();        // kullanıcı / talep başına depolama kotası
 builder.Services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CurrentUser>();           // oturumdaki kullanıcı
@@ -21,7 +27,13 @@ builder.Services.AddScoped<NotificationService>();   // bildirim okuma / yazma
 builder.Services.AddScoped<TicketSlaService>();      // SLA politikası ve hedef tarihler
 builder.Services.AddScoped<TeamRoundRobin>();        // ekip bazlı otomatik (sıralı) atama
 builder.Services.AddScoped<KpiService>();            // dönemsel gösterge hesabı
+builder.Services.AddScoped<ManagementReviewService>();// yönetim gözden geçirme paketi (md. 9.3, salt okuma)
+builder.Services.AddScoped<SearchService>();         // bilgi bankası / talep / global arama
+// Uygunsuzluk eşikleri (ortalama + kritik soru puanı) ve termin:
+// appsettings.json → "Quality"
+builder.Services.Configure<QualitySettings>(builder.Configuration.GetSection(QualitySettings.Section));
 builder.Services.AddScoped<NonconformityService>();  // otomatik uygunsuzluk kaydı
+builder.Services.AddHostedService<NonconformityReminderService>(); // termin hatırlatma job'ı
 builder.Services.AddScoped<LoginAuditService>();     // giriş denetim izi ve deneme sınırı
 builder.Services.AddScoped<AuditService>();          // güvenlik / süreç denetim kaydı
 builder.Services.AddMemoryCache();
@@ -58,6 +70,17 @@ builder.Services.AddHostedService<ApprovalReminderService>(); // onay hatırlatm
 
 builder.Services.AddHostedService<SlaMonitorService>();   // dakikada bir SLA taraması
 builder.Services.AddHostedService<KpiAggregatorService>();// yarım saatte bir KPI
+
+// ───── MEMNUNİYET ANKETİ ────────────────────────────────────────────────
+// Hatırlatma gecikmesi ve anketin doldurulma süresi (TTL) appsettings.json →
+// "Survey" bölümünden gelir; PortalController süresi dolan anketi reddeder.
+builder.Services.Configure<SurveySettings>(builder.Configuration.GetSection(SurveySettings.Section));
+builder.Services.AddHostedService<SurveyReminderService>();   // anket hatırlatma e-postası
+
+// ───── EK DOSYA BAKIM JOB'LARI ──────────────────────────────────────────
+// Süreler ve açma / kapama appsettings.json → "Uploads" bölümünden gelir.
+builder.Services.AddHostedService<AttachmentRetentionService>();   // saklama süresi dolan ekleri kalıcı sil
+builder.Services.AddHostedService<OrphanAttachmentScanService>();  // kaydı olmayan dosyaları raporla
 
 // ───── İSTEK SINIRI (arama ve OTP uçları) ───────────────────────────────
 builder.Services.AddServiceDeskRateLimiting(builder.Configuration);

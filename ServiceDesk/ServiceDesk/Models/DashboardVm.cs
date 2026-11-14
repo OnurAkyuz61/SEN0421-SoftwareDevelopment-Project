@@ -32,6 +32,10 @@ public class DashboardVm
 
     // ISO 9001 md. 9.1.1: dönemsel ölçüm karşılaştırması
     public List<KpiSnapshot> MonthlyKpi { get; set; } = new();
+
+    // "Düşük puanlı yanıt" kolonunun eşiği (appsettings.json → Quality):
+    // panelde sayının neye göre sayıldığı yazılabilsin
+    public double LowCsatThreshold { get; set; }
     public int OpenNonconformities { get; set; }
     public int OverdueNonconformities { get; set; }
 }

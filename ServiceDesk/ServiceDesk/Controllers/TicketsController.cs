@@ -26,11 +26,12 @@ public class TicketsController : Controller
     private readonly ChangeResubmissionService _resubmit;
     private readonly AuditService _audit;
     private readonly TicketSlaService _sla;
+    private readonly AttachmentQuota _quota;
 
     public TicketsController(AppDbContext db, FileStorage files, CurrentUser current, NotificationService notify,
                              EscalationService escalation, ApprovalAuthority authority,
                              ApprovalChainResolver chain, ChangeResubmissionService resubmit, AuditService audit,
-                             TicketSlaService sla)
+                             TicketSlaService sla, AttachmentQuota quota)
     {
         _db = db;
         _files = files;
@@ -42,6 +43,7 @@ public class TicketsController : Controller
         _resubmit = resubmit;
         _audit = audit;
         _sla = sla;
+        _quota = quota;
     }
 
     private AppUser Me => _current.User!;
@@ -283,11 +285,13 @@ public class TicketsController : Controller
                 .Where(u => u.IsActive && u.Id != ticket.RequesterId && !takipciler.Contains(u.Id))
                 .OrderBy(u => u.FirstName).ThenBy(u => u.LastName).ToListAsync();
 
-        // Çözüm makalesi seçimi için yayımlanmış makaleler (arşivde gerekmez)
+        // Çözüm makalesi seçimi için yayındaki makaleler (arşivde gerekmez).
+        // Taslak ve onay bekleyen makale listeye girmez: kullanıcıya çözüm
+        // olarak gösterilen metin onaylanmış olmalı.
         ViewBag.Articles = ticket.IsDeleted
             ? new List<KnowledgeArticle>()
             : await _db.KnowledgeArticles.AsNoTracking()
-                .Where(a => a.IsPublished)
+                .Where(a => a.Status == KnowledgeArticleStatus.Published)
                 .OrderBy(a => a.Title)
                 .ToListAsync();
 
@@ -547,7 +551,9 @@ public class TicketsController : Controller
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        var fileError = FileStorage.Validate(files);
+        // Yorum eki sınırı (talep ekinden ayrı) + talep ve kullanıcı kotası
+        var fileError = _files.Validate(files, UploadKind.Comment)
+                        ?? await _quota.CheckAsync(_current.User!.Id, id, files);
         if (fileError != null)
         {
             TempData["Err"] = fileError;

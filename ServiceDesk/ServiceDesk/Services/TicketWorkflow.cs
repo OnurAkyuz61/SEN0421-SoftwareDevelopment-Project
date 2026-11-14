@@ -71,6 +71,11 @@ public static class TicketWorkflow
         {
             ticket.ResolvedAt ??= nowUtc;
             if (target == TicketStatus.Closed) ticket.ClosedAt ??= nowUtc;
+
+            // Anket penceresi çözümle birlikte açılır: hatırlatma gecikmesi ve
+            // doldurma süresi (SurveyPolicy) bu andan sayılır. Çözüldükten
+            // sonra kapatma ikinci bir davet açmaz (??=).
+            ticket.SurveyInvitedAt ??= nowUtc;
         }
         else if (wasFinished)
         {
@@ -81,6 +86,12 @@ public static class TicketWorkflow
             // Önceki çözüm geçersiz: bir sonraki çözümde kod yeniden seçilir
             ticket.ResolutionCode = null;
             ticket.RootCause = null;
+
+            // Anket penceresi de kapanır: iş henüz bitmedi, sorulacak bir şey
+            // yok. Bir sonraki çözümde pencere sıfırdan açılır ve hatırlatma
+            // yeniden gönderilebilir.
+            ticket.SurveyInvitedAt = null;
+            ticket.SurveyReminderSentAt = null;
         }
     }
 

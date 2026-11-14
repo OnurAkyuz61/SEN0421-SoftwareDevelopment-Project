@@ -1,13 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Net.Http.Headers;
 using ServiceDesk.Data;
 using ServiceDesk.Filters;
+using ServiceDesk.Models;
 using ServiceDesk.Services;
 
 namespace ServiceDesk.Controllers;
 
-// Ek dosyayı açar / indirir: /Attachments/Get/5
+// Ek dosyayı açar / indirir ve kaldırır:
+//   GET   /Attachments/Get/5
+//   POST  /Attachments/Delete/5
 [AuthorizeRole]
 public class AttachmentsController : Controller
 {
@@ -42,55 +44,109 @@ public class AttachmentsController : Controller
             .IgnoreQueryFilters()
             .Include(x => x.Ticket)
             .Include(x => x.Comment)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            // IgnoreQueryFilters ekin kendi yumuşak silmesini de kaldırdığı için
+            // koşul elle yazılır: kaldırılmış dosya indirilemez
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
         if (a == null) return NotFound();
 
         // Yetki kuralı AttachmentPolicy'de (birim testi yazılabilsin diye saf sınıf).
         // Yetkisiz erişimde 404 döner: ek numarasını deneyerek varlık yoklaması yapılamasın.
         if (!AttachmentPolicy.CanView(a, _current.User!)) return NotFound();
 
+        // Antivirüs taraması (IAttachmentScanner) temiz sonuçlanmadan dosya
+        // servis edilmez. Burada 404 yerine açıklayıcı yanıt dönüyoruz: dosyanın
+        // varlığı kullanıcıya zaten görünüyor (ek listesinde duruyor), gizlenecek
+        // bir şey yok; gizlenirse "dosyam kayboldu" diye destek talebi açılır.
+        if (!AttachmentPolicy.IsServable(a))
+        {
+            Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Content(a.ScanStatus == AttachmentScanStatus.Suspicious
+                ? "Bu dosya güvenlik taramasında şüpheli bulundu; indirilemez. Destek ekibiyle görüşün."
+                : "Bu dosya henüz güvenlik taramasından geçmedi. Lütfen birkaç dakika sonra yeniden deneyin.",
+                "text/plain; charset=utf-8");
+        }
+
         var path = _files.PathOf(a);
         // StoredFileName guid + uzantıdır; yine de Uploads dışına çıkan bir yol reddedilir
         if (Path.GetFileName(a.StoredFileName) != a.StoredFileName || !System.IO.File.Exists(path))
             return NotFound();
 
+        // Güvenli servis kuralları FileServing'de: uygunsuzluk kanıtı da
+        // (NonconformitiesController.Evidence) aynı başlıklardan geçiyor
         var contentType = UploadPolicy.ContentTypeFor(a.StoredFileName);
-        var inline = !download && UploadPolicy.IsInlineImage(a.StoredFileName) && ImageSignatureMatches(path, a.StoredFileName);
+        FileServing.ApplySafeHeaders(Response);
 
-        var h = Response.Headers;
-        h[HeaderNames.XContentTypeOptions] = "nosniff";
-        h[HeaderNames.ContentSecurityPolicy] = "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox";
-        h["Cross-Origin-Resource-Policy"] = "same-origin";
-        h[HeaderNames.CacheControl] = "private, no-store";
-        h["Referrer-Policy"] = "no-referrer";
-
-        if (inline)
+        if (!download && FileServing.CanShowInline(path, a.StoredFileName))
         {
-            // inline + güvenli ad: "Farklı kaydet" de doğru adı önerir
-            var cd = new ContentDispositionHeaderValue("inline");
-            cd.SetHttpFileName(a.FileName);
-            h[HeaderNames.ContentDisposition] = cd.ToString();
+            FileServing.SetInlineFileName(Response, a.FileName);
             return PhysicalFile(path, contentType);
         }
 
         // İndirme: imzası tutmayan "görsel" de dahil, tarayıcı içeriği yorumlamaz
-        return PhysicalFile(path, DownloadType(contentType), UploadPolicy.SafeFileName(a.FileName));
+        return PhysicalFile(path, FileServing.DownloadType(contentType), UploadPolicy.SafeFileName(a.FileName));
     }
 
-    // Görsel olmayan türler olduğu gibi; imzası tutmayan görsel genel ikili tür olarak iner
-    private static string DownloadType(string contentType) =>
-        contentType.StartsWith("image/", StringComparison.Ordinal) ? "application/octet-stream" : contentType;
-
-    private static bool ImageSignatureMatches(string path, string storedName)
+    // Ek dosyayı kaldırır. Kayıt SİLİNMEZ, işaretlenir (ISO 9001 md. 7.5:
+    // kayıtların korunması): dosya diskte kalır, kimin ne zaman kaldırdığı
+    // kayıtlıdır, ama listelere ve indirmeye düşmez (global query filter).
+    //
+    // Yetki kuralı AttachmentPolicy.CanDelete'te (birim testi yazılabilsin diye
+    // saf sınıf). Sorgu global filtreyle kurulduğu için zaten kaldırılmış ek ve
+    // arşivlenmiş talebin eki buraya hiç gelmez.
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id, string? returnTo)
     {
-        try
+        var a = await _db.Attachments
+            .Include(x => x.Ticket)
+            .Include(x => x.Comment)
+            .FirstOrDefaultAsync(x => x.Id == id);
+        if (a == null) return NotFound();
+
+        var me = _current.User!;
+
+        // Göremediği ek "bulunamadı" sayılır — Get ucuyla aynı kural: ek
+        // numarası denenerek başkasının dosyasının varlığı yoklanamaz.
+        if (!AttachmentPolicy.CanView(a, me)) return NotFound();
+
+        // Görüyor ama kaldıramıyor (başkasının yüklediği dosya, kapanmış talep):
+        // dosya ekranında durduğu için burada açık mesaj veriyoruz.
+        if (!AttachmentPolicy.CanDelete(a, me))
         {
-            using var fs = System.IO.File.OpenRead(path);
-            return UploadPolicy.Check(storedName, null, fs) == null;
+            TempData["Err"] = "Bu dosyayı kaldırma yetkiniz yok.";
+            return BackToTicket(a.TicketId, returnTo);
         }
-        catch (IOException)
+
+        a.IsDeleted = true;
+        a.DeletedAt = AppTime.UtcNow;
+        a.DeletedById = me.Id;
+
+        // Denetim izi: dosyanın kaldırılması talep geçmişine düşer
+        _db.TicketHistories.Add(new TicketHistory
         {
-            return false;
-        }
+            TicketId = a.TicketId,
+            Field = "Ek dosya",
+            OldValue = a.FileName,
+            NewValue = "kaldırıldı",
+            ChangedById = me.Id,
+            ChangedAt = AppTime.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+
+        TempData["Ok"] = $"\"{a.FileName}\" kaldırıldı.";
+        return BackToTicket(a.TicketId, returnTo);
     }
+
+    // Son kullanıcı portal detayına, destek / yönetici talep detayına döner.
+    // Portal popup'ından gelindiyse liste yeniden aynı talebi açar.
+    private IActionResult BackToTicket(int ticketId, string? returnTo)
+    {
+        if (string.Equals(returnTo, "modal", StringComparison.OrdinalIgnoreCase))
+            return RedirectToAction("Index", "Portal", new { open = ticketId });
+
+        return _current.User!.Role == UserRole.User
+            ? RedirectToAction("Details", "Portal", new { id = ticketId })
+            : RedirectToAction("Details", "Tickets", new { id = ticketId });
+    }
+
 }

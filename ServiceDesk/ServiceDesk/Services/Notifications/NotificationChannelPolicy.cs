@@ -28,13 +28,30 @@ public static class NotificationChannelPolicy
         [NotificationType.ApprovalDecided]  = new(new(true, true, false),  InAppLocked: false, SmsAllowed: false),
         [NotificationType.ApprovalReminder] = new(new(true, true, false),  InAppLocked: false, SmsAllowed: true),
         [NotificationType.ChangeImplementation] = new(new(true, true, false), InAppLocked: false, SmsAllowed: false),
+        // Uygunsuzluk sorumluluğu: uygulama içi bildirim kapatılamaz
+        // (InAppLocked). Kalite kaydının sahibi "görmedim" diyemez — md. 10.2
+        // düzeltici faaliyetin takip edilmesini ister.
+        [NotificationType.NonconformityOpened] = new(new(true, true, false), InAppLocked: true, SmsAllowed: false),
+        // Termin hatırlatması aynı sorumluluğun devamı: uygulama içi kanal
+        // yine kapatılamaz. Geciken düzeltici faaliyet denetimde açık bulgu
+        // olduğu için SMS'e de izin verilir (varsayılan kapalı; kullanıcı açar).
+        [NotificationType.NonconformityDueReminder] = new(new(true, true, false), InAppLocked: true, SmsAllowed: true),
         // Günlük özet yalnızca e-postadır; tercihi AppUser.DailyDigestEnabled ile yönetilir
         [NotificationType.DailyDigest]      = new(new(false, true, false), InAppLocked: false, SmsAllowed: false),
+        // Anket hatırlatma da yalnızca e-postadır (SurveyReminderService
+        // NotificationService.QueueEmail kullanır). Talep başına bir kez gider
+        // ve anket süresi dolunca hiç gitmez; profilde ayrı bir tercih satırı
+        // açmıyoruz — kapatılabilir olması gerekirse Survey:ReminderEnabled
+        // yapılandırması tüm kurum için kapatır.
+        [NotificationType.SurveyReminder]   = new(new(false, true, false), InAppLocked: false, SmsAllowed: false),
     };
 
-    // Profil ekranında listelenen (kullanıcının düzenleyebildiği) türler
+    // Profil ekranında listelenen (kullanıcının düzenleyebildiği) türler.
+    // Yalnızca e-posta ile giden ve tercihe bakılmadan gönderilen türler
+    // (günlük özet, anket hatırlatma) listede yer almaz: ekranda kapatılabilir
+    // görünüp yine gönderilmesi kullanıcıyı yanıltırdı.
     public static IEnumerable<NotificationType> ConfigurableTypes =>
-        Rules.Keys.Where(t => t != NotificationType.DailyDigest);
+        Rules.Keys.Where(t => t is not (NotificationType.DailyDigest or NotificationType.SurveyReminder));
 
     public static TypeRule RuleFor(NotificationType type) =>
         Rules.TryGetValue(type, out var r) ? r : new(new(true, false, false), false, false);
