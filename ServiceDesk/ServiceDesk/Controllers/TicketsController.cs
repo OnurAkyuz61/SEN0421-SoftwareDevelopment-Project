@@ -538,15 +538,9 @@ public class TicketsController : Controller
         ticket.DeletedById = _current.User!.Id;
         ticket.DeleteReason = reason;
 
-        _db.TicketHistories.Add(new TicketHistory
-        {
-            TicketId = ticket.Id,
-            Field = "Kayıt",
-            OldValue = "Aktif",
-            NewValue = "Arşivlendi",
-            ChangedById = _current.User!.Id,
-            ChangedAt = AppTime.UtcNow
-        });
+        // Geçmişte "Arşiv durumu" + neden (TicketArchiveHistory) — net denetim izi
+        _db.TicketHistories.Add(TicketArchiveHistory.Archived(
+            ticket.Id, _current.User!.Id, reason, AppTime.UtcNow));
 
         AdminCriticalAudit.QueueTicketArchived(_audit, _current.User!.Id, _current.User.Email, ticket, reason);
 
@@ -780,16 +774,15 @@ public class TicketsController : Controller
         var ticket = await _db.Tickets.IgnoreQueryFilters().FirstOrDefaultAsync(t => t.Id == id && t.IsDeleted);
         if (ticket == null) return NotFound();
 
+        var oncekiNeden = ticket.DeleteReason;
         ticket.IsDeleted = false;
         ticket.DeletedAt = null;
         ticket.DeletedById = null;
         ticket.DeleteReason = null;
 
-        _db.TicketHistories.Add(new TicketHistory
-        {
-            TicketId = ticket.Id, Field = "Kayıt", OldValue = "Arşivlendi", NewValue = "Geri yüklendi",
-            ChangedById = Me.Id, ChangedAt = AppTime.UtcNow
-        });
+        // Önceki arşiv nedeni OldValue'da kalır; geri yükleme net okunur
+        _db.TicketHistories.Add(TicketArchiveHistory.Restored(
+            ticket.Id, Me.Id, oncekiNeden, AppTime.UtcNow));
 
         AdminCriticalAudit.QueueTicketRestored(_audit, Me.Id, Me.Email, ticket);
 

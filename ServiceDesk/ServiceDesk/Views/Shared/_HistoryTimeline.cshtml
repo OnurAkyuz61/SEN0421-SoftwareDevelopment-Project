@@ -1,5 +1,6 @@
 @model List<TicketHistory>
-@* Alan bazlı değişiklik izi — ISO 9001 md. 7.5.3. Yönetim tarafında gösterilir. *@
+@* Alan bazlı değişiklik izi — ISO 9001 md. 7.5.3. Yönetim tarafında gösterilir.
+   Arşiv / geri yükleme (TicketArchiveHistory) ayrı vurgulanır. *@
 @if (!Model.Any())
 {
     <div class="text-muted small">Talep açıldığından beri değişiklik yapılmadı.</div>
@@ -9,8 +10,14 @@ else
     <ul class="timeline">
         @foreach (var h in Model)
         {
+            var arsiv = TicketArchiveHistory.IsArchiveEvent(h)
+                        || string.Equals(h.Field, "Kayıt", StringComparison.Ordinal); // eski kayıtlar
             <li>
                 <div class="small">
+                    @if (arsiv)
+                    {
+                        <span class="tag tag-amber me-1">Arşiv</span>
+                    }
                     <span class="fw-semibold">@h.Field</span>
                     <span class="text-muted">@(h.OldValue ?? "-")</span>
                     <i class="bi bi-arrow-right text-muted"></i>
