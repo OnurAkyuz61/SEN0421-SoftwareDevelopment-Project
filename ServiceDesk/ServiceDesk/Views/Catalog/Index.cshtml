@@ -32,12 +32,13 @@
         <table class="table table-sm mb-0 align-middle">
             <thead>
                 <tr>
-                    <th style="width:22%">Ad</th>
-                    <th style="width:20%">Üst kategori</th>
-                    <th style="width:18%">Varsayılan ekip</th>
-                    <th style="width:10%">Sıra</th>
-                    <th style="width:10%">Durum</th>
-                    <th style="width:10%">Talep</th>
+                    <th style="width:18%">Ad</th>
+                    <th style="width:16%">Üst kategori</th>
+                    <th style="width:14%">Varsayılan ekip</th>
+                    <th style="width:14%">Varsayılan öncelik</th>
+                    <th style="width:8%">Sıra</th>
+                    <th style="width:8%">Durum</th>
+                    <th style="width:8%">Talep</th>
                     <th></th>
                 </tr>
             </thead>
@@ -74,6 +75,15 @@
                                     }
                                 </select>
                             </td>
+                            <td>
+                                <select name="defaultPriority" class="form-select form-select-sm">
+                                    <option value="">-</option>
+                                    @foreach (var p in Enum.GetValues<Priority>())
+                                    {
+                                        <option value="@p" selected="@(c.DefaultPriority == p)">@Ui.PriorityText(p)</option>
+                                    }
+                                </select>
+                            </td>
                             <td><input name="sortOrder" type="number" value="@c.SortOrder" class="form-control form-control-sm" /></td>
                             <td>
                                 <div class="form-check mb-0">
@@ -104,6 +114,15 @@
                             <select name="defaultTeamId" class="form-select form-select-sm">
                                 <option value="">-</option>
                                 @foreach (var t in ekipler) { <option value="@t.Id">@t.Name</option> }
+                            </select>
+                        </td>
+                        <td>
+                            <select name="defaultPriority" class="form-select form-select-sm">
+                                <option value="">-</option>
+                                @foreach (var p in Enum.GetValues<Priority>())
+                                {
+                                    <option value="@p">@Ui.PriorityText(p)</option>
+                                }
                             </select>
                         </td>
                         <td><input name="sortOrder" type="number" value="60" class="form-control form-control-sm" /></td>

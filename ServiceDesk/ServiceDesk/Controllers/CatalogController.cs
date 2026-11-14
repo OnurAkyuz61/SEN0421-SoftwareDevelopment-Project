@@ -53,7 +53,8 @@ public class CatalogController : Controller
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveCategory(int id, string? name, int? parentId,
-                                                  int? defaultTeamId, int sortOrder, bool isActive)
+                                                  int? defaultTeamId, Priority? defaultPriority,
+                                                  int sortOrder, bool isActive)
     {
         name = CatalogRules.NormalizeName(name);
         if (NameError("Kategori", name) is { } hata) return Fail(hata);
@@ -71,6 +72,9 @@ public class CatalogController : Controller
         if (defaultTeamId != null && !await _db.Teams.AnyAsync(t => t.Id == defaultTeamId))
             return Fail("Geçerli bir varsayılan ekip seçin.");
 
+        if (defaultPriority != null && !Enum.IsDefined(typeof(Priority), defaultPriority.Value))
+            return Fail("Geçerli bir varsayılan öncelik seçin.");
+
         var kategori = id > 0 ? await _db.Categories.FirstOrDefaultAsync(c => c.Id == id) : null;
         if (id > 0 && kategori == null) return NotFound();
 
@@ -83,6 +87,7 @@ public class CatalogController : Controller
         kategori.Name = name;
         kategori.ParentId = parentId;
         kategori.DefaultTeamId = defaultTeamId;
+        kategori.DefaultPriority = defaultPriority;
         kategori.SortOrder = sortOrder;
         kategori.IsActive = isActive;
 

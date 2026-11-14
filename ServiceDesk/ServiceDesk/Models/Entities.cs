@@ -78,6 +78,10 @@ public class Category
     public int? DefaultTeamId { get; set; }
     public Team? DefaultTeam { get; set; }
 
+    // Portalda kategori seçilince öncelik alanı buna çekilir; kullanıcı değiştirebilir.
+    // null = öneri yok (formun kendi varsayılanı, genelde Orta).
+    public Priority? DefaultPriority { get; set; }
+
     public bool IsActive { get; set; } = true;
     public int SortOrder { get; set; }
 }

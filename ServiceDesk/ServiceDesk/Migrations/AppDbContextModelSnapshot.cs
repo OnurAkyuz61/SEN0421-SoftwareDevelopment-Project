@@ -334,6 +334,9 @@ namespace ServiceDesk.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("DefaultPriority")
+                        .HasColumnType("int");
+
                     b.Property<int?>("DefaultTeamId")
                         .HasColumnType("int");
 

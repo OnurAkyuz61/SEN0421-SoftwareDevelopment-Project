@@ -34,18 +34,23 @@
             </div>
             <div class="col-md-4">
                 <label asp-for="CategoryId" class="form-label fw-semibold">Kategori</label>
-                <select asp-for="CategoryId" class="form-select">
+                <select asp-for="CategoryId" class="form-select" id="ticketCategory">
                     <option value="">Seçin...</option>
                     @foreach (var c in (List<Category>)ViewBag.Categories)
                     {
-                        <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@Ui.CategoryOptionLabel(c)</option>
+                        <option value="@c.Id"
+                                selected="@(c.Id == Model.CategoryId)"
+                                data-default-priority="@(c.DefaultPriority?.ToString("D") ?? "")">
+                            @Ui.CategoryOptionLabel(c)
+                        </option>
                     }
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger small"></span>
             </div>
             <div class="col-md-4">
                 <label asp-for="Priority" class="form-label fw-semibold">Öncelik</label>
-                <select asp-for="Priority" asp-items="Html.GetEnumSelectList<Priority>()" class="form-select"></select>
+                <select asp-for="Priority" asp-items="Html.GetEnumSelectList<Priority>()" class="form-select" id="ticketPriority"></select>
+                <div class="form-text small" id="priorityHint" hidden>Kategorinin varsayılan önceliği uygulandı; değiştirebilirsiniz.</div>
             </div>
 
             <div class="col-12">
@@ -71,4 +76,28 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/upload.js" asp-append-version="true"></script>
     <script src="~/js/article-suggest.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            var cat = document.getElementById('ticketCategory');
+            var pri = document.getElementById('ticketPriority');
+            var hint = document.getElementById('priorityHint');
+            if (!cat || !pri) return;
+
+            function applyDefault() {
+                var opt = cat.options[cat.selectedIndex];
+                var def = opt && opt.getAttribute('data-default-priority');
+                if (def === null || def === '') {
+                    if (hint) hint.hidden = true;
+                    return;
+                }
+                pri.value = def;
+                if (hint) hint.hidden = false;
+            }
+
+            cat.addEventListener('change', applyDefault);
+            // İlk yüklemede kategori seçiliyse (doğrulama hatası sonrası) öneriyi gösterme;
+            // kullanıcının gönderdiği öncelik korunur. Yalnızca boş/ilk seçimde uygula.
+            if (!pri.value && cat.value) applyDefault();
+        })();
+    </script>
 }
